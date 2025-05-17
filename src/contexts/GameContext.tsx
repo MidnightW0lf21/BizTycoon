@@ -180,11 +180,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
-    const sharesAlreadyOwned = existingHolding?.shares || 0;
-    const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwned;
+    const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
+    
+    // Simple check for total shares owned by *everyone* (assuming only player can own for now)
+    // In a multiplayer or more complex scenario, this would need to check against a global ledger
+    // or available market float. For this game, we assume player is the only one buying from totalOutstandingShares.
+    const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
+
 
     if (sharesAvailableToBuy <= 0) {
-      toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) are already owned.`, variant: "default" });
+      toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) that you don't already own are accounted for, or you own all of them.`, variant: "default" });
       return;
     }
 
@@ -192,17 +197,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (sharesToBuyInput > sharesAvailableToBuy) {
       toast({
         title: "Purchase Adjusted",
-        description: `You attempted to buy ${sharesToBuyInput.toLocaleString('en-US')} shares, but only ${sharesAvailableToBuy.toLocaleString('en-US')} are available. Purchase adjusted.`,
+        description: `You attempted to buy ${sharesToBuyInput.toLocaleString('en-US')} shares, but only ${sharesAvailableToBuy.toLocaleString('en-US')} are available to you. Purchase adjusted.`,
         variant: "default",
       });
       sharesToBuy = sharesAvailableToBuy;
     }
     
-    if (sharesToBuy <= 0) { // Should be caught by sharesAvailableToBuy <= 0, but as a safeguard
-        toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased.`, variant: "destructive" });
+    if (sharesToBuy <= 0) { 
+        toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased with the adjusted amount.`, variant: "destructive" });
         return;
     }
-
 
     const cost = stock.price * sharesToBuy;
     if (playerStats.money < cost) {

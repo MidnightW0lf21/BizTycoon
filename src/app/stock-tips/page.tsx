@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -59,8 +60,8 @@ export default function StockTipsPage() {
       <div className="md:col-span-2">
         {isLoading && (
           <div className="space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-72 w-full" />
           </div>
         )}
         {error && (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { StockInvestmentTipsOutput } from "@/ai/flows/stock-investment-strategy";
@@ -19,7 +20,7 @@ const RecommendationIcon = ({ recommendation }: { recommendation: string }) => {
 
 export function StockTipsDisplay({ tips }: StockTipsDisplayProps) {
   return (
-    <div className="space-y-6 mt-6">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -43,7 +44,7 @@ export function StockTipsDisplay({ tips }: StockTipsDisplayProps) {
           ) : (
             <Accordion type="single" collapsible className="w-full">
               {tips.stockPicks.map((stock, index) => (
-                <AccordionItem value={`item-${index}`} key={stock.ticker}>
+                <AccordionItem value={`item-${index}`} key={stock.ticker + index}>
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center justify-between w-full pr-4">
                       <div className="flex items-center gap-3">

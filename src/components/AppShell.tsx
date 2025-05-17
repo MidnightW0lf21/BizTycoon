@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, Lightbulb } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart },
+  { href: '/stock-tips', label: 'AI Stock Tips', icon: Lightbulb },
 ];
 
 function AppLogo() {
@@ -73,13 +74,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [playerStats.money]);
   
   useEffect(() => {
-    const activeItem = navItems.find(item => pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true));
+    const activeItem = navItems.find(item => {
+      // For exact match on '/', otherwise allow partial match for nested routes
+      if (item.href === '/') {
+        return pathname === '/';
+      }
+      return pathname.startsWith(item.href);
+    });
+
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
-    } else if (pathname === '/stock-tips') { // Handle removed page gracefully if bookmarked
-      setCurrentPageTitle('Page Not Found');
-    }
-     else {
+    } else {
+      // Fallback title if no specific match is found, e.g. for a 404 page or an unlisted route
       setCurrentPageTitle('BizTycoon'); 
     }
   }, [pathname]);
@@ -90,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <AppLogo />
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             {navItems.map(item => <NavLink key={item.href} {...item} />)}
           </nav>
         </div>

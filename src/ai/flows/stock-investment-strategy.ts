@@ -1,4 +1,4 @@
-// Stock Investment Strategy
+
 'use server';
 
 /**
@@ -13,9 +13,9 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const StockInvestmentTipsInputSchema = z.object({
-  currentBalance: z.number().describe('The player\'s current in-game currency balance.'),
-  riskTolerance: z.enum(['low', 'medium', 'high']).describe('The player\'s risk tolerance level.'),
-  marketTrends: z.string().describe('A description of the current in-game market trends.'),
+  currentBalance: z.number().describe("The player's current in-game currency balance."),
+  riskTolerance: z.enum(['low', 'medium', 'high']).describe("The player's risk tolerance level."),
+  marketTrends: z.string().describe("A description of the current in-game market trends."),
 });
 
 export type StockInvestmentTipsInput = z.infer<typeof StockInvestmentTipsInputSchema>;
@@ -23,13 +23,13 @@ export type StockInvestmentTipsInput = z.infer<typeof StockInvestmentTipsInputSc
 const StockInvestmentTipsOutputSchema = z.object({
   stockPicks: z.array(
     z.object({
-      ticker: z.string().describe('The stock ticker symbol.'),
-      companyName: z.string().describe('The name of the company.'),
-      recommendation: z.string().describe('The investment recommendation (e.g., buy, sell, hold).'),
-      rationale: z.string().describe('The rationale behind the recommendation.'),
+      ticker: z.string().describe("The stock ticker symbol."),
+      companyName: z.string().describe("The name of the company."),
+      recommendation: z.string().describe("The investment recommendation (e.g., buy, sell, hold)."),
+      rationale: z.string().describe("The rationale behind the recommendation."),
     })
-  ).describe('A list of stock investment recommendations.'),
-  overallStrategy: z.string().describe('An overall investment strategy based on the inputs.'),
+  ).describe("A list of stock investment recommendations."),
+  overallStrategy: z.string().describe("An overall investment strategy based on the inputs."),
 });
 
 export type StockInvestmentTipsOutput = z.infer<typeof StockInvestmentTipsOutputSchema>;
@@ -53,6 +53,8 @@ const prompt = ai.definePrompt({
   Provide specific stock picks with ticker symbols, company names, recommendations (buy, sell, hold), and a rationale for each recommendation.
   Also, provide an overall investment strategy based on the player's situation.
   Ensure that the stockPicks and overallStrategy are tailored to the inputs provided.
+  Focus on stocks present in the game context: GC (Global Corp), TINV (Tech Innovations Inc.), GEC (Green Energy Co.), APRX (Alpha Pharmaceuticals), SRE (Summit Real Estate), BTH (BizTycoon Holdings).
+  If suggesting a stock not in this list, ensure the companyName and ticker are plausible for a game.
   `,
 });
 
