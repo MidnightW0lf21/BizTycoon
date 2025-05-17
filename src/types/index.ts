@@ -47,4 +47,7 @@ export interface PlayerStats {
   totalIncomePerSecond: number;
   investmentsValue: number;
   stockHoldings: StockHolding[];
+  prestigePoints: number;
+  timesPrestiged: number;
 }
+

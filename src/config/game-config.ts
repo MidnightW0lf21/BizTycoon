@@ -4,6 +4,9 @@ import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskCo
 
 export const INITIAL_MONEY = 1000;
 export const MAX_BUSINESS_LEVEL = 100;
+export const INITIAL_PRESTIGE_POINTS = 0;
+export const INITIAL_TIMES_PRESTIGED = 0;
+
 
 export const INITIAL_BUSINESSES: Business[] = [
   {
@@ -12,7 +15,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.08, // Original: 1.07
+    upgradeCostMultiplier: 1.085, 
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -30,7 +33,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.165, // Original: 1.15
+    upgradeCostMultiplier: 1.17, 
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -48,7 +51,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.175, // Original: 1.16
+    upgradeCostMultiplier: 1.18, 
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -65,7 +68,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.185, // Original: 1.17
+    upgradeCostMultiplier: 1.19, 
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -82,7 +85,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.21, // Original: 1.20
+    upgradeCostMultiplier: 1.215, 
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -100,7 +103,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.20, // Original: 1.19
+    upgradeCostMultiplier: 1.205, 
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -117,7 +120,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.19, // Original: 1.18
+    upgradeCostMultiplier: 1.195, 
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -134,7 +137,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.195, // Original: 1.185
+    upgradeCostMultiplier: 1.20, 
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -151,7 +154,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.20, // Original: 1.19
+    upgradeCostMultiplier: 1.205, 
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -169,7 +172,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.17, // Original: 1.16
+    upgradeCostMultiplier: 1.175, 
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -187,7 +190,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.21, // Original: 1.20
+    upgradeCostMultiplier: 1.215, 
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -204,7 +207,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.215, // Original: 1.205
+    upgradeCostMultiplier: 1.22, 
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -221,7 +224,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.22, // Original: 1.21
+    upgradeCostMultiplier: 1.225, 
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -238,7 +241,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.23, // Original: 1.22
+    upgradeCostMultiplier: 1.235, 
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -255,7 +258,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.24, // Original: 1.23
+    upgradeCostMultiplier: 1.245, 
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -272,7 +275,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.26, // Original: 1.25
+    upgradeCostMultiplier: 1.265, 
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -290,7 +293,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.25, // Original: 1.24
+    upgradeCostMultiplier: 1.255, 
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -307,7 +310,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.27, // Original: 1.26
+    upgradeCostMultiplier: 1.275, 
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',

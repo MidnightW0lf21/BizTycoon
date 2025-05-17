@@ -2,7 +2,7 @@
 "use client";
 
 import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding } from '@/types';
-import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost, MAX_BUSINESS_LEVEL, INITIAL_STOCKS } from '@/config/game-config';
+import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost, MAX_BUSINESS_LEVEL, INITIAL_STOCKS, INITIAL_PRESTIGE_POINTS, INITIAL_TIMES_PRESTIGED } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,7 @@ interface GameContextType {
   getBusinessUpgradeCost: (businessId: string) => number;
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
+  performPrestige: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -26,6 +27,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [businesses, setBusinesses] = useState<Business[]>(() => 
     INITIAL_BUSINESSES.map(biz => ({
       ...biz,
+      level: 0,
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
     }))
   );
@@ -37,6 +39,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     totalIncomePerSecond: 0,
     investmentsValue: 0,
     stockHoldings: [],
+    prestigePoints: INITIAL_PRESTIGE_POINTS,
+    timesPrestiged: INITIAL_TIMES_PRESTIGED,
   });
 
   const getBusinessIncome = useCallback((businessId: string): number => {
@@ -81,7 +85,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000); 
 
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, stocks]);
+  }, [playerStats.totalIncomePerSecond, stocks]); // Removed playerStats.money to prevent loop recreation on money change
 
   const upgradeBusiness = (businessId: string) => {
     const business = businesses.find(b => b.id === businessId);
@@ -177,7 +181,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
 
-
     if (sharesAvailableToBuy <= 0) {
       toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) that you don't already own are accounted for, or you own all of them.`, variant: "default" });
       return;
@@ -255,6 +258,45 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName} (${stock.ticker}).` });
   };
 
+  const performPrestige = useCallback(() => {
+    const moneyRequiredForPrestige = 1000000; // 1 million
+    if (playerStats.money < moneyRequiredForPrestige) {
+      toast({
+        title: "Not Enough Money for Prestige",
+        description: `You need at least $${moneyRequiredForPrestige.toLocaleString('en-US')} to prestige.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
+    const prestigePointsEarned = Math.max(1, Math.floor(totalLevels / 50));
+
+    setPlayerStats(prev => ({
+      ...prev,
+      money: INITIAL_MONEY,
+      // totalIncomePerSecond will be recalculated by its own useEffect
+      investmentsValue: 0,
+      stockHoldings: [],
+      prestigePoints: prev.prestigePoints + prestigePointsEarned,
+      timesPrestiged: prev.timesPrestiged + 1,
+    }));
+
+    setBusinesses(INITIAL_BUSINESSES.map(biz => ({
+      ...biz,
+      level: 0,
+      managerOwned: false, 
+      upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
+    })));
+    
+    // totalIncomePerSecond will be reset by its useEffect after businesses and stocks are reset.
+
+    toast({
+      title: "Prestige Successful!",
+      description: `You've prestiged for the ${playerStats.timesPrestiged + 1} time and earned ${prestigePointsEarned} prestige point(s)! Game reset.`,
+    });
+  }, [playerStats.money, playerStats.prestigePoints, playerStats.timesPrestiged, businesses, toast]);
+
 
   return (
     <GameContext.Provider value={{ 
@@ -267,6 +309,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getBusinessUpgradeCost,
       buyStock,
       sellStock,
+      performPrestige,
     }}>
       {children}
     </GameContext.Provider>
@@ -280,3 +323,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
