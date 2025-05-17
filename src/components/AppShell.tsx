@@ -40,13 +40,12 @@ function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
 
-  const linkProps = {
+  const linkProps: { href: string; className: string; onClick?: () => void } = {
     href,
     className: cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary", // Changed py-2 to py-1
       isActive && "bg-muted text-primary"
     ),
-    onClick,
   };
   
   if (onClick) {
@@ -76,8 +75,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const item = navItems.find(item => item.href === pathname);
     if (item) {
       setCurrentPageTitle(item.label);
-    } else if (pathname === '/stock-tips') { // Example for a page not in navItems
-      setCurrentPageTitle('AI Stock Tips');
     } else {
       setCurrentPageTitle('BizTycoon'); // Default or for other pages
     }
