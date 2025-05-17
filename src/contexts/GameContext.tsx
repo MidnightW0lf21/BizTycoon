@@ -2,7 +2,7 @@
 "use client";
 
 import type { Business, BusinessUpgrade, PlayerStats } from '@/types';
-import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost } from '@/config/game-config';
+import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost, MAX_BUSINESS_LEVEL } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -62,6 +62,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const upgradeBusiness = (businessId: string) => {
     const business = businesses.find(b => b.id === businessId);
     if (!business) return;
+
+    if (business.level >= MAX_BUSINESS_LEVEL) {
+      toast({
+        title: "Max Level Reached!",
+        description: `${business.name} is already at the maximum level (${MAX_BUSINESS_LEVEL}).`,
+        variant: "default",
+      });
+      return;
+    }
 
     const cost = getBusinessUpgradeCost(business.id);
     if (playerStats.money >= cost) {

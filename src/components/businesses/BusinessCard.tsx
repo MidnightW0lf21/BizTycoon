@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import type { Business, BusinessUpgrade } from "@/types";
-import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info } from "lucide-react";
+import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MAX_BUSINESS_LEVEL } from "@/config/game-config";
 
 interface BusinessCardProps {
   business: Business;
@@ -33,14 +34,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
 
   const handleLevelUpgrade = () => {
-    upgradeBusiness(business.id);
+    if (currentLevel < MAX_BUSINESS_LEVEL) {
+      upgradeBusiness(business.id);
+    }
   };
 
   const handlePurchaseUpgrade = (upgradeId: string) => {
     purchaseBusinessUpgrade(business.id, upgradeId);
   };
 
-  const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost;
+  const isMaxLevel = currentLevel >= MAX_BUSINESS_LEVEL;
+  const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost && !isMaxLevel;
 
   return (
     <Card className="flex flex-col">
@@ -54,7 +58,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
       <CardContent className="flex-grow space-y-3">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Level:</span>
-          <span className="font-semibold">{currentLevel}</span>
+          <span className="font-semibold">{currentLevel} / {MAX_BUSINESS_LEVEL}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Income/sec:</span>
@@ -63,13 +67,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <span className="font-semibold text-green-500">${income.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
           </div>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Next Level Cost:</span>
-          <div className="flex items-center gap-1">
-            <DollarSign className="h-4 w-4 text-red-500" />
-            <span className="font-semibold text-red-500">${levelUpgradeCost.toLocaleString()}</span>
+        {!isMaxLevel && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Next Level Cost:</span>
+            <div className="flex items-center gap-1">
+              <DollarSign className="h-4 w-4 text-red-500" />
+              <span className="font-semibold text-red-500">${levelUpgradeCost.toLocaleString()}</span>
+            </div>
           </div>
-        </div>
+        )}
         
         {currentUpgrades && currentUpgrades.length > 0 && (
           <Accordion type="single" collapsible className="w-full mt-3">
@@ -141,11 +147,20 @@ export function BusinessCard({ business }: BusinessCardProps) {
       <CardFooter>
         <Button
           onClick={handleLevelUpgrade}
-          disabled={!canAffordLevelUpgrade}
+          disabled={!canAffordLevelUpgrade || isMaxLevel}
           className="w-full bg-accent text-accent-foreground hover:bg-yellow-400"
         >
-          <ArrowUpCircle className="mr-2 h-5 w-5" />
-          Level Up (Lvl {currentLevel + 1})
+          {isMaxLevel ? (
+            <>
+              <Crown className="mr-2 h-5 w-5" />
+              Max Level
+            </>
+          ) : (
+            <>
+              <ArrowUpCircle className="mr-2 h-5 w-5" />
+              Level Up (Lvl {currentLevel + 1})
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

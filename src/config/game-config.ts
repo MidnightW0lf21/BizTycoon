@@ -3,6 +3,7 @@ import type { Business, BusinessUpgrade } from '@/types';
 import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit } from 'lucide-react';
 
 export const INITIAL_MONEY = 100;
+export const MAX_BUSINESS_LEVEL = 100;
 
 export const INITIAL_BUSINESSES: Business[] = [
   {
@@ -176,12 +177,6 @@ export const calculateIncome = (business: Business): number => {
 
   let currentIncome = business.level * business.baseIncome;
   
-  // Apply level multiplier for specific businesses if defined (example was Tech Startup)
-  // You can add more specific business logic here if needed
-  // if (business.name === 'Tech Startup') {
-  //   currentIncome *= Math.pow(1.05, business.level); // Example: 5% compounding income per level
-  // }
-  
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.incomeBoostPercent) {
@@ -194,6 +189,8 @@ export const calculateIncome = (business: Business): number => {
 };
 
 export const calculateUpgradeCost = (business: Business): number => {
+  if (business.level >= MAX_BUSINESS_LEVEL) return Infinity; // Cost is infinite if at max level
+
   let currentCost = business.baseCost * Math.pow(business.upgradeCostMultiplier, business.level);
   
   if (business.upgrades) {
@@ -206,5 +203,3 @@ export const calculateUpgradeCost = (business: Business): number => {
   
   return Math.floor(currentCost);
 };
-
-    
