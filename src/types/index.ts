@@ -42,12 +42,9 @@ export interface StockHolding {
   averagePurchasePrice: number;
 }
 
-export type RiskTolerance = "low" | "medium" | "high";
-
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
   investmentsValue: number;
   stockHoldings: StockHolding[];
 }
-

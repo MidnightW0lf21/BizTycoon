@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, RiskTolerance } from '@/types';
+import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding } from '@/types';
 import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost, MAX_BUSINESS_LEVEL, INITIAL_STOCKS } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -16,10 +16,6 @@ interface GameContextType {
   getBusinessUpgradeCost: (businessId: string) => number;
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
-  lastMarketTrends: string;
-  setLastMarketTrends: (trends: string) => void;
-  lastRiskTolerance: RiskTolerance;
-  setLastRiskTolerance: (tolerance: RiskTolerance) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -35,9 +31,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
-  const [lastMarketTrends, setLastMarketTrends] = useState<string>("The market is stable with moderate growth in tech and renewables.");
-  const [lastRiskTolerance, setLastRiskTolerance] = useState<RiskTolerance>("medium");
-
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     money: INITIAL_MONEY,
@@ -182,9 +175,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
     
-    // Simple check for total shares owned by *everyone* (assuming only player can own for now)
-    // In a multiplayer or more complex scenario, this would need to check against a global ledger
-    // or available market float. For this game, we assume player is the only one buying from totalOutstandingShares.
     const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
 
 
@@ -277,10 +267,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getBusinessUpgradeCost,
       buyStock,
       sellStock,
-      lastMarketTrends,
-      setLastMarketTrends,
-      lastRiskTolerance,
-      setLastRiskTolerance
     }}>
       {children}
     </GameContext.Provider>
@@ -294,4 +280,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-

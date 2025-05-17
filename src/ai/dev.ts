@@ -1,4 +1,1 @@
-import { config } from 'dotenv';
-config();
-
-import '@/ai/flows/stock-investment-strategy.ts';
+// This file intentionally left blank after AI feature removal.
