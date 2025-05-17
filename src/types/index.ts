@@ -33,6 +33,7 @@ export interface Stock {
   dividendYield: number; // Per-second dividend yield as a fraction of current price (e.g., 0.00001 for 0.001% per second)
   icon: LucideIcon;
   description: string;
+  totalOutstandingShares: number; // Total shares available for this company
 }
 
 export interface StockHolding {
@@ -48,5 +49,3 @@ export interface PlayerStats {
   stockHoldings: StockHolding[];
 }
 
-// Removed RiskTolerance as it was part of the deleted AI tips feature
-// export type RiskTolerance = "low" | "medium" | "high";

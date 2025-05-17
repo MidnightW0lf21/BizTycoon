@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
 import { useState, useEffect } from "react";
-import { DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Info, Package } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface StockMarketItemProps {
@@ -74,6 +74,21 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
           <span className="text-muted-foreground">Shares Owned:</span>
           <span className="font-semibold">{sharesOwned.toLocaleString('en-US')}</span>
         </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Total Outstanding Shares:</span>
+           <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-semibold flex items-center">
+                  <Package className="h-3 w-3 mr-0.5 text-muted-foreground" />
+                  {stock.totalOutstandingShares.toLocaleString('en-US')}
+                  <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>The total number of shares issued by {stock.companyName}.</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <div className="space-y-1">
           <Label htmlFor={`shares-${stock.id}`} className="text-xs">Shares to trade:</Label>
           <Input
@@ -98,3 +113,4 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
     </TooltipProvider>
   );
 }
+

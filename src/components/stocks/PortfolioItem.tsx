@@ -3,9 +3,9 @@
 
 import type { Stock, StockHolding } from "@/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { DollarSign, Info } from "lucide-react";
+import { DollarSign, Info, Percent } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge"; // Assuming Badge component exists
+import { Badge } from "@/components/ui/badge"; 
 
 interface PortfolioItemProps {
   holding: StockHolding;
@@ -16,6 +16,7 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
   const Icon = stock.icon;
   const currentValue = holding.shares * stock.price;
   const dividendPerSecondFromHolding = holding.shares * stock.price * stock.dividendYield;
+  const ownershipPercentage = (holding.shares / stock.totalOutstandingShares) * 100;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -61,8 +62,24 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
             </TooltipContent>
           </Tooltip>
         </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Ownership:</span>
+           <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-medium flex items-center">
+                <Percent className="h-3 w-3 mr-0.5 text-primary" />
+                {ownershipPercentage.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}%
+                <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>Your percentage of {stock.companyName}'s total outstanding shares ({stock.totalOutstandingShares.toLocaleString('en-US')}).</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </CardContent>
     </Card>
     </TooltipProvider>
   );
 }
+
