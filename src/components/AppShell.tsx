@@ -76,7 +76,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const activeItem = navItems.find(item => pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true));
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
-    } else {
+    } else if (pathname === '/stock-tips') { // Handle removed page gracefully if bookmarked
+      setCurrentPageTitle('Page Not Found');
+    }
+     else {
       setCurrentPageTitle('BizTycoon'); 
     }
   }, [pathname]);
@@ -87,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <AppLogo />
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
             {navItems.map(item => <NavLink key={item.href} {...item} />)}
           </nav>
         </div>
@@ -117,7 +120,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <DollarSign className="h-5 w-5" />
-              <span>${Math.floor(currentMoney).toLocaleString()}</span>
+              <span>${Math.floor(currentMoney).toLocaleString('en-US')}</span>
             </div>
             <ThemeToggle />
           </div>

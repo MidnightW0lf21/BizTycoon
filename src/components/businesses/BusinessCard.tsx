@@ -64,7 +64,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           <span className="text-muted-foreground">Income/sec:</span>
           <div className="flex items-center gap-1">
             <DollarSign className="h-4 w-4 text-green-500" />
-            <span className="font-semibold text-green-500">${income.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
+            <span className="font-semibold text-green-500">${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
           </div>
         </div>
         {!isMaxLevel && (
@@ -72,7 +72,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <span className="text-muted-foreground">Next Level Cost:</span>
             <div className="flex items-center gap-1">
               <DollarSign className="h-4 w-4 text-red-500" />
-              <span className="font-semibold text-red-500">${levelUpgradeCost.toLocaleString()}</span>
+              <span className="font-semibold text-red-500">${levelUpgradeCost.toLocaleString('en-US')}</span>
             </div>
           </div>
         )}
@@ -102,7 +102,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                             <div className="text-xs mt-1">
                               {!upgrade.isPurchased && (
                                 <>
-                                  <span>Cost: ${upgrade.cost.toLocaleString()}</span>
+                                  <span>Cost: ${upgrade.cost.toLocaleString('en-US')}</span>
                                   <span className="mx-1">|</span>
                                   <span>Req. Lvl: {upgrade.requiredLevel}</span>
                                 </>
@@ -127,7 +127,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 { !levelRequirementMet ? <p>Requires Level {upgrade.requiredLevel}</p> :
-                                  !canAffordUpgrade ? <p>Need ${upgrade.cost.toLocaleString()}</p> :
+                                  !canAffordUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US')}</p> :
                                   <p>Purchase Upgrade</p>
                                 }
                               </TooltipContent>

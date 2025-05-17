@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
@@ -58,7 +59,7 @@ export function IncomeChart() {
                 axisLine={false}
               />
               <YAxis 
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                tickFormatter={(value) => `$${value.toLocaleString('en-US')}`}
               />
               <ChartTooltip
                 cursor={false}

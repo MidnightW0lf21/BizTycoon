@@ -49,7 +49,7 @@ export default function StocksPage() {
           <CardContent>
             <div className="mb-4">
               <p className="text-sm text-muted-foreground">Total Investment Value:</p>
-              <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
             <Separator className="my-4" />
             {playerHoldingsWithStockData.length === 0 ? (

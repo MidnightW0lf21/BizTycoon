@@ -1,3 +1,4 @@
+
 "use client";
 
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -30,13 +31,13 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Current Money"
-          value={`$${Math.floor(currentMoney).toLocaleString()}`}
+          value={`$${Math.floor(currentMoney).toLocaleString('en-US')}`}
           icon={DollarSign}
           description="Your total available cash."
         />
         <MetricCard
           title="Income / Sec"
-          value={`$${currentIncome.toLocaleString()}`}
+          value={`$${currentIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
           icon={TrendingUp}
           description="Passive income from all businesses."
         />
@@ -48,7 +49,7 @@ export default function DashboardPage() {
         />
          <MetricCard
           title="Investment Value"
-          value={`$${playerStats.investmentsValue.toLocaleString()}`}
+          value={`$${playerStats.investmentsValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
           icon={ShieldCheck}
           description="Current value of your stock portfolio."
         />

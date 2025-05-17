@@ -5,6 +5,7 @@ import type { Stock, StockHolding } from "@/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { DollarSign, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge"; // Assuming Badge component exists
 
 interface PortfolioItemProps {
   holding: StockHolding;
@@ -26,22 +27,22 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
                 {stock.companyName} ({stock.ticker})
             </CardTitle>
              <Badge className="text-xs" variant="secondary">
-                {holding.shares.toLocaleString()} Shares
+                {holding.shares.toLocaleString('en-US')} Shares
             </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-1.5 text-xs pt-2 pb-3">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Avg. Purchase Price:</span>
-          <span className="font-medium">${holding.averagePurchasePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-medium">${holding.averagePurchasePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Current Price:</span>
-          <span className="font-medium">${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-medium">${stock.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Current Value:</span>
-          <span className="font-bold text-primary">${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-bold text-primary">${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Dividend/sec:</span>
@@ -49,14 +50,14 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
             <TooltipTrigger asChild>
                 <span className="font-medium text-green-500 flex items-center">
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {dividendPerSecondFromHolding.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                    {dividendPerSecondFromHolding.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                      <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
             <TooltipContent>
                 <p>Total dividend from these shares per second.</p>
                 <p>Calculation: Shares × Price × Yield</p>
-                <p>{holding.shares.toLocaleString()} × ${stock.price.toFixed(2)} × {(stock.dividendYield * 100).toFixed(4)}%</p>
+                <p>{holding.shares.toLocaleString('en-US')} × ${stock.price.toFixed(2)} × {(stock.dividendYield * 100).toFixed(4)}%</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -65,12 +66,3 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
     </TooltipProvider>
   );
 }
-
-// Temporary Badge component - if you have a Badge, use it. Otherwise, this is a placeholder.
-// You should ideally import Badge from "@/components/ui/badge"
-// For now, to avoid error if it's not there:
-const Badge = ({ className, children, variant }: { className?: string; children: React.ReactNode; variant?: string }) => (
-  <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${variant === 'secondary' ? 'bg-secondary text-secondary-foreground' : 'bg-primary text-primary-foreground'} ${className}`}>
-    {children}
-  </span>
-);
