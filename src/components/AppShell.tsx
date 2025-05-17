@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -21,6 +21,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
+  { href: '/stocks', label: 'Stocks', icon: BarChart },
 ];
 
 function AppLogo() {
@@ -43,7 +44,7 @@ function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
   const linkProps: { href: string; className: string; onClick?: () => void } = {
     href,
     className: cn(
-      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary", // Ensures py-1 is used
+      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary",
       isActive && "bg-muted text-primary"
     ),
   };
@@ -75,10 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const activeItem = navItems.find(item => pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true));
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
-    } else if (pathname === '/stock-tips') {
-      setCurrentPageTitle('AI Stock Tips');
-    }
-     else {
+    } else {
       setCurrentPageTitle('BizTycoon'); 
     }
   }, [pathname]);
@@ -89,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <AppLogo />
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             {navItems.map(item => <NavLink key={item.href} {...item} />)}
           </nav>
         </div>
@@ -107,7 +105,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <AppLogo />
               <nav className="grid gap-2 text-lg font-medium p-4">
                 {navItems.map(item => <NavLink key={item.href} {...item} onClick={() => {
-                  // Close sheet on click
                   const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
                   document.dispatchEvent(escapeKeyEvent);
                 }} />)}
@@ -117,7 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1">
             <h1 className="font-semibold text-lg">{currentPageTitle}</h1>
           </div>
-          <div className="flex items-center gap-4"> {/* Added gap-4 for spacing */}
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <DollarSign className="h-5 w-5" />
               <span>${Math.floor(currentMoney).toLocaleString()}</span>

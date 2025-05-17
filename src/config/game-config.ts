@@ -1,8 +1,8 @@
 
-import type { Business, BusinessUpgrade } from '@/types';
-import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUpIcon } from 'lucide-react';
+import type { Business, BusinessUpgrade, Stock } from '@/types';
+import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, Briefcase, BarChart } from 'lucide-react';
 
-export const INITIAL_MONEY = 100;
+export const INITIAL_MONEY = 1000; // Increased initial money for stock testing
 export const MAX_BUSINESS_LEVEL = 100;
 
 export const INITIAL_BUSINESSES: Business[] = [
@@ -267,11 +267,19 @@ export const INITIAL_BUSINESSES: Business[] = [
   },
 ];
 
+export const INITIAL_STOCKS: Stock[] = [
+  { id: 'global_corp', ticker: 'GC', companyName: 'Global Corp', price: 100, dividendYield: 0.00002, icon: Building, description: 'A diversified multinational conglomerate.' },
+  { id: 'tech_innovations', ticker: 'TINV', companyName: 'Tech Innovations Inc.', price: 250, dividendYield: 0.00001, icon: Cpu, description: 'Pioneering future technologies.' },
+  { id: 'green_energy_co', ticker: 'GEC', companyName: 'Green Energy Co.', price: 150, dividendYield: 0.000015, icon: Zap, description: 'Leading the renewable energy revolution.' },
+  { id: 'alpha_pharma', ticker: 'APRX', companyName: 'Alpha Pharmaceuticals', price: 300, dividendYield: 0.000025, icon: FlaskConical, description: 'Developing life-saving medications.' },
+  { id: 'summit_real_estate', ticker: 'SRE', companyName: 'Summit Real Estate', price: 120, dividendYield: 0.000018, icon: Landmark, description: 'Prime properties and development projects.' },
+  { id: 'biz_tycoon_holdings', ticker: 'BTH', companyName: 'BizTycoon Holdings', price: 500, dividendYield: 0.00003, icon: Briefcase, description: 'The parent company of successful ventures.' },
+];
+
+
 export const calculateIncome = (business: Business): number => {
   if (business.level === 0) return 0;
-
   let currentIncome = business.level * business.baseIncome;
-  
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.incomeBoostPercent) {
@@ -279,15 +287,12 @@ export const calculateIncome = (business: Business): number => {
       }
     });
   }
-  
   return currentIncome;
 };
 
 export const calculateUpgradeCost = (business: Business): number => {
-  if (business.level >= MAX_BUSINESS_LEVEL) return Infinity; // Cost is infinite if at max level
-
+  if (business.level >= MAX_BUSINESS_LEVEL) return Infinity;
   let currentCost = business.baseCost * Math.pow(business.upgradeCostMultiplier, business.level);
-  
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.levelUpgradeCostReductionPercent) {
@@ -295,7 +300,5 @@ export const calculateUpgradeCost = (business: Business): number => {
       }
     });
   }
-  
   return Math.floor(currentCost);
 };
-

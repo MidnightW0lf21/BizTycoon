@@ -10,7 +10,6 @@ export interface BusinessUpgrade {
   isPurchased: boolean;
   incomeBoostPercent?: number; // e.g., 10 for a 10% boost
   levelUpgradeCostReductionPercent?: number; // e.g., 5 for 5% reduction
-  // Add other potential effects here, e.g., unlocksManager: true
 }
 
 export interface Business {
@@ -26,16 +25,28 @@ export interface Business {
   upgrades?: BusinessUpgrade[];
 }
 
+export interface Stock {
+  id: string;
+  ticker: string;
+  companyName: string;
+  price: number; // Current price per share
+  dividendYield: number; // Per-second dividend yield as a fraction of current price (e.g., 0.00001 for 0.001% per second)
+  icon: LucideIcon;
+  description: string;
+}
+
+export interface StockHolding {
+  stockId: string;
+  shares: number;
+  averagePurchasePrice: number;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
   investmentsValue: number;
+  stockHoldings: StockHolding[];
 }
 
-export interface StockHolding {
-  ticker: string;
-  companyName: string;
-  shares: number;
-  purchasePrice: number;
-  currentPrice: number;
-}
+// Removed RiskTolerance as it was part of the deleted AI tips feature
+// export type RiskTolerance = "low" | "medium" | "high";
