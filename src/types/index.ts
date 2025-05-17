@@ -43,6 +43,22 @@ export interface StockHolding {
   averagePurchasePrice: number;
 }
 
+export interface SkillNode {
+  id: string;
+  name: string;
+  description: string;
+  cost: number; // Prestige points
+  icon: LucideIcon;
+  dependencies?: string[]; // IDs of other skill nodes that must be unlocked first
+  effects: {
+    globalIncomeBoostPercent?: number;
+    globalCostReductionPercent?: number; // For business level-up costs
+    businessSpecificIncomeBoost?: { businessId: string; percent: number };
+    increaseStartingMoney?: number; // Flat amount added to initial money after prestige
+    // Add more specific effect types as needed
+  };
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -50,5 +66,6 @@ export interface PlayerStats {
   stockHoldings: StockHolding[];
   prestigePoints: number;
   timesPrestiged: number;
+  unlockedSkillIds: string[];
 }
 

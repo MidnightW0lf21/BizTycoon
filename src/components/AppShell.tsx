@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network } from 'lucide-react'; // Added Network
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
+  { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
 ];
 
 function AppLogo() {
@@ -115,7 +116,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
     } else {
-      setCurrentPageTitle('BizTycoon'); 
+      // Fallback for pages not directly in navItems (like skill-tree before it's in navItems)
+      // Or if you have sub-pages you want to map to a parent nav item title.
+      if (pathname.startsWith('/skill-tree')) {
+        setCurrentPageTitle('Skill Tree');
+      } else {
+        setCurrentPageTitle('BizTycoon'); 
+      }
     }
   }, [pathname]);
 

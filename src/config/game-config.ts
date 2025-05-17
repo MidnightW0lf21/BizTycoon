@@ -1,11 +1,12 @@
 
-import type { Business, BusinessUpgrade, Stock } from '@/types';
-import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase } from 'lucide-react';
+import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
+import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign } from 'lucide-react';
 
 export const INITIAL_MONEY = 1000;
 export const MAX_BUSINESS_LEVEL = 100;
 export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
+export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 
 
 export const INITIAL_BUSINESSES: Business[] = [
@@ -15,7 +16,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.095,
+    upgradeCostMultiplier: 1.115, // Slightly increased from 1.095
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -34,7 +35,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.18,
+    upgradeCostMultiplier: 1.20, // Slightly increased from 1.18
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -53,7 +54,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.19,
+    upgradeCostMultiplier: 1.21, // Slightly increased from 1.19
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -71,7 +72,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.20,
+    upgradeCostMultiplier: 1.22, // Slightly increased from 1.20
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -89,7 +90,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.225,
+    upgradeCostMultiplier: 1.245, // Slightly increased from 1.225
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -108,7 +109,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.215,
+    upgradeCostMultiplier: 1.235, // Slightly increased from 1.215
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -126,7 +127,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.205,
+    upgradeCostMultiplier: 1.225, // Slightly increased from 1.205
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -144,7 +145,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.21,
+    upgradeCostMultiplier: 1.23, // Slightly increased
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -162,7 +163,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.215,
+    upgradeCostMultiplier: 1.235, // Slightly increased from 1.215
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -181,7 +182,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.185,
+    upgradeCostMultiplier: 1.205, // Slightly increased from 1.185
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -200,7 +201,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.225,
+    upgradeCostMultiplier: 1.245, // Slightly increased from 1.225
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -218,7 +219,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.23,
+    upgradeCostMultiplier: 1.25, // Slightly increased
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -236,7 +237,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.235,
+    upgradeCostMultiplier: 1.255, // Slightly increased from 1.235
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -254,7 +255,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.245,
+    upgradeCostMultiplier: 1.265, // Slightly increased from 1.245
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -272,7 +273,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.255,
+    upgradeCostMultiplier: 1.275, // Slightly increased from 1.255
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -290,7 +291,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.275,
+    upgradeCostMultiplier: 1.295, // Slightly increased from 1.275
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -309,7 +310,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.265,
+    upgradeCostMultiplier: 1.285, // Slightly increased from 1.265
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -327,7 +328,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.285,
+    upgradeCostMultiplier: 1.305, // Slightly increased from 1.285
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -353,10 +354,65 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'biosynth_genetics', ticker: 'BSG', companyName: 'BioSynth Genetics', price: 220, dividendYield: 0.000022, icon: Dna, description: 'Biotechnology firm specializing in gene therapy and synthetic biology.', totalOutstandingShares: 8000000 },
 ];
 
+export const INITIAL_SKILL_TREE: SkillNode[] = [
+  {
+    id: 'global_income_boost_1',
+    name: 'Entrepreneurial Spirit I',
+    description: 'All businesses generate +5% income.',
+    cost: 2,
+    icon: TrendingUpIcon,
+    effects: { globalIncomeBoostPercent: 5 },
+  },
+  {
+    id: 'global_cost_reduction_1',
+    name: 'Efficient Operations I',
+    description: 'All business level-up costs reduced by 3%.',
+    cost: 3,
+    icon: ArrowDownCircle,
+    effects: { globalCostReductionPercent: 3 },
+  },
+  {
+    id: 'lemonade_boost_1',
+    name: 'Lemonade Empire',
+    description: 'Lemonade Stand income +20%.',
+    cost: 1,
+    icon: Citrus,
+    dependencies: [],
+    effects: { businessSpecificIncomeBoost: { businessId: 'lemonade_stand', percent: 20 } },
+  },
+  {
+    id: 'starting_cash_boost_1',
+    name: 'Head Start I',
+    description: 'Start with an extra $5,000 after prestiging.',
+    cost: 5,
+    icon: Banknote,
+    effects: { increaseStartingMoney: 5000 },
+  },
+  {
+    id: 'global_income_boost_2',
+    name: 'Entrepreneurial Spirit II',
+    description: 'All businesses generate an additional +7% income.',
+    cost: 10,
+    icon: ChevronsUp,
+    dependencies: ['global_income_boost_1'],
+    effects: { globalIncomeBoostPercent: 7 },
+  },
+    {
+    id: 'prestige_point_boost_1',
+    name: 'Prestige Power I',
+    description: 'Gain +10% more prestige points when prestiging.', // This effect will need to be handled in performPrestige
+    cost: 15,
+    icon: Sparkles,
+    effects: {}, // Placeholder, actual logic in performPrestige
+  },
+];
 
-export const calculateIncome = (business: Business): number => {
+
+export const calculateIncome = (business: Business, unlockedSkillIds: string[] = [], skillTree: SkillNode[] = []): number => {
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
+
+  // Apply business-specific upgrades
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.incomeBoostPercent) {
@@ -364,12 +420,38 @@ export const calculateIncome = (business: Business): number => {
       }
     });
   }
+  
+  // Apply skill tree effects
+  let totalGlobalIncomeBoost = 0;
+  let businessSpecificBoost = 0;
+
+  unlockedSkillIds.forEach(skillId => {
+    const skill = skillTree.find(s => s.id === skillId);
+    if (skill) {
+      if (skill.effects.globalIncomeBoostPercent) {
+        totalGlobalIncomeBoost += skill.effects.globalIncomeBoostPercent;
+      }
+      if (skill.effects.businessSpecificIncomeBoost && skill.effects.businessSpecificIncomeBoost.businessId === business.id) {
+        businessSpecificBoost += skill.effects.businessSpecificIncomeBoost.percent;
+      }
+    }
+  });
+
+  if (totalGlobalIncomeBoost > 0) {
+    currentIncome *= (1 + totalGlobalIncomeBoost / 100);
+  }
+  if (businessSpecificBoost > 0) {
+    currentIncome *= (1 + businessSpecificBoost / 100);
+  }
+
   return currentIncome;
 };
 
-export const calculateUpgradeCost = (business: Business): number => {
+export const calculateUpgradeCost = (business: Business, unlockedSkillIds: string[] = [], skillTree: SkillNode[] = []): number => {
   if (business.level >= MAX_BUSINESS_LEVEL) return Infinity;
   let currentCost = business.baseCost * Math.pow(business.upgradeCostMultiplier, business.level);
+
+  // Apply business-specific upgrades for cost reduction
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.levelUpgradeCostReductionPercent) {
@@ -377,6 +459,45 @@ export const calculateUpgradeCost = (business: Business): number => {
       }
     });
   }
+
+  // Apply skill tree effects for global cost reduction
+  let totalGlobalCostReduction = 0;
+  unlockedSkillIds.forEach(skillId => {
+    const skill = skillTree.find(s => s.id === skillId);
+    if (skill && skill.effects.globalCostReductionPercent) {
+      totalGlobalCostReduction += skill.effects.globalCostReductionPercent;
+    }
+  });
+
+  if (totalGlobalCostReduction > 0) {
+    currentCost *= (1 - totalGlobalCostReduction / 100);
+  }
+  
   return Math.floor(currentCost);
 };
 
+// Helper function to get total starting money bonus from skills
+export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
+  let bonus = 0;
+  unlockedSkillIds.forEach(skillId => {
+    const skill = skillTree.find(s => s.id === skillId);
+    if (skill && skill.effects.increaseStartingMoney) {
+      bonus += skill.effects.increaseStartingMoney;
+    }
+  });
+  return bonus;
+};
+
+// Helper to get prestige point boost percentage
+export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
+  let boostPercent = 0;
+  unlockedSkillIds.forEach(skillId => {
+    const skill = skillTree.find(s => s.id === skillId);
+    // This relies on a convention for the skill ID or adding a specific property to SkillNode.effects
+    // For now, let's assume the 'prestige_point_boost_1' skill gives 10%
+    if (skill && skill.id === 'prestige_point_boost_1') { // Example specific check
+        boostPercent += 10; // This should ideally come from skill.effects
+    }
+  });
+  return boostPercent;
+};
