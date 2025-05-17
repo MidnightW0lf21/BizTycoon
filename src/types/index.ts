@@ -1,4 +1,17 @@
+
 import type { LucideIcon } from "lucide-react";
+
+export interface BusinessUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  requiredLevel: number;
+  isPurchased: boolean;
+  incomeBoostPercent?: number; // e.g., 10 for a 10% boost
+  levelUpgradeCostReductionPercent?: number; // e.g., 5 for 5% reduction
+  // Add other potential effects here, e.g., unlocksManager: true
+}
 
 export interface Business {
   id: string;
@@ -10,12 +23,13 @@ export interface Business {
   icon: LucideIcon;
   managerOwned: boolean; // Future feature: auto-collects income
   description: string;
+  upgrades?: BusinessUpgrade[];
 }
 
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
-  investmentsValue: number; // Future feature: value of stocks
+  investmentsValue: number;
 }
 
 export interface StockHolding {
