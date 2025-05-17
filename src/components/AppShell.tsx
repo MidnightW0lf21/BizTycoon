@@ -72,14 +72,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [playerStats.money]);
   
   useEffect(() => {
-    const item = navItems.find(item => item.href === pathname);
-    if (item) {
-      setCurrentPageTitle(item.label);
-    } else {
-      // Handle cases for pages not in navItems, or set a default
-      // For example, if you had a /settings page:
-      // if (pathname === '/settings') setCurrentPageTitle('Settings');
-      setCurrentPageTitle('BizTycoon'); // Default or for other pages
+    const activeItem = navItems.find(item => pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true));
+    if (activeItem) {
+      setCurrentPageTitle(activeItem.label);
+    } else if (pathname === '/stock-tips') {
+      setCurrentPageTitle('AI Stock Tips');
+    }
+     else {
+      setCurrentPageTitle('BizTycoon'); 
     }
   }, [pathname]);
 
@@ -132,4 +132,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
