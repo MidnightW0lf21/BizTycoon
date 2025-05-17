@@ -43,7 +43,7 @@ function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
   const linkProps: { href: string; className: string; onClick?: () => void } = {
     href,
     className: cn(
-      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary", // Changed py-2 to py-1
+      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary", // Ensures py-1 is used
       isActive && "bg-muted text-primary"
     ),
   };
@@ -75,7 +75,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const item = navItems.find(item => item.href === pathname);
     if (item) {
       setCurrentPageTitle(item.label);
-    } else {
+    } else if (pathname === '/stock-tips') { // Added else-if for stock-tips
+      setCurrentPageTitle('AI Stock Tips');
+    }
+     else {
       setCurrentPageTitle('BizTycoon'); // Default or for other pages
     }
   }, [pathname]);
@@ -105,7 +108,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <nav className="grid gap-2 text-lg font-medium p-4">
                 {navItems.map(item => <NavLink key={item.href} {...item} onClick={() => {
                   // Close sheet on click
-                  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                  const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+                  document.dispatchEvent(escapeKeyEvent);
                 }} />)}
               </nav>
             </SheetContent>
