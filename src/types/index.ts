@@ -23,6 +23,7 @@ export interface Business {
   managerOwned: boolean; // Future feature: auto-collects income
   description: string;
   upgrades?: BusinessUpgrade[];
+  requiredTimesPrestiged?: number; // Number of prestiges required to unlock this business
 }
 
 export interface Stock {

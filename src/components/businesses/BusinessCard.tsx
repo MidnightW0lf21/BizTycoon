@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import type { Business, BusinessUpgrade } from "@/types";
-import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown } from "lucide-react";
+import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MAX_BUSINESS_LEVEL } from "@/config/game-config";
+import { cn } from "@/lib/utils";
 
 interface BusinessCardProps {
   business: Business;
@@ -25,49 +26,69 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const [currentLevel, setCurrentLevel] = useState(business.level);
   const [currentUpgrades, setCurrentUpgrades] = useState(business.upgrades || []);
 
+  const requiredPrestiges = business.requiredTimesPrestiged || 0;
+  const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
+
   useEffect(() => {
     setCurrentLevel(business.level);
     setCurrentUpgrades(business.upgrades || []);
-    setIncome(getBusinessIncome(business.id));
-    setLevelUpgradeCost(getBusinessUpgradeCost(business.id));
-  }, [business, business.level, business.upgrades, getBusinessIncome, getBusinessUpgradeCost, playerStats.money]);
+    if (isUnlocked) {
+      setIncome(getBusinessIncome(business.id));
+      setLevelUpgradeCost(getBusinessUpgradeCost(business.id));
+    } else {
+      setIncome(0);
+      setLevelUpgradeCost(0);
+    }
+  }, [business, business.level, business.upgrades, getBusinessIncome, getBusinessUpgradeCost, playerStats.money, isUnlocked]);
 
 
   const handleLevelUpgrade = () => {
-    if (currentLevel < MAX_BUSINESS_LEVEL) {
-      upgradeBusiness(business.id);
-    }
+    if (!isUnlocked || currentLevel >= MAX_BUSINESS_LEVEL) return;
+    upgradeBusiness(business.id);
   };
 
   const handlePurchaseUpgrade = (upgradeId: string) => {
+    if (!isUnlocked) return;
     purchaseBusinessUpgrade(business.id, upgradeId);
   };
 
   const isMaxLevel = currentLevel >= MAX_BUSINESS_LEVEL;
-  const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost && !isMaxLevel;
+  const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost && !isMaxLevel && isUnlocked;
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="pb-4">
+    <Card className={cn("flex flex-col relative", !isUnlocked && "bg-muted/50 border-dashed")}>
+      {!isUnlocked && (
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg p-4">
+          <LockKeyhole className="h-12 w-12 text-primary mb-2" />
+          <p className="text-center font-semibold text-primary">Locked</p>
+          <p className="text-center text-sm text-muted-foreground">
+            Requires {requiredPrestiges} prestige level{requiredPrestiges !== 1 ? 's' : ''} to unlock.
+          </p>
+           <p className="text-center text-xs text-muted-foreground"> (Currently: {playerStats.timesPrestiged})</p>
+        </div>
+      )}
+      <CardHeader className={cn("pb-4", !isUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">{business.name}</CardTitle>
           <Icon className="h-8 w-8 text-primary" />
         </div>
         <CardDescription>{business.description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow space-y-3">
+      <CardContent className={cn("flex-grow space-y-3", !isUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Level:</span>
-          <span className="font-semibold">{currentLevel} / {MAX_BUSINESS_LEVEL}</span>
+          <span className="font-semibold">{isUnlocked ? `${currentLevel} / ${MAX_BUSINESS_LEVEL}` : 'N/A'}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Income/sec:</span>
           <div className="flex items-center gap-1">
             <DollarSign className="h-4 w-4 text-green-500" />
-            <span className="font-semibold text-green-500">${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
+            <span className="font-semibold text-green-500">
+              {isUnlocked ? `$${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}` : 'N/A'}
+            </span>
           </div>
         </div>
-        {!isMaxLevel && (
+        {!isMaxLevel && isUnlocked && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Next Level Cost:</span>
             <div className="flex items-center gap-1">
@@ -77,7 +98,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         )}
         
-        {currentUpgrades && currentUpgrades.length > 0 && (
+        {currentUpgrades && currentUpgrades.length > 0 && isUnlocked && (
           <Accordion type="single" collapsible className="w-full mt-3">
             <AccordionItem value="upgrades">
               <AccordionTrigger className="text-sm py-2 hover:no-underline">
@@ -118,7 +139,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handlePurchaseUpgrade(upgrade.id)}
-                                    disabled={!canPurchase}
+                                    disabled={!canPurchase || !isUnlocked}
                                     className="ml-2 px-3 py-1 h-auto"
                                   >
                                     <ShoppingCart className="h-4 w-4" />
@@ -144,21 +165,28 @@ export function BusinessCard({ business }: BusinessCardProps) {
         )}
 
       </CardContent>
-      <CardFooter>
+      <CardFooter className={cn(!isUnlocked && "opacity-50")}>
         <Button
           onClick={handleLevelUpgrade}
-          disabled={!canAffordLevelUpgrade || isMaxLevel}
+          disabled={!canAffordLevelUpgrade || isMaxLevel || !isUnlocked}
           className="w-full bg-accent text-accent-foreground hover:bg-yellow-400"
         >
-          {isMaxLevel ? (
-            <>
-              <Crown className="mr-2 h-5 w-5" />
-              Max Level
-            </>
+          {isUnlocked ? (
+            isMaxLevel ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                Max Level
+              </>
+            ) : (
+              <>
+                <ArrowUpCircle className="mr-2 h-5 w-5" />
+                Level Up (Lvl {currentLevel + 1})
+              </>
+            )
           ) : (
             <>
-              <ArrowUpCircle className="mr-2 h-5 w-5" />
-              Level Up (Lvl {currentLevel + 1})
+              <LockKeyhole className="mr-2 h-5 w-5" />
+              Locked
             </>
           )}
         </Button>
@@ -166,3 +194,4 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
+
