@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <AppLogo />
-          <nav className="flex-1 grid items-start px-2 text-sm font-medium lg:px-4">
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
             {navItems.map(item => <NavLink key={item.href} {...item} />)}
           </nav>
         </div>
@@ -132,3 +132,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
