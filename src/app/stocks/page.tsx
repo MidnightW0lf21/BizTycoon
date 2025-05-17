@@ -7,21 +7,46 @@ import { PortfolioItem } from "@/components/stocks/PortfolioItem";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { LockKeyhole, BarChart } from "lucide-react";
+
+const REQUIRED_PRESTIGE_LEVEL = 2;
 
 export default function StocksPage() {
   const { stocks, playerStats } = useGame();
 
+  if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
+    return (
+      <Card className="w-full md:max-w-2xl mx-auto">
+        <CardHeader className="items-center">
+          <LockKeyhole className="h-16 w-16 text-primary mb-4" />
+          <CardTitle>Stocks Locked</CardTitle>
+          <CardDescription className="text-center">
+            The Stock Market is a powerful tool for wealth generation! <br />
+            Unlock this feature by reaching Prestige Level {REQUIRED_PRESTIGE_LEVEL}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">
+            (Current Prestige Level: {playerStats.timesPrestiged})
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const playerHoldingsWithStockData = playerStats.stockHoldings.map(holding => {
     const stockDetails = stocks.find(s => s.id === holding.stockId);
     return { ...holding, stockDetails };
-  }).filter(item => item.stockDetails); // Filter out if stock details not found (should not happen)
+  }).filter(item => item.stockDetails);
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
       <div className="md:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>Stock Market</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart className="h-6 w-6" /> Stock Market
+            </CardTitle>
             <CardDescription>Buy and sell shares of various companies.</CardDescription>
           </CardHeader>
           <CardContent>

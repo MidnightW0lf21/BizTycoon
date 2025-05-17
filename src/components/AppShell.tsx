@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -11,17 +11,19 @@ import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  requiredTimesPrestiged?: number;
 }
 
 const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
-  { href: '/stocks', label: 'Stocks', icon: BarChart },
+  { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
 ];
 
 function AppLogo() {
@@ -35,29 +37,59 @@ function AppLogo() {
 
 interface NavLinkProps extends NavItem {
   onClick?: () => void;
+  currentTimesPrestiged: number;
 }
 
-function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
+function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, currentTimesPrestiged }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
+  const isLocked = requiredTimesPrestiged && currentTimesPrestiged < requiredTimesPrestiged;
 
+  const linkClassName = cn(
+    "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all",
+    !isLocked && "hover:text-primary",
+    isActive && !isLocked && "bg-muted text-primary",
+    isLocked && "opacity-50 cursor-not-allowed"
+  );
+
+  const linkContent = (
+    <>
+      <Icon className="h-4 w-4" />
+      {label}
+      {isLocked && <LockKeyhole className="h-3 w-3 ml-auto text-xs" />}
+    </>
+  );
+
+  if (isLocked) {
+    return (
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={linkClassName}>
+              {linkContent}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Requires {requiredTimesPrestiged} prestige level{requiredTimesPrestiged !== 1 ? 's' : ''} to unlock.</p>
+            <p className="text-xs">(Currently: {currentTimesPrestiged})</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
   const linkProps: { href: string; className: string; onClick?: () => void } = {
     href,
-    className: cn(
-      "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all hover:text-primary",
-      isActive && "bg-muted text-primary"
-    ),
+    className: linkClassName,
   };
   
   if (onClick) {
     linkProps.onClick = onClick;
   }
 
-
   return (
     <Link {...linkProps}>
-      <Icon className="h-4 w-4" />
-      {label}
+      {linkContent}
     </Link>
   );
 }
@@ -74,7 +106,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      // For exact match on '/', otherwise allow partial match for nested routes
       if (item.href === '/') {
         return pathname === '/';
       }
@@ -84,7 +115,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
     } else {
-      // Fallback title if no specific match is found, e.g. for a 404 page or an unlisted route
       setCurrentPageTitle('BizTycoon'); 
     }
   }, [pathname]);
@@ -96,7 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-full max-h-screen flex-col gap-2">
           <AppLogo />
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-            {navItems.map(item => <NavLink key={item.href} {...item} />)}
+            {navItems.map(item => <NavLink key={item.href} {...item} currentTimesPrestiged={playerStats.timesPrestiged} />)}
           </nav>
         </div>
       </div>
@@ -112,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <SheetContent side="left" className="flex flex-col p-0">
               <AppLogo />
               <nav className="grid gap-2 text-lg font-medium p-4">
-                {navItems.map(item => <NavLink key={item.href} {...item} onClick={() => {
+                {navItems.map(item => <NavLink key={item.href} {...item} currentTimesPrestiged={playerStats.timesPrestiged} onClick={() => {
                   const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
                   document.dispatchEvent(escapeKeyEvent);
                 }} />)}
