@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding } from '@/types';
+import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, RiskTolerance } from '@/types';
 import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost, MAX_BUSINESS_LEVEL, INITIAL_STOCKS } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,10 @@ interface GameContextType {
   getBusinessUpgradeCost: (businessId: string) => number;
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
+  lastMarketTrends: string;
+  setLastMarketTrends: (trends: string) => void;
+  lastRiskTolerance: RiskTolerance;
+  setLastRiskTolerance: (tolerance: RiskTolerance) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -31,6 +35,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
+  const [lastMarketTrends, setLastMarketTrends] = useState<string>("The market is stable with moderate growth in tech and renewables.");
+  const [lastRiskTolerance, setLastRiskTolerance] = useState<RiskTolerance>("medium");
+
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     money: INITIAL_MONEY,
@@ -81,7 +88,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000); 
 
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, stocks]); // stocks dependency added for investment value recalculation if prices change (future)
+  }, [playerStats.totalIncomePerSecond, stocks]);
 
   const upgradeBusiness = (businessId: string) => {
     const business = businesses.find(b => b.id === businessId);
@@ -113,7 +120,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       toast({
         title: "Not enough money!",
-        description: `You need $${cost.toLocaleString()} to level up ${business.name}.`,
+        description: `You need $${cost.toLocaleString('en-US')} to level up ${business.name}.`,
         variant: "destructive",
       });
     }
@@ -137,7 +144,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (playerStats.money < upgrade.cost) {
-      toast({ title: "Not Enough Money", description: `You need $${upgrade.cost.toLocaleString()} to purchase ${upgrade.name}.`, variant: "destructive" });
+      toast({ title: "Not Enough Money", description: `You need $${upgrade.cost.toLocaleString('en-US')} to purchase ${upgrade.name}.`, variant: "destructive" });
       return;
     }
 
@@ -161,8 +168,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const buyStock = (stockId: string, sharesToBuy: number) => {
-    if (sharesToBuy <= 0) {
+  const buyStock = (stockId: string, sharesToBuyInput: number) => {
+    if (sharesToBuyInput <= 0) {
       toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
@@ -172,16 +179,39 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
+    const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
+    const sharesAlreadyOwned = existingHolding?.shares || 0;
+    const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwned;
+
+    if (sharesAvailableToBuy <= 0) {
+      toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) are already owned.`, variant: "default" });
+      return;
+    }
+
+    let sharesToBuy = sharesToBuyInput;
+    if (sharesToBuyInput > sharesAvailableToBuy) {
+      toast({
+        title: "Purchase Adjusted",
+        description: `You attempted to buy ${sharesToBuyInput.toLocaleString('en-US')} shares, but only ${sharesAvailableToBuy.toLocaleString('en-US')} are available. Purchase adjusted.`,
+        variant: "default",
+      });
+      sharesToBuy = sharesAvailableToBuy;
+    }
+    
+    if (sharesToBuy <= 0) { // Should be caught by sharesAvailableToBuy <= 0, but as a safeguard
+        toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased.`, variant: "destructive" });
+        return;
+    }
+
+
     const cost = stock.price * sharesToBuy;
     if (playerStats.money < cost) {
-      toast({ title: "Not Enough Money", description: `You need $${cost.toLocaleString()} to buy ${sharesToBuy} share(s) of ${stock.ticker}.`, variant: "destructive" });
+      toast({ title: "Not Enough Money", description: `You need $${cost.toLocaleString('en-US')} to buy ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.ticker}. You have $${playerStats.money.toLocaleString('en-US')}`, variant: "destructive" });
       return;
     }
 
     setPlayerStats(prev => {
-      const existingHolding = prev.stockHoldings.find(h => h.stockId === stockId);
       let newHoldings: StockHolding[];
-
       if (existingHolding) {
         const totalShares = existingHolding.shares + sharesToBuy;
         const totalCost = (existingHolding.averagePurchasePrice * existingHolding.shares) + (stock.price * sharesToBuy);
@@ -195,7 +225,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money - cost, stockHoldings: newHoldings };
     });
 
-    toast({ title: "Stock Purchased!", description: `Bought ${sharesToBuy} share(s) of ${stock.companyName} (${stock.ticker}).` });
+    toast({ title: "Stock Purchased!", description: `Bought ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.companyName} (${stock.ticker}).` });
   };
 
   const sellStock = (stockId: string, sharesToSell: number) => {
@@ -228,7 +258,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money + earnings, stockHoldings: newHoldings };
     });
 
-    toast({ title: "Stock Sold!", description: `Sold ${sharesToSell} share(s) of ${stock.companyName} (${stock.ticker}).` });
+    toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName} (${stock.ticker}).` });
   };
 
 
@@ -243,6 +273,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getBusinessUpgradeCost,
       buyStock,
       sellStock,
+      lastMarketTrends,
+      setLastMarketTrends,
+      lastRiskTolerance,
+      setLastRiskTolerance
     }}>
       {children}
     </GameContext.Provider>
@@ -256,3 +290,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
