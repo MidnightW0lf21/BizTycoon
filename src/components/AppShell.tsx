@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavItem {
   href: string;
@@ -45,8 +46,13 @@ function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
       "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
       isActive && "bg-muted text-primary"
     ),
-    ...(onClick && { onClick }), 
+    onClick,
   };
+  
+  if (onClick) {
+    linkProps.onClick = onClick;
+  }
+
 
   return (
     <Link {...linkProps}>
@@ -68,7 +74,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     const item = navItems.find(item => item.href === pathname);
-    setCurrentPageTitle(item ? item.label : 'BizTycoon');
+    if (item) {
+      setCurrentPageTitle(item.label);
+    } else if (pathname === '/stock-tips') { // Example for a page not in navItems
+      setCurrentPageTitle('AI Stock Tips');
+    } else {
+      setCurrentPageTitle('BizTycoon'); // Default or for other pages
+    }
   }, [pathname]);
 
 
@@ -95,8 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <AppLogo />
               <nav className="grid gap-2 text-lg font-medium p-4">
                 {navItems.map(item => <NavLink key={item.href} {...item} onClick={() => {
-                  // Close sheet on click, Sheet doesn't have an easy prop for this
-                  // This is a common workaround
+                  // Close sheet on click
                   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
                 }} />)}
               </nav>
@@ -105,9 +116,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1">
             <h1 className="font-semibold text-lg">{currentPageTitle}</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <DollarSign className="h-5 w-5" />
-            <span>${Math.floor(currentMoney).toLocaleString()}</span>
+          <div className="flex items-center gap-4"> {/* Added gap-4 for spacing */}
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <DollarSign className="h-5 w-5" />
+              <span>${Math.floor(currentMoney).toLocaleString()}</span>
+            </div>
+            <ThemeToggle />
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">

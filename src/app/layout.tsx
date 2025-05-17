@@ -4,6 +4,7 @@ import './globals.css';
 import { GameProvider } from '@/contexts/GameContext';
 import { Toaster } from '@/components/ui/toaster';
 import { AppShell } from '@/components/AppShell';
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,12 +29,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <GameProvider>
-          <AppShell>
-            {children}
-          </AppShell>
-          <Toaster />
-        </GameProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+          <GameProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+            <Toaster />
+          </GameProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
