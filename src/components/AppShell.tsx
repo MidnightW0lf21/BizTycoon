@@ -75,10 +75,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const item = navItems.find(item => item.href === pathname);
     if (item) {
       setCurrentPageTitle(item.label);
-    } else if (pathname === '/stock-tips') { // Added else-if for stock-tips
-      setCurrentPageTitle('AI Stock Tips');
-    }
-     else {
+    } else {
+      // Handle cases for pages not in navItems, or set a default
+      // For example, if you had a /settings page:
+      // if (pathname === '/settings') setCurrentPageTitle('Settings');
       setCurrentPageTitle('BizTycoon'); // Default or for other pages
     }
   }, [pathname]);
