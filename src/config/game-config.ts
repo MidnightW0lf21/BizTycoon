@@ -1,8 +1,8 @@
 
 import type { Business, BusinessUpgrade, Stock } from '@/types';
-import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, Briefcase, BarChart } from 'lucide-react';
+import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase } from 'lucide-react';
 
-export const INITIAL_MONEY = 1000; // Increased initial money for stock testing
+export const INITIAL_MONEY = 1000;
 export const MAX_BUSINESS_LEVEL = 100;
 
 export const INITIAL_BUSINESSES: Business[] = [
@@ -129,6 +129,23 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
+    id: 'entertainment_streaming_service',
+    name: 'StreamFlix',
+    level: 0,
+    baseIncome: 350,
+    baseCost: 30000,
+    upgradeCostMultiplier: 1.185,
+    icon: Tv,
+    managerOwned: false,
+    description: 'Binge-worthy content for global audiences.',
+    upgrades: [
+      { id: 'sfs_original_series', name: 'Original Series Production', description: 'Exclusive content, +25% income.', cost: 100000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'sfs_global_cdn', name: 'Global CDN Expansion', description: 'Faster streaming worldwide, +15% income.', cost: 180000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'sfs_recommendation_ai', name: 'AI Recommendation Engine', description: 'Increased user engagement, +20% income.', cost: 250000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'sfs_licensing_deals', name: 'Exclusive Licensing Deals', description: 'Secure popular movie rights, +10% income.', cost: 300000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 10 },
+    ],
+  },
+  {
     id: 'movie_studio',
     name: 'Movie Studio',
     level: 0,
@@ -143,6 +160,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ms_star_actors_contracts', name: 'Star Actor Contracts', description: 'Attract larger audiences, +30% income.', cost: 350000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'ms_distribution_network', name: 'Global Distribution Network', description: 'Wider release, +20% income.', cost: 500000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'ms_streaming_platform_deal', name: 'Streaming Platform Deal', description: 'Secure digital distribution, +20% income.', cost: 650000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ms_merchandising_rights', name: 'Merchandising Rights', description: 'Additional revenue stream, +15% income.', cost: 450000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
     ],
   },
   {
@@ -160,6 +178,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'mp_supply_chain_optimization', name: 'Supply Chain Optimization', description: 'Reduce material costs, -15% level upgrade cost.', cost: 200000, requiredLevel: 10, isPurchased: false, levelUpgradeCostReductionPercent: 15 },
       { id: 'mp_quality_control_systems', name: 'Advanced QC Systems', description: 'Better product quality, +20% income.', cost: 250000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'mp_lean_manufacturing', name: 'Lean Manufacturing Training', description: 'Improve efficiency, -5% level upgrade cost.', cost: 300000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'mp_3d_printing_division', name: '3D Printing Division', description: 'Rapid prototyping & custom parts, +10% income.', cost: 350000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
     ],
   },
   {
@@ -177,6 +196,23 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'rec_solar_panel_efficiency', name: 'Solar Panel Efficiency Breakthrough', description: 'More power from sunlight, +30% income.', cost: 600000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'rec_grid_battery_storage', name: 'Grid-Scale Battery Storage', description: 'Store excess energy, +20% income.', cost: 800000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'rec_govt_subsidies', name: 'Government Subsidies Lobbying', description: 'Secure favorable policies, -10% level cost.', cost: 1000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+    ],
+  },
+  {
+    id: 'cybersecurity_solutions',
+    name: 'CyberGuard Solutions',
+    level: 0,
+    baseIncome: 1800,
+    baseCost: 150000,
+    upgradeCostMultiplier: 1.205,
+    icon: ShieldCheck,
+    managerOwned: false,
+    description: 'Protecting digital assets from emerging threats.',
+    upgrades: [
+      { id: 'cgs_threat_intel_platform', name: 'Threat Intelligence Platform', description: 'Proactive defense, +25% income.', cost: 500000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'cgs_incident_response_team', name: 'Elite Incident Response Team', description: 'Rapid breach mitigation, +15% income.', cost: 700000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'cgs_advanced_encryption', name: 'Quantum-Resistant Encryption R&D', description: 'Future-proof security, +20% income.', cost: 900000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'cgs_security_audits', name: 'Automated Security Audits', description: 'Efficient client onboarding, -10% level cost.', cost: 1200000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
     ],
   },
   {
@@ -249,6 +285,23 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
+    id: 'global_logistics_inc',
+    name: 'GlobalLink Logistics',
+    level: 0,
+    baseIncome: 15000,
+    baseCost: 1800000,
+    upgradeCostMultiplier: 1.24,
+    icon: Package,
+    managerOwned: false,
+    description: 'Precision global supply chain management.',
+    upgrades: [
+      { id: 'gli_drone_delivery_fleet', name: 'Drone Delivery Fleet', description: 'Last-mile efficiency, +25% income.', cost: 7000000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'gli_automated_warehouses', name: 'Automated Warehousing Network', description: 'Reduced operational costs, -10% level cost.', cost: 10000000, requiredLevel: 10, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'gli_ai_route_optimization', name: 'AI Route Optimization', description: 'Smarter, faster deliveries, +20% income.', cost: 13000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'gli_cold_chain_logistics', name: 'Cold Chain Logistics Specialization', description: 'Serve high-value perishable goods market, +15% income.', cost: 16000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+    ],
+  },
+  {
     id: 'genetic_engineering_firm',
     name: 'EvoGenesis Labs',
     level: 0,
@@ -274,6 +327,9 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'alpha_pharma', ticker: 'APRX', companyName: 'Alpha Pharmaceuticals', price: 300, dividendYield: 0.000025, icon: FlaskConical, description: 'Developing life-saving medications.', totalOutstandingShares: 5000000 },
   { id: 'summit_real_estate', ticker: 'SRE', companyName: 'Summit Real Estate', price: 120, dividendYield: 0.000018, icon: Landmark, description: 'Prime properties and development projects.', totalOutstandingShares: 20000000 },
   { id: 'biz_tycoon_holdings', ticker: 'BTH', companyName: 'BizTycoon Holdings', price: 500, dividendYield: 0.00003, icon: Briefcase, description: 'The parent company of successful ventures.', totalOutstandingShares: 2000000 },
+  { id: 'momentum_motors', ticker: 'MMTR', companyName: 'Momentum Motors', price: 180, dividendYield: 0.000012, icon: TrendingUp, description: 'Innovative electric vehicle manufacturer, known for its volatile stock.', totalOutstandingShares: 12000000 },
+  { id: 'quantum_leap_computing', ticker: 'QLC', companyName: 'Quantum Leap Computing', price: 450, dividendYield: 0.000005, icon: Lightbulb, description: 'Cutting-edge quantum computing research and development.', totalOutstandingShares: 3000000 },
+  { id: 'biosynth_genetics', ticker: 'BSG', companyName: 'BioSynth Genetics', price: 220, dividendYield: 0.000022, icon: Dna, description: 'Biotechnology firm specializing in gene therapy and synthetic biology.', totalOutstandingShares: 8000000 },
 ];
 
 
