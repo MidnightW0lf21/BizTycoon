@@ -25,6 +25,3 @@ export interface StockHolding {
   purchasePrice: number;
   currentPrice: number;
 }
-
-// For AI Stock Tips Input
-export type RiskTolerance = "low" | "medium" | "high";

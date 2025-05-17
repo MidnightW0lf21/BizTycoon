@@ -1,6 +1,6 @@
 "use client";
 
-import type { Business, PlayerStats, RiskTolerance } from '@/types';
+import type { Business, PlayerStats } from '@/types';
 import { INITIAL_BUSINESSES, INITIAL_MONEY, calculateIncome, calculateUpgradeCost } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -11,10 +11,6 @@ interface GameContextType {
   upgradeBusiness: (businessId: string) => void;
   getBusinessIncome: (businessId: string) => number;
   getBusinessUpgradeCost: (businessId: string) => number;
-  lastMarketTrends: string;
-  setLastMarketTrends: (trends: string) => void;
-  lastRiskTolerance: RiskTolerance;
-  setLastRiskTolerance: (risk: RiskTolerance) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -32,9 +28,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     totalIncomePerSecond: 0,
     investmentsValue: 0,
   });
-
-  const [lastMarketTrends, setLastMarketTrends] = useState<string>("The market is stable with moderate growth in tech stocks.");
-  const [lastRiskTolerance, setLastRiskTolerance] = useState<RiskTolerance>("medium");
 
   const getBusinessIncome = useCallback((businessId: string): number => {
     const business = businesses.find(b => b.id === businessId);
@@ -96,10 +89,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       upgradeBusiness, 
       getBusinessIncome, 
       getBusinessUpgradeCost,
-      lastMarketTrends,
-      setLastMarketTrends,
-      lastRiskTolerance,
-      setLastRiskTolerance
     }}>
       {children}
     </GameContext.Provider>

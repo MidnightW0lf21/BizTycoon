@@ -75,16 +75,10 @@ export default function DashboardPage() {
                 data-ai-hint="business city"
               />
             </div>
-            <p>
-              Ready to make strategic moves? Check out the AI Stock Tips section for investment advice based on your game progress!
-            </p>
           </CardContent>
           <CardFooter className="flex gap-2">
             <Button asChild>
               <Link href="/businesses">Manage Businesses</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/stock-tips">Get Stock Tips</Link>
             </Button>
           </CardFooter>
         </Card>

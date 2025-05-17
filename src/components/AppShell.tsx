@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, LineChart, Menu, DollarSign } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -20,7 +20,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
-  { href: '/stock-tips', label: 'AI Stock Tips', icon: LineChart },
 ];
 
 function AppLogo() {
@@ -46,7 +45,7 @@ function NavLink({ href, label, icon: Icon, onClick }: NavLinkProps) {
       "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
       isActive && "bg-muted text-primary"
     ),
-    ...(onClick && { onClick }), // Conditionally add onClick
+    ...(onClick && { onClick }), 
   };
 
   return (
