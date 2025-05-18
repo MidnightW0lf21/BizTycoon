@@ -35,6 +35,7 @@ export interface Stock {
   icon: LucideIcon;
   description: string;
   totalOutstandingShares: number; // Total shares available for this company
+  requiredSkillToUnlock?: string; // Skill ID required to make this stock available
 }
 
 export interface StockHolding {
@@ -55,6 +56,8 @@ export interface SkillNode {
     globalCostReductionPercent?: number; // For business level-up costs
     businessSpecificIncomeBoost?: { businessId: string; percent: number };
     increaseStartingMoney?: number; // Flat amount added to initial money after prestige
+    globalDividendYieldBoostPercent?: number; // Percentage boost to all stock dividend yields
+    globalBusinessUpgradeCostReductionPercent?: number; // Percentage reduction to cost of business-specific upgrades
     // Add more specific effect types as needed
   };
 }

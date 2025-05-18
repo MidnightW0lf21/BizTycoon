@@ -1,6 +1,8 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
-import { Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign } from 'lucide-react';
+import { 
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingBag, Telescope, Star
+} from 'lucide-react';
 
 export const INITIAL_MONEY = 1000;
 export const MAX_BUSINESS_LEVEL = 100;
@@ -19,7 +21,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.115,
+    upgradeCostMultiplier: 1.15, // Slightly higher
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -38,7 +40,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.20,
+    upgradeCostMultiplier: 1.23, // Slightly higher
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -57,7 +59,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.21,
+    upgradeCostMultiplier: 1.24, // Slightly higher
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -75,7 +77,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.22,
+    upgradeCostMultiplier: 1.25, // Slightly higher
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -88,12 +90,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'tech_startup',
+    id: 'tech_startup', // Tech Category
     name: 'Tech Startup',
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.245,
+    upgradeCostMultiplier: 1.275, // Slightly higher
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -107,12 +109,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'software_agency',
+    id: 'software_agency', // Tech Category
     name: 'CodeCrafters Inc.',
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.235,
+    upgradeCostMultiplier: 1.265, // Slightly higher
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -130,7 +132,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.225,
+    upgradeCostMultiplier: 1.255, // Slightly higher
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -148,7 +150,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.23,
+    upgradeCostMultiplier: 1.26, // Slightly higher
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -166,7 +168,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.235,
+    upgradeCostMultiplier: 1.265, // Slightly higher
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -185,7 +187,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.205,
+    upgradeCostMultiplier: 1.235, // Slightly higher
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -204,7 +206,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.245,
+    upgradeCostMultiplier: 1.275, // Slightly higher
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -217,12 +219,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'cybersecurity_solutions',
+    id: 'cybersecurity_solutions', // Tech Category
     name: 'CyberGuard Solutions',
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.25,
+    upgradeCostMultiplier: 1.28, // Slightly higher
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -240,7 +242,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.255,
+    upgradeCostMultiplier: 1.285, // Slightly higher
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -258,7 +260,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.265,
+    upgradeCostMultiplier: 1.295, // Slightly higher
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -271,12 +273,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'global_shipping_network',
+    id: 'global_shipping_network', // Logistics Category
     name: 'Horizon Logistics',
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.275,
+    upgradeCostMultiplier: 1.305, // Slightly higher
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -289,12 +291,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'ai_research_lab',
+    id: 'ai_research_lab', // Tech Category
     name: 'AI Research Lab',
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.295,
+    upgradeCostMultiplier: 1.325, // Slightly higher
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -308,12 +310,12 @@ export const INITIAL_BUSINESSES: Business[] = [
     ],
   },
   {
-    id: 'global_logistics_inc',
+    id: 'global_logistics_inc', // Logistics Category
     name: 'GlobalLink Logistics',
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.285,
+    upgradeCostMultiplier: 1.315, // Slightly higher
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -331,7 +333,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.305,
+    upgradeCostMultiplier: 1.335, // Slightly higher
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -355,7 +357,14 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'momentum_motors', ticker: 'MMTR', companyName: 'Momentum Motors', price: 180, dividendYield: 0.000012, icon: TrendingUp, description: 'Innovative electric vehicle manufacturer, known for its volatile stock.', totalOutstandingShares: 12000000 },
   { id: 'quantum_leap_computing', ticker: 'QLC', companyName: 'Quantum Leap Computing', price: 450, dividendYield: 0.000005, icon: Lightbulb, description: 'Cutting-edge quantum computing research and development.', totalOutstandingShares: 3000000 },
   { id: 'biosynth_genetics', ticker: 'BSG', companyName: 'BioSynth Genetics', price: 220, dividendYield: 0.000022, icon: Dna, description: 'Biotechnology firm specializing in gene therapy and synthetic biology.', totalOutstandingShares: 8000000 },
+  { id: 'cosmic_ventures', ticker: 'CVNT', companyName: 'Cosmic Ventures Ltd.', price: 750, dividendYield: 0.000008, icon: Telescope, description: 'High-risk, high-reward private space exploration and asteroid mining.', totalOutstandingShares: 1500000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_1' },
+  { id: 'biofuture_med', ticker: 'BFM', companyName: 'BioFuture MedTech', price: 400, dividendYield: 0.000028, icon: Dna, description: 'Advanced medical research and bionic prosthetics.', totalOutstandingShares: 4000000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_2' },
+  { id: 'aether_logistics', ticker: 'AETL', companyName: 'Aether Logistics Group', price: 280, dividendYield: 0.000019, icon: Package, description: 'Global drone and automated cargo network.', totalOutstandingShares: 9000000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_2' },
 ];
+
+export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab'];
+export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
+
 
 export const INITIAL_SKILL_TREE: SkillNode[] = [
   {
@@ -388,7 +397,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     name: 'Head Start I',
     description: 'Start with an extra $5,000 after prestiging.',
     cost: 5,
-    icon: Banknote,
+    icon: PiggyBank, // Changed icon
     effects: { increaseStartingMoney: 5000 },
   },
   {
@@ -400,13 +409,90 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     dependencies: ['global_income_boost_1'],
     effects: { globalIncomeBoostPercent: 7 },
   },
-    {
+  {
     id: 'prestige_point_boost_1',
     name: 'Prestige Power I',
-    description: 'Gain +10% more prestige points when prestiging.', // This effect will need to be handled in performPrestige
+    description: 'Gain +10% more base prestige points when prestiging.',
     cost: 15,
     icon: Sparkles,
-    effects: {}, 
+    effects: {}, // Effect handled in getPrestigePointBoostPercent
+  },
+  // New Skills
+  {
+    id: 'global_cost_reduction_2',
+    name: 'Efficient Operations II',
+    description: 'All business level-up costs reduced by an additional 5%.',
+    cost: 12,
+    icon: Settings2,
+    dependencies: ['global_cost_reduction_1'],
+    effects: { globalCostReductionPercent: 5 },
+  },
+  {
+    id: 'global_income_boost_3',
+    name: 'Entrepreneurial Spirit III',
+    description: 'All businesses generate an additional +10% income.',
+    cost: 25,
+    icon: TrendingUp,
+    dependencies: ['global_income_boost_2'],
+    effects: { globalIncomeBoostPercent: 10 },
+  },
+  {
+    id: 'unlock_advanced_stocks_tier_1',
+    name: 'Stock Market License I',
+    description: 'Unlock access to more advanced stock options (e.g., Cosmic Ventures).',
+    cost: 8,
+    icon: Unlock,
+    effects: {}, // Effect handled by filtering stocks in GameContext
+  },
+  {
+    id: 'unlock_advanced_stocks_tier_2',
+    name: 'Stock Market License II',
+    description: 'Unlock access to elite stock options (e.g., BioFuture Med, Aether Logistics).',
+    cost: 20,
+    icon: ShieldCheck,
+    dependencies: ['unlock_advanced_stocks_tier_1'],
+    effects: {}, // Effect handled by filtering stocks in GameContext
+  },
+  {
+    id: 'dividend_magnifier_1',
+    name: 'Dividend Connoisseur',
+    description: 'Increase all stock dividend yields by +10%.',
+    cost: 10,
+    icon: Percent,
+    effects: { globalDividendYieldBoostPercent: 10 },
+  },
+  {
+    id: 'upgrade_cost_slasher_1',
+    name: 'Negotiation Master',
+    description: 'All business-specific upgrades (not level-ups) are 5% cheaper.',
+    cost: 18,
+    icon: ShoppingBag,
+    effects: { globalBusinessUpgradeCostReductionPercent: 5 },
+  },
+  {
+    id: 'tech_empire_synergy',
+    name: 'Tech Empire Synergy',
+    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, and AI Lab +15%.',
+    cost: 22,
+    icon: BrainCircuit,
+    effects: {}, // Special handling in calculateIncome
+  },
+  {
+    id: 'logistics_network_optimization',
+    name: 'Logistics Network Opt.',
+    description: 'Income of Horizon Logistics and GlobalLink Logistics +15%.',
+    cost: 20,
+    icon: GitMerge, 
+    effects: {}, // Special handling in calculateIncome
+  },
+  {
+    id: 'prestige_power_2',
+    name: 'Prestige Power II',
+    description: 'Gain an additional +10% base prestige points (stacks with PP I).',
+    cost: 30,
+    icon: Star,
+    dependencies: ['prestige_point_boost_1'],
+    effects: {}, // Effect handled in getPrestigePointBoostPercent
   },
 ];
 
@@ -434,6 +520,14 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
       }
       if (skill.effects.businessSpecificIncomeBoost && skill.effects.businessSpecificIncomeBoost.businessId === business.id) {
         businessSpecificBoost += skill.effects.businessSpecificIncomeBoost.percent;
+      }
+      // Handle Tech Empire Synergy
+      if (skill.id === 'tech_empire_synergy' && TECH_BUSINESS_IDS.includes(business.id)) {
+        businessSpecificBoost += 15; // +15%
+      }
+      // Handle Logistics Network Optimization
+      if (skill.id === 'logistics_network_optimization' && LOGISTICS_BUSINESS_IDS.includes(business.id)) {
+        businessSpecificBoost += 15; // +15%
       }
     }
   });
@@ -490,8 +584,13 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
   let boostPercent = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
-    if (skill && skill.id === 'prestige_point_boost_1') { 
-        boostPercent += 10; 
+    if (skill) {
+      if (skill.id === 'prestige_point_boost_1') { 
+          boostPercent += 10; 
+      }
+      if (skill.id === 'prestige_power_2') {
+          boostPercent += 10; // Stacks
+      }
     }
   });
   return boostPercent;
@@ -531,3 +630,4 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
 };
 
     
+
