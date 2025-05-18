@@ -38,7 +38,6 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
-  // { href: '/settings', label: 'Settings', icon: SlidersHorizontal }, // Removed from here
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -55,29 +54,23 @@ function AppLogo() {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
     
-    // If God Mode makes prestigePoints very high, calculate progress as if starting fresh for UI purposes
-    if (playerStats.prestigePoints > 9000) { // A high threshold indicating likely God Mode start
-        displayPrestigePointsForProgressBar = 0;
-    }
-    
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
-    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { // Avoid division by zero or Infinity
+    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { 
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0) { // If cost is 0 or Infinity but progress made
+    } else if (levelsProgressedForNextPoint > 0) { 
       percentage = 100;
     }
-
 
     setPrestigeProgress({
       percentage: percentage,
       levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint, // Show 0 if at max prestige effectively
+      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint, 
     });
-  }, [playerStats.prestigePoints, businesses]);
+  }, [playerStats, businesses]); // Aligned dependency array for robustness
 
   return (
     <div className="flex flex-col p-4 border-b border-border gap-3">
@@ -126,7 +119,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
   );
 
   const handleInteraction = () => {
-    if (isLocked) return; // Prevent action if locked
+    if (isLocked) return; 
 
     if (onMobileClick) {
       onMobileClick();
@@ -170,7 +163,6 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
-  // Fallback for items without href and not being 'prestige' (though current setup avoids this)
   return (
     <div className={linkClassName} onClick={handleInteraction}>
       {linkContent}
@@ -210,7 +202,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   
     if (pathname === '/') setCurrentPageTitle('Dashboard');
-    else if (pathname === '/settings') setCurrentPageTitle('Settings'); // Handle settings title explicitly
+    else if (pathname === '/settings') setCurrentPageTitle('Settings'); 
     else if (activeItem) setCurrentPageTitle(activeItem.label);
     else setCurrentPageTitle('BizTycoon'); 
   }, [pathname]);
@@ -337,3 +329,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
