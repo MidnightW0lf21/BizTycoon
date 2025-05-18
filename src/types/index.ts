@@ -8,35 +8,34 @@ export interface BusinessUpgrade {
   cost: number;
   requiredLevel: number;
   isPurchased: boolean;
-  incomeBoostPercent?: number; // e.g., 10 for a 10% boost
-  levelUpgradeCostReductionPercent?: number; // e.g., 5 for 5% reduction
-  // unlocksBulkBuy?: true; // Removed: No longer a business upgrade property
+  incomeBoostPercent?: number; 
+  levelUpgradeCostReductionPercent?: number; 
 }
 
 export interface Business {
   id: string;
   name: string;
   level: number;
-  baseIncome: number; // Income per level per second
-  baseCost: number; // Cost for level 1
-  upgradeCostMultiplier: number; // Multiplier for cost increase per level
+  baseIncome: number; 
+  baseCost: number; 
+  upgradeCostMultiplier: number; 
   icon: LucideIcon;
-  managerOwned: boolean; // Future feature: auto-collects income
+  managerOwned: boolean; 
   description: string;
   upgrades?: BusinessUpgrade[];
-  requiredTimesPrestiged?: number; // Number of prestiges required to unlock this business
+  requiredTimesPrestiged?: number; 
 }
 
 export interface Stock {
   id: string;
   ticker: string;
   companyName: string;
-  price: number; // Current price per share
-  dividendYield: number; // Per-second dividend yield as a fraction of current price (e.g., 0.00001 for 0.001% per second)
+  price: number; 
+  dividendYield: number; 
   icon: LucideIcon;
   description: string;
-  totalOutstandingShares: number; // Total shares available for this company
-  requiredSkillToUnlock?: string; // Skill ID required to make this stock available
+  totalOutstandingShares: number; 
+  requiredSkillToUnlock?: string; 
 }
 
 export interface StockHolding {
@@ -49,18 +48,18 @@ export interface SkillNode {
   id: string;
   name: string;
   description: string;
-  cost: number; // Prestige points
+  cost: number; 
   icon: LucideIcon;
-  dependencies?: string[]; // IDs of other skill nodes that must be unlocked first
+  dependencies?: string[]; 
   effects: {
     globalIncomeBoostPercent?: number;
-    globalCostReductionPercent?: number; // For business level-up costs
+    globalCostReductionPercent?: number; 
     businessSpecificIncomeBoost?: { businessId: string; percent: number };
-    increaseStartingMoney?: number; // Flat amount added to initial money after prestige
-    globalDividendYieldBoostPercent?: number; // Percentage boost to all stock dividend yields
-    globalBusinessUpgradeCostReductionPercent?: number; // Percentage reduction to cost of business-specific upgrades
-    increaseMaxBusinessLevelBy?: number; // Increase max level for all businesses
-    unlocksBulkBuyForBusiness?: string; // Business ID for which bulk buy is unlocked
+    increaseStartingMoney?: number; 
+    globalDividendYieldBoostPercent?: number; 
+    globalBusinessUpgradeCostReductionPercent?: number; 
+    increaseMaxBusinessLevelBy?: number; 
+    unlocksBulkBuyForBusiness?: string;
   };
 }
 
@@ -74,3 +73,10 @@ export interface PlayerStats {
   unlockedSkillIds: string[];
 }
 
+export interface SaveData {
+  playerStats: PlayerStats;
+  businesses: Business[];
+  lastSaved: number; // Timestamp
+}
+
+export type RiskTolerance = "low" | "medium" | "high";

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
+  { href: '/settings', label: 'Settings', icon: SlidersHorizontal },
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -53,23 +54,24 @@ function AppLogo() {
 
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const displayPrestigePointsForProgressBar = playerStats.prestigePoints;
-
+    let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
+    
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
-    if (costForNextPotentialPoint > 0) {
+    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { // Avoid division by zero or Infinity
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else {
-      percentage = (levelsProgressedForNextPoint > 0) ? 100 : 0;
+    } else if (levelsProgressedForNextPoint > 0) { // If cost is 0 or Infinity but progress made
+      percentage = 100;
     }
+
 
     setPrestigeProgress({
       percentage: percentage,
       levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint,
+      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint, // Show 0 if at max prestige effectively
     });
   }, [playerStats.prestigePoints, businesses]);
 
@@ -94,9 +96,9 @@ function AppLogo() {
 }
 
 interface NavLinkProps extends NavItem {
-  onMobileClick?: () => void; // For mobile sheet closing primarily
+  onMobileClick?: () => void; 
   currentTimesPrestiged: number;
-  onPrestigeClick?: () => void; // Specific handler for prestige action
+  onPrestigeClick?: () => void; 
 }
 
 function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
@@ -120,6 +122,8 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
   );
 
   const handleInteraction = () => {
+    if (isLocked) return; // Prevent action if locked
+
     if (onMobileClick) {
       onMobileClick();
     }
@@ -133,7 +137,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={linkClassName}> {/* Use div for locked items */}
+            <div className={linkClassName}>
               {linkContent}
             </div>
           </TooltipTrigger>
@@ -156,15 +160,14 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
   
   if (href) {
     return (
-      <Link href={href} onClick={onMobileClick} className={linkClassName}>
+      <Link href={href} onClick={handleInteraction} className={linkClassName}>
         {linkContent}
       </Link>
     );
   }
 
-  // Fallback for items that are neither actions nor links
   return (
-    <div className={linkClassName} onClick={onMobileClick}>
+    <div className={linkClassName} onClick={handleInteraction}>
       {linkContent}
     </div>
   );
@@ -184,26 +187,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setCurrentMoney(playerStats.money);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const calculateNewlyGainedPoints = () => {
+    const calculateNewlyGainedPointsLocal = () => {
       const moneyRequiredForPrestige = 1000000;
       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
       
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
-    setNewlyGainedPoints(calculateNewlyGainedPoints());
+    setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
 
   }, [playerStats, businesses]);
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      if (item.href === '/') return pathname === '/'; // Exact match for root
-      return item.href && item.href !== '/' && pathname.startsWith(item.href); // StartsWith for others
+      if (item.href === '/') return pathname === '/'; 
+      return item.href && item.href !== '/' && pathname.startsWith(item.href); 
     });
   
     if (pathname === '/') setCurrentPageTitle('Dashboard');
     else if (activeItem) setCurrentPageTitle(activeItem.label);
-    else setCurrentPageTitle('BizTycoon'); // Fallback
+    else setCurrentPageTitle('BizTycoon'); 
   }, [pathname]);
 
   const handlePrestigeNavClick = () => {
@@ -235,12 +238,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-0"> {/* Changed gap-2 to gap-0 */}
+        <div className="flex h-full max-h-screen flex-col gap-0"> 
           <AppLogo />
-          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
+          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> 
             {navItems.map(item => (
               <NavLink 
-                key={item.label} // Using label as key since href can be undefined for actions
+                key={item.label} 
                 {...item} 
                 currentTimesPrestiged={playerStats.timesPrestiged}
                 onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}

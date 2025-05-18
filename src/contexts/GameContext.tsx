@@ -1,12 +1,11 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, RiskTolerance } from '@/types';
 import { 
   INITIAL_BUSINESSES, 
   INITIAL_MONEY, 
   calculateIncome, 
-  // calculateUpgradeCost, // Single level cost now primarily used within calculateCostForNLevels
   MAX_BUSINESS_LEVEL, 
   INITIAL_STOCKS, 
   INITIAL_PRESTIGE_POINTS, 
@@ -16,32 +15,40 @@ import {
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
-  calculateCostForNLevels, // Import new bulk cost calculator
-  calculateMaxAffordableLevels, // Import new max affordable calculator
+  calculateCostForNLevels, 
+  calculateMaxAffordableLevels, 
+  calculateSingleLevelUpgradeCost,
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
-const GOD_MODE_ACTIVE = false; // Set to true for testing
+const SAVE_DATA_KEY = 'bizTycoonSaveData_v1'; // Added a version to key for future migrations
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
   stocks: Stock[]; 
   skillTree: SkillNode[];
-  upgradeBusiness: (businessId: string, levelsToBuy?: number) => void; // levelsToBuy is optional
+  lastMarketTrends: string;
+  lastRiskTolerance: RiskTolerance;
+  lastSavedTimestamp: number | null;
+  upgradeBusiness: (businessId: string, levelsToBuy?: number) => void; 
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string) => void;
   getBusinessIncome: (businessId: string) => number;
-  getBusinessUpgradeCost: (businessId: string) => number; // Cost for single next level, useful for display
+  getBusinessUpgradeCost: (businessId: string) => number; 
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
   getDynamicMaxBusinessLevel: () => number;
-  // For BusinessCard to calculate display costs for bulk buys:
   calculateCostForNLevelsForDisplay: (businessId: string, levelsToBuy: number) => { totalCost: number; levelsPurchasable: number };
   calculateMaxAffordableLevelsForDisplay: (businessId: string) => { levelsToBuy: number; totalCost: number };
-
+  setLastMarketTrends: (trends: string) => void;
+  setLastRiskTolerance: (tolerance: RiskTolerance) => void;
+  manualSaveGame: () => void;
+  exportGameState: () => string;
+  importGameState: (jsonString: string) => boolean;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -50,32 +57,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { toast } = useToast();
   
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
+  const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Market is stable.");
+  const [lastRiskTolerance, setLastRiskToleranceInternal] = useState<RiskTolerance>("medium");
+  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<number | null>(null);
 
-  const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
-    let money = INITIAL_MONEY;
-    let prestigePoints = INITIAL_PRESTIGE_POINTS;
-    let timesPrestiged = INITIAL_TIMES_PRESTIGED;
-    let unlockedSkillIds = [...INITIAL_UNLOCKED_SKILL_IDS];
+  const setLastMarketTrends = (trends: string) => setLastMarketTrendsInternal(trends);
+  const setLastRiskTolerance = (tolerance: RiskTolerance) => setLastRiskToleranceInternal(tolerance);
 
-    if (GOD_MODE_ACTIVE) {
-      money = Number.MAX_SAFE_INTEGER / 1000; // A very large number
-      prestigePoints = 0; // Start with 0 for testing normal progression
-      timesPrestiged = 0; // Start with 0 for testing normal progression
-      unlockedSkillIds = []; // Start with no skills for testing normal progression
-    } else {
-        const startingMoneyBonus = getStartingMoneyBonus(unlockedSkillIds, skillTreeState);
-        money += startingMoneyBonus;
-    }
-    
-    return {
-      money,
-      totalIncomePerSecond: 0,
-      investmentsValue: 0,
-      stockHoldings: [],
-      prestigePoints,
-      timesPrestiged,
-      unlockedSkillIds,
-    };
+  const [playerStats, setPlayerStats] = useState<PlayerStats>({
+    money: INITIAL_MONEY,
+    totalIncomePerSecond: 0,
+    investmentsValue: 0,
+    stockHoldings: [],
+    prestigePoints: INITIAL_PRESTIGE_POINTS,
+    timesPrestiged: INITIAL_TIMES_PRESTIGED,
+    unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
   });
   
   const [businesses, setBusinesses] = useState<Business[]>(() => 
@@ -87,6 +83,136 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 
   const [unlockedStocks, setUnlockedStocks] = useState<Stock[]>([]);
+
+  const saveStateToLocalStorage = useCallback(() => {
+    try {
+      const currentTimestamp = Date.now();
+      const saveData: SaveData = {
+        playerStats,
+        businesses,
+        lastSaved: currentTimestamp,
+      };
+      localStorage.setItem(SAVE_DATA_KEY, JSON.stringify(saveData));
+      setLastSavedTimestamp(currentTimestamp);
+      console.log("Game saved at", new Date(currentTimestamp).toLocaleTimeString());
+    } catch (error) {
+      console.error("Error saving game state:", error);
+      toast({
+        title: "Save Error",
+        description: "Could not save game data to local storage.",
+        variant: "destructive",
+      });
+    }
+  }, [playerStats, businesses, toast]);
+
+  const manualSaveGame = () => {
+    saveStateToLocalStorage();
+    toast({
+      title: "Game Saved!",
+      description: "Your progress has been saved.",
+    });
+  };
+
+  const exportGameState = (): string => {
+    const currentTimestamp = Date.now();
+     const saveData: SaveData = {
+        playerStats,
+        businesses,
+        lastSaved: currentTimestamp,
+      };
+    return JSON.stringify(saveData, null, 2); // Pretty print JSON
+  };
+
+  const importGameState = (jsonString: string): boolean => {
+    try {
+      const importedData: SaveData = JSON.parse(jsonString);
+      // Basic validation (can be more thorough)
+      if (!importedData.playerStats || !importedData.businesses) {
+        throw new Error("Invalid save data structure.");
+      }
+      
+      // TODO: Add migration logic here if save data version changes
+      // For now, direct overwrite
+      setPlayerStats(importedData.playerStats);
+      setBusinesses(importedData.businesses);
+      setLastSavedTimestamp(importedData.lastSaved || Date.now());
+
+      saveStateToLocalStorage(); // Save the newly imported state
+      toast({
+        title: "Game Loaded Successfully!",
+        description: "Your game state has been imported.",
+      });
+      return true;
+    } catch (error) {
+      console.error("Error importing game state:", error);
+      toast({
+        title: "Import Error",
+        description: `Failed to import save data. ${error instanceof Error ? error.message : 'Unknown error.'}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Initial load from local storage
+    try {
+      const savedDataString = localStorage.getItem(SAVE_DATA_KEY);
+      if (savedDataString) {
+        const loadedData: SaveData = JSON.parse(savedDataString);
+        
+        // More robust state merging/initialization:
+        setPlayerStats(prev => ({
+          ...prev, // Keep defaults for any new fields
+          ...loadedData.playerStats,
+          // Ensure unlockedSkillIds is always an array
+          unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : [],
+        }));
+
+        setBusinesses(prevBusinesses => {
+          return INITIAL_BUSINESSES.map(initialBiz => {
+            const savedBiz = loadedData.businesses.find(b => b.id === initialBiz.id);
+            if (savedBiz) {
+              return {
+                ...initialBiz, // Start with fresh config (new upgrades, multipliers)
+                ...savedBiz,   // Apply saved progress (level, purchased upgrades)
+                upgrades: initialBiz.upgrades?.map(initialUpg => { // Ensure upgrades are from latest config
+                  const savedUpg = savedBiz.upgrades?.find(su => su.id === initialUpg.id);
+                  return savedUpg ? { ...initialUpg, isPurchased: savedUpg.isPurchased } : initialUpg;
+                }) || [],
+              };
+            }
+            return initialBiz; // If business not in save, use initial state
+          });
+        });
+
+        setLastSavedTimestamp(loadedData.lastSaved || Date.now());
+        toast({ title: "Game Loaded", description: "Welcome back!" });
+      } else {
+        // No save data, apply starting money bonus if any from skills (for a fresh game start)
+        const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
+        setPlayerStats(prev => ({ ...prev, money: INITIAL_MONEY + startingMoneyBonus }));
+      }
+    } catch (error) {
+      console.error("Error loading game state from local storage:", error);
+      localStorage.removeItem(SAVE_DATA_KEY); // Clear corrupted data
+      toast({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
+        // Apply starting money bonus if load fails
+        const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
+        setPlayerStats(prev => ({ ...prev, money: INITIAL_MONEY + startingMoneyBonus }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount
+
+
+  // Auto-save interval
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      saveStateToLocalStorage();
+    }, AUTO_SAVE_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [saveStateToLocalStorage]);
+
 
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
@@ -113,18 +239,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return business ? calculateIncome(business, playerStats.unlockedSkillIds, skillTreeState) : 0;
   }, [businesses, playerStats.unlockedSkillIds, skillTreeState]);
   
-  // Returns cost for the single next level
+  
   const getBusinessUpgradeCost = useCallback((businessId: string): number => {
     const business = businesses.find(b => b.id === businessId);
     if (!business) return 0;
     const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
     if (business.level >= currentDynamicMaxLevel) return Infinity;
 
-    const {totalCost} = calculateCostForNLevels(business, 1, playerStats.unlockedSkillIds, skillTreeState, currentDynamicMaxLevel);
-    return totalCost; // This will be cost for 1 level
+     return calculateSingleLevelUpgradeCost(
+        business.level, // Cost for the *next* level (current level + 1)
+        business.baseCost,
+        business.upgradeCostMultiplier,
+        business.upgrades,
+        playerStats.unlockedSkillIds,
+        skillTreeState
+    );
   }, [businesses, playerStats.unlockedSkillIds, skillTreeState, getDynamicMaxBusinessLevel]);
 
-  // Helper for BusinessCard to display costs
+  
   const calculateCostForNLevelsForDisplay = useCallback((businessId: string, levelsToBuy: number) => {
     const business = businesses.find(b => b.id === businessId);
     if (!business) return { totalCost: Infinity, levelsPurchasable: 0 };
@@ -184,7 +316,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000); 
 
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, unlockedStocks]); 
+  }, []); // Removed playerStats.totalIncomePerSecond to avoid re-creating interval if only income changes. Money is updated within.
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
     const business = businesses.find(b => b.id === businessId);
@@ -369,20 +501,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStats.prestigePoints) * (1 + prestigePointBoost / 100));
 
     let moneyAfterPrestige = INITIAL_MONEY;
-    if (GOD_MODE_ACTIVE) {
-        moneyAfterPrestige = Number.MAX_SAFE_INTEGER / 1000;
-    } else {
-        const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
-        moneyAfterPrestige += startingMoneyBonus;
-    }
+    const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
+    moneyAfterPrestige += startingMoneyBonus;
     
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: GOD_MODE_ACTIVE ? 0 : prev.prestigePoints + actualNewPrestigePoints,
-      timesPrestiged: GOD_MODE_ACTIVE ? 0 : prev.timesPrestiged + 1,
+      prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
+      timesPrestiged: prev.timesPrestiged + 1,
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -427,6 +555,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       businesses, 
       stocks: unlockedStocks, 
       skillTree: skillTreeState,
+      lastMarketTrends,
+      lastRiskTolerance,
+      lastSavedTimestamp,
       upgradeBusiness,
       purchaseBusinessUpgrade,
       getBusinessIncome, 
@@ -438,6 +569,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getDynamicMaxBusinessLevel,
       calculateCostForNLevelsForDisplay,
       calculateMaxAffordableLevelsForDisplay,
+      setLastMarketTrends,
+      setLastRiskTolerance,
+      manualSaveGame,
+      exportGameState,
+      importGameState,
     }}>
       {children}
     </GameContext.Provider>
@@ -451,6 +587,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-
-    
