@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { LockKeyhole, CheckCircle2, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SkillNodeCardProps {
   skillNode: SkillNode;
@@ -17,6 +19,41 @@ interface SkillNodeCardProps {
 }
 
 export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillIds, onUnlockSkill }: SkillNodeCardProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <TooltipProvider delayDuration={100}>
+        <Card className="flex flex-col relative transition-shadow duration-200 h-[230px]"> {/* Approx height of a card */}
+          <CardHeader className="pb-3 pt-4">
+            <div className="flex items-start gap-3">
+              <Skeleton className="h-10 w-10 mt-1 shrink-0 rounded-md" />
+              <div className="flex-grow space-y-1.5">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-3 w-full mt-1" />
+                <Skeleton className="h-3 w-5/6 mt-1" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-4 w-1/4" />
+            </div>
+            <Skeleton className="h-3 w-1/2 mt-1" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-9 w-full" />
+          </CardFooter>
+        </Card>
+      </TooltipProvider>
+    );
+  }
+
   const Icon = skillNode.icon;
   const isUnlocked = unlockedSkillIds.includes(skillNode.id);
   
@@ -27,7 +64,6 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
   const canAfford = playerPrestigePoints >= skillNode.cost;
   const canUnlock = !isUnlocked && dependenciesMet && canAfford;
   
-  // Condition for showing the full lock overlay
   const showLockOverlay = !isUnlocked && (!dependenciesMet || !canAfford);
 
   let lockReasonText = "";
@@ -36,21 +72,24 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
       const dependencyNames = skillNode.dependencies
         ?.map(depId => {
           // Assuming skill IDs are like 'global_income_boost_1', format to "Global Income Boost 1"
-          return depId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+          // This part might need to fetch actual skill names if available or use a simpler formatting
+          const skillInTree = INITIAL_SKILL_TREE.find(s => s.id === depId); // Assuming INITIAL_SKILL_TREE is accessible or passed
+          return skillInTree ? skillInTree.name : depId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         })
         .join(', ');
       lockReasonText = `Requires: ${dependencyNames || 'Prerequisites'}`;
     } else if (!canAfford) {
-      lockReasonText = `Needs ${skillNode.cost} PP (You have ${playerPrestigePoints})`;
+      lockReasonText = `Needs ${skillNode.cost} PP (You have ${playerPrestigePoints.toLocaleString('en-US')})`;
     }
   }
+
 
   return (
     <TooltipProvider delayDuration={100}>
       <Card className={cn(
         "flex flex-col relative transition-shadow duration-200",
-        isUnlocked && "border-primary shadow-md", 
-        !isUnlocked && canUnlock && "hover:shadow-lg",
+        isUnlocked && "border-primary shadow-lg", 
+        !isUnlocked && canUnlock && "hover:shadow-lg border-transparent", // Keep border transparent if not locked or unlocked
         showLockOverlay && "border-dashed" 
       )}>
         {isUnlocked && (
@@ -69,7 +108,7 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
 
         <CardHeader className={cn("pb-3 pt-4", showLockOverlay && "opacity-30")}>
           <div className="flex items-start gap-3">
-            <Icon className={cn("h-10 w-10 mt-1 shrink-0", isUnlocked ? "text-primary" : "text-muted-foreground")} />
+            <Icon className={cn("h-10 w-10 mt-1 shrink-0", isUnlocked ? "text-primary" : "text-muted-foreground", showLockOverlay ? "opacity-70" : "")} />
             <div className="flex-grow">
               <CardTitle className="text-lg leading-tight">{skillNode.name}</CardTitle>
               <CardDescription className="text-xs mt-1">{skillNode.description}</CardDescription>
@@ -81,12 +120,15 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
             <span className="text-muted-foreground">Cost:</span>
             <div className="flex items-center gap-1 font-semibold">
               <Sparkles className="h-4 w-4 text-amber-400" /> 
-              {skillNode.cost} PP
+              {skillNode.cost.toLocaleString('en-US')} PP
             </div>
           </div>
           {skillNode.dependencies && skillNode.dependencies.length > 0 && (
             <div className="text-xs text-muted-foreground">
-              Requires: {skillNode.dependencies.map(dep => dep.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join(', ')}
+              Requires: {skillNode.dependencies.map(depId => {
+                  const depSkill = INITIAL_SKILL_TREE.find(s => s.id === depId);
+                  return depSkill ? depSkill.name : depId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+              }).join(', ')}
             </div>
           )}
         </CardContent>
@@ -109,7 +151,10 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
               </div>
             </TooltipTrigger>
             {(!isUnlocked && canUnlock && !showLockOverlay) && (
-              <TooltipContent><p>Unlock for {skillNode.cost} Prestige Points.</p></TooltipContent>
+              <TooltipContent><p>Unlock for {skillNode.cost.toLocaleString('en-US')} Prestige Points.</p></TooltipContent>
+            )}
+             {showLockOverlay && (
+              <TooltipContent><p>{lockReasonText}</p></TooltipContent>
             )}
           </Tooltip>
         </CardFooter>
@@ -117,3 +162,9 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
     </TooltipProvider>
   );
 }
+
+// A stand-in for INITIAL_SKILL_TREE for dependency name resolution
+// This would ideally come from context or props if game-config is not directly importable here
+// For simplicity, this example assumes it can be accessed or that a simpler formatting is used.
+// If game-config.ts is in the same project, it can be imported.
+import { INITIAL_SKILL_TREE } from '@/config/game-config';
