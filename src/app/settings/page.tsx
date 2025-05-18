@@ -1,7 +1,8 @@
 
 import { SettingsManager } from "@/components/settings/SettingsManager";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Palette } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -18,6 +19,21 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <SettingsManager />
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Palette className="h-6 w-6 text-primary" />
+            <CardTitle>Theme Settings</CardTitle>
+          </div>
+          <CardDescription>
+            Choose your preferred application theme.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center pt-4">
+          <ThemeToggle />
         </CardContent>
       </Card>
     </div>

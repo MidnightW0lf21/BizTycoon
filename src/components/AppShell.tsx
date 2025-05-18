@@ -20,7 +20,6 @@ import {
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
-import { ThemeToggle } from './ThemeToggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
@@ -287,7 +286,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DollarSign className="h-5 w-5" />
               <span>${Math.floor(currentMoney).toLocaleString('en-US')}</span>
             </div>
-            <ThemeToggle />
+            <Button variant="outline" size="icon" className="h-9 w-9" asChild>
+              <Link href="/settings">
+                <Settings className="h-[1.2rem] w-[1.2rem]" />
+                <span className="sr-only">Open Settings</span>
+              </Link>
+            </Button>
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
