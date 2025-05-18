@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network } from 'lucide-react'; // Added Network
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Lightbulb } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
+  // { href: '/stock-tips', label: 'AI Stock Tips', icon: Lightbulb, requiredTimesPrestiged: 0 }, // AI Tips removed
 ];
 
 function AppLogo() {
@@ -66,7 +67,7 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={linkClassName}>
+            <div className={linkClassName}> {/* Ensure this is a div for locked state */}
               {linkContent}
             </div>
           </TooltipTrigger>
@@ -116,11 +117,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (activeItem) {
       setCurrentPageTitle(activeItem.label);
     } else {
-      // Fallback for pages not directly in navItems (like skill-tree before it's in navItems)
-      // Or if you have sub-pages you want to map to a parent nav item title.
       if (pathname.startsWith('/skill-tree')) {
         setCurrentPageTitle('Skill Tree');
-      } else {
+      } else if (pathname.startsWith('/stock-tips')) { // This case can be removed if AI tips are fully gone
+        setCurrentPageTitle('AI Stock Tips');
+      }
+       else {
         setCurrentPageTitle('BizTycoon'); 
       }
     }
