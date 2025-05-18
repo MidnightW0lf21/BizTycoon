@@ -33,28 +33,29 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
   let tooltipMessage = "";
 
   if (isUnlocked) {
-    statusBadge = <Badge variant="secondary" className="text-xs absolute top-2 right-2"><CheckCircle2 className="mr-1 h-3 w-3" /> Unlocked</Badge>;
+    statusBadge = <Badge variant="secondary" className="text-xs absolute top-2 right-2 z-10"><CheckCircle2 className="mr-1 h-3 w-3" /> Unlocked</Badge>;
   } else if (!dependenciesMet) {
-    statusBadge = <Badge variant="outline" className="text-xs absolute top-2 right-2"><LockKeyhole className="mr-1 h-3 w-3" /> Locked</Badge>;
+    statusBadge = <Badge variant="outline" className="text-xs absolute top-2 right-2 z-10"><LockKeyhole className="mr-1 h-3 w-3" /> Locked</Badge>;
     tooltipMessage = `Requires prerequisite skill(s): ${skillNode.dependencies?.map(dep => dep.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join(', ') || 'None'}`;
   } else if (!canAfford) {
-    statusBadge = <Badge variant="destructive" className="text-xs absolute top-2 right-2"><AlertTriangle className="mr-1 h-3 w-3" /> Cost: {skillNode.cost} PP</Badge>;
+    statusBadge = <Badge variant="destructive" className="text-xs absolute top-2 right-2 z-10"><AlertTriangle className="mr-1 h-3 w-3" /> Cost: {skillNode.cost} PP</Badge>;
     tooltipMessage = `Not enough Prestige Points. Need ${skillNode.cost}, have ${playerPrestigePoints}.`;
   } else {
      tooltipMessage = `Unlock for ${skillNode.cost} Prestige Points.`;
   }
 
+  const contentOpacityClass = isTrulyLocked ? "opacity-50" : "";
 
   return (
     <TooltipProvider delayDuration={100}>
       <Card className={cn(
         "flex flex-col relative",
-        isUnlocked && "border-primary", 
-        isTrulyLocked && "bg-muted/60 border-dashed opacity-80"
-        // If !isUnlocked and !isTrulyLocked, it's unlockable and uses default card styles
+        isUnlocked && "border-primary shadow-sm", 
+        isTrulyLocked && "bg-muted/50 border-dashed", // Card itself gets muted bg and dashed border
+        !isUnlocked && canUnlock && "hover:shadow-lg" // Highlight for unlockable cards
       )}>
-        {statusBadge}
-        <CardHeader className="pb-3 pt-4">
+        {statusBadge} {/* Badge is outside the opacity-affected content sections */}
+        <CardHeader className={cn("pb-3 pt-4", contentOpacityClass)}>
           <div className="flex items-start gap-3">
             <Icon className={cn("h-10 w-10 mt-1", isUnlocked ? "text-primary" : "text-muted-foreground")} />
             <div>
@@ -63,7 +64,7 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow space-y-2 text-sm">
+        <CardContent className={cn("flex-grow space-y-2 text-sm", contentOpacityClass)}>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Cost:</span>
             <div className="flex items-center gap-1 font-semibold">
@@ -77,13 +78,13 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
             </div>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className={cn(contentOpacityClass)}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="w-full"> {/* Div wrapper for TooltipTrigger when button is disabled */}
                 <Button
                   onClick={() => onUnlockSkill(skillNode.id)}
-                  disabled={!canUnlock}
+                  disabled={!canUnlock} // Button is disabled by its own logic if not unlockable
                   className="w-full"
                   variant={isUnlocked ? "outline" : "default"}
                 >
