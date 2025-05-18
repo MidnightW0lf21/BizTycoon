@@ -26,6 +26,8 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
   
   const canAfford = playerPrestigePoints >= skillNode.cost;
   const canUnlock = !isUnlocked && dependenciesMet && canAfford;
+  const isTrulyLocked = !isUnlocked && (!dependenciesMet || !canAfford);
+
 
   let statusBadge = null;
   let tooltipMessage = "";
@@ -34,7 +36,7 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
     statusBadge = <Badge variant="secondary" className="text-xs absolute top-2 right-2"><CheckCircle2 className="mr-1 h-3 w-3" /> Unlocked</Badge>;
   } else if (!dependenciesMet) {
     statusBadge = <Badge variant="outline" className="text-xs absolute top-2 right-2"><LockKeyhole className="mr-1 h-3 w-3" /> Locked</Badge>;
-    tooltipMessage = `Requires prerequisite skill(s): ${skillNode.dependencies?.join(', ') || 'None'}`;
+    tooltipMessage = `Requires prerequisite skill(s): ${skillNode.dependencies?.map(dep => dep.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join(', ') || 'None'}`;
   } else if (!canAfford) {
     statusBadge = <Badge variant="destructive" className="text-xs absolute top-2 right-2"><AlertTriangle className="mr-1 h-3 w-3" /> Cost: {skillNode.cost} PP</Badge>;
     tooltipMessage = `Not enough Prestige Points. Need ${skillNode.cost}, have ${playerPrestigePoints}.`;
@@ -45,7 +47,12 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
 
   return (
     <TooltipProvider delayDuration={100}>
-      <Card className={cn("flex flex-col relative", isUnlocked ? "border-green-500" : !dependenciesMet || !canAfford && !isUnlocked ? "opacity-70 bg-muted/30" : "")}>
+      <Card className={cn(
+        "flex flex-col relative",
+        isUnlocked && "border-primary", 
+        isTrulyLocked && "bg-muted/60 border-dashed opacity-80"
+        // If !isUnlocked and !isTrulyLocked, it's unlockable and uses default card styles
+      )}>
         {statusBadge}
         <CardHeader className="pb-3 pt-4">
           <div className="flex items-start gap-3">

@@ -32,6 +32,8 @@ export default function SkillTreePage() {
     );
   }
 
+  const sortedSkillTree = [...skillTree].sort((a, b) => a.cost - b.cost);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2">
@@ -45,12 +47,12 @@ export default function SkillTreePage() {
         </p>
       </div>
       
-      {skillTree.length === 0 ? (
+      {sortedSkillTree.length === 0 ? (
         <p className="text-center text-muted-foreground py-10">No skills available yet. Check back later!</p>
       ) : (
         <ScrollArea className="h-[calc(100vh-220px)] pr-4"> {/* Adjusted height slightly */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {skillTree.map((skill) => (
+            {sortedSkillTree.map((skill) => (
               <SkillNodeCard
                 key={skill.id}
                 skillNode={skill}
