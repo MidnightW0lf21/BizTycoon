@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Palette } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -24,6 +24,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from './ThemeToggle';
+
 
 interface NavItem {
   href?: string;
@@ -70,7 +72,7 @@ function AppLogo() {
       levelsAchieved: levelsProgressedForNextPoint,
       levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint, 
     });
-  }, [playerStats, businesses]); // Aligned dependency array for robustness
+  }, [playerStats, businesses]); 
 
   return (
     <div className="flex flex-col p-4 border-b border-border gap-3">
@@ -185,7 +187,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     const calculateNewlyGainedPointsLocal = () => {
-      const moneyRequiredForPrestige = 1000000;
+      const moneyRequiredForPrestige = 100000; // Updated requirement
       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
       
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
@@ -208,12 +210,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const handlePrestigeNavClick = () => {
-    const moneyRequiredForPrestige = 1000000;
+    const moneyRequiredForPrestige = 100000; // Updated requirement
 
     if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
       toast({
         title: "Not Ready to Prestige",
-        description: "You need at least $1,000,000 to prestige for the first time.",
+        description: `You need at least $${moneyRequiredForPrestige.toLocaleString('en-US')} to prestige for the first time.`,
         variant: "destructive",
       });
     } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {

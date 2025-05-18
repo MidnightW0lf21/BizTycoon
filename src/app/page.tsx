@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
    useEffect(() => {
     const calculateNewlyGainedPointsLocal = () => {
-      const moneyRequiredForPrestige = 1000000;
+      const moneyRequiredForPrestige = 100000; // Updated requirement
        if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
 
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
@@ -183,7 +183,7 @@ export default function DashboardPage() {
             </div>
           )}
            <p className="text-xs text-muted-foreground pt-2">
-            Note: You also need at least $1,000,000 to perform a prestige for the first time.
+            Note: You also need at least $100,000 to perform a prestige for the first time. {/* Updated text */}
             The points shown in the Prestige dialog are newly gained base points before skill bonuses.
             After prestiging, progress towards the next point starts after your total levels surpass the cumulative cost of points you already own.
           </p>

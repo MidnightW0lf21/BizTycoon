@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, RiskTolerance } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -97,7 +97,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
       localStorage.setItem(SAVE_DATA_KEY, JSON.stringify(saveData));
       setLastSavedTimestamp(currentTimestamp);
-      console.log("Game saved at", new Date(currentTimestamp).toLocaleTimeString());
+      // console.log("Game saved at", new Date(currentTimestamp).toLocaleTimeString());
     } catch (error) {
       console.error("Error saving game state:", error);
       toast({
@@ -228,7 +228,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
-        toast({ title: "Game Loaded", description: "Welcome back!" });
+        // toast({ title: "Game Loaded", description: "Welcome back!" }); // Initial load toast might be too much
       } else {
         setPlayerStats(getInitialPlayerStats()); 
       }
@@ -351,14 +351,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000);
 
     return () => clearInterval(gameLoop);
-  }, []); // Removed playerStats.totalIncomePerSecond from deps to avoid potential issues
+  }, []); 
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
     const businessToUpdate = businesses.find(b => b.id === businessId);
     if (!businessToUpdate) return;
 
     const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
-    if (businessIndexInConfig === -1) return; // Should not happen
+    if (businessIndexInConfig === -1) return; 
 
     if (playerStats.timesPrestiged < businessIndexInConfig) {
        toast({ title: "Locked", description: `This business unlocks after ${businessIndexInConfig} prestige(s).`, variant: "destructive"});
@@ -527,9 +527,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const performPrestige = useCallback(() => {
-    const moneyRequiredForPrestige = 1000000;
-    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
-      toast({ title: "Not Enough Money", description: `Need $${moneyRequiredForPrestige.toLocaleString('en-US')} to prestige for the first time.`, variant: "destructive" });
+    const moneyRequiredForFirstPrestige = 100000; // Updated requirement
+    if (playerStats.money < moneyRequiredForFirstPrestige && playerStats.timesPrestiged === 0) {
+      toast({ title: "Not Enough Money", description: `Need $${moneyRequiredForFirstPrestige.toLocaleString('en-US')} to prestige for the first time.`, variant: "destructive" });
       return;
     }
 
@@ -625,3 +625,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
