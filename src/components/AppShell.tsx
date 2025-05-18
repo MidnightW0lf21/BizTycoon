@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
-  { href: '/settings', label: 'Settings', icon: SlidersHorizontal },
+  // { href: '/settings', label: 'Settings', icon: SlidersHorizontal }, // Removed from here
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -54,6 +54,11 @@ function AppLogo() {
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
+    
+    // If God Mode makes prestigePoints very high, calculate progress as if starting fresh for UI purposes
+    if (playerStats.prestigePoints > 9000) { // A high threshold indicating likely God Mode start
+        displayPrestigePointsForProgressBar = 0;
+    }
     
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
@@ -165,6 +170,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
+  // Fallback for items without href and not being 'prestige' (though current setup avoids this)
   return (
     <div className={linkClassName} onClick={handleInteraction}>
       {linkContent}
@@ -204,6 +210,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   
     if (pathname === '/') setCurrentPageTitle('Dashboard');
+    else if (pathname === '/settings') setCurrentPageTitle('Settings'); // Handle settings title explicitly
     else if (activeItem) setCurrentPageTitle(activeItem.label);
     else setCurrentPageTitle('BizTycoon'); 
   }, [pathname]);
