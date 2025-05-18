@@ -3,23 +3,36 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Lightbulb, Sparkles } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
+import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
-  href: string;
+  href?: string;
   label: string;
   icon: LucideIcon;
   requiredTimesPrestiged?: number;
+  action?: 'prestige';
 }
 
 const navItems: NavItem[] = [
@@ -27,6 +40,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
+  { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
 function AppLogo() {
@@ -53,13 +67,13 @@ function AppLogo() {
 
     setPrestigeProgress({
       percentage: percentage,
-      levelsAchieved: levelsProgressedForNextPoint, // Not displayed here, but calculated
-      levelsForNext: costForNextPotentialPoint,   // Not displayed here, but calculated
+      levelsAchieved: levelsProgressedForNextPoint,
+      levelsForNext: costForNextPotentialPoint,
     });
   }, [playerStats.prestigePoints, businesses]);
 
   return (
-    <div className="flex flex-col p-4 border-b border-border gap-3"> {/* Added gap and adjusted padding a bit */}
+    <div className="flex flex-col p-4 border-b border-border gap-3">
       <Link href="/" className="flex items-center gap-2">
         <Briefcase className="h-8 w-8 text-primary" />
         <h1 className="text-xl font-bold text-foreground">BizTycoon Idle</h1>
@@ -79,14 +93,15 @@ function AppLogo() {
 }
 
 interface NavLinkProps extends NavItem {
-  onClick?: () => void;
+  onClick?: () => void; // For mobile sheet closing primarily
   currentTimesPrestiged: number;
+  onPrestigeClick?: () => void; // Specific handler for prestige action
 }
 
-function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, currentTimesPrestiged }: NavLinkProps) {
+function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = pathname === href;
-  const isLocked = requiredTimesPrestiged && currentTimesPrestiged < requiredTimesPrestiged;
+  const isActive = action ? false : pathname === href; // Action items are never "active" in the same way as page links
+  const isLocked = requiredTimesPrestiged !== undefined && currentTimesPrestiged < requiredTimesPrestiged;
 
   const linkClassName = cn(
     "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all",
@@ -108,7 +123,6 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            {/* Ensure this is a div or span for locked state for TooltipTrigger */}
             <div className={linkClassName}>
               {linkContent}
             </div>
@@ -121,62 +135,108 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
       </TooltipProvider>
     );
   }
+
+  if (action === 'prestige' && onPrestigeClick) {
+    return (
+      <button onClick={() => { onClick?.(); onPrestigeClick(); }} className={linkClassName}>
+        {linkContent}
+      </button>
+    );
+  }
   
-  const linkProps: { href: string; className: string; onClick?: () => void } = {
-    href,
-    className: linkClassName,
-  };
-  
-  if (onClick) {
-    linkProps.onClick = onClick;
+  if (href) {
+    return (
+      <Link href={href} onClick={onClick} className={linkClassName}>
+        {linkContent}
+      </Link>
+    );
   }
 
+  // Fallback for items that are neither actions nor links (should ideally not happen)
   return (
-    <Link {...linkProps}>
+    <div className={linkClassName} onClick={onClick}>
       {linkContent}
-    </Link>
+    </div>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { playerStats, businesses } = useGame(); // Added businesses here for AppLogo
+  const { playerStats, businesses, performPrestige } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
   const pathname = usePathname();
+  const { toast } = useToast();
+
+  const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
+  const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
+
+  const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
 
   useEffect(() => {
     setCurrentMoney(playerStats.money);
-  }, [playerStats.money]);
+
+    const calculateNewlyGainedPoints = () => {
+      const moneyRequiredForPrestige = 1000000;
+      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
+      const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
+      return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
+    };
+    setNewlyGainedPoints(calculateNewlyGainedPoints());
+
+  }, [playerStats, businesses, currentTotalLevels]);
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      if (item.href === '/') {
-        return pathname === '/';
-      }
-      return pathname.startsWith(item.href) && item.href !== '/'; // Ensure deeper paths still highlight parent
+      if (item.href === '/') return pathname === '/';
+      return item.href && pathname.startsWith(item.href) && item.href !== '/';
     });
   
-    if (pathname === '/') {
-      setCurrentPageTitle('Dashboard');
-    } else if (activeItem) {
-      setCurrentPageTitle(activeItem.label);
-    } else {
-      // Fallback for pages not in navItems, like potential sub-pages or direct access
-      if (pathname.startsWith('/businesses')) setCurrentPageTitle('Businesses');
-      else if (pathname.startsWith('/stocks')) setCurrentPageTitle('Stocks');
-      else if (pathname.startsWith('/skill-tree')) setCurrentPageTitle('Skill Tree');
-      else setCurrentPageTitle('BizTycoon');
-    }
+    if (pathname === '/') setCurrentPageTitle('Dashboard');
+    else if (activeItem) setCurrentPageTitle(activeItem.label);
+    else setCurrentPageTitle('BizTycoon');
   }, [pathname]);
 
+  const handlePrestigeNavClick = () => {
+    const moneyRequiredForPrestige = 1000000;
+    const wouldGainAnyPointsFromLevels = calculateDiminishingPrestigePoints(currentTotalLevels) > playerStats.prestigePoints;
+
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
+      toast({
+        title: "Not Ready to Prestige",
+        description: "You need at least $1,000,000 to prestige for the first time.",
+        variant: "destructive",
+      });
+    } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
+      toast({
+        title: "No Points to Gain Yet",
+        description: "You have enough money to prestige, but you wouldn't gain any prestige points from business levels yet. Level up your businesses further!",
+        variant: "default",
+      });
+    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) {
+      toast({
+        title: "No New Points to Gain",
+        description: "You wouldn't gain any new prestige points from business levels right now. Level up your businesses further!",
+        variant: "default",
+      });
+    } else {
+      setIsPrestigeDialogOpen(true);
+    }
+  };
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-0"> {/* Changed gap-2 to gap-0 */}
+        <div className="flex h-full max-h-screen flex-col gap-0">
           <AppLogo />
-          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
-            {navItems.map(item => <NavLink key={item.href} {...item} currentTimesPrestiged={playerStats.timesPrestiged} />)}
+          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
+            {navItems.map(item => (
+              <NavLink 
+                key={item.label} 
+                {...item} 
+                currentTimesPrestiged={playerStats.timesPrestiged}
+                onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
+              />
+            ))}
           </nav>
         </div>
       </div>
@@ -192,10 +252,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <SheetContent side="left" className="flex flex-col p-0">
               <AppLogo />
               <nav className="grid gap-2 text-lg font-medium p-4">
-                {navItems.map(item => <NavLink key={item.href} {...item} currentTimesPrestiged={playerStats.timesPrestiged} onClick={() => {
-                  const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
-                  document.dispatchEvent(escapeKeyEvent);
-                }} />)}
+                {navItems.map(item => (
+                  <NavLink 
+                    key={item.label} 
+                    {...item} 
+                    currentTimesPrestiged={playerStats.timesPrestiged}
+                    onClick={() => { // For mobile sheet closing
+                      const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+                      document.dispatchEvent(escapeKeyEvent);
+                    }}
+                    onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
+                  />
+                ))}
               </nav>
             </SheetContent>
           </Sheet>
@@ -214,6 +282,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <AlertDialog open={isPrestigeDialogOpen} onOpenChange={setIsPrestigeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Prestige</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to prestige? This will reset your current money,
+              all business levels, business upgrades, and stock holdings.
+              <br /><br />
+              You will gain approximately <strong className="text-primary">{newlyGainedPoints}</strong> new base prestige point(s) from business levels.
+              <br />
+              (Skill bonuses, if any, will be applied on top of this value by the system.)
+              <br />
+              This action is irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                performPrestige();
+                setIsPrestigeDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirm Prestige
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
