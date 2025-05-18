@@ -21,7 +21,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.07, // Slightly increased
+    upgradeCostMultiplier: 1.07,
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -32,6 +32,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ls_bulk_lemons', name: 'Bulk Lemons', description: 'Cheaper supplies, -5% level upgrade cost.', cost: 200, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
       { id: 'ls_premium_ingredients', name: 'Premium Ingredients', description: 'Use organic lemons & sugar, +20% income.', cost: 300, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'ls_ice_machine', name: 'Ice Machine', description: 'Always cold lemonade, +10% income.', cost: 400, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ls_unlock_bulk_buy', name: 'Efficient Setup', description: 'Unlocks bulk purchasing for Lemonade Stands.', cost: 250, requiredLevel: 8, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -40,7 +41,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.14, // Slightly increased
+    upgradeCostMultiplier: 1.14,
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -51,6 +52,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'cs_efficient_barista', name: 'Efficient Barista Training', description: 'Streamlined operations, -10% level upgrade cost.', cost: 1200, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
       { id: 'cs_artisanal_beans', name: 'Artisanal Beans', description: 'Source high-quality beans, +25% income.', cost: 2000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'cs_pastry_selection', name: 'Pastry Selection', description: 'Offer pastries with coffee, +15% income.', cost: 2500, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'cs_unlock_bulk_buy', name: 'Inventory System', description: 'Unlocks bulk purchasing for Coffee Shops.', cost: 1500, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -59,7 +61,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.13,  // Slightly increased
+    upgradeCostMultiplier: 1.13,
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -69,6 +71,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ab_commercial_ovens', name: 'Commercial Ovens', description: 'Increased capacity, +15% income, -5% level cost.', cost: 2500, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15, levelUpgradeCostReductionPercent: 5 },
       { id: 'ab_delivery_service', name: 'Local Delivery Service', description: 'Reach more customers, +25% income.', cost: 4000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'ab_organic_ingredients', name: 'Organic Ingredients Pact', description: 'Premium quality, +20% income.', cost: 6000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ab_unlock_bulk_buy', name: 'Bulk Flour Silo', description: 'Unlocks bulk purchasing for the Bakery.', cost: 5000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -77,7 +80,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.12, // Slightly increased
+    upgradeCostMultiplier: 1.12,
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -87,6 +90,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'fff_combo_meals', name: 'Combo Meal Deals', description: 'Increase average order value, +15% income.', cost: 5000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
       { id: 'fff_franchise_training', name: 'Franchise Training Program', description: 'Standardize operations, -5% level upgrade cost.', cost: 7000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
       { id: 'fff_online_ordering', name: 'Online Ordering System', description: 'Modern convenience, +10% income.', cost: 8500, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'fff_unlock_bulk_buy', name: 'Supply Chain Mgmt.', description: 'Unlocks bulk purchasing for Franchise.', cost: 7500, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -95,7 +99,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.15, // Slightly increased
+    upgradeCostMultiplier: 1.15,
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -106,6 +110,7 @@ export const INITIAL_BUSINESSES: Business[] = [
         { id: 'ts_ai_integration', name: 'AI Integration', description: 'Implement AI for better product, +30% income', cost: 25000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 30 },
         { id: 'ts_agile_dev_team', name: 'Agile Dev Team', description: 'Faster development cycles, -10% level upgrade cost', cost: 30000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
         { id: 'ts_patent_portfolio', name: 'Patent Portfolio', description: 'Secure IP, +20% income.', cost: 40000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 20 },
+        { id: 'ts_unlock_bulk_buy', name: 'Resource Allocation', description: 'Unlocks bulk purchasing for Startup.', cost: 20000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -114,7 +119,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.145, // Slightly increased
+    upgradeCostMultiplier: 1.145,
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -124,6 +129,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'sa_cloud_partnership', name: 'Cloud Platform Partnership', description: 'Scalable solutions, +25% income.', cost: 35000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'sa_ux_ui_dept', name: 'UX/UI Design Department', description: 'Better user experience, +20% income.', cost: 50000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'sa_ai_dev_tools', name: 'AI-Powered Dev Tools', description: 'Increased developer productivity, +15% income.', cost: 70000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'sa_unlock_bulk_buy', name: 'Project Scalability Plan', description: 'Unlocks bulk purchasing for Agency.', cost: 40000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -132,7 +138,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.14,  // Slightly increased
+    upgradeCostMultiplier: 1.14,
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -142,6 +148,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 're_virtual_tours', name: 'Virtual Tours', description: 'Attract more clients with tech, +20% income.', cost: 30000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
       { id: 're_negotiation_experts', name: 'Expert Negotiators', description: 'Better deals, -10% level upgrade cost.', cost: 40000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
       { id: 're_property_management', name: 'Property Management Division', description: 'Recurring revenue, +15% income.', cost: 50000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 're_unlock_bulk_buy', name: 'Portfolio Management Tools', description: 'Unlocks bulk purchasing for Agency.', cost: 45000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -150,7 +157,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.135, // Slightly increased
+    upgradeCostMultiplier: 1.135,
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -160,6 +167,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'sfs_global_cdn', name: 'Global CDN Expansion', description: 'Faster streaming worldwide, +15% income.', cost: 180000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
       { id: 'sfs_recommendation_ai', name: 'AI Recommendation Engine', description: 'Increased user engagement, +20% income.', cost: 250000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'sfs_licensing_deals', name: 'Exclusive Licensing Deals', description: 'Secure popular movie rights, +10% income.', cost: 300000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'sfs_unlock_bulk_buy', name: 'Content Library Expansion', description: 'Unlocks bulk purchasing for StreamFlix.', cost: 200000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -168,7 +176,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.13,  // Slightly increased
+    upgradeCostMultiplier: 1.13,
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -179,6 +187,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ms_distribution_network', name: 'Global Distribution Network', description: 'Wider release, +20% income.', cost: 500000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'ms_streaming_platform_deal', name: 'Streaming Platform Deal', description: 'Secure digital distribution, +20% income.', cost: 650000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'ms_merchandising_rights', name: 'Merchandising Rights', description: 'Additional revenue stream, +15% income.', cost: 450000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ms_unlock_bulk_buy', name: 'Production Scaling', description: 'Unlocks bulk purchasing for Studio.', cost: 400000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -187,7 +196,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.125, // Slightly increased
+    upgradeCostMultiplier: 1.125,
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -198,6 +207,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'mp_quality_control_systems', name: 'Advanced QC Systems', description: 'Better product quality, +20% income.', cost: 250000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'mp_lean_manufacturing', name: 'Lean Manufacturing Training', description: 'Improve efficiency, -5% level upgrade cost.', cost: 300000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
       { id: 'mp_3d_printing_division', name: '3D Printing Division', description: 'Rapid prototyping & custom parts, +10% income.', cost: 350000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'mp_unlock_bulk_buy', name: 'Assembly Line Optimization', description: 'Unlocks bulk purchasing for Plant.', cost: 250000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -206,7 +216,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.12,  // Slightly increased
+    upgradeCostMultiplier: 1.12,
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -216,6 +226,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'rec_solar_panel_efficiency', name: 'Solar Panel Efficiency Breakthrough', description: 'More power from sunlight, +30% income.', cost: 600000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'rec_grid_battery_storage', name: 'Grid-Scale Battery Storage', description: 'Store excess energy, +20% income.', cost: 800000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'rec_govt_subsidies', name: 'Government Subsidies Lobbying', description: 'Secure favorable policies, -10% level cost.', cost: 1000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'rec_unlock_bulk_buy', name: 'Smart Grid Integration', description: 'Unlocks bulk purchasing for EcoPower.', cost: 700000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -224,7 +235,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.115, // Slightly increased
+    upgradeCostMultiplier: 1.115,
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -234,6 +245,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'cgs_incident_response_team', name: 'Elite Incident Response Team', description: 'Rapid breach mitigation, +15% income.', cost: 700000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
       { id: 'cgs_advanced_encryption', name: 'Quantum-Resistant Encryption R&D', description: 'Future-proof security, +20% income.', cost: 900000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'cgs_security_audits', name: 'Automated Security Audits', description: 'Efficient client onboarding, -10% level cost.', cost: 1200000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'cgs_unlock_bulk_buy', name: 'Threat Response Automation', description: 'Unlocks bulk purchasing for CyberGuard.', cost: 800000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -242,7 +254,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.11,  // Slightly increased
+    upgradeCostMultiplier: 1.11,
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -252,6 +264,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'pc_clinical_trials_fast_track', name: 'Clinical Trials Fast-Track', description: 'Speed up approval process, -10% level upgrade cost.', cost: 1200000, requiredLevel: 10, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
       { id: 'pc_patented_drug_portfolio', name: 'Patented Drug Portfolio', description: 'Secure long-term revenue, +35% income.', cost: 2000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 35 },
       { id: 'pc_biotech_collaboration', name: 'Biotech Collaboration', description: 'Access new research, +20% income.', cost: 2500000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'pc_unlock_bulk_buy', name: 'Drug Pipeline Acceleration', description: 'Unlocks bulk purchasing for Pharma Co.', cost: 1500000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -260,7 +273,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.105, // Slightly increased
+    upgradeCostMultiplier: 1.105,
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -270,6 +283,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'se_asteroid_mining_prototype', name: 'Asteroid Mining Tech', description: 'Explore new revenue streams, +40% income.', cost: 2500000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 40 },
       { id: 'se_interstellar_comms', name: 'Interstellar Comms', description: 'Expand operational reach, +25% income.', cost: 5000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'se_space_tourism_division', name: 'Space Tourism Division', description: 'Luxury travel to orbit, +30% income.', cost: 7000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'se_unlock_bulk_buy', name: 'Launch Manifest Automation', description: 'Unlocks bulk purchasing for Space Inc.', cost: 3000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -278,7 +292,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.10,  // Slightly increased
+    upgradeCostMultiplier: 1.10,
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -288,6 +302,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gsn_supertankers', name: 'Fuel-Efficient Supertankers', description: 'Larger capacity, lower fuel costs, +30% income.', cost: 4000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'gsn_cargo_tracking', name: 'Real-time Cargo Tracking', description: 'Improved logistics, +20% income.', cost: 6000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'gsn_customs_expediting', name: 'Customs Expediting Services', description: 'Faster border crossings, +15% income.', cost: 8000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'gsn_unlock_bulk_buy', name: 'Fleet Management Software', description: 'Unlocks bulk purchasing for Horizon.', cost: 5000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -296,7 +311,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.095,   // Slightly increased
+    upgradeCostMultiplier: 1.095,
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -307,6 +322,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ai_talent_acquisition', name: 'Top Talent Acquisition', description: 'Hire the best minds, +30% income.', cost: 7500000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'ai_breakthrough_algorithm', name: 'Breakthrough Algorithm', description: 'Revolutionize a field, +50% income.', cost: 15000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 50 },
       { id: 'ai_autonomous_systems_division', name: 'Autonomous Systems Division', description: 'Develop self-driving tech, +35% income.', cost: 20000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'ai_unlock_bulk_buy', name: 'Research Grant Management', description: 'Unlocks bulk purchasing for AI Lab.', cost: 8000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -315,7 +331,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.09,  // Slightly increased
+    upgradeCostMultiplier: 1.09,
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -325,6 +341,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gli_automated_warehouses', name: 'Automated Warehousing Network', description: 'Reduced operational costs, -10% level cost.', cost: 10000000, requiredLevel: 10, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
       { id: 'gli_ai_route_optimization', name: 'AI Route Optimization', description: 'Smarter, faster deliveries, +20% income.', cost: 13000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'gli_cold_chain_logistics', name: 'Cold Chain Logistics Specialization', description: 'Serve high-value perishable goods market, +15% income.', cost: 16000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'gli_unlock_bulk_buy', name: 'Warehouse Network Scaling', description: 'Unlocks bulk purchasing for GlobalLink.', cost: 12000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -333,7 +350,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.085,  // Slightly increased
+    upgradeCostMultiplier: 1.085,
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -343,6 +360,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gef_bioinformatics_supercomputer', name: 'Bioinformatics Supercomputer', description: 'Accelerate research, +30% income.', cost: 15000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'gef_personalized_medicine', name: 'Personalized Medicine Division', description: 'Tailored treatments, +40% income.', cost: 25000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 40 },
       { id: 'gef_ethical_oversight', name: 'Ethical Oversight Committee', description: 'Public trust and grants, +10% income.', cost: 5000000, requiredLevel: 7, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gef_unlock_bulk_buy', name: 'Automated Lab Sequencing', description: 'Unlocks bulk purchasing for EvoGenesis.', cost: 18000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -351,7 +369,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 30000,
     baseCost: 4000000,
-    upgradeCostMultiplier: 1.08, // Slightly increased
+    upgradeCostMultiplier: 1.08,
     icon: Radio,
     managerOwned: false,
     description: 'Global news, entertainment, and digital content.',
@@ -361,6 +379,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'omg_syndication_deals', name: 'International Syndication Deals', description: 'Expand content reach, +20% income.', cost: 20000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
       { id: 'omg_digital_subscription_platform', name: 'Digital Subscription Platform', description: 'Recurring revenue stream, +30% income.', cost: 30000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'omg_investigative_journalism_unit', name: 'Investigative Journalism Unit', description: 'Award-winning content, -10% level cost.', cost: 25000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'omg_unlock_bulk_buy', name: 'Content Production Pipeline', description: 'Unlocks bulk purchasing for OmniMedia.', cost: 28000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -369,7 +388,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 45000,
     baseCost: 6000000,
-    upgradeCostMultiplier: 1.075,  // Slightly increased
+    upgradeCostMultiplier: 1.075,
     icon: Cog,
     managerOwned: false,
     description: 'Advanced robotics for industrial and consumer markets.',
@@ -379,6 +398,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'sdr_modular_robot_design', name: 'Modular Robot Design', description: 'Versatile product line, +25% income.', cost: 30000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'sdr_defense_contracts', name: 'Lucrative Defense Contracts', description: 'Secure government funding, +20% income, -5% level cost.', cost: 40000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20, levelUpgradeCostReductionPercent: 5 },
       { id: 'sdr_consumer_robotics_division', name: 'Consumer Robotics Division', description: 'Tap into the home market, +15% income.', cost: 35000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'sdr_unlock_bulk_buy', name: 'Robotic Swarm Manufacturing', description: 'Unlocks bulk purchasing for SynthoDynamics.', cost: 38000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
   {
@@ -387,7 +407,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 70000,
     baseCost: 10000000,
-    upgradeCostMultiplier: 1.07, // Slightly increased
+    upgradeCostMultiplier: 1.07,
     icon: Sigma,
     managerOwned: false,
     description: 'Pioneering quantum computation for a new era.',
@@ -397,6 +417,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'qls_quantum_algorithm_library', name: 'Proprietary Quantum Algorithm Library', description: 'Solve complex problems, +30% income.', cost: 55000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'qls_cloud_quantum_access', name: 'Cloud Quantum Computing Platform', description: 'Offer QaaS, +25% income.', cost: 70000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
       { id: 'qls_cryptography_breakthrough', name: 'Quantum Cryptography Breakthrough', description: 'Unbreakable security solutions, -10% level cost, +15% income.', cost: 80000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10, incomeBoostPercent: 15 },
+      { id: 'qls_unlock_bulk_buy', name: 'Qubit Manufacturing Scale-up', description: 'Unlocks bulk purchasing for QuantaLeap.', cost: 60000000, requiredLevel: 12, isPurchased: false, unlocksBulkBuy: true },
     ],
   },
 ];
@@ -440,15 +461,6 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     cost: 3,
     icon: ArrowDownCircle,
     effects: { globalCostReductionPercent: 3 },
-  },
-  {
-    id: 'efficient_management_unlock',
-    name: 'Efficient Management',
-    description: 'Unlocks bulk purchasing options (x10, x25, MAX) for all businesses.',
-    cost: 5,
-    icon: ShoppingCart,
-    dependencies: ['global_income_boost_1'],
-    effects: { unlockBulkBuy: true },
   },
   {
     id: 'lemonade_boost_1',
@@ -834,6 +846,3 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
-
-
-    

@@ -31,7 +31,6 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
-    skillTree, // Get skillTree for checking unlockBulkBuy skill
   } = useGame();
   const Icon = business.icon;
 
@@ -48,16 +47,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const requiredPrestiges = business.requiredTimesPrestiged || 0;
   const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
 
-  const bulkBuySkillUnlocked = useMemo(() => {
-    const skill = skillTree.find(s => s.id === 'efficient_management_unlock');
-    return skill ? playerStats.unlockedSkillIds.includes(skill.id) : false;
-  }, [playerStats.unlockedSkillIds, skillTree]);
+  const bulkBuyUnlockedForThisBusiness = useMemo(() => {
+    return business.upgrades?.some(upg => upg.isPurchased && upg.unlocksBulkBuy) || false;
+  }, [business.upgrades]);
 
   useEffect(() => {
-    if (!bulkBuySkillUnlocked) {
-      setSelectedBuyAmount(1); // Default to 1 if bulk buy isn't unlocked
+    if (!bulkBuyUnlockedForThisBusiness) {
+      setSelectedBuyAmount(1); // Default to 1 if bulk buy isn't unlocked for this business
     }
-  }, [bulkBuySkillUnlocked]);
+  }, [bulkBuyUnlockedForThisBusiness]);
 
   useEffect(() => {
     setCurrentLevel(business.level);
@@ -79,7 +77,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     }
 
     let costResult: { totalCost: number; levelsPurchasable?: number; levelsToBuy?: number };
-    const currentBuyAmount = bulkBuySkillUnlocked ? selectedBuyAmount : 1;
+    const currentBuyAmount = bulkBuyUnlockedForThisBusiness ? selectedBuyAmount : 1;
 
     if (currentBuyAmount === 'MAX') {
       costResult = calculateMaxAffordableLevelsForDisplay(business.id);
@@ -102,7 +100,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     calculateMaxAffordableLevelsForDisplay,
     dynamicMaxLevel,
     isUnlocked,
-    bulkBuySkillUnlocked // Add dependency
+    bulkBuyUnlockedForThisBusiness
   ]);
 
 
@@ -110,7 +108,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     if (!isUnlocked || !canAffordUpgrade || levelsToBuyDisplay === 0) return;
     
     let levelsToPassToUpgrade = 0;
-    const currentBuyAmount = bulkBuySkillUnlocked ? selectedBuyAmount : 1;
+    const currentBuyAmount = bulkBuyUnlockedForThisBusiness ? selectedBuyAmount : 1;
 
     if (currentBuyAmount === 'MAX') {
         const maxAffordable = calculateMaxAffordableLevelsForDisplay(business.id);
@@ -176,11 +174,11 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         </div>
 
-        {isUnlocked && !isMaxLevel && bulkBuySkillUnlocked && (
+        {isUnlocked && !isMaxLevel && bulkBuyUnlockedForThisBusiness && (
           <div className="pt-2 space-y-2">
             <Label className="text-xs text-muted-foreground">Buy Amount:</Label>
             <RadioGroup
-              value={String(selectedBuyAmount)} // Ensure value is controlled
+              value={String(selectedBuyAmount)} 
               onValueChange={(value) => setSelectedBuyAmount(value as BuyAmountOption)}
               className="flex space-x-2"
             >
@@ -202,10 +200,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         )}
         
-        {isUnlocked && !isMaxLevel && ( // Cost display should always be visible if not max level
-           <div className="pt-2 space-y-2"> {/* Adjusted structure slightly if bulk buy is not shown */}
+        {isUnlocked && !isMaxLevel && ( 
+           <div className="pt-2 space-y-2"> 
             <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: (bulkBuySkillUnlocked ? 'selected' : 'next')}:</span>
+                <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: (bulkBuyUnlockedForThisBusiness ? 'selected' : 'next')}:</span>
                 <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-red-500" />
                     <span className="font-semibold text-red-500">
@@ -312,6 +310,3 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
-
-
-    
