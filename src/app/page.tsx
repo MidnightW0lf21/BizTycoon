@@ -40,15 +40,15 @@ export default function DashboardPage() {
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
-    
+
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
-    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { 
+    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) { 
+    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = 100;
     }
 
@@ -58,13 +58,13 @@ export default function DashboardPage() {
       levelsAchieved: levelsProgressedForNextPoint,
       levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
     });
-  }, [playerStats.money, playerStats.totalIncomePerSecond, playerStats.prestigePoints, businesses]);
+  }, [playerStats, businesses]); // Simplified dependency to playerStats object and businesses
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
   const averageBusinessLevel = totalBusinessesOwned > 0
     ? businesses.reduce((sum, b) => sum + b.level, 0) / totalBusinessesOwned
     : 0;
-  
+
   const currentTotalLevelsForDialog = businesses.reduce((sum, b) => sum + b.level, 0);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
 
@@ -72,7 +72,7 @@ export default function DashboardPage() {
     const calculateNewlyGainedPointsLocal = () => {
       const moneyRequiredForPrestige = 1000000;
        if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
-      
+
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
@@ -175,6 +175,7 @@ export default function DashboardPage() {
            <p className="text-xs text-muted-foreground pt-2">
             Note: You also need at least $1,000,000 to perform a prestige for the first time.
             The points shown in the Prestige dialog are newly gained base points before skill bonuses.
+            After prestiging, progress towards the next point starts after your total levels surpass the cumulative cost of points you already own.
           </p>
         </CardContent>
       </Card>
@@ -183,4 +184,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
