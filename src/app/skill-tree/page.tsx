@@ -3,14 +3,18 @@
 
 import { useGame } from "@/contexts/GameContext";
 import { SkillNodeCard } from "@/components/skill-tree/SkillNodeCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Filter, Eye, EyeOff } from "lucide-react";
+import { INITIAL_SKILL_TREE } from "@/config/game-config";
+import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card"; // Keep for locked state
 
 export default function SkillTreePage() {
-  const { playerStats, skillTree, unlockSkillNode } = useGame();
+  const { playerStats, unlockSkillNode } = useGame();
+  const [showAllSkills, setShowAllSkills] = useState(false);
 
-  const REQUIRED_PRESTIGE_LEVEL = 1; // Matches NavItem requirement
+  const REQUIRED_PRESTIGE_LEVEL = 1;
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
     return (
@@ -32,11 +36,36 @@ export default function SkillTreePage() {
     );
   }
 
-  const sortedSkillTree = [...skillTree].sort((a, b) => a.cost - b.cost);
+  const sortedSkillTree = useMemo(() => {
+    return [...INITIAL_SKILL_TREE].sort((a, b) => {
+      const aUnlocked = playerStats.unlockedSkillIds.includes(a.id);
+      const bUnlocked = playerStats.unlockedSkillIds.includes(b.id);
+      if (aUnlocked && !bUnlocked) return -1; // Unlocked skills first
+      if (!aUnlocked && bUnlocked) return 1;
+      return a.cost - b.cost; // Then sort by cost
+    });
+  }, [playerStats.unlockedSkillIds]);
+
+  const filteredSkillTree = useMemo(() => {
+    if (showAllSkills) {
+      return sortedSkillTree;
+    }
+    return sortedSkillTree.filter(skill => {
+      const isUnlocked = playerStats.unlockedSkillIds.includes(skill.id);
+      if (isUnlocked) return true;
+
+      const dependenciesMet = skill.dependencies
+        ? skill.dependencies.every(depId => playerStats.unlockedSkillIds.includes(depId))
+        : true;
+      
+      return dependenciesMet; // Show if unlocked or dependencies are met
+    });
+  }, [sortedSkillTree, playerStats.unlockedSkillIds, showAllSkills]);
+
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="space-y-2">
+    <div className="flex flex-col gap-4 h-full">
+      <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Sparkles className="h-7 w-7 text-primary" />
           Skill Tree
@@ -46,13 +75,30 @@ export default function SkillTreePage() {
           You currently have <strong className="text-primary">{playerStats.prestigePoints.toLocaleString('en-US')} PP</strong>.
         </p>
       </div>
+
+      <div className="flex justify-start mb-2">
+        <Button
+          variant="outline"
+          onClick={() => setShowAllSkills(prev => !prev)}
+          size="sm"
+        >
+          {showAllSkills ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+          {showAllSkills ? "Show Relevant Skills" : "Show All Skills"}
+        </Button>
+      </div>
       
-      {sortedSkillTree.length === 0 ? (
-        <p className="text-center text-muted-foreground py-10">No skills available yet. Check back later!</p>
+      {filteredSkillTree.length === 0 ? (
+        <div className="flex-grow flex items-center justify-center">
+          <p className="text-center text-muted-foreground py-10">
+            No skills match your current filter or are available yet.
+            <br />
+            Try prestiging or adjusting the filter.
+          </p>
+        </div>
       ) : (
-        <ScrollArea className="h-[calc(100vh-220px)] pr-4"> {/* Adjusted height slightly */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sortedSkillTree.map((skill) => (
+        <ScrollArea className="flex-grow pr-1 h-[calc(100vh-250px)]"> {/* Adjusted height based on surrounding elements */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {filteredSkillTree.map((skill) => (
               <SkillNodeCard
                 key={skill.id}
                 skillNode={skill}
