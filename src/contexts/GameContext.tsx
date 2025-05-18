@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, SkillNode } from '@/types';
+import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, SkillNode, RiskTolerance } from '@/types';
 import { 
   INITIAL_BUSINESSES, 
   INITIAL_MONEY, 
@@ -16,8 +16,8 @@ import {
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
-  TECH_BUSINESS_IDS, // Import for skill effect application if needed here, or handled in calculateIncome
-  LOGISTICS_BUSINESS_IDS // Import for skill effect application
+  TECH_BUSINESS_IDS, 
+  LOGISTICS_BUSINESS_IDS 
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +25,8 @@ import { useToast } from "@/hooks/use-toast";
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
-  stocks: Stock[]; // This will be the filtered list of unlocked stocks
-  skillTree: SkillNode[]; // All available skills
+  stocks: Stock[]; 
+  skillTree: SkillNode[];
   upgradeBusiness: (businessId: string) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string) => void;
   getBusinessIncome: (businessId: string) => number;
@@ -35,6 +35,10 @@ interface GameContextType {
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
+  // lastMarketTrends: string; // Removed as AI features are removed
+  // setLastMarketTrends: (trends: string) => void; // Removed
+  // lastRiskTolerance: RiskTolerance; // Removed
+  // setLastRiskTolerance: (tolerance: RiskTolerance) => void; // Removed
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -53,8 +57,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (GOD_MODE_ACTIVE) {
       baseMoney = Number.MAX_SAFE_INTEGER / 100; 
-      console.log("--- GOD MODE ACTIVATED: Infinite Money, Normal Prestige/Skill Progression ---");
-      // Prestige points, times prestiged, and unlocked skills remain at their normal initial values
+      initialPrestigePoints = 9999; // Grant many prestige points
+      initialTimesPrestiged = 999;  // Set high times prestiged to unlock UI elements
+      // initialUnlockedSkills remains default, player can unlock with PPs
+      console.log("--- GOD MODE ACTIVATED: Max Money, High Prestige Levels, High PP ---");
     }
     
     const startingMoneyBonus = getStartingMoneyBonus(initialUnlockedSkills, skillTreeState);
@@ -81,9 +87,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [unlockedStocks, setUnlockedStocks] = useState<Stock[]>([]);
 
+  // Removed AI related state for lastMarketTrends and lastRiskTolerance
+
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
-      if (!stock.requiredSkillToUnlock) return true; // Always available if no skill lock
+      if (!stock.requiredSkillToUnlock) return true; 
       return playerStats.unlockedSkillIds.includes(stock.requiredSkillToUnlock);
     });
     setUnlockedStocks(filteredStocks);
@@ -100,7 +108,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return business ? calculateUpgradeCost(business, playerStats.unlockedSkillIds, skillTreeState) : 0;
   }, [businesses, playerStats.unlockedSkillIds, skillTreeState]);
 
-  // Effect to update total income per second
   useEffect(() => {
     const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
     
@@ -114,7 +121,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     for (const holding of playerStats.stockHoldings) {
-      const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); // Use unlockedStocks
+      const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
       if (stockDetails) {
         let currentDividendYield = stockDetails.dividendYield;
         currentDividendYield *= (1 + globalDividendBoost / 100);
@@ -124,7 +131,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPlayerStats(prev => ({ ...prev, totalIncomePerSecond: totalBusinessIncome + dividendIncome }));
   }, [businesses, getBusinessIncome, playerStats.stockHoldings, unlockedStocks, playerStats.unlockedSkillIds, skillTreeState]);
 
-  // Game loop for money and investment value
   useEffect(() => {
     const gameLoop = setInterval(() => {
       setPlayerStats(prev => {
@@ -132,7 +138,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); // Use unlockedStocks
+          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); 
           if (stockDetails) {
             currentInvestmentsValue += holding.shares * stockDetails.price;
           }
@@ -146,7 +152,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000); 
 
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, unlockedStocks]); // Use unlockedStocks
+  }, [playerStats.totalIncomePerSecond, unlockedStocks]); 
 
   const upgradeBusiness = (businessId: string) => {
     const business = businesses.find(b => b.id === businessId);
@@ -212,7 +218,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     if (globalUpgradeCostReduction > 0) {
         actualCost *= (1 - globalUpgradeCostReduction / 100);
-        actualCost = Math.max(0, Math.floor(actualCost)); // Ensure cost doesn't go negative
+        actualCost = Math.max(0, Math.floor(actualCost)); 
     }
 
     if (playerStats.money < actualCost && !GOD_MODE_ACTIVE) {
@@ -240,7 +246,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks
+    const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
       if(!GOD_MODE_ACTIVE) toast({ title: "Stock Not Found", description: "This stock is not available or does not exist.", variant: "destructive" });
       return;
@@ -286,7 +292,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks
+    const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
       if(!GOD_MODE_ACTIVE) toast({ title: "Stock Not Found", variant: "destructive" });
       return;
@@ -316,26 +322,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let basePointsFromLevels = calculateDiminishingPrestigePoints(totalLevels);
     
-    // Only proceed if new points would be gained from levels or if it's not the first prestige (where money is the main gate)
-    if (basePointsFromLevels <= playerStats.prestigePoints && playerStats.timesPrestiged > 0 && !GOD_MODE_ACTIVE) {
-        // No, this check is not quite right. We want to check newly gained points based on *current levels* vs *current points*
-        // The points to gain is basePointsFromLevels - playerStats.prestigePoints (before applying skill bonus to basePointsFromLevels)
-        // Let's rethink this. The dialog calculates newlyGainedPoints. We should use that.
-        // For now, this basic check:
-         if (calculateDiminishingPrestigePoints(totalLevels) === playerStats.prestigePoints && !GOD_MODE_ACTIVE) {
-           toast({ title: "No New Base Points", description: "You wouldn't gain new base prestige points from business levels right now.", variant: "default"});
-           // This could be enhanced to allow prestiging even for 0 points if player desires after first prestige.
-           // For now, we just check if the new calculation yields more points than current points.
-           // More accurately: calculate potential NEW points to be added.
-           // This logic is already better in AppShell's prestige dialog trigger.
-           // The performPrestige itself just does the reset.
-         }
-    }
-
-
     const prestigePointBoost = getPrestigePointBoostPercent(playerStats.unlockedSkillIds, skillTreeState);
     const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStats.prestigePoints) * (1 + prestigePointBoost / 100));
-
 
     const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
     
@@ -343,15 +331,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ? Number.MAX_SAFE_INTEGER / 100 
       : INITIAL_MONEY + startingMoneyBonus;
 
-
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
-      timesPrestiged: prev.timesPrestiged + 1,
-      // unlockedSkillIds remain
+      prestigePoints: GOD_MODE_ACTIVE ? 9999 : prev.prestigePoints + actualNewPrestigePoints,
+      timesPrestiged: GOD_MODE_ACTIVE ? 999 : prev.timesPrestiged + 1,
     }));
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false, 
@@ -386,12 +372,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
     }));
 
-    if (skill.effects.increaseStartingMoney && !GOD_MODE_ACTIVE) { 
-        // This bonus is primarily for *after* a prestige. 
-        // Applying it mid-game might be confusing unless explicitly stated as an immediate cash bonus.
-        // For now, its main effect is on the moneyAfterPrestige calculation.
-    }
-
     if(!GOD_MODE_ACTIVE) toast({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
   };
 
@@ -399,7 +379,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <GameContext.Provider value={{ 
       playerStats, 
       businesses, 
-      stocks: unlockedStocks, // Provide the filtered list
+      stocks: unlockedStocks, 
       skillTree: skillTreeState,
       upgradeBusiness,
       purchaseBusinessUpgrade,
@@ -409,6 +389,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sellStock,
       performPrestige,
       unlockSkillNode,
+      // lastMarketTrends, // Removed
+      // setLastMarketTrends, // Removed
+      // lastRiskTolerance, // Removed
+      // setLastRiskTolerance, // Removed
     }}>
       {children}
     </GameContext.Provider>
