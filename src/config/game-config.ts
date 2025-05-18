@@ -552,7 +552,6 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     dependencies: ['prestige_point_boost_1'],
     effects: {}, 
   },
-  // New Skills
   {
     id: 'advanced_management_1',
     name: 'Advanced Management I',
@@ -579,6 +578,24 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     icon: Briefcase,
     dependencies: ['advanced_management_2'],
     effects: { increaseMaxBusinessLevelBy: 20 },
+  },
+  {
+    id: 'advanced_management_4',
+    name: 'Advanced Management IV',
+    description: 'The pinnacle of expansion. Max business level +25.',
+    cost: 180, 
+    icon: Briefcase,
+    dependencies: ['advanced_management_3'],
+    effects: { increaseMaxBusinessLevelBy: 25 },
+  },
+  {
+    id: 'advanced_management_5',
+    name: 'Advanced Management V',
+    description: 'Ultimate operational scale. Max business level +30. (Caps at 200 total).',
+    cost: 250,
+    icon: Briefcase,
+    dependencies: ['advanced_management_4'],
+    effects: { increaseMaxBusinessLevelBy: 30 },
   },
   {
     id: 'tycoons_ambition',
@@ -739,5 +756,3 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
 };
 
     
-
-
