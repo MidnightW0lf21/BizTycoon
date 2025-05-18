@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast"; 
+import { useToast } from "@/hooks/use-toast";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 
@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
-  const { toast } = useToast(); 
+  const { toast } = useToast();
 
   const [prestigeProgress, setPrestigeProgress] = useState({
     percentage: 0,
@@ -39,20 +39,23 @@ export default function DashboardPage() {
     levelsForNext: 0,
   });
 
+  const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
+
   useEffect(() => {
     setCurrentMoney(playerStats.money);
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
-    // Calculate prestige progress
-    const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
+    // Calculate prestige progress for the progress bar
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
     const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
-    
+
     let percentage = 0;
     if (costForNextPotentialPoint > 0) {
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
     } else {
+      // This case implies max prestige points might be reached or an issue with cost calculation,
+      // though costForNextPotentialPoint should always be positive with current logic.
       percentage = (levelsProgressedForNextPoint > 0) ? 100 : 0;
     }
 
@@ -62,21 +65,28 @@ export default function DashboardPage() {
       levelsForNext: costForNextPotentialPoint,
     });
 
-  }, [playerStats, businesses]);
+  }, [playerStats, businesses, currentTotalLevels]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
-  const averageBusinessLevel = totalBusinessesOwned > 0 
+  const averageBusinessLevel = totalBusinessesOwned > 0
     ? businesses.reduce((sum, b) => sum + b.level, 0) / totalBusinessesOwned
     : 0;
 
-  const calculatePotentialPrestigePoints = () => {
+  // Calculate points to be *newly* gained if prestiged now
+  const calculateNewlyGainedPoints = () => {
     const moneyRequiredForPrestige = 1000000;
-    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0; 
-    
-    const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    return calculateDiminishingPrestigePoints(totalLevels);
+    // For the first prestige, if money requirement isn't met, no points can be gained.
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
+
+    const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
+    // Newly gained points are the difference between total potential and current points.
+    return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
   };
-  const potentialPrestigePoints = calculatePotentialPrestigePoints();
+  const newlyGainedPoints = calculateNewlyGainedPoints();
+
+  // Determine if player would earn any points from levels if they prestiged now (for button disabling/toast logic)
+  const wouldGainAnyPointsFromLevels = calculateDiminishingPrestigePoints(currentTotalLevels) > playerStats.prestigePoints;
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -114,7 +124,7 @@ export default function DashboardPage() {
         <MetricCard
           title="Times Prestiged"
           value={playerStats.timesPrestiged.toLocaleString('en-US')}
-          icon={Settings2} 
+          icon={Settings2}
           description="Total number of prestiges."
         />
       </div>
@@ -133,8 +143,8 @@ export default function DashboardPage() {
             <span>{prestigeProgress.percentage.toFixed(1)}%</span>
           </div>
            <p className="text-xs text-muted-foreground pt-2">
-            Note: You also need at least $1,000,000 to perform a prestige. 
-            The points shown in the Prestige dialog are base points before skill bonuses.
+            Note: You also need at least $1,000,000 to perform a prestige for the first time.
+            The points shown in the Prestige dialog are newly gained base points before skill bonuses.
           </p>
         </CardContent>
       </Card>
@@ -153,10 +163,10 @@ export default function DashboardPage() {
               Invest in stocks for dividends. Prestige to earn points for powerful permanent upgrades!
             </p>
             <div className="relative h-48 w-full overflow-hidden rounded-lg">
-              <Image 
-                src="https://placehold.co/600x400.png" 
-                alt="Business Growth" 
-                layout="fill" 
+              <Image
+                src="https://placehold.co/600x400.png"
+                alt="Business Growth"
+                layout="fill"
                 objectFit="cover"
                 data-ai-hint="business city"
               />
@@ -168,24 +178,29 @@ export default function DashboardPage() {
             </Button>
             <AlertDialog open={isPrestigeDialogOpen} onOpenChange={setIsPrestigeDialogOpen}>
               <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  disabled={playerStats.money < 1000000 && playerStats.timesPrestiged === 0 && potentialPrestigePoints === 0} 
+                <Button
+                  variant="destructive"
+                  // Simplified disabled logic: Button active if first prestige money req met, or if already prestiged. Detailed checks in onClick.
+                  disabled={(playerStats.money < 1000000 && playerStats.timesPrestiged === 0) && !wouldGainAnyPointsFromLevels}
                   onClick={() => {
-                     if (playerStats.money < 1000000 && playerStats.timesPrestiged === 0) { 
-                        toast({ 
+                     if (playerStats.money < 1000000 && playerStats.timesPrestiged === 0) {
+                        toast({
                           title: "Not Ready to Prestige",
                           description: "You need at least $1,000,000 to prestige for the first time.",
                           variant: "destructive",
                         });
-                      } else if (potentialPrestigePoints === 0 && playerStats.timesPrestiged > 0) {
+                      } else if (newlyGainedPoints === 0 && playerStats.money >= 1000000 && playerStats.timesPrestiged === 0) {
                          toast({
-                          title: "No Points to Gain",
-                          description: "You wouldn't gain any prestige points from business levels right now. Level up your businesses further!",
+                          title: "No Points to Gain Yet",
+                          description: "You have enough money to prestige, but you wouldn't gain any prestige points from business levels yet. Level up your businesses further!",
                           variant: "default",
                         });
-                         // Optionally open dialog if they want to prestige for 0 points for some reason (e.g. challenge)
-                         // setIsPrestigeDialogOpen(true); 
+                      } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) {
+                         toast({
+                          title: "No New Points to Gain",
+                          description: "You wouldn't gain any new prestige points from business levels right now. Level up your businesses further!",
+                          variant: "default",
+                        });
                       }
                       else {
                         setIsPrestigeDialogOpen(true);
@@ -202,7 +217,7 @@ export default function DashboardPage() {
                     Are you sure you want to prestige? This will reset your current money,
                     all business levels, business upgrades, and stock holdings.
                     <br /><br />
-                    You will gain approximately <strong className="text-primary">{potentialPrestigePoints}</strong> base prestige point(s) from business levels.
+                    You will gain approximately <strong className="text-primary">{newlyGainedPoints}</strong> new base prestige point(s) from business levels.
                     <br />
                     (Skill bonuses, if any, will be applied on top of this value by the system.)
                     <br />
@@ -214,7 +229,7 @@ export default function DashboardPage() {
                   <AlertDialogAction
                     onClick={() => {
                       performPrestige();
-                      setIsPrestigeDialogOpen(false); 
+                      setIsPrestigeDialogOpen(false);
                     }}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
@@ -229,5 +244,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
