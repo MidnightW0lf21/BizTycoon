@@ -30,21 +30,25 @@ export default function DashboardPage() {
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
-    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
+    // Logic for progress bar display - should always aim for the next single point
+    let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
+    
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
+    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
-    if (costForNextPotentialPoint > 0) {
+    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { 
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else {
-      percentage = (levelsProgressedForNextPoint > 0) ? 100 : 0;
+    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) { 
+      percentage = 100;
     }
+
 
     setPrestigeProgress({
       percentage: percentage,
       levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint,
+      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
     });
   }, [playerStats.money, playerStats.totalIncomePerSecond, playerStats.prestigePoints, businesses]);
 
@@ -57,14 +61,14 @@ export default function DashboardPage() {
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
 
    useEffect(() => {
-    const calculateNewlyGainedPoints = () => {
+    const calculateNewlyGainedPointsLocal = () => {
       const moneyRequiredForPrestige = 1000000;
        if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
       
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
-    setNewlyGainedPoints(calculateNewlyGainedPoints());
+    setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
   }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]);
 
   return (
@@ -146,7 +150,12 @@ export default function DashboardPage() {
           <Progress value={prestigeProgress.percentage} className="w-full" />
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>
-              Levels towards next point: {prestigeProgress.levelsAchieved.toLocaleString('en-US')} / {prestigeProgress.levelsForNext.toLocaleString('en-US')}
+              Levels towards next point: {
+                Math.min(prestigeProgress.levelsAchieved, prestigeProgress.levelsForNext > 0 ? prestigeProgress.levelsForNext : prestigeProgress.levelsAchieved)
+                .toLocaleString('en-US')
+              } / {
+                (prestigeProgress.levelsForNext > 0 ? prestigeProgress.levelsForNext : 'N/A').toLocaleString('en-US')
+              }
             </span>
             <span>{prestigeProgress.percentage.toFixed(1)}%</span>
           </div>
