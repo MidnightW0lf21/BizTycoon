@@ -13,6 +13,8 @@ import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCos
 import { Progress } from "@/components/ui/progress";
 
 
+const WELCOME_BANNER_DISMISSED_KEY = 'bizTycoonWelcomeBannerDismissed_v1';
+
 export default function DashboardPage() {
   const { playerStats, businesses } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
@@ -26,11 +28,17 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    const dismissed = localStorage.getItem(WELCOME_BANNER_DISMISSED_KEY);
+    if (dismissed === 'true') {
+      setIsWelcomeBoxVisible(false);
+    }
+  }, []);
+
+  useEffect(() => {
     setCurrentMoney(playerStats.money);
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    // Logic for progress bar display - should always aim for the next single point
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
     
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
@@ -71,6 +79,11 @@ export default function DashboardPage() {
     setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
   }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]);
 
+  const handleDismissWelcomeBox = () => {
+    setIsWelcomeBoxVisible(false);
+    localStorage.setItem(WELCOME_BANNER_DISMISSED_KEY, 'true');
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {isWelcomeBoxVisible && (
@@ -82,7 +95,7 @@ export default function DashboardPage() {
               variant="ghost"
               size="icon"
               className="absolute top-4 right-4 h-7 w-7"
-              onClick={() => setIsWelcomeBoxVisible(false)}
+              onClick={handleDismissWelcomeBox}
             >
               <XIcon className="h-4 w-4" />
               <span className="sr-only">Dismiss</span>
@@ -170,3 +183,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
