@@ -23,8 +23,10 @@ export default function DashboardPage() {
 
   const [prestigeProgress, setPrestigeProgress] = useState({
     percentage: 0,
-    levelsAchieved: 0,
-    levelsForNext: 0,
+    levelsAchievedTowardsNextSpecificPoint: 0,
+    costOfNextSpecificPoint: 0,
+    currentTotalBusinessLevels: 0,
+    cumulativeLevelsForCurrentPoints: 0,
   });
 
   useEffect(() => {
@@ -39,26 +41,27 @@ export default function DashboardPage() {
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
+    const currentPrestigePoints = playerStats.prestigePoints;
 
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
-    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
-    const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(currentPrestigePoints);
+    const costForNextPotentialPoint = getCostForNthPoint(currentPrestigePoints + 1);
+    const levelsAchievedForNextSpecificPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
     if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) {
-      percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) {
+      percentage = Math.min(100, (levelsAchievedForNextSpecificPoint / costForNextPotentialPoint) * 100);
+    } else if (levelsAchievedForNextSpecificPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = 100;
     }
 
-
     setPrestigeProgress({
       percentage: percentage,
-      levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
+      levelsAchievedTowardsNextSpecificPoint: levelsAchievedForNextSpecificPoint,
+      costOfNextSpecificPoint: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
+      currentTotalBusinessLevels: currentTotalLevels,
+      cumulativeLevelsForCurrentPoints: levelsForCurrentPointsPlayerHas,
     });
-  }, [playerStats, businesses]); // Simplified dependency to playerStats object and businesses
+  }, [playerStats, businesses]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
   const averageBusinessLevel = totalBusinessesOwned > 0
@@ -161,17 +164,24 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           <Progress value={prestigeProgress.percentage} className="w-full" />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>
-              Levels towards next point: {
-                Math.min(prestigeProgress.levelsAchieved, prestigeProgress.levelsForNext > 0 ? prestigeProgress.levelsForNext : prestigeProgress.levelsAchieved)
-                .toLocaleString('en-US')
-              } / {
-                (prestigeProgress.levelsForNext > 0 ? prestigeProgress.levelsForNext : 'N/A').toLocaleString('en-US')
-              }
-            </span>
-            <span>{prestigeProgress.percentage.toFixed(1)}%</span>
-          </div>
+          {playerStats.prestigePoints > 0 && prestigeProgress.currentTotalBusinessLevels < prestigeProgress.cumulativeLevelsForCurrentPoints ? (
+            <p className="text-sm text-muted-foreground text-center py-1">
+              Reach {prestigeProgress.cumulativeLevelsForCurrentPoints.toLocaleString('en-US')} total business levels to start progress on your next point.
+              (Currently: {prestigeProgress.currentTotalBusinessLevels.toLocaleString('en-US')})
+            </p>
+          ) : (
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>
+                Levels towards next point: {
+                  Math.min(prestigeProgress.levelsAchievedTowardsNextSpecificPoint, prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint : prestigeProgress.levelsAchievedTowardsNextSpecificPoint)
+                  .toLocaleString('en-US')
+                } / {
+                  (prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint : 'MAX').toLocaleString('en-US')
+                }
+              </span>
+              <span>{prestigeProgress.percentage.toFixed(1)}%</span>
+            </div>
+          )}
            <p className="text-xs text-muted-foreground pt-2">
             Note: You also need at least $1,000,000 to perform a prestige for the first time.
             The points shown in the Prestige dialog are newly gained base points before skill bonuses.
@@ -184,3 +194,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
