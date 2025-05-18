@@ -300,7 +300,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    let basePrestigePointsEarned = Math.max(1, Math.floor(totalLevels / 50));
+    let basePrestigePointsEarned = Math.max(1, Math.floor(totalLevels / 75)); // Changed 50 to 75
     
     const prestigeBoostPercent = getPrestigePointBoostPercent(playerStats.unlockedSkillIds, skillTreeState);
     const actualPrestigePointsEarned = Math.floor(basePrestigePointsEarned * (1 + prestigeBoostPercent / 100));
@@ -383,3 +383,5 @@ export const useGame = (): GameContextType => {
   return context;
 };
 
+
+    

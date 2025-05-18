@@ -21,12 +21,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast"; // Added useToast import
 
 export default function DashboardPage() {
   const { playerStats, businesses, performPrestige } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
+  const { toast } = useToast(); // Initialized useToast
 
   useEffect(() => {
     setCurrentMoney(playerStats.money);
@@ -42,7 +44,8 @@ export default function DashboardPage() {
     const moneyRequiredForPrestige = 1000000;
     if (playerStats.money < moneyRequiredForPrestige) return 0;
     const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    return Math.max(1, Math.floor(totalLevels / 50));
+    // Ensure this logic matches the one in GameContext for base points
+    return Math.max(1, Math.floor(totalLevels / 75)); // Changed 50 to 75
   };
   const potentialPrestigePoints = calculatePotentialPrestigePoints();
 
@@ -117,11 +120,10 @@ export default function DashboardPage() {
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="destructive" 
-                  disabled={playerStats.money < 1000000 && playerStats.timesPrestiged === 0} // Allow prestiging if already prestiged once, even if money is low (for testing/later features) or stick to money req
-                                                                                          // Sticking to money requirement for now for simplicity.
+                  disabled={playerStats.money < 1000000 && playerStats.timesPrestiged === 0} 
                   onClick={() => {
                      if (playerStats.money < 1000000) {
-                        useToast().toast({
+                        toast({ // useToast() was renamed to toast
                           title: "Not Ready to Prestige",
                           description: "You need at least $1,000,000 to prestige.",
                           variant: "destructive",
@@ -167,3 +169,5 @@ export default function DashboardPage() {
   );
 }
 
+
+    
