@@ -35,10 +35,6 @@ interface GameContextType {
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
-  // lastMarketTrends: string; // Removed as AI features are removed
-  // setLastMarketTrends: (trends: string) => void; // Removed
-  // lastRiskTolerance: RiskTolerance; // Removed
-  // setLastRiskTolerance: (tolerance: RiskTolerance) => void; // Removed
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -46,7 +42,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   
-  const GOD_MODE_ACTIVE = false; 
+  const GOD_MODE_ACTIVE = true; 
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
@@ -57,9 +53,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (GOD_MODE_ACTIVE) {
       baseMoney = Number.MAX_SAFE_INTEGER / 100; 
-      initialPrestigePoints = 9999; // Grant many prestige points
-      initialTimesPrestiged = 999;  // Set high times prestiged to unlock UI elements
-      // initialUnlockedSkills remains default, player can unlock with PPs
+      initialPrestigePoints = 9999; 
+      initialTimesPrestiged = 999;  
       console.log("--- GOD MODE ACTIVATED: Max Money, High Prestige Levels, High PP ---");
     }
     
@@ -87,10 +82,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [unlockedStocks, setUnlockedStocks] = useState<Stock[]>([]);
 
-  // Removed AI related state for lastMarketTrends and lastRiskTolerance
 
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
+      if (GOD_MODE_ACTIVE) return true; // In God Mode, all stocks are available
       if (!stock.requiredSkillToUnlock) return true; 
       return playerStats.unlockedSkillIds.includes(stock.requiredSkillToUnlock);
     });
@@ -242,7 +237,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
         return;
     }
-    if (sharesToBuyInput <= 0) {
+    if (sharesToBuyInput <= 0 && !GOD_MODE_ACTIVE) {
       if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
@@ -288,7 +283,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
         return;
     }
-    if (sharesToSell <= 0) {
+    if (sharesToSell <= 0 && !GOD_MODE_ACTIVE) {
       if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
@@ -338,13 +333,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       stockHoldings: [],
       prestigePoints: GOD_MODE_ACTIVE ? 9999 : prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: GOD_MODE_ACTIVE ? 999 : prev.timesPrestiged + 1,
+      // unlockedSkillIds are intentionally persisted through prestige
     }));
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false, 
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
     })));
     if(!GOD_MODE_ACTIVE) toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Game reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
-  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, playerStats.unlockedSkillIds, businesses, toast, skillTreeState, GOD_MODE_ACTIVE]);
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, playerStats.unlockedSkillIds, businesses, toast, skillTreeState]);
 
   const unlockSkillNode = (skillId: string) => {
     const skill = skillTreeState.find(s => s.id === skillId);
@@ -389,10 +385,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sellStock,
       performPrestige,
       unlockSkillNode,
-      // lastMarketTrends, // Removed
-      // setLastMarketTrends, // Removed
-      // lastRiskTolerance, // Removed
-      // setLastRiskTolerance, // Removed
     }}>
       {children}
     </GameContext.Provider>
@@ -406,5 +398,7 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
 
     
