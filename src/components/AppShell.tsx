@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -16,7 +16,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
@@ -40,6 +39,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
+  // { href: '/stock-tips', label: 'AI Stock Tips', icon: Lightbulb, requiredTimesPrestiged: 0 }, // Removed
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -54,8 +54,14 @@ function AppLogo() {
 
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
-    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
+
+    // If player has a very high number of prestige points (indicative of God Mode start),
+    // display progress as if they are working towards their first few points for better UI feedback during testing.
+    const displayAsFreshStartForProgressBar = playerStats.prestigePoints >= 9000; // Threshold for God Mode display adjustment
+    const displayPrestigePointsForProgressBar = displayAsFreshStartForProgressBar ? 0 : playerStats.prestigePoints;
+
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
+    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
@@ -93,14 +99,14 @@ function AppLogo() {
 }
 
 interface NavLinkProps extends NavItem {
-  onClick?: () => void; // For mobile sheet closing primarily
+  onMobileClick?: () => void; // For mobile sheet closing primarily
   currentTimesPrestiged: number;
   onPrestigeClick?: () => void; // Specific handler for prestige action
 }
 
-function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
+function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = action ? false : pathname === href; // Action items are never "active" in the same way as page links
+  const isActive = action ? false : pathname === href; 
   const isLocked = requiredTimesPrestiged !== undefined && currentTimesPrestiged < requiredTimesPrestiged;
 
   const linkClassName = cn(
@@ -118,12 +124,21 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
     </>
   );
 
+  const handleInteraction = () => {
+    if (onMobileClick) {
+      onMobileClick();
+    }
+    if (action === 'prestige' && onPrestigeClick) {
+      onPrestigeClick();
+    }
+  };
+
   if (isLocked) {
     return (
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={linkClassName}>
+            <div className={linkClassName}> {/* Use div for locked items */}
               {linkContent}
             </div>
           </TooltipTrigger>
@@ -136,9 +151,9 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
     );
   }
 
-  if (action === 'prestige' && onPrestigeClick) {
+  if (action === 'prestige') {
     return (
-      <button onClick={() => { onClick?.(); onPrestigeClick(); }} className={linkClassName}>
+      <button onClick={handleInteraction} className={linkClassName}>
         {linkContent}
       </button>
     );
@@ -146,22 +161,22 @@ function NavLink({ href, label, icon: Icon, onClick, requiredTimesPrestiged, cur
   
   if (href) {
     return (
-      <Link href={href} onClick={onClick} className={linkClassName}>
+      <Link href={href} onClick={onMobileClick} className={linkClassName}>
         {linkContent}
       </Link>
     );
   }
 
-  // Fallback for items that are neither actions nor links (should ideally not happen)
+  // Fallback for items that are neither actions nor links
   return (
-    <div className={linkClassName} onClick={onClick}>
+    <div className={linkClassName} onClick={onMobileClick}>
       {linkContent}
     </div>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { playerStats, businesses, performPrestige } = useGame();
+  const { playerStats, businesses, performPrestige, GOD_MODE_ACTIVE } = useGame(); // Assuming GOD_MODE_ACTIVE is exposed
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
   const pathname = usePathname();
@@ -170,49 +185,54 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
 
-  const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-
   useEffect(() => {
     setCurrentMoney(playerStats.money);
 
+    const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     const calculateNewlyGainedPoints = () => {
       const moneyRequiredForPrestige = 1000000;
-      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
+       // Use GOD_MODE_ACTIVE from context if exposed, otherwise proxy with high prestige count
+      const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999; 
+      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) return 0;
+      
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
     setNewlyGainedPoints(calculateNewlyGainedPoints());
 
-  }, [playerStats, businesses, currentTotalLevels]);
+  }, [playerStats, businesses]);
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      if (item.href === '/') return pathname === '/';
-      return item.href && pathname.startsWith(item.href) && item.href !== '/';
+      if (item.href === '/') return pathname === '/'; // Exact match for root
+      return item.href && item.href !== '/' && pathname.startsWith(item.href); // StartsWith for others
     });
   
     if (pathname === '/') setCurrentPageTitle('Dashboard');
     else if (activeItem) setCurrentPageTitle(activeItem.label);
-    else setCurrentPageTitle('BizTycoon');
+    else setCurrentPageTitle('BizTycoon'); // Fallback
   }, [pathname]);
 
   const handlePrestigeNavClick = () => {
     const moneyRequiredForPrestige = 1000000;
-    const wouldGainAnyPointsFromLevels = calculateDiminishingPrestigePoints(currentTotalLevels) > playerStats.prestigePoints;
+    // const wouldGainAnyPointsFromLevels = calculateDiminishingPrestigePoints(businesses.reduce((sum, b) => sum + b.level, 0)) > playerStats.prestigePoints;
+    // Use newlyGainedPoints state which is already calculated
+     // Use GOD_MODE_ACTIVE from context if exposed, otherwise proxy with high prestige count
+    const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999;
 
-    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) {
       toast({
         title: "Not Ready to Prestige",
         description: "You need at least $1,000,000 to prestige for the first time.",
         variant: "destructive",
       });
-    } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
+    } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) {
       toast({
         title: "No Points to Gain Yet",
         description: "You have enough money to prestige, but you wouldn't gain any prestige points from business levels yet. Level up your businesses further!",
         variant: "default",
       });
-    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) {
+    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0 && !isGodModeActiveForDialog) { // Also check god mode for subsequent prestiges if no points
       toast({
         title: "No New Points to Gain",
         description: "You wouldn't gain any new prestige points from business levels right now. Level up your businesses further!",
@@ -226,12 +246,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-0">
+        <div className="flex h-full max-h-screen flex-col gap-0"> {/* Changed gap-2 to gap-0 */}
           <AppLogo />
-          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
+          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
             {navItems.map(item => (
               <NavLink 
-                key={item.label} 
+                key={item.label} // Using label as key since href can be undefined for actions
                 {...item} 
                 currentTimesPrestiged={playerStats.timesPrestiged}
                 onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
@@ -257,7 +277,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.label} 
                     {...item} 
                     currentTimesPrestiged={playerStats.timesPrestiged}
-                    onClick={() => { // For mobile sheet closing
+                    onMobileClick={() => { 
                       const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
                       document.dispatchEvent(escapeKeyEvent);
                     }}

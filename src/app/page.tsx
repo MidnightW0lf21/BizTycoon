@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 
 
 export default function DashboardPage() {
-  const { playerStats, businesses } = useGame();
+  const { playerStats, businesses, GOD_MODE_ACTIVE } = useGame(); // Assuming GOD_MODE_ACTIVE could be exposed
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isWelcomeBoxVisible, setIsWelcomeBoxVisible] = useState(true);
@@ -25,16 +25,19 @@ export default function DashboardPage() {
     levelsForNext: 0,
   });
 
-  // Removed currentTotalLevels calculation from here, will be done inside useEffect
-
   useEffect(() => {
     setCurrentMoney(playerStats.money);
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
-    const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0); // Calculate inside useEffect
+    const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
 
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
-    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
+    // If player has a very high number of prestige points (indicative of God Mode start),
+    // display progress as if they are working towards their first few points for better UI feedback during testing.
+    const displayAsFreshStartForProgressBar = playerStats.prestigePoints >= 9000; // Threshold for God Mode display adjustment
+    const displayPrestigePointsForProgressBar = displayAsFreshStartForProgressBar ? 0 : playerStats.prestigePoints;
+
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
+    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
@@ -49,9 +52,6 @@ export default function DashboardPage() {
       levelsAchieved: levelsProgressedForNextPoint,
       levelsForNext: costForNextPotentialPoint,
     });
-  // Specific dependencies:
-  // - playerStats.money and playerStats.totalIncomePerSecond for setCurrentMoney/Income
-  // - playerStats.prestigePoints and the businesses array (for levels) for prestigeProgress calculation
   }, [playerStats.money, playerStats.totalIncomePerSecond, playerStats.prestigePoints, businesses]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
@@ -59,19 +59,22 @@ export default function DashboardPage() {
     ? businesses.reduce((sum, b) => sum + b.level, 0) / totalBusinessesOwned
     : 0;
   
-  // This currentTotalLevels is for the 'newlyGainedPoints' calculation in the prestige dialog logic,
-  // not directly for the progress bar's display useEffect which now calculates its own.
   const currentTotalLevelsForDialog = businesses.reduce((sum, b) => sum + b.level, 0);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
+
    useEffect(() => {
     const calculateNewlyGainedPoints = () => {
       const moneyRequiredForPrestige = 1000000;
-       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !useGame().GOD_MODE_ACTIVE) return 0; // GOD_MODE_ACTIVE needs to be accessed from context if used here
+       // Access GOD_MODE_ACTIVE from useGame() if exposed, otherwise use a proxy like high prestige count
+       const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999; // Proxy for GOD_MODE_ACTIVE for this calculation
+       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) return 0;
+      
+      // For newly gained points, use the actual player prestige points, not the display override
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
     setNewlyGainedPoints(calculateNewlyGainedPoints());
-  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]); // Added currentTotalLevelsForDialog
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -167,4 +170,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
