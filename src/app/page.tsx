@@ -162,15 +162,6 @@ export default function DashboardPage() {
               Start by purchasing and upgrading businesses. Each business generates passive income.
               Invest in stocks for dividends. Prestige to earn points for powerful permanent upgrades!
             </p>
-            <div className="relative h-48 w-full overflow-hidden rounded-lg">
-              <Image
-                src="https://placehold.co/600x400.png"
-                alt="Business Growth"
-                layout="fill"
-                objectFit="cover"
-                data-ai-hint="business city"
-              />
-            </div>
           </CardContent>
           <CardFooter className="flex gap-2 flex-wrap">
             <Button asChild>
