@@ -34,37 +34,34 @@ export default function SkillTreePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            Skill Tree
-          </CardTitle>
-          <CardDescription>
-            Spend your Prestige Points (PP) to unlock permanent upgrades. 
-            You currently have <strong className="text-primary">{playerStats.prestigePoints.toLocaleString('en-US')} PP</strong>.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {skillTree.length === 0 ? (
-            <p className="text-center text-muted-foreground">No skills available yet. Check back later!</p>
-          ) : (
-            <ScrollArea className="h-[600px] pr-4"> {/* Adjust height as needed */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {skillTree.map((skill) => (
-                  <SkillNodeCard
-                    key={skill.id}
-                    skillNode={skill}
-                    playerPrestigePoints={playerStats.prestigePoints}
-                    unlockedSkillIds={playerStats.unlockedSkillIds}
-                    onUnlockSkill={unlockSkillNode}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Sparkles className="h-7 w-7 text-primary" />
+          Skill Tree
+        </h1>
+        <p className="text-muted-foreground">
+          Spend your Prestige Points (PP) to unlock permanent upgrades. 
+          You currently have <strong className="text-primary">{playerStats.prestigePoints.toLocaleString('en-US')} PP</strong>.
+        </p>
+      </div>
+      
+      {skillTree.length === 0 ? (
+        <p className="text-center text-muted-foreground py-10">No skills available yet. Check back later!</p>
+      ) : (
+        <ScrollArea className="h-[calc(100vh-220px)] pr-4"> {/* Adjusted height slightly */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {skillTree.map((skill) => (
+              <SkillNodeCard
+                key={skill.id}
+                skillNode={skill}
+                playerPrestigePoints={playerStats.prestigePoints}
+                unlockedSkillIds={playerStats.unlockedSkillIds}
+                onUnlockSkill={unlockSkillNode}
+              />
+            ))}
+          </div>
+        </ScrollArea>
+      )}
     </div>
   );
 }
