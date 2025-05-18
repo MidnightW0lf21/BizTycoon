@@ -8,35 +8,34 @@ export interface BusinessUpgrade {
   cost: number;
   requiredLevel: number;
   isPurchased: boolean;
-  incomeBoostPercent?: number; 
-  levelUpgradeCostReductionPercent?: number; 
-  unlocksBulkBuy?: true;
+  incomeBoostPercent?: number;
+  levelUpgradeCostReductionPercent?: number;
+  // Removed: unlocksBulkBuy?: true; // This is now a skill effect
 }
 
 export interface Business {
-  id: string;
+  id:string;
   name: string;
   level: number;
-  baseIncome: number; 
-  baseCost: number; 
-  upgradeCostMultiplier: number; 
+  baseIncome: number;
+  baseCost: number;
+  upgradeCostMultiplier: number;
   icon: LucideIcon;
-  managerOwned: boolean; 
+  managerOwned: boolean;
   description: string;
   upgrades?: BusinessUpgrade[];
-  // requiredTimesPrestiged?: number; // Removed
 }
 
 export interface Stock {
   id: string;
   ticker: string;
   companyName: string;
-  price: number; 
-  dividendYield: number; 
+  price: number;
+  dividendYield: number;
   icon: LucideIcon;
   description: string;
-  totalOutstandingShares: number; 
-  requiredSkillToUnlock?: string; 
+  totalOutstandingShares: number;
+  requiredSkillToUnlock?: string;
 }
 
 export interface StockHolding {
@@ -49,18 +48,19 @@ export interface SkillNode {
   id: string;
   name: string;
   description: string;
-  cost: number; 
+  cost: number;
   icon: LucideIcon;
-  dependencies?: string[]; 
+  dependencies?: string[];
   effects: {
     globalIncomeBoostPercent?: number;
-    globalCostReductionPercent?: number; 
+    globalCostReductionPercent?: number;
     businessSpecificIncomeBoost?: { businessId: string; percent: number };
-    increaseStartingMoney?: number; 
-    globalDividendYieldBoostPercent?: number; 
-    globalBusinessUpgradeCostReductionPercent?: number; 
-    increaseMaxBusinessLevelBy?: number; 
+    increaseStartingMoney?: number;
+    globalDividendYieldBoostPercent?: number;
+    globalBusinessUpgradeCostReductionPercent?: number;
+    increaseMaxBusinessLevelBy?: number;
     unlocksBulkBuyForBusiness?: string; // Specific business ID
+    autoBuyUpgradesForBusiness?: string; // Specific business ID
   };
 }
 
@@ -81,4 +81,3 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-
