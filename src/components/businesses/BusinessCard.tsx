@@ -31,6 +31,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
+    skillTree, // Get the skill tree for checking unlocks
   } = useGame();
   const Icon = business.icon;
 
@@ -48,8 +49,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
 
   const bulkBuyUnlockedForThisBusiness = useMemo(() => {
-    return business.upgrades?.some(upg => upg.isPurchased && upg.unlocksBulkBuy) || false;
-  }, [business.upgrades]);
+    const bulkBuySkillId = `unlock_bulk_buy_${business.id}`;
+    return playerStats.unlockedSkillIds.includes(bulkBuySkillId);
+  }, [playerStats.unlockedSkillIds, business.id]);
 
   useEffect(() => {
     if (!bulkBuyUnlockedForThisBusiness) {
@@ -310,3 +312,4 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
+

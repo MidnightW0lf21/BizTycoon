@@ -10,7 +10,7 @@ export interface BusinessUpgrade {
   isPurchased: boolean;
   incomeBoostPercent?: number; // e.g., 10 for a 10% boost
   levelUpgradeCostReductionPercent?: number; // e.g., 5 for 5% reduction
-  unlocksBulkBuy?: true; // If true, this upgrade unlocks bulk buy for its parent business
+  // unlocksBulkBuy?: true; // Removed: No longer a business upgrade property
 }
 
 export interface Business {
@@ -60,8 +60,7 @@ export interface SkillNode {
     globalDividendYieldBoostPercent?: number; // Percentage boost to all stock dividend yields
     globalBusinessUpgradeCostReductionPercent?: number; // Percentage reduction to cost of business-specific upgrades
     increaseMaxBusinessLevelBy?: number; // Increase max level for all businesses
-    // unlockBulkBuy?: boolean; // This is now a per-business upgrade, not a skill effect
-    // Add more specific effect types as needed
+    unlocksBulkBuyForBusiness?: string; // Business ID for which bulk buy is unlocked
   };
 }
 
