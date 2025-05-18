@@ -21,14 +21,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast"; // Added useToast import
+import { useToast } from "@/hooks/use-toast"; 
+import { calculateDiminishingPrestigePoints } from "@/config/game-config";
+
 
 export default function DashboardPage() {
   const { playerStats, businesses, performPrestige } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
-  const { toast } = useToast(); // Initialized useToast
+  const { toast } = useToast(); 
 
   useEffect(() => {
     setCurrentMoney(playerStats.money);
@@ -42,10 +44,11 @@ export default function DashboardPage() {
 
   const calculatePotentialPrestigePoints = () => {
     const moneyRequiredForPrestige = 1000000;
-    if (playerStats.money < moneyRequiredForPrestige) return 0;
+    // This check is for UI display only, actual prestige eligibility is handled in GameContext
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0; 
+    
     const totalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    // Ensure this logic matches the one in GameContext for base points
-    return Math.max(1, Math.floor(totalLevels / 75)); // Changed 50 to 75
+    return calculateDiminishingPrestigePoints(totalLevels);
   };
   const potentialPrestigePoints = calculatePotentialPrestigePoints();
 
@@ -122,13 +125,18 @@ export default function DashboardPage() {
                   variant="destructive" 
                   disabled={playerStats.money < 1000000 && playerStats.timesPrestiged === 0} 
                   onClick={() => {
-                     if (playerStats.money < 1000000) {
-                        toast({ // useToast() was renamed to toast
+                     if (playerStats.money < 1000000 && playerStats.timesPrestiged === 0) { // Check added for first prestige money req
+                        toast({ 
                           title: "Not Ready to Prestige",
-                          description: "You need at least $1,000,000 to prestige.",
+                          description: "You need at least $1,000,000 to prestige for the first time.",
                           variant: "destructive",
                         });
-                      } else {
+                      } else if (playerStats.money < 1000000 && playerStats.timesPrestiged > 0) {
+                        // Allow opening dialog if prestiged before, even if money is low,
+                        // as GameContext will handle the actual money check for prestiging.
+                        setIsPrestigeDialogOpen(true);
+                      }
+                      else {
                         setIsPrestigeDialogOpen(true);
                       }
                   }}
@@ -143,7 +151,9 @@ export default function DashboardPage() {
                     Are you sure you want to prestige? This will reset your current money,
                     all business levels, business upgrades, and stock holdings.
                     <br /><br />
-                    You will gain approximately <strong className="text-primary">{potentialPrestigePoints}</strong> prestige point(s).
+                    You will gain approximately <strong className="text-primary">{potentialPrestigePoints}</strong> base prestige point(s) from business levels.
+                    <br />
+                    (Skill bonuses will be applied on top of this.)
                     <br />
                     This action is irreversible.
                   </AlertDialogDescription>

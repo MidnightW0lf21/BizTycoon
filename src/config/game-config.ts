@@ -501,3 +501,25 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
   });
   return boostPercent;
 };
+
+export const calculateDiminishingPrestigePoints = (totalLevels: number): number => {
+  let points = 0;
+  // Cumulative levels required for *all* points earned so far.
+  // This approach sums the cost of each point.
+  let cumulativeLevelsRequiredForCurrentPoints = 0; 
+  let costForThisSpecificPoint = 75;   // Cost for the 1st point (or current point being evaluated)
+  const costIncrement = 30;    // Each subsequent point costs this much *more* than the *previous* one.
+
+  while (true) {
+    // Check if the player has enough *additional* levels for the *next* point
+    // relative to the levels already accounted for by previous points.
+    if (totalLevels >= cumulativeLevelsRequiredForCurrentPoints + costForThisSpecificPoint) {
+      points++;
+      cumulativeLevelsRequiredForCurrentPoints += costForThisSpecificPoint; // Add cost of point just earned
+      costForThisSpecificPoint += costIncrement; // Increase cost for the *next* potential point
+    } else {
+      break; // Not enough total levels for the current point cost
+    }
+  }
+  return points;
+};
