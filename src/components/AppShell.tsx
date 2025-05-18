@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-0"> {/* Changed gap-2 to gap-0 */}
           <AppLogo />
-          <nav className="flex-1 grid items-start px-2 py-2 text-sm font-medium lg:px-4"> {/* Added py-2 for some spacing around nav items */}
+          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> {/* Removed flex-1 */}
             {navItems.map(item => <NavLink key={item.href} {...item} currentTimesPrestiged={playerStats.timesPrestiged} />)}
           </nav>
         </div>
