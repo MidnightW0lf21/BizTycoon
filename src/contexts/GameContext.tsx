@@ -6,8 +6,8 @@ import {
   INITIAL_BUSINESSES, 
   INITIAL_MONEY, 
   calculateIncome, 
-  calculateUpgradeCost, 
-  MAX_BUSINESS_LEVEL, // Base max level
+  // calculateUpgradeCost, // Single level cost now primarily used within calculateCostForNLevels
+  MAX_BUSINESS_LEVEL, 
   INITIAL_STOCKS, 
   INITIAL_PRESTIGE_POINTS, 
   INITIAL_TIMES_PRESTIGED,
@@ -16,24 +16,32 @@ import {
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
+  calculateCostForNLevels, // Import new bulk cost calculator
+  calculateMaxAffordableLevels, // Import new max affordable calculator
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
+
+const GOD_MODE_ACTIVE = false; // Set to true for testing
 
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
   stocks: Stock[]; 
   skillTree: SkillNode[];
-  upgradeBusiness: (businessId: string) => void;
+  upgradeBusiness: (businessId: string, levelsToBuy?: number) => void; // levelsToBuy is optional
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string) => void;
   getBusinessIncome: (businessId: string) => number;
-  getBusinessUpgradeCost: (businessId: string) => number;
+  getBusinessUpgradeCost: (businessId: string) => number; // Cost for single next level, useful for display
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
   getDynamicMaxBusinessLevel: () => number;
+  // For BusinessCard to calculate display costs for bulk buys:
+  calculateCostForNLevelsForDisplay: (businessId: string, levelsToBuy: number) => { totalCost: number; levelsPurchasable: number };
+  calculateMaxAffordableLevelsForDisplay: (businessId: string) => { levelsToBuy: number; totalCost: number };
+
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -44,17 +52,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
-    const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
-    const finalInitialMoney = INITIAL_MONEY + startingMoneyBonus;
+    let money = INITIAL_MONEY;
+    let prestigePoints = INITIAL_PRESTIGE_POINTS;
+    let timesPrestiged = INITIAL_TIMES_PRESTIGED;
+    let unlockedSkillIds = [...INITIAL_UNLOCKED_SKILL_IDS];
 
+    if (GOD_MODE_ACTIVE) {
+      money = Number.MAX_SAFE_INTEGER / 1000; // A very large number
+      prestigePoints = 0; // Start with 0 for testing normal progression
+      timesPrestiged = 0; // Start with 0 for testing normal progression
+      unlockedSkillIds = []; // Start with no skills for testing normal progression
+    } else {
+        const startingMoneyBonus = getStartingMoneyBonus(unlockedSkillIds, skillTreeState);
+        money += startingMoneyBonus;
+    }
+    
     return {
-      money: finalInitialMoney,
+      money,
       totalIncomePerSecond: 0,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: INITIAL_PRESTIGE_POINTS,
-      timesPrestiged: INITIAL_TIMES_PRESTIGED,
-      unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
+      prestigePoints,
+      timesPrestiged,
+      unlockedSkillIds,
     };
   });
   
@@ -67,7 +87,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 
   const [unlockedStocks, setUnlockedStocks] = useState<Stock[]>([]);
-
 
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
@@ -94,13 +113,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return business ? calculateIncome(business, playerStats.unlockedSkillIds, skillTreeState) : 0;
   }, [businesses, playerStats.unlockedSkillIds, skillTreeState]);
   
+  // Returns cost for the single next level
   const getBusinessUpgradeCost = useCallback((businessId: string): number => {
     const business = businesses.find(b => b.id === businessId);
     if (!business) return 0;
     const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
     if (business.level >= currentDynamicMaxLevel) return Infinity;
-    return calculateUpgradeCost(business, playerStats.unlockedSkillIds, skillTreeState);
+
+    const {totalCost} = calculateCostForNLevels(business, 1, playerStats.unlockedSkillIds, skillTreeState, currentDynamicMaxLevel);
+    return totalCost; // This will be cost for 1 level
   }, [businesses, playerStats.unlockedSkillIds, skillTreeState, getDynamicMaxBusinessLevel]);
+
+  // Helper for BusinessCard to display costs
+  const calculateCostForNLevelsForDisplay = useCallback((businessId: string, levelsToBuy: number) => {
+    const business = businesses.find(b => b.id === businessId);
+    if (!business) return { totalCost: Infinity, levelsPurchasable: 0 };
+    const dynamicMax = getDynamicMaxBusinessLevel();
+    return calculateCostForNLevels(business, levelsToBuy, playerStats.unlockedSkillIds, skillTreeState, dynamicMax);
+  }, [businesses, playerStats.unlockedSkillIds, skillTreeState, getDynamicMaxBusinessLevel]);
+
+  const calculateMaxAffordableLevelsForDisplay = useCallback((businessId: string) => {
+    const business = businesses.find(b => b.id === businessId);
+    if (!business) return { levelsToBuy: 0, totalCost: 0 };
+    const dynamicMax = getDynamicMaxBusinessLevel();
+    return calculateMaxAffordableLevels(business, playerStats.money, playerStats.unlockedSkillIds, skillTreeState, dynamicMax);
+  }, [businesses, playerStats.money, playerStats.unlockedSkillIds, skillTreeState, getDynamicMaxBusinessLevel]);
+
 
   useEffect(() => {
     const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
@@ -148,7 +186,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearInterval(gameLoop);
   }, [playerStats.totalIncomePerSecond, unlockedStocks]); 
 
-  const upgradeBusiness = (businessId: string) => {
+  const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
     const business = businesses.find(b => b.id === businessId);
     if (!business) return;
 
@@ -164,19 +202,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    const cost = getBusinessUpgradeCost(business.id);
-    if (playerStats.money < cost) {
-      toast({ title: "Not enough money!", description: `You need $${cost.toLocaleString('en-US')} to level up ${business.name}.`, variant: "destructive" });
+    const { totalCost, levelsPurchasable } = calculateCostForNLevels(
+        business, 
+        levelsToAttempt, 
+        playerStats.unlockedSkillIds, 
+        skillTreeState, 
+        currentDynamicMaxLevel
+    );
+
+    if (levelsPurchasable === 0) {
+        toast({ title: "Cannot level up", description: `${business.name} is at max level or no levels can be purchased.`, variant: "default" });
+        return;
+    }
+
+    if (playerStats.money < totalCost) {
+      toast({ title: "Not enough money!", description: `You need $${totalCost.toLocaleString('en-US')} to level up ${business.name} by ${levelsPurchasable} level(s).`, variant: "destructive" });
       return;
     }
 
-    setPlayerStats(prev => ({ ...prev, money: prev.money - cost }));
+    setPlayerStats(prev => ({ ...prev, money: prev.money - totalCost }));
     setBusinesses(prevBusinesses =>
       prevBusinesses.map(b =>
-        b.id === businessId ? { ...b, level: b.level + 1 } : b
+        b.id === businessId ? { ...b, level: b.level + levelsPurchasable } : b
       )
     );
-    toast({ title: "Business Leveled Up!", description: `${business.name} is now level ${business.level + 1}.` });
+    toast({ title: "Business Leveled Up!", description: `${business.name} is now level ${business.level + levelsPurchasable} (+${levelsPurchasable}).` });
   };
 
   const purchaseBusinessUpgrade = (businessId: string, upgradeId: string) => {
@@ -318,18 +368,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const prestigePointBoost = getPrestigePointBoostPercent(playerStats.unlockedSkillIds, skillTreeState);
     const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStats.prestigePoints) * (1 + prestigePointBoost / 100));
 
-    const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
+    let moneyAfterPrestige = INITIAL_MONEY;
+    if (GOD_MODE_ACTIVE) {
+        moneyAfterPrestige = Number.MAX_SAFE_INTEGER / 1000;
+    } else {
+        const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
+        moneyAfterPrestige += startingMoneyBonus;
+    }
     
-    const moneyAfterPrestige = INITIAL_MONEY + startingMoneyBonus;
-
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
-      timesPrestiged: prev.timesPrestiged + 1,
+      prestigePoints: GOD_MODE_ACTIVE ? 0 : prev.prestigePoints + actualNewPrestigePoints,
+      timesPrestiged: GOD_MODE_ACTIVE ? 0 : prev.timesPrestiged + 1,
     }));
+
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false, 
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
@@ -381,6 +436,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       performPrestige,
       unlockSkillNode,
       getDynamicMaxBusinessLevel,
+      calculateCostForNLevelsForDisplay,
+      calculateMaxAffordableLevelsForDisplay,
     }}>
       {children}
     </GameContext.Provider>
@@ -394,3 +451,6 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+
+    

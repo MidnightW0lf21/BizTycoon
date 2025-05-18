@@ -3,30 +3,46 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
 import type { Business, BusinessUpgrade } from "@/types";
 import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-// Removed MAX_BUSINESS_LEVEL import, will use dynamic one from context
+
+type BuyAmountOption = 1 | 10 | 25 | 'MAX';
+
+const BUY_AMOUNTS: BuyAmountOption[] = [1, 10, 25, 'MAX'];
 
 interface BusinessCardProps {
   business: Business;
 }
 
 export function BusinessCard({ business }: BusinessCardProps) {
-  const { playerStats, upgradeBusiness, purchaseBusinessUpgrade, getBusinessIncome, getBusinessUpgradeCost, getDynamicMaxBusinessLevel, skillTree } = useGame();
+  const { 
+    playerStats, 
+    upgradeBusiness, 
+    purchaseBusinessUpgrade, 
+    getBusinessIncome, 
+    getDynamicMaxBusinessLevel,
+    calculateCostForNLevelsForDisplay,
+    calculateMaxAffordableLevelsForDisplay,
+  } = useGame();
   const Icon = business.icon;
 
   const [income, setIncome] = useState(0);
-  const [levelUpgradeCost, setLevelUpgradeCost] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(business.level);
   const [currentUpgrades, setCurrentUpgrades] = useState(business.upgrades || []);
   const [dynamicMaxLevel, setDynamicMaxLevel] = useState(getDynamicMaxBusinessLevel());
-
+  
+  const [selectedBuyAmount, setSelectedBuyAmount] = useState<BuyAmountOption>(1);
+  const [displayCost, setDisplayCost] = useState(0);
+  const [levelsToBuyDisplay, setLevelsToBuyDisplay] = useState(0);
+  const [canAffordUpgrade, setCanAffordUpgrade] = useState(false);
 
   const requiredPrestiges = business.requiredTimesPrestiged || 0;
   const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
@@ -37,17 +53,62 @@ export function BusinessCard({ business }: BusinessCardProps) {
     setDynamicMaxLevel(getDynamicMaxBusinessLevel());
     if (isUnlocked) {
       setIncome(getBusinessIncome(business.id));
-      setLevelUpgradeCost(getBusinessUpgradeCost(business.id));
     } else {
       setIncome(0);
-      setLevelUpgradeCost(0);
     }
-  }, [business, business.level, business.upgrades, getBusinessIncome, getBusinessUpgradeCost, playerStats.money, playerStats.unlockedSkillIds, isUnlocked, getDynamicMaxBusinessLevel]);
+  }, [business, business.level, business.upgrades, getBusinessIncome, playerStats.timesPrestiged, isUnlocked, getDynamicMaxBusinessLevel]);
+
+  useEffect(() => {
+    if (!isUnlocked || business.level >= dynamicMaxLevel) {
+      setDisplayCost(Infinity);
+      setLevelsToBuyDisplay(0);
+      setCanAffordUpgrade(false);
+      return;
+    }
+
+    let costResult: { totalCost: number; levelsPurchasable?: number; levelsToBuy?: number };
+
+    if (selectedBuyAmount === 'MAX') {
+      costResult = calculateMaxAffordableLevelsForDisplay(business.id);
+    } else {
+      costResult = calculateCostForNLevelsForDisplay(business.id, selectedBuyAmount);
+    }
+    
+    const actualLevels = costResult.levelsPurchasable ?? costResult.levelsToBuy ?? 0;
+    
+    setDisplayCost(costResult.totalCost);
+    setLevelsToBuyDisplay(actualLevels);
+    setCanAffordUpgrade(playerStats.money >= costResult.totalCost && actualLevels > 0);
+
+  }, [
+    selectedBuyAmount, 
+    business.id, 
+    business.level, 
+    playerStats.money, 
+    calculateCostForNLevelsForDisplay, 
+    calculateMaxAffordableLevelsForDisplay,
+    dynamicMaxLevel,
+    isUnlocked
+  ]);
 
 
   const handleLevelUpgrade = () => {
-    if (!isUnlocked || currentLevel >= dynamicMaxLevel) return;
-    upgradeBusiness(business.id);
+    if (!isUnlocked || !canAffordUpgrade || levelsToBuyDisplay === 0) return;
+    
+    let levelsToPassToUpgrade = 0;
+    if (selectedBuyAmount === 'MAX') {
+        // For MAX, pass the calculated number of levels
+        const maxAffordable = calculateMaxAffordableLevelsForDisplay(business.id);
+        levelsToPassToUpgrade = maxAffordable.levelsToBuy;
+    } else {
+        // For fixed numbers, pass the selected amount, GameContext will cap it.
+        const potentialPurchase = calculateCostForNLevelsForDisplay(business.id, selectedBuyAmount);
+        levelsToPassToUpgrade = potentialPurchase.levelsPurchasable || 0;
+    }
+    
+    if (levelsToPassToUpgrade > 0) {
+        upgradeBusiness(business.id, levelsToPassToUpgrade);
+    }
   };
 
   const handlePurchaseUpgrade = (upgradeId: string) => {
@@ -56,7 +117,16 @@ export function BusinessCard({ business }: BusinessCardProps) {
   };
 
   const isMaxLevel = currentLevel >= dynamicMaxLevel;
-  const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost && !isMaxLevel && isUnlocked;
+
+  const levelUpButtonText = useMemo(() => {
+    if (!isUnlocked) return "Locked";
+    if (isMaxLevel) return `Max Level (${dynamicMaxLevel})`;
+    if (levelsToBuyDisplay > 0) {
+      return `Level Up (+${levelsToBuyDisplay})`;
+    }
+    return "Cannot Afford";
+  }, [isUnlocked, isMaxLevel, dynamicMaxLevel, levelsToBuyDisplay]);
+
 
   return (
     <Card className={cn("flex flex-col relative", !isUnlocked && "bg-muted/50 border-dashed")}>
@@ -91,12 +161,39 @@ export function BusinessCard({ business }: BusinessCardProps) {
             </span>
           </div>
         </div>
-        {!isMaxLevel && isUnlocked && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Next Level Cost:</span>
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-red-500" />
-              <span className="font-semibold text-red-500">${levelUpgradeCost.toLocaleString('en-US')}</span>
+
+        {isUnlocked && !isMaxLevel && (
+          <div className="pt-2 space-y-2">
+            <Label className="text-xs text-muted-foreground">Buy Amount:</Label>
+            <RadioGroup
+              defaultValue="1"
+              onValueChange={(value) => setSelectedBuyAmount(value as BuyAmountOption)}
+              className="flex space-x-2"
+            >
+              {BUY_AMOUNTS.map((amount) => (
+                <Label
+                  key={amount}
+                  htmlFor={`${business.id}-buy-${amount}`}
+                  className={cn(
+                    "flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                    selectedBuyAmount === amount && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                    !isUnlocked && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <RadioGroupItem value={String(amount)} id={`${business.id}-buy-${amount}`} className="sr-only" disabled={!isUnlocked} />
+                  {amount === 'MAX' ? 'MAX' : `x${amount}`}
+                </Label>
+              ))}
+            </RadioGroup>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: 'next'}:</span>
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-4 w-4 text-red-500" />
+                <span className="font-semibold text-red-500">
+                  {isUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -113,9 +210,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <AccordionContent className="pt-2 space-y-3">
                 <TooltipProvider delayDuration={100}>
                   {currentUpgrades.map((upgrade) => {
-                    const canAffordUpgrade = playerStats.money >= upgrade.cost;
+                    const canAffordThisUpgrade = playerStats.money >= upgrade.cost; // Note: upgrade costs are not affected by bulk buy selection
                     const levelRequirementMet = currentLevel >= upgrade.requiredLevel;
-                    const canPurchase = !upgrade.isPurchased && canAffordUpgrade && levelRequirementMet;
+                    const canPurchaseThisUpgrade = !upgrade.isPurchased && canAffordThisUpgrade && levelRequirementMet;
                     
                     return (
                       <div key={upgrade.id} className="p-3 border rounded-md bg-muted/30">
@@ -142,7 +239,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handlePurchaseUpgrade(upgrade.id)}
-                                    disabled={!canPurchase || !isUnlocked}
+                                    disabled={!canPurchaseThisUpgrade || !isUnlocked}
                                     className="ml-2 px-3 py-1 h-auto"
                                   >
                                     <ShoppingCart className="h-4 w-4" />
@@ -151,7 +248,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 { !levelRequirementMet ? <p>Requires Level {upgrade.requiredLevel}</p> :
-                                  !canAffordUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US')}</p> :
+                                  !canAffordThisUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US')}</p> :
                                   <p>Purchase Upgrade</p>
                                 }
                               </TooltipContent>
@@ -168,10 +265,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
         )}
 
       </CardContent>
-      <CardFooter className={cn(!isUnlocked && "opacity-50")}>
+      <CardFooter className={cn("pt-2",!isUnlocked && "opacity-50")}>
         <Button
           onClick={handleLevelUpgrade}
-          disabled={!canAffordLevelUpgrade || isMaxLevel || !isUnlocked}
+          disabled={!canAffordUpgrade || !isUnlocked || isMaxLevel || levelsToBuyDisplay === 0}
           className="w-full bg-accent text-accent-foreground hover:bg-yellow-400"
         >
           {isUnlocked ? (
@@ -183,7 +280,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             ) : (
               <>
                 <ArrowUpCircle className="mr-2 h-5 w-5" />
-                Level Up (Lvl {currentLevel + 1})
+                {levelUpButtonText}
               </>
             )
           ) : (
@@ -197,3 +294,6 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
+
+
+    
