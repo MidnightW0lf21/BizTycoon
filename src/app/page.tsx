@@ -25,11 +25,13 @@ export default function DashboardPage() {
     levelsForNext: 0,
   });
 
-  const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
+  // Removed currentTotalLevels calculation from here, will be done inside useEffect
 
   useEffect(() => {
     setCurrentMoney(playerStats.money);
     setCurrentIncome(playerStats.totalIncomePerSecond);
+
+    const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0); // Calculate inside useEffect
 
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
     const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
@@ -47,13 +49,29 @@ export default function DashboardPage() {
       levelsAchieved: levelsProgressedForNextPoint,
       levelsForNext: costForNextPotentialPoint,
     });
-
-  }, [playerStats, businesses, currentTotalLevels]);
+  // Specific dependencies:
+  // - playerStats.money and playerStats.totalIncomePerSecond for setCurrentMoney/Income
+  // - playerStats.prestigePoints and the businesses array (for levels) for prestigeProgress calculation
+  }, [playerStats.money, playerStats.totalIncomePerSecond, playerStats.prestigePoints, businesses]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
   const averageBusinessLevel = totalBusinessesOwned > 0
     ? businesses.reduce((sum, b) => sum + b.level, 0) / totalBusinessesOwned
     : 0;
+  
+  // This currentTotalLevels is for the 'newlyGainedPoints' calculation in the prestige dialog logic,
+  // not directly for the progress bar's display useEffect which now calculates its own.
+  const currentTotalLevelsForDialog = businesses.reduce((sum, b) => sum + b.level, 0);
+  const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
+   useEffect(() => {
+    const calculateNewlyGainedPoints = () => {
+      const moneyRequiredForPrestige = 1000000;
+       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !useGame().GOD_MODE_ACTIVE) return 0; // GOD_MODE_ACTIVE needs to be accessed from context if used here
+      const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
+      return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
+    };
+    setNewlyGainedPoints(calculateNewlyGainedPoints());
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]); // Added currentTotalLevelsForDialog
 
   return (
     <div className="flex flex-col gap-6">
@@ -149,3 +167,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
