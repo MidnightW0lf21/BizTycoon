@@ -4,11 +4,11 @@
 import { useGame } from "@/contexts/GameContext";
 import { SkillNodeCard } from "@/components/skill-tree/SkillNodeCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Filter, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Eye, EyeOff } from "lucide-react";
 import { INITIAL_SKILL_TREE } from "@/config/game-config";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card"; // Keep for locked state
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function SkillTreePage() {
   const { playerStats, unlockSkillNode } = useGame();
@@ -16,26 +16,7 @@ export default function SkillTreePage() {
 
   const REQUIRED_PRESTIGE_LEVEL = 1;
 
-  if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
-    return (
-      <Card className="w-full md:max-w-2xl mx-auto">
-        <CardHeader className="items-center">
-          <Sparkles className="h-16 w-16 text-primary mb-4" />
-          <CardTitle>Skill Tree Locked</CardTitle>
-          <CardDescription className="text-center">
-            Unlock powerful permanent upgrades by prestiging! <br />
-            The Skill Tree is available after you have prestiged at least {REQUIRED_PRESTIGE_LEVEL} time.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-sm text-muted-foreground">
-            (Current Prestige Level: {playerStats.timesPrestiged})
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Call all hooks before any conditional returns
   const sortedSkillTree = useMemo(() => {
     return [...INITIAL_SKILL_TREE].sort((a, b) => {
       const aUnlocked = playerStats.unlockedSkillIds.includes(a.id);
@@ -62,6 +43,26 @@ export default function SkillTreePage() {
     });
   }, [sortedSkillTree, playerStats.unlockedSkillIds, showAllSkills]);
 
+  // Now, perform the conditional rendering
+  if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
+    return (
+      <Card className="w-full md:max-w-2xl mx-auto">
+        <CardHeader className="items-center">
+          <Sparkles className="h-16 w-16 text-primary mb-4" />
+          <CardTitle>Skill Tree Locked</CardTitle>
+          <CardDescription className="text-center">
+            Unlock powerful permanent upgrades by prestiging! <br />
+            The Skill Tree is available after you have prestiged at least {REQUIRED_PRESTIGE_LEVEL} time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">
+            (Current Prestige Level: {playerStats.timesPrestiged})
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 h-full">
