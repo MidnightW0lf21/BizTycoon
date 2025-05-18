@@ -59,6 +59,7 @@ export interface SkillNode {
     globalDividendYieldBoostPercent?: number; // Percentage boost to all stock dividend yields
     globalBusinessUpgradeCostReductionPercent?: number; // Percentage reduction to cost of business-specific upgrades
     increaseMaxBusinessLevelBy?: number; // Increase max level for all businesses
+    unlockBulkBuy?: boolean; // Unlocks bulk buy UI for businesses
     // Add more specific effect types as needed
   };
 }

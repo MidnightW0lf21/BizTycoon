@@ -31,6 +31,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
+    skillTree, // Get skillTree for checking unlockBulkBuy skill
   } = useGame();
   const Icon = business.icon;
 
@@ -46,6 +47,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
   const requiredPrestiges = business.requiredTimesPrestiged || 0;
   const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
+
+  const bulkBuySkillUnlocked = useMemo(() => {
+    const skill = skillTree.find(s => s.id === 'efficient_management_unlock');
+    return skill ? playerStats.unlockedSkillIds.includes(skill.id) : false;
+  }, [playerStats.unlockedSkillIds, skillTree]);
+
+  useEffect(() => {
+    if (!bulkBuySkillUnlocked) {
+      setSelectedBuyAmount(1); // Default to 1 if bulk buy isn't unlocked
+    }
+  }, [bulkBuySkillUnlocked]);
 
   useEffect(() => {
     setCurrentLevel(business.level);
@@ -67,11 +79,12 @@ export function BusinessCard({ business }: BusinessCardProps) {
     }
 
     let costResult: { totalCost: number; levelsPurchasable?: number; levelsToBuy?: number };
+    const currentBuyAmount = bulkBuySkillUnlocked ? selectedBuyAmount : 1;
 
-    if (selectedBuyAmount === 'MAX') {
+    if (currentBuyAmount === 'MAX') {
       costResult = calculateMaxAffordableLevelsForDisplay(business.id);
     } else {
-      costResult = calculateCostForNLevelsForDisplay(business.id, selectedBuyAmount);
+      costResult = calculateCostForNLevelsForDisplay(business.id, currentBuyAmount);
     }
     
     const actualLevels = costResult.levelsPurchasable ?? costResult.levelsToBuy ?? 0;
@@ -88,7 +101,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
     calculateCostForNLevelsForDisplay, 
     calculateMaxAffordableLevelsForDisplay,
     dynamicMaxLevel,
-    isUnlocked
+    isUnlocked,
+    bulkBuySkillUnlocked // Add dependency
   ]);
 
 
@@ -96,13 +110,13 @@ export function BusinessCard({ business }: BusinessCardProps) {
     if (!isUnlocked || !canAffordUpgrade || levelsToBuyDisplay === 0) return;
     
     let levelsToPassToUpgrade = 0;
-    if (selectedBuyAmount === 'MAX') {
-        // For MAX, pass the calculated number of levels
+    const currentBuyAmount = bulkBuySkillUnlocked ? selectedBuyAmount : 1;
+
+    if (currentBuyAmount === 'MAX') {
         const maxAffordable = calculateMaxAffordableLevelsForDisplay(business.id);
         levelsToPassToUpgrade = maxAffordable.levelsToBuy;
     } else {
-        // For fixed numbers, pass the selected amount, GameContext will cap it.
-        const potentialPurchase = calculateCostForNLevelsForDisplay(business.id, selectedBuyAmount);
+        const potentialPurchase = calculateCostForNLevelsForDisplay(business.id, currentBuyAmount);
         levelsToPassToUpgrade = potentialPurchase.levelsPurchasable || 0;
     }
     
@@ -162,11 +176,11 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         </div>
 
-        {isUnlocked && !isMaxLevel && (
+        {isUnlocked && !isMaxLevel && bulkBuySkillUnlocked && (
           <div className="pt-2 space-y-2">
             <Label className="text-xs text-muted-foreground">Buy Amount:</Label>
             <RadioGroup
-              defaultValue="1"
+              value={String(selectedBuyAmount)} // Ensure value is controlled
               onValueChange={(value) => setSelectedBuyAmount(value as BuyAmountOption)}
               className="flex space-x-2"
             >
@@ -185,15 +199,19 @@ export function BusinessCard({ business }: BusinessCardProps) {
                 </Label>
               ))}
             </RadioGroup>
-
+          </div>
+        )}
+        
+        {isUnlocked && !isMaxLevel && ( // Cost display should always be visible if not max level
+           <div className="pt-2 space-y-2"> {/* Adjusted structure slightly if bulk buy is not shown */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: 'next'}:</span>
-              <div className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4 text-red-500" />
-                <span className="font-semibold text-red-500">
-                  {isUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
-                </span>
-              </div>
+                <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: (bulkBuySkillUnlocked ? 'selected' : 'next')}:</span>
+                <div className="flex items-center gap-1">
+                    <DollarSign className="h-4 w-4 text-red-500" />
+                    <span className="font-semibold text-red-500">
+                    {isUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
+                    </span>
+                </div>
             </div>
           </div>
         )}
@@ -210,7 +228,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <AccordionContent className="pt-2 space-y-3">
                 <TooltipProvider delayDuration={100}>
                   {currentUpgrades.map((upgrade) => {
-                    const canAffordThisUpgrade = playerStats.money >= upgrade.cost; // Note: upgrade costs are not affected by bulk buy selection
+                    const canAffordThisUpgrade = playerStats.money >= upgrade.cost; 
                     const levelRequirementMet = currentLevel >= upgrade.requiredLevel;
                     const canPurchaseThisUpgrade = !upgrade.isPurchased && canAffordThisUpgrade && levelRequirementMet;
                     

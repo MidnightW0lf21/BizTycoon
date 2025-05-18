@@ -1,7 +1,7 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
 import { 
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingBag, Telescope, Star, Crown, Radio, Cog, Sigma
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -21,7 +21,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.07, // Adjusted
+    upgradeCostMultiplier: 1.07, // Slightly increased
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -40,7 +40,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.15, // Adjusted
+    upgradeCostMultiplier: 1.14, // Slightly increased
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -59,7 +59,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.14,  // Adjusted
+    upgradeCostMultiplier: 1.13,  // Slightly increased
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -77,7 +77,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.13, // Adjusted
+    upgradeCostMultiplier: 1.12, // Slightly increased
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -95,7 +95,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.16, // Adjusted
+    upgradeCostMultiplier: 1.15, // Slightly increased
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -114,7 +114,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.155, // Adjusted
+    upgradeCostMultiplier: 1.145, // Slightly increased
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -132,7 +132,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.15,  // Adjusted
+    upgradeCostMultiplier: 1.14,  // Slightly increased
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -150,7 +150,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.145, // Adjusted
+    upgradeCostMultiplier: 1.135, // Slightly increased
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -168,7 +168,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.14,  // Adjusted
+    upgradeCostMultiplier: 1.13,  // Slightly increased
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -187,7 +187,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.135, // Adjusted
+    upgradeCostMultiplier: 1.125, // Slightly increased
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -206,7 +206,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.13,  // Adjusted
+    upgradeCostMultiplier: 1.12,  // Slightly increased
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -224,7 +224,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.125, // Adjusted
+    upgradeCostMultiplier: 1.115, // Slightly increased
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -242,7 +242,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.12,  // Adjusted
+    upgradeCostMultiplier: 1.11,  // Slightly increased
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -260,7 +260,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.115, // Adjusted
+    upgradeCostMultiplier: 1.105, // Slightly increased
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -278,7 +278,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.11,  // Adjusted
+    upgradeCostMultiplier: 1.10,  // Slightly increased
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -296,7 +296,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.1,   // Adjusted
+    upgradeCostMultiplier: 1.095,   // Slightly increased
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -315,7 +315,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.09,  // Adjusted
+    upgradeCostMultiplier: 1.09,  // Slightly increased
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -333,7 +333,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.08,  // Adjusted
+    upgradeCostMultiplier: 1.085,  // Slightly increased
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -351,7 +351,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 30000,
     baseCost: 4000000,
-    upgradeCostMultiplier: 1.075, // Adjusted
+    upgradeCostMultiplier: 1.08, // Slightly increased
     icon: Radio,
     managerOwned: false,
     description: 'Global news, entertainment, and digital content.',
@@ -369,7 +369,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 45000,
     baseCost: 6000000,
-    upgradeCostMultiplier: 1.07,  // Adjusted
+    upgradeCostMultiplier: 1.075,  // Slightly increased
     icon: Cog,
     managerOwned: false,
     description: 'Advanced robotics for industrial and consumer markets.',
@@ -387,7 +387,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 70000,
     baseCost: 10000000,
-    upgradeCostMultiplier: 1.065, // Adjusted
+    upgradeCostMultiplier: 1.07, // Slightly increased
     icon: Sigma,
     managerOwned: false,
     description: 'Pioneering quantum computation for a new era.',
@@ -440,6 +440,15 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     cost: 3,
     icon: ArrowDownCircle,
     effects: { globalCostReductionPercent: 3 },
+  },
+  {
+    id: 'efficient_management_unlock',
+    name: 'Efficient Management',
+    description: 'Unlocks bulk purchasing options (x10, x25, MAX) for all businesses.',
+    cost: 5,
+    icon: ShoppingCart,
+    dependencies: ['global_income_boost_1'],
+    effects: { unlockBulkBuy: true },
   },
   {
     id: 'lemonade_boost_1',
@@ -656,6 +665,7 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
       if (skill.id === 'logistics_network_optimization' && LOGISTICS_BUSINESS_IDS.includes(business.id)) {
         businessSpecificBoost += 15; 
       }
+      // Add checks for MEDIA_BUSINESS_IDS and MANUFACTURING_BUSINESS_IDS if similar skills are added
     }
   });
 
@@ -669,8 +679,8 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
   return currentIncome;
 };
 
-// Calculates cost for a single level upgrade
-export const calculateUpgradeCost = (
+// Calculates cost for a single specific level
+export const calculateSingleLevelUpgradeCost = (
     businessLevel: number, 
     baseCost: number, 
     upgradeCostMultiplier: number, 
@@ -698,13 +708,13 @@ export const calculateUpgradeCost = (
     currentCost *= (1 - totalGlobalCostReduction / 100);
   }
   
-  return Math.floor(currentCost);
+  return Math.max(1, Math.floor(currentCost)); // Cost should not be less than 1
 };
 
 
 export const calculateCostForNLevels = (
   business: Business,
-  levelsToBuy: number,
+  levelsToAttempt: number,
   unlockedSkillIds: string[],
   skillTree: SkillNode[],
   dynamicMaxLevel: number
@@ -713,11 +723,11 @@ export const calculateCostForNLevels = (
   let levelsPurchased = 0;
   let currentSimulatedLevel = business.level;
 
-  for (let i = 0; i < levelsToBuy; i++) {
+  for (let i = 0; i < levelsToAttempt; i++) {
     if (currentSimulatedLevel >= dynamicMaxLevel) {
-      break; // Cannot level up beyond max level
+      break; 
     }
-    const costForThisLevel = calculateUpgradeCost(
+    const costForThisLevel = calculateSingleLevelUpgradeCost(
       currentSimulatedLevel,
       business.baseCost,
       business.upgradeCostMultiplier,
@@ -745,7 +755,7 @@ export const calculateMaxAffordableLevels = (
   let currentSimulatedLevel = business.level;
 
   while (currentSimulatedLevel < dynamicMaxLevel) {
-    const costForNextLevel = calculateUpgradeCost(
+    const costForNextLevel = calculateSingleLevelUpgradeCost(
       currentSimulatedLevel,
       business.baseCost,
       business.upgradeCostMultiplier,
