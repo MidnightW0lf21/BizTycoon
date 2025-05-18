@@ -53,6 +53,7 @@ interface GameContextType {
   manualSaveGame: () => void;
   exportGameState: () => string;
   importGameState: (jsonString: string) => boolean;
+  wipeGameData: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -68,15 +69,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const setLastMarketTrends = (trends: string) => setLastMarketTrendsInternal(trends);
   const setLastRiskTolerance = (tolerance: RiskTolerance) => setLastRiskToleranceInternal(tolerance);
 
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    money: INITIAL_MONEY,
-    totalIncomePerSecond: 0,
-    investmentsValue: 0,
-    stockHoldings: [],
-    prestigePoints: INITIAL_PRESTIGE_POINTS,
-    timesPrestiged: INITIAL_TIMES_PRESTIGED,
-    unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
-  });
+  const getInitialPlayerStats = (): PlayerStats => {
+    const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
+    return {
+      money: INITIAL_MONEY + startingMoneyBonus,
+      totalIncomePerSecond: 0,
+      investmentsValue: 0,
+      stockHoldings: [],
+      prestigePoints: INITIAL_PRESTIGE_POINTS,
+      timesPrestiged: INITIAL_TIMES_PRESTIGED,
+      unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
+    };
+  };
+
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(getInitialPlayerStats());
 
   const [businesses, setBusinesses] = useState<Business[]>(() =>
     INITIAL_BUSINESSES.map(biz => ({
@@ -139,7 +145,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setBusinesses(importedData.businesses);
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
 
-      saveStateToLocalStorage();
+      saveStateToLocalStorage(); // Persist the imported state immediately
       toast({
         title: "Game Loaded Successfully!",
         description: "Your game state has been imported.",
@@ -156,6 +162,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const wipeGameData = () => {
+    setPlayerStats(getInitialPlayerStats());
+    setBusinesses(INITIAL_BUSINESSES.map(biz => ({
+      ...biz,
+      level: 0,
+      managerOwned: false,
+      upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
+      icon: biz.icon, 
+    })));
+    localStorage.removeItem(SAVE_DATA_KEY);
+    setLastSavedTimestamp(null);
+    toast({
+      title: "Game Data Wiped",
+      description: "All progress has been reset to default.",
+      variant: "destructive",
+    });
+     // Optionally, force a reload or redirect to ensure all components re-initialize
+     // window.location.reload(); // Uncomment if needed
+  };
+
+
   useEffect(() => {
     try {
       const savedDataString = localStorage.getItem(SAVE_DATA_KEY);
@@ -168,33 +195,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : [],
         }));
 
-        setBusinesses(() => { // Removed prevBusinesses as it's not used directly in this mapping
+        setBusinesses(() => { 
           return INITIAL_BUSINESSES.map(initialBiz => {
             const savedBusinessState = loadedData.businesses.find(b => b.id === initialBiz.id);
             if (savedBusinessState) {
-              // Construct the business object carefully, ensuring icon and core config comes from initialBiz
               const mergedBusiness: Business = {
-                ...initialBiz, // Spread initialBiz first for base properties and functional icon
-                id: savedBusinessState.id, // Use saved ID (should match)
-                name: savedBusinessState.name || initialBiz.name, // Prefer saved name
+                ...initialBiz, 
+                id: savedBusinessState.id, 
+                name: savedBusinessState.name || initialBiz.name, 
                 level: savedBusinessState.level,
                 managerOwned: savedBusinessState.managerOwned,
-                // Upgrades: merge initial config with saved purchase status
                 upgrades: initialBiz.upgrades?.map(initialUpg => {
                   const savedUpgData = savedBusinessState.upgrades?.find(su => su.id === initialUpg.id);
                   return {
-                    ...initialUpg, // Start with fresh upgrade config from initialBiz
+                    ...initialUpg, 
                     isPurchased: savedUpgData ? savedUpgData.isPurchased : false,
                   };
                 }) || [],
-                // Explicitly ensure the icon is the functional component from initialBiz,
-                // overriding any 'icon' property that might have been in savedBusinessState
-                // (which would be undefined or an object if stringified/corrupted).
                 icon: initialBiz.icon,
               };
               return mergedBusiness;
             }
-            // If business not in save (e.g., new business added to config), use its initial state.
             return {
               ...initialBiz,
               level: 0,
@@ -207,15 +228,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
         toast({ title: "Game Loaded", description: "Welcome back!" });
       } else {
-        const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
-        setPlayerStats(prev => ({ ...prev, money: INITIAL_MONEY + startingMoneyBonus }));
+        setPlayerStats(getInitialPlayerStats()); // Ensure this is called if no save data
       }
     } catch (error) {
       console.error("Error loading game state from local storage:", error);
       localStorage.removeItem(SAVE_DATA_KEY);
       toast({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
-        const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
-        setPlayerStats(prev => ({ ...prev, money: INITIAL_MONEY + startingMoneyBonus }));
+      setPlayerStats(getInitialPlayerStats());
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -532,7 +551,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false,
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
-      icon: biz.icon, // Ensure icon is correctly carried over
+      icon: biz.icon, 
     })));
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Game reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
   }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, playerStats.unlockedSkillIds, businesses, toast, skillTreeState]);
@@ -591,6 +610,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manualSaveGame,
       exportGameState,
       importGameState,
+      wipeGameData,
     }}>
       {children}
     </GameContext.Provider>

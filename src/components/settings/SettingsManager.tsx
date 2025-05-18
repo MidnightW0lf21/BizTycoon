@@ -18,12 +18,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Save, Upload, Download, Trash2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export function SettingsManager() {
-  const { manualSaveGame, exportGameState, importGameState, lastSavedTimestamp } = useGame();
+  const { manualSaveGame, exportGameState, importGameState, lastSavedTimestamp, wipeGameData } = useGame();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImportConfirmOpen, setIsImportConfirmOpen] = useState(false);
+  const [isWipeConfirmOpen, setIsWipeConfirmOpen] = useState(false);
   const [fileToImport, setFileToImport] = useState<File | null>(null);
   const [displayLastSaved, setDisplayLastSaved] = useState<string>("Never");
 
@@ -31,17 +33,20 @@ export function SettingsManager() {
     if (lastSavedTimestamp) {
       setDisplayLastSaved(new Date(lastSavedTimestamp).toLocaleString());
     } else {
-        // Check local storage directly for an initial value if context is null at first
         const savedDataString = localStorage.getItem('bizTycoonSaveData_v1');
         if (savedDataString) {
             try {
                 const loadedData = JSON.parse(savedDataString);
                 if (loadedData.lastSaved) {
                     setDisplayLastSaved(new Date(loadedData.lastSaved).toLocaleString());
+                } else {
+                  setDisplayLastSaved("Never");
                 }
             } catch (e) {
-                // Ignore parsing error
+                setDisplayLastSaved("Never");
             }
+        } else {
+          setDisplayLastSaved("Never");
         }
     }
   }, [lastSavedTimestamp]);
@@ -75,7 +80,7 @@ export function SettingsManager() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setFileToImport(event.target.files[0]);
-      setIsImportConfirmOpen(true); // Open confirmation dialog
+      setIsImportConfirmOpen(true); 
     }
   };
 
@@ -87,11 +92,7 @@ export function SettingsManager() {
       const text = e.target?.result;
       if (typeof text === "string") {
         const success = importGameState(text);
-        if (success) {
-          // GameContext handles success toast
-        } else {
-          // GameContext handles error toast
-        }
+        // Toasts handled by importGameState
       } else {
         toast({
           title: "Import Error",
@@ -99,8 +100,8 @@ export function SettingsManager() {
           variant: "destructive",
         });
       }
-      setFileToImport(null); // Reset file
-      if(fileInputRef.current) fileInputRef.current.value = ""; // Reset input field
+      setFileToImport(null); 
+      if(fileInputRef.current) fileInputRef.current.value = ""; 
     };
     reader.onerror = () => {
         toast({
@@ -117,6 +118,11 @@ export function SettingsManager() {
 
   const handleTriggerImport = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleWipeConfirm = () => {
+    wipeGameData();
+    setIsWipeConfirmOpen(false);
   };
 
   return (
@@ -155,6 +161,19 @@ export function SettingsManager() {
         />
       </div>
 
+      <Separator />
+
+      <div>
+        <h3 className="text-lg font-medium text-destructive">Danger Zone</h3>
+         <p className="text-sm text-muted-foreground mb-3">
+          Be careful, these actions are irreversible.
+        </p>
+        <Button onClick={() => setIsWipeConfirmOpen(true)} variant="destructive" className="w-full">
+          <Trash2 className="mr-2 h-4 w-4" /> Wipe All Save Data
+        </Button>
+      </div>
+
+
       <AlertDialog open={isImportConfirmOpen} onOpenChange={setIsImportConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -170,6 +189,26 @@ export function SettingsManager() {
             }}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleImportConfirm}>
               Import and Overwrite
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isWipeConfirmOpen} onOpenChange={setIsWipeConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Confirm Wipe Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you absolutely sure you want to wipe all your save data? This action is irreversible and will reset all your game progress to the very beginning.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleWipeConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Wipe All Data
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
