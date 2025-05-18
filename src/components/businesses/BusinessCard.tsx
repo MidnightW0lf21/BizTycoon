@@ -10,21 +10,23 @@ import { useEffect, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MAX_BUSINESS_LEVEL } from "@/config/game-config";
 import { cn } from "@/lib/utils";
+// Removed MAX_BUSINESS_LEVEL import, will use dynamic one from context
 
 interface BusinessCardProps {
   business: Business;
 }
 
 export function BusinessCard({ business }: BusinessCardProps) {
-  const { playerStats, upgradeBusiness, purchaseBusinessUpgrade, getBusinessIncome, getBusinessUpgradeCost } = useGame();
+  const { playerStats, upgradeBusiness, purchaseBusinessUpgrade, getBusinessIncome, getBusinessUpgradeCost, getDynamicMaxBusinessLevel, skillTree } = useGame();
   const Icon = business.icon;
 
   const [income, setIncome] = useState(0);
   const [levelUpgradeCost, setLevelUpgradeCost] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(business.level);
   const [currentUpgrades, setCurrentUpgrades] = useState(business.upgrades || []);
+  const [dynamicMaxLevel, setDynamicMaxLevel] = useState(getDynamicMaxBusinessLevel());
+
 
   const requiredPrestiges = business.requiredTimesPrestiged || 0;
   const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
@@ -32,6 +34,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
   useEffect(() => {
     setCurrentLevel(business.level);
     setCurrentUpgrades(business.upgrades || []);
+    setDynamicMaxLevel(getDynamicMaxBusinessLevel());
     if (isUnlocked) {
       setIncome(getBusinessIncome(business.id));
       setLevelUpgradeCost(getBusinessUpgradeCost(business.id));
@@ -39,11 +42,11 @@ export function BusinessCard({ business }: BusinessCardProps) {
       setIncome(0);
       setLevelUpgradeCost(0);
     }
-  }, [business, business.level, business.upgrades, getBusinessIncome, getBusinessUpgradeCost, playerStats.money, isUnlocked]);
+  }, [business, business.level, business.upgrades, getBusinessIncome, getBusinessUpgradeCost, playerStats.money, playerStats.unlockedSkillIds, isUnlocked, getDynamicMaxBusinessLevel]);
 
 
   const handleLevelUpgrade = () => {
-    if (!isUnlocked || currentLevel >= MAX_BUSINESS_LEVEL) return;
+    if (!isUnlocked || currentLevel >= dynamicMaxLevel) return;
     upgradeBusiness(business.id);
   };
 
@@ -52,7 +55,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     purchaseBusinessUpgrade(business.id, upgradeId);
   };
 
-  const isMaxLevel = currentLevel >= MAX_BUSINESS_LEVEL;
+  const isMaxLevel = currentLevel >= dynamicMaxLevel;
   const canAffordLevelUpgrade = playerStats.money >= levelUpgradeCost && !isMaxLevel && isUnlocked;
 
   return (
@@ -77,7 +80,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
       <CardContent className={cn("flex-grow space-y-3", !isUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Level:</span>
-          <span className="font-semibold">{isUnlocked ? `${currentLevel} / ${MAX_BUSINESS_LEVEL}` : 'N/A'}</span>
+          <span className="font-semibold">{isUnlocked ? `${currentLevel} / ${dynamicMaxLevel}` : 'N/A'}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Income/sec:</span>
@@ -175,7 +178,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             isMaxLevel ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Max Level
+                Max Level ({dynamicMaxLevel})
               </>
             ) : (
               <>
@@ -194,4 +197,3 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
-

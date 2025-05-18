@@ -58,6 +58,7 @@ export interface SkillNode {
     increaseStartingMoney?: number; // Flat amount added to initial money after prestige
     globalDividendYieldBoostPercent?: number; // Percentage boost to all stock dividend yields
     globalBusinessUpgradeCostReductionPercent?: number; // Percentage reduction to cost of business-specific upgrades
+    increaseMaxBusinessLevelBy?: number; // Increase max level for all businesses
     // Add more specific effect types as needed
   };
 }

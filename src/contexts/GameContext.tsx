@@ -1,13 +1,13 @@
 
 "use client";
 
-import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, SkillNode, RiskTolerance } from '@/types';
+import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, SkillNode } from '@/types';
 import { 
   INITIAL_BUSINESSES, 
   INITIAL_MONEY, 
   calculateIncome, 
   calculateUpgradeCost, 
-  MAX_BUSINESS_LEVEL, 
+  MAX_BUSINESS_LEVEL, // Base max level
   INITIAL_STOCKS, 
   INITIAL_PRESTIGE_POINTS, 
   INITIAL_TIMES_PRESTIGED,
@@ -35,6 +35,7 @@ interface GameContextType {
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
+  getDynamicMaxBusinessLevel: () => number;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -85,12 +86,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
-      if (GOD_MODE_ACTIVE) return true; // In God Mode, all stocks are available
+      if (GOD_MODE_ACTIVE) return true; 
       if (!stock.requiredSkillToUnlock) return true; 
       return playerStats.unlockedSkillIds.includes(stock.requiredSkillToUnlock);
     });
     setUnlockedStocks(filteredStocks);
   }, [playerStats.unlockedSkillIds]);
+
+  const getDynamicMaxBusinessLevel = useCallback((): number => {
+    let bonusLevels = 0;
+    playerStats.unlockedSkillIds.forEach(skillId => {
+        const skill = skillTreeState.find(s => s.id === skillId);
+        if (skill && skill.effects.increaseMaxBusinessLevelBy) {
+            bonusLevels += skill.effects.increaseMaxBusinessLevelBy;
+        }
+    });
+    return MAX_BUSINESS_LEVEL + bonusLevels;
+  }, [playerStats.unlockedSkillIds, skillTreeState]);
 
 
   const getBusinessIncome = useCallback((businessId: string): number => {
@@ -100,8 +112,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const getBusinessUpgradeCost = useCallback((businessId: string): number => {
     const business = businesses.find(b => b.id === businessId);
-    return business ? calculateUpgradeCost(business, playerStats.unlockedSkillIds, skillTreeState) : 0;
-  }, [businesses, playerStats.unlockedSkillIds, skillTreeState]);
+    if (!business) return 0;
+    const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
+    if (business.level >= currentDynamicMaxLevel) return Infinity;
+    return calculateUpgradeCost(business, playerStats.unlockedSkillIds, skillTreeState);
+  }, [businesses, playerStats.unlockedSkillIds, skillTreeState, getDynamicMaxBusinessLevel]);
 
   useEffect(() => {
     const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
@@ -158,9 +173,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
        toast({ title: "Locked", description: `This business requires ${requiredPrestiges} prestige(s) to operate.`, variant: "destructive"});
        return;
     }
-
-    if (business.level >= MAX_BUSINESS_LEVEL) {
-      if (!GOD_MODE_ACTIVE) toast({ title: "Max Level Reached!", description: `${business.name} is already at the maximum level.`, variant: "default" });
+    
+    const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
+    if (business.level >= currentDynamicMaxLevel) {
+      if (!GOD_MODE_ACTIVE) toast({ title: "Max Level Reached!", description: `${business.name} is already at the maximum level (${currentDynamicMaxLevel}).`, variant: "default" });
       return;
     }
 
@@ -333,7 +349,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       stockHoldings: [],
       prestigePoints: GOD_MODE_ACTIVE ? 9999 : prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: GOD_MODE_ACTIVE ? 999 : prev.timesPrestiged + 1,
-      // unlockedSkillIds are intentionally persisted through prestige
     }));
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false, 
@@ -385,6 +400,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sellStock,
       performPrestige,
       unlockSkillNode,
+      getDynamicMaxBusinessLevel,
     }}>
       {children}
     </GameContext.Provider>
@@ -398,7 +414,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
-
     
