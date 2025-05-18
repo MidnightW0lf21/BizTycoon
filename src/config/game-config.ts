@@ -8,6 +8,9 @@ export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
 export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 
+export const PRESTIGE_BASE_LEVEL_COST = 75; // Levels for the first PP
+export const PRESTIGE_LEVEL_COST_INCREMENT = 30; // Additional levels per subsequent PP
+
 
 export const INITIAL_BUSINESSES: Business[] = [
   {
@@ -16,7 +19,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.115, // Slightly increased from 1.095
+    upgradeCostMultiplier: 1.115,
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -35,7 +38,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.20, // Slightly increased from 1.18
+    upgradeCostMultiplier: 1.20,
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -54,7 +57,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.21, // Slightly increased from 1.19
+    upgradeCostMultiplier: 1.21,
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -72,7 +75,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.22, // Slightly increased from 1.20
+    upgradeCostMultiplier: 1.22,
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -90,7 +93,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.245, // Slightly increased from 1.225
+    upgradeCostMultiplier: 1.245,
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -109,7 +112,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.235, // Slightly increased from 1.215
+    upgradeCostMultiplier: 1.235,
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -127,7 +130,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.225, // Slightly increased from 1.205
+    upgradeCostMultiplier: 1.225,
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -145,7 +148,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.23, // Slightly increased
+    upgradeCostMultiplier: 1.23,
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -163,7 +166,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.235, // Slightly increased from 1.215
+    upgradeCostMultiplier: 1.235,
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -182,7 +185,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.205, // Slightly increased from 1.185
+    upgradeCostMultiplier: 1.205,
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -201,7 +204,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.245, // Slightly increased from 1.225
+    upgradeCostMultiplier: 1.245,
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -219,7 +222,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.25, // Slightly increased
+    upgradeCostMultiplier: 1.25,
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -237,7 +240,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.255, // Slightly increased from 1.235
+    upgradeCostMultiplier: 1.255,
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -255,7 +258,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.265, // Slightly increased from 1.245
+    upgradeCostMultiplier: 1.265,
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -273,7 +276,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.275, // Slightly increased from 1.255
+    upgradeCostMultiplier: 1.275,
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -291,7 +294,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.295, // Slightly increased from 1.275
+    upgradeCostMultiplier: 1.295,
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -310,7 +313,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.285, // Slightly increased from 1.265
+    upgradeCostMultiplier: 1.285,
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -328,7 +331,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.305, // Slightly increased from 1.285
+    upgradeCostMultiplier: 1.305,
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -403,7 +406,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     description: 'Gain +10% more prestige points when prestiging.', // This effect will need to be handled in performPrestige
     cost: 15,
     icon: Sparkles,
-    effects: {}, // Placeholder, actual logic in performPrestige
+    effects: {}, 
   },
 ];
 
@@ -412,7 +415,6 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
 
-  // Apply business-specific upgrades
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.incomeBoostPercent) {
@@ -421,7 +423,6 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
     });
   }
   
-  // Apply skill tree effects
   let totalGlobalIncomeBoost = 0;
   let businessSpecificBoost = 0;
 
@@ -451,7 +452,6 @@ export const calculateUpgradeCost = (business: Business, unlockedSkillIds: strin
   if (business.level >= MAX_BUSINESS_LEVEL) return Infinity;
   let currentCost = business.baseCost * Math.pow(business.upgradeCostMultiplier, business.level);
 
-  // Apply business-specific upgrades for cost reduction
   if (business.upgrades) {
     business.upgrades.forEach(upgrade => {
       if (upgrade.isPurchased && upgrade.levelUpgradeCostReductionPercent) {
@@ -460,7 +460,6 @@ export const calculateUpgradeCost = (business: Business, unlockedSkillIds: strin
     });
   }
 
-  // Apply skill tree effects for global cost reduction
   let totalGlobalCostReduction = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
@@ -476,7 +475,6 @@ export const calculateUpgradeCost = (business: Business, unlockedSkillIds: strin
   return Math.floor(currentCost);
 };
 
-// Helper function to get total starting money bonus from skills
 export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
   let bonus = 0;
   unlockedSkillIds.forEach(skillId => {
@@ -488,15 +486,12 @@ export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: Ski
   return bonus;
 };
 
-// Helper to get prestige point boost percentage
 export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
   let boostPercent = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
-    // This relies on a convention for the skill ID or adding a specific property to SkillNode.effects
-    // For now, let's assume the 'prestige_point_boost_1' skill gives 10%
-    if (skill && skill.id === 'prestige_point_boost_1') { // Example specific check
-        boostPercent += 10; // This should ideally come from skill.effects
+    if (skill && skill.id === 'prestige_point_boost_1') { 
+        boostPercent += 10; 
     }
   });
   return boostPercent;
@@ -504,22 +499,35 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
 
 export const calculateDiminishingPrestigePoints = (totalLevels: number): number => {
   let points = 0;
-  // Cumulative levels required for *all* points earned so far.
-  // This approach sums the cost of each point.
   let cumulativeLevelsRequiredForCurrentPoints = 0; 
-  let costForThisSpecificPoint = 75;   // Cost for the 1st point (or current point being evaluated)
-  const costIncrement = 30;    // Each subsequent point costs this much *more* than the *previous* one.
+  let costForThisSpecificPoint = PRESTIGE_BASE_LEVEL_COST;
 
   while (true) {
-    // Check if the player has enough *additional* levels for the *next* point
-    // relative to the levels already accounted for by previous points.
     if (totalLevels >= cumulativeLevelsRequiredForCurrentPoints + costForThisSpecificPoint) {
       points++;
-      cumulativeLevelsRequiredForCurrentPoints += costForThisSpecificPoint; // Add cost of point just earned
-      costForThisSpecificPoint += costIncrement; // Increase cost for the *next* potential point
+      cumulativeLevelsRequiredForCurrentPoints += costForThisSpecificPoint; 
+      costForThisSpecificPoint += PRESTIGE_LEVEL_COST_INCREMENT; 
     } else {
-      break; // Not enough total levels for the current point cost
+      break; 
     }
   }
   return points;
 };
+
+// Helper to get the *additional* levels required for the Nth point (1-indexed)
+export const getCostForNthPoint = (n: number): number => {
+  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST; // Should not happen, but as a fallback
+  return PRESTIGE_BASE_LEVEL_COST + (n - 1) * PRESTIGE_LEVEL_COST_INCREMENT;
+};
+
+// Helper to get the *cumulative* levels required to achieve a certain number of points
+export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => {
+  if (pointsToAchieve <= 0) return 0;
+  let totalLevels = 0;
+  for (let i = 1; i <= pointsToAchieve; i++) {
+    totalLevels += getCostForNthPoint(i);
+  }
+  return totalLevels;
+};
+
+    
