@@ -10,6 +10,7 @@ export interface BusinessUpgrade {
   isPurchased: boolean;
   incomeBoostPercent?: number; 
   levelUpgradeCostReductionPercent?: number; 
+  unlocksBulkBuy?: true;
 }
 
 export interface Business {
@@ -23,7 +24,7 @@ export interface Business {
   managerOwned: boolean; 
   description: string;
   upgrades?: BusinessUpgrade[];
-  requiredTimesPrestiged?: number; 
+  // requiredTimesPrestiged?: number; // Removed
 }
 
 export interface Stock {
@@ -59,7 +60,7 @@ export interface SkillNode {
     globalDividendYieldBoostPercent?: number; 
     globalBusinessUpgradeCostReductionPercent?: number; 
     increaseMaxBusinessLevelBy?: number; 
-    unlocksBulkBuyForBusiness?: string;
+    unlocksBulkBuyForBusiness?: string; // Specific business ID
   };
 }
 
@@ -80,3 +81,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+

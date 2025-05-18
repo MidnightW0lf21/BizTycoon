@@ -18,10 +18,10 @@ import {
   calculateCostForNLevels,
   calculateMaxAffordableLevels,
   calculateSingleLevelUpgradeCost,
-  PRESTIGE_BASE_LEVEL_COST,
-  PRESTIGE_LEVEL_COST_INCREMENT,
-  getCostForNthPoint,
-  getLevelsRequiredForNPoints,
+  // PRESTIGE_BASE_LEVEL_COST, // Already imported in config
+  // PRESTIGE_LEVEL_COST_INCREMENT, // Already imported in config
+  // getCostForNthPoint, // Already imported in config
+  // getLevelsRequiredForNPoints, // Already imported in config
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -34,8 +34,6 @@ interface GameContextType {
   businesses: Business[];
   stocks: Stock[];
   skillTree: SkillNode[];
-  lastMarketTrends: string;
-  lastRiskTolerance: RiskTolerance;
   lastSavedTimestamp: number | null;
   upgradeBusiness: (businessId: string, levelsToBuy?: number) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string) => void;
@@ -48,8 +46,6 @@ interface GameContextType {
   getDynamicMaxBusinessLevel: () => number;
   calculateCostForNLevelsForDisplay: (businessId: string, levelsToBuy: number) => { totalCost: number; levelsPurchasable: number };
   calculateMaxAffordableLevelsForDisplay: (businessId: string) => { levelsToBuy: number; totalCost: number };
-  setLastMarketTrends: (trends: string) => void;
-  setLastRiskTolerance: (tolerance: RiskTolerance) => void;
   manualSaveGame: () => void;
   exportGameState: () => string;
   importGameState: (jsonString: string) => boolean;
@@ -58,29 +54,24 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+const getInitialPlayerStats = (): PlayerStats => {
+  const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, INITIAL_SKILL_TREE); // Use INITIAL_SKILL_TREE here
+  return {
+    money: INITIAL_MONEY + startingMoneyBonus,
+    totalIncomePerSecond: 0,
+    investmentsValue: 0,
+    stockHoldings: [],
+    prestigePoints: INITIAL_PRESTIGE_POINTS,
+    timesPrestiged: INITIAL_TIMES_PRESTIGED,
+    unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
+  };
+};
+
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { toast } = useToast();
 
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
-  const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Market is stable.");
-  const [lastRiskTolerance, setLastRiskToleranceInternal] = useState<RiskTolerance>("medium");
   const [lastSavedTimestamp, setLastSavedTimestamp] = useState<number | null>(null);
-
-  const setLastMarketTrends = (trends: string) => setLastMarketTrendsInternal(trends);
-  const setLastRiskTolerance = (tolerance: RiskTolerance) => setLastRiskToleranceInternal(tolerance);
-
-  const getInitialPlayerStats = (): PlayerStats => {
-    const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
-    return {
-      money: INITIAL_MONEY + startingMoneyBonus,
-      totalIncomePerSecond: 0,
-      investmentsValue: 0,
-      stockHoldings: [],
-      prestigePoints: INITIAL_PRESTIGE_POINTS,
-      timesPrestiged: INITIAL_TIMES_PRESTIGED,
-      unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
-    };
-  };
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>(getInitialPlayerStats());
 
@@ -90,6 +81,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       level: 0,
       managerOwned: false,
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
+      icon: biz.icon, // Ensure icon is consistently set from config
     }))
   );
 
@@ -142,10 +134,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       setPlayerStats(importedData.playerStats);
-      setBusinesses(importedData.businesses);
+      // Ensure businesses are correctly rehydrated, especially icons and new upgrades
+      setBusinesses(INITIAL_BUSINESSES.map(initialBiz => {
+        const savedBusiness = importedData.businesses.find(b => b.id === initialBiz.id);
+        return {
+          ...initialBiz,
+          level: savedBusiness ? savedBusiness.level : 0,
+          managerOwned: savedBusiness ? savedBusiness.managerOwned : false,
+          upgrades: initialBiz.upgrades?.map(initialUpg => {
+            const savedUpg = savedBusiness?.upgrades?.find(su => su.id === initialUpg.id);
+            return { ...initialUpg, isPurchased: savedUpg ? savedUpg.isPurchased : false };
+          }) || [],
+          icon: initialBiz.icon, // Always use icon from config
+        };
+      }));
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
 
-      saveStateToLocalStorage(); // Persist the imported state immediately
+      saveStateToLocalStorage(); 
       toast({
         title: "Game Loaded Successfully!",
         description: "Your game state has been imported.",
@@ -178,8 +183,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       description: "All progress has been reset to default.",
       variant: "destructive",
     });
-     // Optionally, force a reload or redirect to ensure all components re-initialize
-     // window.location.reload(); // Uncomment if needed
   };
 
 
@@ -201,8 +204,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (savedBusinessState) {
               const mergedBusiness: Business = {
                 ...initialBiz, 
-                id: savedBusinessState.id, 
-                name: savedBusinessState.name || initialBiz.name, 
                 level: savedBusinessState.level,
                 managerOwned: savedBusinessState.managerOwned,
                 upgrades: initialBiz.upgrades?.map(initialUpg => {
@@ -212,7 +213,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     isPurchased: savedUpgData ? savedUpgData.isPurchased : false,
                   };
                 }) || [],
-                icon: initialBiz.icon,
+                icon: initialBiz.icon, // Crucially, always take the icon from the config
               };
               return mergedBusiness;
             }
@@ -221,6 +222,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               level: 0,
               managerOwned: false,
               upgrades: initialBiz.upgrades?.map(upg => ({ ...upg, isPurchased: false })) || [],
+              icon: initialBiz.icon,
             };
           });
         });
@@ -228,7 +230,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
         toast({ title: "Game Loaded", description: "Welcome back!" });
       } else {
-        setPlayerStats(getInitialPlayerStats()); // Ensure this is called if no save data
+        setPlayerStats(getInitialPlayerStats()); 
       }
     } catch (error) {
       console.error("Error loading game state from local storage:", error);
@@ -236,8 +238,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]); // Removed saveStateToLocalStorage from deps to avoid loop if toast causes re-render that saves
 
 
   useEffect(() => {
@@ -350,26 +351,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 1000);
 
     return () => clearInterval(gameLoop);
-  }, []);
+  }, []); // Removed playerStats.totalIncomePerSecond from deps to avoid potential issues
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
-    const business = businesses.find(b => b.id === businessId);
-    if (!business) return;
+    const businessToUpdate = businesses.find(b => b.id === businessId);
+    if (!businessToUpdate) return;
 
-    const requiredPrestiges = business.requiredTimesPrestiged || 0;
-    if (playerStats.timesPrestiged < requiredPrestiges) {
-       toast({ title: "Locked", description: `This business requires ${requiredPrestiges} prestige(s) to operate.`, variant: "destructive"});
+    const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
+    if (businessIndexInConfig === -1) return; // Should not happen
+
+    if (playerStats.timesPrestiged < businessIndexInConfig) {
+       toast({ title: "Locked", description: `This business unlocks after ${businessIndexInConfig} prestige(s).`, variant: "destructive"});
        return;
     }
 
     const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
-    if (business.level >= currentDynamicMaxLevel) {
-      toast({ title: "Max Level Reached!", description: `${business.name} is already at the maximum level (${currentDynamicMaxLevel}).`, variant: "default" });
+    if (businessToUpdate.level >= currentDynamicMaxLevel) {
+      toast({ title: "Max Level Reached!", description: `${businessToUpdate.name} is already at the maximum level (${currentDynamicMaxLevel}).`, variant: "default" });
       return;
     }
 
     const { totalCost, levelsPurchasable } = calculateCostForNLevels(
-        business,
+        businessToUpdate,
         levelsToAttempt,
         playerStats.unlockedSkillIds,
         skillTreeState,
@@ -377,12 +380,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 
     if (levelsPurchasable === 0) {
-        toast({ title: "Cannot level up", description: `${business.name} is at max level or no levels can be purchased.`, variant: "default" });
+        toast({ title: "Cannot level up", description: `${businessToUpdate.name} is at max level or no levels can be purchased.`, variant: "default" });
         return;
     }
 
     if (playerStats.money < totalCost) {
-      toast({ title: "Not enough money!", description: `You need $${totalCost.toLocaleString('en-US')} to level up ${business.name} by ${levelsPurchasable} level(s).`, variant: "destructive" });
+      toast({ title: "Not enough money!", description: `You need $${totalCost.toLocaleString('en-US')} to level up ${businessToUpdate.name} by ${levelsPurchasable} level(s).`, variant: "destructive" });
       return;
     }
 
@@ -392,28 +395,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         b.id === businessId ? { ...b, level: b.level + levelsPurchasable } : b
       )
     );
-    toast({ title: "Business Leveled Up!", description: `${business.name} is now level ${business.level + levelsPurchasable} (+${levelsPurchasable}).` });
+    toast({ title: "Business Leveled Up!", description: `${businessToUpdate.name} is now level ${businessToUpdate.level + levelsPurchasable} (+${levelsPurchasable}).` });
   };
 
   const purchaseBusinessUpgrade = (businessId: string, upgradeId: string) => {
-    const business = businesses.find(b => b.id === businessId);
-    if (!business || !business.upgrades) return;
+    const businessToUpdate = businesses.find(b => b.id === businessId);
+    if (!businessToUpdate || !businessToUpdate.upgrades) return;
 
-    const requiredPrestiges = business.requiredTimesPrestiged || 0;
-    if (playerStats.timesPrestiged < requiredPrestiges) {
-       toast({ title: "Locked", description: `This business requires ${requiredPrestiges} prestige(s) to operate.`, variant: "destructive"});
+    const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
+     if (businessIndexInConfig === -1) return;
+
+    if (playerStats.timesPrestiged < businessIndexInConfig) {
+       toast({ title: "Locked", description: `This business unlocks after ${businessIndexInConfig} prestige(s).`, variant: "destructive"});
        return;
     }
 
-    const upgrade = business.upgrades.find(u => u.id === upgradeId);
+    const upgrade = businessToUpdate.upgrades.find(u => u.id === upgradeId);
     if (!upgrade) return;
 
     if (upgrade.isPurchased) {
       toast({ title: "Already Owned", description: "You already own this upgrade.", variant: "default" });
       return;
     }
-    if (business.level < upgrade.requiredLevel) {
-      toast({ title: "Level Requirement Not Met", description: `${business.name} must be level ${upgrade.requiredLevel} for this upgrade.`, variant: "destructive" });
+    if (businessToUpdate.level < upgrade.requiredLevel) {
+      toast({ title: "Level Requirement Not Met", description: `${businessToUpdate.name} must be level ${upgrade.requiredLevel} for this upgrade.`, variant: "destructive" });
       return;
     }
 
@@ -443,7 +448,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           : b
       )
     );
-    toast({ title: "Upgrade Purchased!", description: `${upgrade.name} for ${business.name} is now active.` });
+    toast({ title: "Upgrade Purchased!", description: `${upgrade.name} for ${businessToUpdate.name} is now active.` });
   };
 
   const buyStock = (stockId: string, sharesToBuyInput: number) => {
@@ -591,8 +596,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       businesses,
       stocks: unlockedStocks,
       skillTree: skillTreeState,
-      lastMarketTrends,
-      lastRiskTolerance,
       lastSavedTimestamp,
       upgradeBusiness,
       purchaseBusinessUpgrade,
@@ -605,8 +608,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getDynamicMaxBusinessLevel,
       calculateCostForNLevelsForDisplay,
       calculateMaxAffordableLevelsForDisplay,
-      setLastMarketTrends,
-      setLastRiskTolerance,
       manualSaveGame,
       exportGameState,
       importGameState,
@@ -624,5 +625,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    

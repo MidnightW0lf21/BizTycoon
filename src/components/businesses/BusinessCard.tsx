@@ -13,6 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { INITIAL_BUSINESSES } from "@/config/game-config"; // Import INITIAL_BUSINESSES
 
 type BuyAmountOption = 1 | 10 | 25 | 'MAX';
 
@@ -31,7 +32,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
-    skillTree, // Get the skill tree for checking unlocks
+    // skillTree is not directly needed here if bulkBuyUnlockedForThisBusiness uses playerStats.unlockedSkillIds
   } = useGame();
   const Icon = business.icon;
 
@@ -45,8 +46,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const [levelsToBuyDisplay, setLevelsToBuyDisplay] = useState(0);
   const [canAffordUpgrade, setCanAffordUpgrade] = useState(false);
 
-  const requiredPrestiges = business.requiredTimesPrestiged || 0;
-  const isUnlocked = playerStats.timesPrestiged >= requiredPrestiges;
+  const unlockIndex = useMemo(() => INITIAL_BUSINESSES.findIndex(b => b.id === business.id), [business.id]);
+  const isEffectivelyUnlocked = playerStats.timesPrestiged >= unlockIndex;
+
 
   const bulkBuyUnlockedForThisBusiness = useMemo(() => {
     const bulkBuySkillId = `unlock_bulk_buy_${business.id}`;
@@ -55,7 +57,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
   useEffect(() => {
     if (!bulkBuyUnlockedForThisBusiness) {
-      setSelectedBuyAmount(1); // Default to 1 if bulk buy isn't unlocked for this business
+      setSelectedBuyAmount(1); 
     }
   }, [bulkBuyUnlockedForThisBusiness]);
 
@@ -63,15 +65,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
     setCurrentLevel(business.level);
     setCurrentUpgrades(business.upgrades || []);
     setDynamicMaxLevel(getDynamicMaxBusinessLevel());
-    if (isUnlocked) {
+    if (isEffectivelyUnlocked) {
       setIncome(getBusinessIncome(business.id));
     } else {
       setIncome(0);
     }
-  }, [business, business.level, business.upgrades, getBusinessIncome, playerStats.timesPrestiged, isUnlocked, getDynamicMaxBusinessLevel]);
+  }, [business, business.level, business.upgrades, getBusinessIncome, playerStats.timesPrestiged, isEffectivelyUnlocked, getDynamicMaxBusinessLevel]);
 
   useEffect(() => {
-    if (!isUnlocked || business.level >= dynamicMaxLevel) {
+    if (!isEffectivelyUnlocked || business.level >= dynamicMaxLevel) {
       setDisplayCost(Infinity);
       setLevelsToBuyDisplay(0);
       setCanAffordUpgrade(false);
@@ -101,13 +103,13 @@ export function BusinessCard({ business }: BusinessCardProps) {
     calculateCostForNLevelsForDisplay, 
     calculateMaxAffordableLevelsForDisplay,
     dynamicMaxLevel,
-    isUnlocked,
+    isEffectivelyUnlocked,
     bulkBuyUnlockedForThisBusiness
   ]);
 
 
   const handleLevelUpgrade = () => {
-    if (!isUnlocked || !canAffordUpgrade || levelsToBuyDisplay === 0) return;
+    if (!isEffectivelyUnlocked || !canAffordUpgrade || levelsToBuyDisplay === 0) return;
     
     let levelsToPassToUpgrade = 0;
     const currentBuyAmount = bulkBuyUnlockedForThisBusiness ? selectedBuyAmount : 1;
@@ -126,57 +128,67 @@ export function BusinessCard({ business }: BusinessCardProps) {
   };
 
   const handlePurchaseUpgrade = (upgradeId: string) => {
-    if (!isUnlocked) return;
+    if (!isEffectivelyUnlocked) return;
     purchaseBusinessUpgrade(business.id, upgradeId);
   };
 
   const isMaxLevel = currentLevel >= dynamicMaxLevel;
 
   const levelUpButtonText = useMemo(() => {
-    if (!isUnlocked) return "Locked";
+    if (!isEffectivelyUnlocked) return "Locked";
     if (isMaxLevel) return `Max Level (${dynamicMaxLevel})`;
     if (levelsToBuyDisplay > 0) {
       return `Level Up (+${levelsToBuyDisplay})`;
     }
     return "Cannot Afford";
-  }, [isUnlocked, isMaxLevel, dynamicMaxLevel, levelsToBuyDisplay]);
+  }, [isEffectivelyUnlocked, isMaxLevel, dynamicMaxLevel, levelsToBuyDisplay]);
+
+  let lockMessage = "";
+  if (!isEffectivelyUnlocked) {
+    if (unlockIndex === 0) {
+      lockMessage = "Available from start (this message should not appear)."; // Should always be unlocked
+    } else if (unlockIndex === 1) {
+      lockMessage = `Unlock this business with your 1st prestige. (Currently: ${playerStats.timesPrestiged})`;
+    } else {
+      lockMessage = `Unlock this business by prestiging ${unlockIndex} times. (Currently: ${playerStats.timesPrestiged})`;
+    }
+  }
 
 
   return (
-    <Card className={cn("flex flex-col relative", !isUnlocked && "bg-muted/50 border-dashed")}>
-      {!isUnlocked && (
+    <Card className={cn("flex flex-col relative", !isEffectivelyUnlocked && "bg-muted/50 border-dashed")}>
+      {!isEffectivelyUnlocked && (
         <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg p-4">
           <LockKeyhole className="h-12 w-12 text-primary mb-2" />
           <p className="text-center font-semibold text-primary">Locked</p>
           <p className="text-center text-sm text-muted-foreground">
-            Requires {requiredPrestiges} prestige level{requiredPrestiges !== 1 ? 's' : ''} to unlock.
+            {lockMessage}
           </p>
-           <p className="text-center text-xs text-muted-foreground"> (Currently: {playerStats.timesPrestiged})</p>
         </div>
       )}
-      <CardHeader className={cn("pb-4", !isUnlocked && "opacity-50")}>
+      <CardHeader className={cn("pb-4", !isEffectivelyUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">{business.name}</CardTitle>
           <Icon className="h-8 w-8 text-primary" />
         </div>
         <CardDescription>{business.description}</CardDescription>
       </CardHeader>
-      <CardContent className={cn("flex-grow space-y-3", !isUnlocked && "opacity-50")}>
+      <CardContent className={cn("flex-grow space-y-3", !isEffectivelyUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Level:</span>
-          <span className="font-semibold">{isUnlocked ? `${currentLevel} / ${dynamicMaxLevel}` : 'N/A'}</span>
+          <span className="font-semibold">{isEffectivelyUnlocked ? `${currentLevel} / ${dynamicMaxLevel}` : 'N/A'}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Income/sec:</span>
           <div className="flex items-center gap-1">
             <DollarSign className="h-4 w-4 text-green-500" />
             <span className="font-semibold text-green-500">
-              {isUnlocked ? `$${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}` : 'N/A'}
+              {isEffectivelyUnlocked ? `$${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}` : 'N/A'}
             </span>
           </div>
         </div>
 
-        {isUnlocked && !isMaxLevel && bulkBuyUnlockedForThisBusiness && (
+        {isEffectivelyUnlocked && !isMaxLevel && bulkBuyUnlockedForThisBusiness && (
           <div className="pt-2 space-y-2">
             <Label className="text-xs text-muted-foreground">Buy Amount:</Label>
             <RadioGroup
@@ -191,10 +203,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   className={cn(
                     "flex items-center justify-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer hover:bg-accent hover:text-accent-foreground",
                     selectedBuyAmount === amount && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
-                    !isUnlocked && "opacity-50 cursor-not-allowed"
+                    !isEffectivelyUnlocked && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <RadioGroupItem value={String(amount)} id={`${business.id}-buy-${amount}`} className="sr-only" disabled={!isUnlocked} />
+                  <RadioGroupItem value={String(amount)} id={`${business.id}-buy-${amount}`} className="sr-only" disabled={!isEffectivelyUnlocked} />
                   {amount === 'MAX' ? 'MAX' : `x${amount}`}
                 </Label>
               ))}
@@ -202,21 +214,21 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         )}
         
-        {isUnlocked && !isMaxLevel && ( 
+        {isEffectivelyUnlocked && !isMaxLevel && ( 
            <div className="pt-2 space-y-2"> 
             <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: (bulkBuyUnlockedForThisBusiness ? 'selected' : 'next')}:</span>
                 <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-red-500" />
                     <span className="font-semibold text-red-500">
-                    {isUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
+                    {isEffectivelyUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
                     </span>
                 </div>
             </div>
           </div>
         )}
         
-        {currentUpgrades && currentUpgrades.length > 0 && isUnlocked && (
+        {currentUpgrades && currentUpgrades.length > 0 && isEffectivelyUnlocked && (
           <Accordion type="single" collapsible className="w-full mt-3">
             <AccordionItem value="upgrades">
               <AccordionTrigger className="text-sm py-2 hover:no-underline">
@@ -257,7 +269,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handlePurchaseUpgrade(upgrade.id)}
-                                    disabled={!canPurchaseThisUpgrade || !isUnlocked}
+                                    disabled={!canPurchaseThisUpgrade || !isEffectivelyUnlocked}
                                     className="ml-2 px-3 py-1 h-auto"
                                   >
                                     <ShoppingCart className="h-4 w-4" />
@@ -283,13 +295,13 @@ export function BusinessCard({ business }: BusinessCardProps) {
         )}
 
       </CardContent>
-      <CardFooter className={cn("pt-2",!isUnlocked && "opacity-50")}>
+      <CardFooter className={cn("pt-2",!isEffectivelyUnlocked && "opacity-50")}>
         <Button
           onClick={handleLevelUpgrade}
-          disabled={!canAffordUpgrade || !isUnlocked || isMaxLevel || levelsToBuyDisplay === 0}
+          disabled={!canAffordUpgrade || !isEffectivelyUnlocked || isMaxLevel || levelsToBuyDisplay === 0}
           className="w-full bg-accent text-accent-foreground hover:bg-yellow-400"
         >
-          {isUnlocked ? (
+          {isEffectivelyUnlocked ? (
             isMaxLevel ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
