@@ -4,7 +4,7 @@ import {
   Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingBag, Telescope, Star, Crown, Radio, Cog, Sigma
 } from 'lucide-react';
 
-export const INITIAL_MONEY = 1000;
+export const INITIAL_MONEY = 10; // Updated from 1000 to 10
 export const MAX_BUSINESS_LEVEL = 100; // Base max level
 export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
@@ -754,5 +754,3 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
-
-    

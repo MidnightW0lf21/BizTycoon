@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, BusinessUpgrade, PlayerStats, Stock, StockHolding, SkillNode } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode } from '@/types';
 import { 
   INITIAL_BUSINESSES, 
   INITIAL_MONEY, 
@@ -16,8 +16,6 @@ import {
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
-  TECH_BUSINESS_IDS, 
-  LOGISTICS_BUSINESS_IDS 
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -43,33 +41,20 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   
-  const GOD_MODE_ACTIVE = true; 
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
-    let baseMoney = INITIAL_MONEY;
-    let initialUnlockedSkills = [...INITIAL_UNLOCKED_SKILL_IDS]; 
-    let initialTimesPrestiged = INITIAL_TIMES_PRESTIGED; 
-    let initialPrestigePoints = INITIAL_PRESTIGE_POINTS; 
-
-    if (GOD_MODE_ACTIVE) {
-      baseMoney = Number.MAX_SAFE_INTEGER / 100; 
-      initialPrestigePoints = 9999; 
-      initialTimesPrestiged = 999;  
-      console.log("--- GOD MODE ACTIVATED: Max Money, High Prestige Levels, High PP ---");
-    }
-    
-    const startingMoneyBonus = getStartingMoneyBonus(initialUnlockedSkills, skillTreeState);
-    const finalInitialMoney = baseMoney + startingMoneyBonus;
+    const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, skillTreeState);
+    const finalInitialMoney = INITIAL_MONEY + startingMoneyBonus;
 
     return {
       money: finalInitialMoney,
       totalIncomePerSecond: 0,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: initialPrestigePoints,
-      timesPrestiged: initialTimesPrestiged,
-      unlockedSkillIds: initialUnlockedSkills,
+      prestigePoints: INITIAL_PRESTIGE_POINTS,
+      timesPrestiged: INITIAL_TIMES_PRESTIGED,
+      unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
     };
   });
   
@@ -86,7 +71,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const filteredStocks = INITIAL_STOCKS.filter(stock => {
-      if (GOD_MODE_ACTIVE) return true; 
       if (!stock.requiredSkillToUnlock) return true; 
       return playerStats.unlockedSkillIds.includes(stock.requiredSkillToUnlock);
     });
@@ -144,7 +128,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const gameLoop = setInterval(() => {
       setPlayerStats(prev => {
-        const newMoney = GOD_MODE_ACTIVE ? prev.money : prev.money + prev.totalIncomePerSecond;
+        const newMoney = prev.money + prev.totalIncomePerSecond;
         
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
@@ -169,32 +153,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!business) return;
 
     const requiredPrestiges = business.requiredTimesPrestiged || 0;
-    if (playerStats.timesPrestiged < requiredPrestiges && !GOD_MODE_ACTIVE) { 
+    if (playerStats.timesPrestiged < requiredPrestiges) { 
        toast({ title: "Locked", description: `This business requires ${requiredPrestiges} prestige(s) to operate.`, variant: "destructive"});
        return;
     }
     
     const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
     if (business.level >= currentDynamicMaxLevel) {
-      if (!GOD_MODE_ACTIVE) toast({ title: "Max Level Reached!", description: `${business.name} is already at the maximum level (${currentDynamicMaxLevel}).`, variant: "default" });
+      toast({ title: "Max Level Reached!", description: `${business.name} is already at the maximum level (${currentDynamicMaxLevel}).`, variant: "default" });
       return;
     }
 
     const cost = getBusinessUpgradeCost(business.id);
-    if (playerStats.money < cost && !GOD_MODE_ACTIVE) {
+    if (playerStats.money < cost) {
       toast({ title: "Not enough money!", description: `You need $${cost.toLocaleString('en-US')} to level up ${business.name}.`, variant: "destructive" });
       return;
     }
 
-    setPlayerStats(prev => ({ ...prev, money: GOD_MODE_ACTIVE ? prev.money : prev.money - cost }));
+    setPlayerStats(prev => ({ ...prev, money: prev.money - cost }));
     setBusinesses(prevBusinesses =>
       prevBusinesses.map(b =>
         b.id === businessId ? { ...b, level: b.level + 1 } : b
       )
     );
-    if (!GOD_MODE_ACTIVE) {
-        toast({ title: "Business Leveled Up!", description: `${business.name} is now level ${business.level + 1}.` });
-    }
+    toast({ title: "Business Leveled Up!", description: `${business.name} is now level ${business.level + 1}.` });
   };
 
   const purchaseBusinessUpgrade = (businessId: string, upgradeId: string) => {
@@ -202,7 +184,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!business || !business.upgrades) return;
 
     const requiredPrestiges = business.requiredTimesPrestiged || 0;
-    if (playerStats.timesPrestiged < requiredPrestiges && !GOD_MODE_ACTIVE) {
+    if (playerStats.timesPrestiged < requiredPrestiges) {
        toast({ title: "Locked", description: `This business requires ${requiredPrestiges} prestige(s) to operate.`, variant: "destructive"});
        return;
     }
@@ -211,11 +193,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!upgrade) return;
 
     if (upgrade.isPurchased) {
-      if (!GOD_MODE_ACTIVE) toast({ title: "Already Owned", description: "You already own this upgrade.", variant: "default" });
+      toast({ title: "Already Owned", description: "You already own this upgrade.", variant: "default" });
       return;
     }
-    if (business.level < upgrade.requiredLevel && !GOD_MODE_ACTIVE) { 
-      if(!GOD_MODE_ACTIVE) toast({ title: "Level Requirement Not Met", description: `${business.name} must be level ${upgrade.requiredLevel} for this upgrade.`, variant: "destructive" });
+    if (business.level < upgrade.requiredLevel) { 
+      toast({ title: "Level Requirement Not Met", description: `${business.name} must be level ${upgrade.requiredLevel} for this upgrade.`, variant: "destructive" });
       return;
     }
 
@@ -232,12 +214,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         actualCost = Math.max(0, Math.floor(actualCost)); 
     }
 
-    if (playerStats.money < actualCost && !GOD_MODE_ACTIVE) {
+    if (playerStats.money < actualCost) {
       toast({ title: "Not Enough Money", description: `You need $${actualCost.toLocaleString('en-US')} to purchase ${upgrade.name}.`, variant: "destructive" });
       return;
     }
 
-    setPlayerStats(prev => ({ ...prev, money: GOD_MODE_ACTIVE ? prev.money : prev.money - actualCost }));
+    setPlayerStats(prev => ({ ...prev, money: prev.money - actualCost }));
     setBusinesses(prevBusinesses =>
       prevBusinesses.map(b =>
         b.id === businessId
@@ -245,21 +227,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           : b
       )
     );
-    if(!GOD_MODE_ACTIVE) toast({ title: "Upgrade Purchased!", description: `${upgrade.name} for ${business.name} is now active.` });
+    toast({ title: "Upgrade Purchased!", description: `${upgrade.name} for ${business.name} is now active.` });
   };
 
   const buyStock = (stockId: string, sharesToBuyInput: number) => {
-    if (playerStats.timesPrestiged < 2 && !GOD_MODE_ACTIVE) { 
+    if (playerStats.timesPrestiged < 2) { 
         toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
         return;
     }
-    if (sharesToBuyInput <= 0 && !GOD_MODE_ACTIVE) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
+    if (sharesToBuyInput <= 0) {
+      toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
     const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Stock Not Found", description: "This stock is not available or does not exist.", variant: "destructive" });
+      toast({ title: "Stock Not Found", description: "This stock is not available or does not exist.", variant: "destructive" });
       return;
     }
 
@@ -267,21 +249,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
     const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
 
-    if (sharesAvailableToBuy <= 0 && !GOD_MODE_ACTIVE) {
+    if (sharesAvailableToBuy <= 0) {
       toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) are accounted for.`, variant: "default" });
       return;
     }
     let sharesToBuy = sharesToBuyInput;
-    if (sharesToBuyInput > sharesAvailableToBuy && !GOD_MODE_ACTIVE) {
+    if (sharesToBuyInput > sharesAvailableToBuy) {
       toast({ title: "Purchase Adjusted", description: `Only ${sharesAvailableToBuy.toLocaleString('en-US')} shares available. Purchase adjusted.`, variant: "default" });
       sharesToBuy = sharesAvailableToBuy;
     }
-    if (sharesToBuy <= 0 && !GOD_MODE_ACTIVE) { 
+    if (sharesToBuy <= 0) { 
         toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased.`, variant: "destructive" });
         return;
     }
     const cost = stock.price * sharesToBuy;
-    if (playerStats.money < cost && !GOD_MODE_ACTIVE) {
+    if (playerStats.money < cost) {
       toast({ title: "Not Enough Money", description: `You need $${cost.toLocaleString('en-US')} to buy ${sharesToBuy.toLocaleString('en-US')} share(s).`, variant: "destructive" });
       return;
     }
@@ -289,28 +271,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newHoldings = prev.stockHoldings.find(h => h.stockId === stockId)
         ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (stock.price * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
         : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: stock.price }];
-      return { ...prev, money: GOD_MODE_ACTIVE ? prev.money : prev.money - cost, stockHoldings: newHoldings };
+      return { ...prev, money: prev.money - cost, stockHoldings: newHoldings };
     });
-    if(!GOD_MODE_ACTIVE) toast({ title: "Stock Purchased!", description: `Bought ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
+    toast({ title: "Stock Purchased!", description: `Bought ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
   };
 
   const sellStock = (stockId: string, sharesToSell: number) => {
-     if (playerStats.timesPrestiged < 2 && !GOD_MODE_ACTIVE) {
+     if (playerStats.timesPrestiged < 2) {
         toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
         return;
     }
-    if (sharesToSell <= 0 && !GOD_MODE_ACTIVE) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
+    if (sharesToSell <= 0) {
+      toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
     const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Stock Not Found", variant: "destructive" });
+      toast({ title: "Stock Not Found", variant: "destructive" });
       return;
     }
     const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
     if (!existingHolding || existingHolding.shares < sharesToSell) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Not Enough Shares", description: `You only own ${existingHolding?.shares || 0} share(s).`, variant: "destructive" });
+      toast({ title: "Not Enough Shares", description: `You only own ${existingHolding?.shares || 0} share(s).`, variant: "destructive" });
       return;
     }
     const earnings = stock.price * sharesToSell;
@@ -318,14 +300,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newHoldings = existingHolding.shares === sharesToSell
         ? prev.stockHoldings.filter(h => h.stockId !== stockId)
         : prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares - sharesToSell } : h);
-      return { ...prev, money: GOD_MODE_ACTIVE ? prev.money : prev.money + earnings, stockHoldings: newHoldings };
+      return { ...prev, money: prev.money + earnings, stockHoldings: newHoldings };
     });
-    if(!GOD_MODE_ACTIVE) toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
+    toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
   };
 
   const performPrestige = useCallback(() => {
     const moneyRequiredForPrestige = 1000000;
-    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !GOD_MODE_ACTIVE) { 
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) { 
       toast({ title: "Not Enough Money", description: `Need $${moneyRequiredForPrestige.toLocaleString('en-US')} to prestige for the first time.`, variant: "destructive" });
       return;
     }
@@ -338,52 +320,50 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState);
     
-    const moneyAfterPrestige = GOD_MODE_ACTIVE 
-      ? Number.MAX_SAFE_INTEGER / 100 
-      : INITIAL_MONEY + startingMoneyBonus;
+    const moneyAfterPrestige = INITIAL_MONEY + startingMoneyBonus;
 
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
       investmentsValue: 0,
       stockHoldings: [],
-      prestigePoints: GOD_MODE_ACTIVE ? 9999 : prev.prestigePoints + actualNewPrestigePoints,
-      timesPrestiged: GOD_MODE_ACTIVE ? 999 : prev.timesPrestiged + 1,
+      prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
+      timesPrestiged: prev.timesPrestiged + 1,
     }));
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, level: 0, managerOwned: false, 
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
     })));
-    if(!GOD_MODE_ACTIVE) toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Game reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
+    toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Game reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
   }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, playerStats.unlockedSkillIds, businesses, toast, skillTreeState]);
 
   const unlockSkillNode = (skillId: string) => {
     const skill = skillTreeState.find(s => s.id === skillId);
     if (!skill) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Skill Not Found", variant: "destructive" });
+      toast({ title: "Skill Not Found", variant: "destructive" });
       return;
     }
     if (playerStats.unlockedSkillIds.includes(skillId)) {
-      if(!GOD_MODE_ACTIVE) toast({ title: "Skill Already Unlocked", variant: "default" });
+      toast({ title: "Skill Already Unlocked", variant: "default" });
       return;
     }
 
-    if (playerStats.prestigePoints < skill.cost && !GOD_MODE_ACTIVE) { 
+    if (playerStats.prestigePoints < skill.cost) { 
         toast({ title: "Not Enough Prestige Points", description: `Need ${skill.cost} PP. You have ${playerStats.prestigePoints}.`, variant: "destructive" });
         return;
     }
-    if (skill.dependencies && skill.dependencies.some(depId => !playerStats.unlockedSkillIds.includes(depId)) && !GOD_MODE_ACTIVE) { 
+    if (skill.dependencies && skill.dependencies.some(depId => !playerStats.unlockedSkillIds.includes(depId))) { 
         toast({ title: "Dependencies Not Met", description: "Unlock prerequisite skills first.", variant: "destructive" });
         return;
     }
     
     setPlayerStats(prev => ({
       ...prev,
-      prestigePoints: GOD_MODE_ACTIVE ? prev.prestigePoints : prev.prestigePoints - skill.cost,
+      prestigePoints: prev.prestigePoints - skill.cost,
       unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
     }));
 
-    if(!GOD_MODE_ACTIVE) toast({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
+    toast({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
   };
 
   return (
@@ -414,4 +394,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-    

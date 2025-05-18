@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 
 
 export default function DashboardPage() {
-  const { playerStats, businesses, GOD_MODE_ACTIVE } = useGame(); // Assuming GOD_MODE_ACTIVE could be exposed
+  const { playerStats, businesses } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isWelcomeBoxVisible, setIsWelcomeBoxVisible] = useState(true);
@@ -30,14 +30,8 @@ export default function DashboardPage() {
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-
-    // If player has a very high number of prestige points (indicative of God Mode start),
-    // display progress as if they are working towards their first few points for better UI feedback during testing.
-    const displayAsFreshStartForProgressBar = playerStats.prestigePoints >= 9000; // Threshold for God Mode display adjustment
-    const displayPrestigePointsForProgressBar = displayAsFreshStartForProgressBar ? 0 : playerStats.prestigePoints;
-
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
-    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
+    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
@@ -65,11 +59,8 @@ export default function DashboardPage() {
    useEffect(() => {
     const calculateNewlyGainedPoints = () => {
       const moneyRequiredForPrestige = 1000000;
-       // Access GOD_MODE_ACTIVE from useGame() if exposed, otherwise use a proxy like high prestige count
-       const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999; // Proxy for GOD_MODE_ACTIVE for this calculation
-       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) return 0;
+       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
       
-      // For newly gained points, use the actual player prestige points, not the display override
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };

@@ -39,7 +39,6 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
-  // { href: '/stock-tips', label: 'AI Stock Tips', icon: Lightbulb, requiredTimesPrestiged: 0 }, // Removed
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -54,11 +53,7 @@ function AppLogo() {
 
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-
-    // If player has a very high number of prestige points (indicative of God Mode start),
-    // display progress as if they are working towards their first few points for better UI feedback during testing.
-    const displayAsFreshStartForProgressBar = playerStats.prestigePoints >= 9000; // Threshold for God Mode display adjustment
-    const displayPrestigePointsForProgressBar = displayAsFreshStartForProgressBar ? 0 : playerStats.prestigePoints;
+    const displayPrestigePointsForProgressBar = playerStats.prestigePoints;
 
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
@@ -176,7 +171,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { playerStats, businesses, performPrestige, GOD_MODE_ACTIVE } = useGame(); // Assuming GOD_MODE_ACTIVE is exposed
+  const { playerStats, businesses, performPrestige } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
   const pathname = usePathname();
@@ -191,9 +186,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     const calculateNewlyGainedPoints = () => {
       const moneyRequiredForPrestige = 1000000;
-       // Use GOD_MODE_ACTIVE from context if exposed, otherwise proxy with high prestige count
-      const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999; 
-      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) return 0;
+      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
       
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
@@ -215,24 +208,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handlePrestigeNavClick = () => {
     const moneyRequiredForPrestige = 1000000;
-    // const wouldGainAnyPointsFromLevels = calculateDiminishingPrestigePoints(businesses.reduce((sum, b) => sum + b.level, 0)) > playerStats.prestigePoints;
-    // Use newlyGainedPoints state which is already calculated
-     // Use GOD_MODE_ACTIVE from context if exposed, otherwise proxy with high prestige count
-    const isGodModeActiveForDialog = playerStats.timesPrestiged >= 999;
 
-    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) {
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
       toast({
         title: "Not Ready to Prestige",
         description: "You need at least $1,000,000 to prestige for the first time.",
         variant: "destructive",
       });
-    } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0 && !isGodModeActiveForDialog) {
+    } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
       toast({
         title: "No Points to Gain Yet",
         description: "You have enough money to prestige, but you wouldn't gain any prestige points from business levels yet. Level up your businesses further!",
         variant: "default",
       });
-    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0 && !isGodModeActiveForDialog) { // Also check god mode for subsequent prestiges if no points
+    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) { 
       toast({
         title: "No New Points to Gain",
         description: "You wouldn't gain any new prestige points from business levels right now. Level up your businesses further!",
