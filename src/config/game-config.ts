@@ -1,7 +1,7 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
 import { 
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingBag, Telescope, Star, Crown
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingBag, Telescope, Star, Crown, Radio, Cog, Sigma
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 1000;
@@ -21,7 +21,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.16, // Slightly higher
+    upgradeCostMultiplier: 1.18, // Slightly higher
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -40,7 +40,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.24, // Slightly higher
+    upgradeCostMultiplier: 1.26, // Slightly higher
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -59,7 +59,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.25, 
+    upgradeCostMultiplier: 1.27, 
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -77,7 +77,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.26, 
+    upgradeCostMultiplier: 1.28, 
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -95,7 +95,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.28, 
+    upgradeCostMultiplier: 1.30, 
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -114,7 +114,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.27, 
+    upgradeCostMultiplier: 1.29, 
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -132,7 +132,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.26, 
+    upgradeCostMultiplier: 1.28, 
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -150,7 +150,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.27, 
+    upgradeCostMultiplier: 1.29, 
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -168,7 +168,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.275, 
+    upgradeCostMultiplier: 1.295, 
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -187,7 +187,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.245, 
+    upgradeCostMultiplier: 1.265, 
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -206,7 +206,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.285, 
+    upgradeCostMultiplier: 1.305, 
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -224,7 +224,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.29, 
+    upgradeCostMultiplier: 1.31, 
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -242,7 +242,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.295, 
+    upgradeCostMultiplier: 1.315, 
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -260,7 +260,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.30, 
+    upgradeCostMultiplier: 1.32, 
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -278,7 +278,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.31, 
+    upgradeCostMultiplier: 1.33, 
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -296,7 +296,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.33, 
+    upgradeCostMultiplier: 1.35, 
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -315,7 +315,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.32, 
+    upgradeCostMultiplier: 1.34, 
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -333,7 +333,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.34, 
+    upgradeCostMultiplier: 1.36, 
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -343,6 +343,60 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gef_bioinformatics_supercomputer', name: 'Bioinformatics Supercomputer', description: 'Accelerate research, +30% income.', cost: 15000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
       { id: 'gef_personalized_medicine', name: 'Personalized Medicine Division', description: 'Tailored treatments, +40% income.', cost: 25000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 40 },
       { id: 'gef_ethical_oversight', name: 'Ethical Oversight Committee', description: 'Public trust and grants, +10% income.', cost: 5000000, requiredLevel: 7, isPurchased: false, incomeBoostPercent: 10 },
+    ],
+  },
+  {
+    id: 'omni_media_group',
+    name: 'OmniMedia Group',
+    level: 0,
+    baseIncome: 30000,
+    baseCost: 4000000,
+    upgradeCostMultiplier: 1.37,
+    icon: Radio,
+    managerOwned: false,
+    description: 'Global news, entertainment, and digital content.',
+    requiredTimesPrestiged: 6,
+    upgrades: [
+      { id: 'omg_global_news_network', name: 'Global News Network', description: '24/7 coverage, +25% income.', cost: 15000000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'omg_syndication_deals', name: 'International Syndication Deals', description: 'Expand content reach, +20% income.', cost: 20000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'omg_digital_subscription_platform', name: 'Digital Subscription Platform', description: 'Recurring revenue stream, +30% income.', cost: 30000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'omg_investigative_journalism_unit', name: 'Investigative Journalism Unit', description: 'Award-winning content, -10% level cost.', cost: 25000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+    ],
+  },
+  {
+    id: 'robotics_factory_synthodynamics',
+    name: 'SynthoDynamics Robotics',
+    level: 0,
+    baseIncome: 45000,
+    baseCost: 6000000,
+    upgradeCostMultiplier: 1.38,
+    icon: Cog,
+    managerOwned: false,
+    description: 'Advanced robotics for industrial and consumer markets.',
+    requiredTimesPrestiged: 6,
+    upgrades: [
+      { id: 'sdr_ai_assembly_line', name: 'AI-Powered Assembly Line', description: 'Increased production efficiency, +30% income.', cost: 22000000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'sdr_modular_robot_design', name: 'Modular Robot Design', description: 'Versatile product line, +25% income.', cost: 30000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'sdr_defense_contracts', name: 'Lucrative Defense Contracts', description: 'Secure government funding, +20% income, -5% level cost.', cost: 40000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20, levelUpgradeCostReductionPercent: 5 },
+      { id: 'sdr_consumer_robotics_division', name: 'Consumer Robotics Division', description: 'Tap into the home market, +15% income.', cost: 35000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+    ],
+  },
+  {
+    id: 'quantum_computing_labs_quantaleap',
+    name: 'QuantaLeap Solutions',
+    level: 0,
+    baseIncome: 70000,
+    baseCost: 10000000,
+    upgradeCostMultiplier: 1.39,
+    icon: Sigma,
+    managerOwned: false,
+    description: 'Pioneering quantum computation for a new era.',
+    requiredTimesPrestiged: 7,
+    upgrades: [
+      { id: 'qls_qubit_stabilization', name: 'Advanced Qubit Stabilization', description: 'More reliable quantum processing, +35% income.', cost: 40000000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'qls_quantum_algorithm_library', name: 'Proprietary Quantum Algorithm Library', description: 'Solve complex problems, +30% income.', cost: 55000000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'qls_cloud_quantum_access', name: 'Cloud Quantum Computing Platform', description: 'Offer QaaS, +25% income.', cost: 70000000, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'qls_cryptography_breakthrough', name: 'Quantum Cryptography Breakthrough', description: 'Unbreakable security solutions, -10% level cost, +15% income.', cost: 80000000, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10, incomeBoostPercent: 15 },
     ],
   },
 ];
@@ -365,8 +419,13 @@ export const INITIAL_STOCKS: Stock[] = [
 
 ];
 
-export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab'];
-export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
+export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap'];
+export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc', 'aether_logistics']; // Aether Logistics is a stock, not a business. Removing.
+// Corrected LOGISTICS_BUSINESS_IDS:
+// export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
+// Further correction based on actual business IDs
+export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group'];
+export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics'];
 
 
 export const INITIAL_SKILL_TREE: SkillNode[] = [
@@ -474,7 +533,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
   {
     id: 'tech_empire_synergy',
     name: 'Tech Empire Synergy',
-    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, and AI Lab +15%.',
+    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, AI Lab, and QuantaLeap +15%.',
     cost: 22,
     icon: BrainCircuit,
     effects: {}, 
@@ -511,7 +570,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     name: 'Advanced Management II',
     description: 'Further increases the maximum level for all businesses by 15 (stacks).',
     cost: 70,
-    icon: Briefcase, // Consider a different icon if possible, like Users or Building
+    icon: Briefcase, 
     dependencies: ['advanced_management_1'],
     effects: { increaseMaxBusinessLevelBy: 15 },
   },
@@ -674,3 +733,4 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
 };
 
     
+
