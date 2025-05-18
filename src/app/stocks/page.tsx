@@ -41,61 +41,63 @@ export default function StocksPage() {
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
-      <div className="md:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart className="h-6 w-6" /> Stock Market
-            </CardTitle>
-            <CardDescription>Buy and sell shares of various companies.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stocks.length === 0 ? (
-              <p className="text-center text-muted-foreground">No stocks available in the market currently.</p>
-            ) : (
-              <ScrollArea className="h-[600px] pr-4">
-                <div className="space-y-4">
-                  {stocks.map((stock) => (
-                    <StockMarketItem key={stock.id} stock={stock} />
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+      {/* Stock Market Section */}
+      <div className="md:col-span-2 flex flex-col gap-4">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <BarChart className="h-6 w-6 text-primary" /> Stock Market
+          </h2>
+          <p className="text-sm text-muted-foreground">Buy and sell shares of various companies.</p>
+        </div>
+        
+        {stocks.length === 0 ? (
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 min-h-[200px] flex items-center justify-center">
+            <p className="text-center text-muted-foreground">No stocks available in the market currently.</p>
+          </div>
+        ) : (
+          <ScrollArea className="h-[calc(100vh-220px)] pr-4"> {/* Adjusted height to be more dynamic */}
+            <div className="space-y-4">
+              {stocks.map((stock) => (
+                <StockMarketItem key={stock.id} stock={stock} />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
       </div>
 
-      <div className="md:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Portfolio</CardTitle>
-            <CardDescription>Overview of your current stock holdings.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground">Total Investment Value:</p>
-              <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            </div>
-            <Separator className="my-4" />
-            {playerHoldingsWithStockData.length === 0 ? (
+      {/* Your Portfolio Section */}
+      <div className="md:col-span-1 flex flex-col gap-4">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold tracking-tight">Your Portfolio</h2>
+          <p className="text-sm text-muted-foreground">Overview of your current stock holdings.</p>
+        </div>
+        
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 flex-grow flex flex-col"> {/* Added card-like styling here for the content area */}
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">Total Investment Value:</p>
+            <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+          <Separator className="my-4" />
+          {playerHoldingsWithStockData.length === 0 ? (
+            <div className="flex-grow flex items-center justify-center">
               <p className="text-center text-muted-foreground">You do not own any stocks yet.</p>
-            ) : (
-              <ScrollArea className="h-[480px] pr-4">
-                <div className="space-y-4">
-                  {playerHoldingsWithStockData.map((holdingItem) => (
-                    holdingItem.stockDetails ? (
-                      <PortfolioItem 
-                        key={holdingItem.stockId} 
-                        holding={holdingItem} 
-                        stock={holdingItem.stockDetails} 
-                      />
-                    ) : null
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-380px)] pr-4"> {/* Adjusted height */}
+              <div className="space-y-4">
+                {playerHoldingsWithStockData.map((holdingItem) => (
+                  holdingItem.stockDetails ? (
+                    <PortfolioItem 
+                      key={holdingItem.stockId} 
+                      holding={holdingItem} 
+                      stock={holdingItem.stockDetails} 
+                    />
+                  ) : null
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
       </div>
     </div>
   );
