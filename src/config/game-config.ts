@@ -420,10 +420,7 @@ export const INITIAL_STOCKS: Stock[] = [
 ];
 
 export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap'];
-export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc', 'aether_logistics']; // Aether Logistics is a stock, not a business. Removing.
-// Corrected LOGISTICS_BUSINESS_IDS:
-// export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
-// Further correction based on actual business IDs
+export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
 export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group'];
 export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics'];
 
@@ -573,6 +570,15 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
     icon: Briefcase, 
     dependencies: ['advanced_management_1'],
     effects: { increaseMaxBusinessLevelBy: 15 },
+  },
+  {
+    id: 'advanced_management_3',
+    name: 'Advanced Management III',
+    description: 'Max business level +20. True mastery of scale.',
+    cost: 120,
+    icon: Briefcase,
+    dependencies: ['advanced_management_2'],
+    effects: { increaseMaxBusinessLevelBy: 20 },
   },
   {
     id: 'tycoons_ambition',
@@ -733,4 +739,5 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
 };
 
     
+
 
