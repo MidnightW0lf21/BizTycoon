@@ -10,13 +10,15 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000 // Changed from 3000 to 1000
+const DEFAULT_TOAST_VISIBLE_DURATION = 1000; // How long the toast is visible
+const TOAST_EXIT_ANIMATION_DURATION = 500; // How long for exit animation before removal from state
 
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  duration?: number; // Added duration here
 }
 
 const actionTypes = {
@@ -70,7 +72,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
+  }, TOAST_EXIT_ANIMATION_DURATION) // Use exit animation duration
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -159,6 +161,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
+      duration: props.duration ?? DEFAULT_TOAST_VISIBLE_DURATION, // Set duration here
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
