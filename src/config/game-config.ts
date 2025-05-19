@@ -1,7 +1,7 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
 import {
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation // Added Megaphone, Navigation
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -21,7 +21,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.07,
+    upgradeCostMultiplier: 1.06, // Slightly reduced
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -42,7 +42,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.13,
+    upgradeCostMultiplier: 1.12, // Slightly reduced
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -63,7 +63,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.12,
+    upgradeCostMultiplier: 1.11, // Slightly reduced
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -84,7 +84,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.11,
+    upgradeCostMultiplier: 1.10, // Slightly reduced
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -105,7 +105,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.14,
+    upgradeCostMultiplier: 1.13, // Slightly reduced
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -126,7 +126,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.135,
+    upgradeCostMultiplier: 1.125, // Slightly reduced
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -147,7 +147,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.13,
+    upgradeCostMultiplier: 1.12, // Slightly reduced
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -162,13 +162,34 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 're_international_clients', name: 'International Client Network', description: 'Expand market reach globally, +22% income.', cost: 70000, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 22 },
     ],
   },
+  { // NEW BUSINESS: Boutique Ad Agency (unlockIndex 7 - after Real Estate)
+    id: 'ad_agency',
+    name: 'Boutique Ad Agency',
+    level: 0,
+    baseIncome: 300,
+    baseCost: 25000,
+    upgradeCostMultiplier: 1.115,
+    icon: Megaphone,
+    managerOwned: false,
+    description: 'Crafting compelling campaigns for high-profile clients.',
+    upgrades: [
+      { id: 'aa_creative_director_hire', name: 'Hire Award-Winning Creative Director', description: 'Elevate campaign quality, +25% income.', cost: 80000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'aa_digital_marketing_suite', name: 'Advanced Digital Marketing Suite', description: 'Cutting-edge analytics and targeting, +20% income.', cost: 120000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'aa_client_pitch_system', name: 'Polished Client Pitch System', description: 'Higher client conversion rate, -7% level cost.', cost: 150000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+      { id: 'aa_influencer_network_access', name: 'Exclusive Influencer Network', description: 'Tap into viral marketing, +18% income.', cost: 200000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'aa_brand_strategy_workshop', name: 'Brand Strategy Workshops', description: 'Offer premium consulting services, +15% income.', cost: 180000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'aa_media_buying_optimization', name: 'AI Media Buying Optimization', description: 'Better ad spend ROI, +12% income.', cost: 250000, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'aa_pr_crisis_management_team', name: 'PR & Crisis Management Team', description: 'Protect client reputations, +10% income.', cost: 220000, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'aa_luxury_brand_portfolio', name: 'Luxury Brand Portfolio', description: 'Attract high-ticket clients, -5% level cost.', cost: 300000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ],
+  },
   {
     id: 'entertainment_streaming_service',
     name: 'StreamFlix',
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.125,
+    upgradeCostMultiplier: 1.115, // Slightly reduced
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -189,7 +210,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.12,
+    upgradeCostMultiplier: 1.11, // Slightly reduced
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -210,7 +231,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.115,
+    upgradeCostMultiplier: 1.105, // Slightly reduced
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -231,7 +252,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.11,
+    upgradeCostMultiplier: 1.10, // Slightly reduced
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -252,7 +273,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.105,
+    upgradeCostMultiplier: 1.095, // Slightly reduced
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -273,7 +294,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.10,
+    upgradeCostMultiplier: 1.09, // Slightly reduced
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -294,7 +315,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.095,
+    upgradeCostMultiplier: 1.085, // Slightly reduced
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -315,7 +336,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.09,
+    upgradeCostMultiplier: 1.08, // Slightly reduced
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -330,13 +351,34 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gsn_weather_routing_systems', name: 'Advanced Weather Routing Systems', description: 'Optimize routes, save fuel, -7% level cost.', cost: 3000000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
     ],
   },
+  { // NEW BUSINESS: Drone Delivery Service (unlockIndex 15 - after Horizon Logistics)
+    id: 'drone_delivery_service',
+    name: 'AeroSwift Delivery',
+    level: 0,
+    baseIncome: 9000,
+    baseCost: 900000,
+    upgradeCostMultiplier: 1.075,
+    icon: Navigation,
+    managerOwned: false,
+    description: 'Ultrafast, automated drone delivery for the modern age.',
+    upgrades: [
+      { id: 'dds_heavy_lift_drones', name: 'Heavy-Lift Drone Fleet', description: 'Deliver larger packages, +25% income.', cost: 3000000, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'dds_ai_dispatch_system', name: 'AI-Powered Dispatch System', description: 'Optimal routing and drone management, +20% income.', cost: 4500000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'dds_autonomous_charging_stations', name: 'Autonomous Charging Station Network', description: 'Extended operational range, -8% level cost.', cost: 5000000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+      { id: 'dds_weatherproof_drones', name: 'All-Weather Drone Models', description: 'Operate in more conditions, +15% income.', cost: 6000000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'dds_medical_delivery_contracts', name: 'Medical Supply Delivery Contracts', description: 'High-priority, high-value deliveries, +18% income.', cost: 7000000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'dds_urban_air_traffic_control_integration', name: 'Urban Air Traffic Control Integration', description: 'Safer city operations, +10% income.', cost: 5500000, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'dds_package_sorting_robotics', name: 'Robotic Package Sorting Hubs', description: 'Faster ground processing, -5% level cost.', cost: 6500000, requiredLevel: 35, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'dds_long_range_battery_tech', name: 'Next-Gen Long-Range Battery Tech', description: 'Further extended operational range, +12% income.', cost: 7500000, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 12 },
+    ],
+  },
   {
     id: 'ai_research_lab',
     name: 'AI Research Lab',
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.085,
+    upgradeCostMultiplier: 1.075, // Slightly reduced
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -357,7 +399,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.08,
+    upgradeCostMultiplier: 1.07, // Slightly reduced
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -378,7 +420,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.075,
+    upgradeCostMultiplier: 1.065, // Slightly reduced
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -399,7 +441,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 30000,
     baseCost: 4000000,
-    upgradeCostMultiplier: 1.07,
+    upgradeCostMultiplier: 1.06, // Slightly reduced
     icon: Radio,
     managerOwned: false,
     description: 'Global news, entertainment, and digital content.',
@@ -420,7 +462,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 45000,
     baseCost: 6000000,
-    upgradeCostMultiplier: 1.065,
+    upgradeCostMultiplier: 1.055, // Slightly reduced
     icon: Cog,
     managerOwned: false,
     description: 'Advanced robotics for industrial and consumer markets.',
@@ -441,7 +483,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 70000,
     baseCost: 10000000,
-    upgradeCostMultiplier: 1.06,
+    upgradeCostMultiplier: 1.05, // Slightly reduced
     icon: Sigma,
     managerOwned: false,
     description: 'Pioneering quantum computation for a new era.',
@@ -475,9 +517,9 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'stellar_dynamics', ticker: 'STLR', companyName: 'Stellar Dynamics', price: 1200, dividendYield: 0.000035, icon: Rocket, description: 'Pioneering interplanetary colonization and resource extraction.', totalOutstandingShares: 1000000, requiredSkillToUnlock: 'investment_mogul' },
 ];
 
-export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap'];
-export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc'];
-export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group'];
+export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap', 'drone_delivery_service'];
+export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc', 'drone_delivery_service'];
+export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group', 'ad_agency'];
 export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics'];
 
 const createBusinessBoostSkills = (business: Business, index: number): SkillNode[] => {
@@ -491,7 +533,7 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
     description: `${business.name} income +${baseBoost}%.`,
     cost: baseCost,
     icon: business.icon,
-    dependencies: index > 2 ? ['global_income_boost_1'] : [], // Basic dependency for slightly later businesses
+    dependencies: index > 2 ? ['global_income_boost_1'] : [],
     effects: { businessSpecificIncomeBoost: { businessId: business.id, percent: baseBoost } },
   });
 
@@ -505,7 +547,7 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
     effects: { businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 1.5) } },
   });
 
-  if (index >= 3) {
+  if (index >= 3) { // Only add Mastery for businesses unlocked later
     skills.push({
       id: `${business.id}_mastery_1`,
       name: `${business.name} Mastery`,
@@ -515,7 +557,7 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
       dependencies: [`${business.id}_boost_2`],
       effects: {
         businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 2) },
-        // Cost reduction effect would require adding to SkillNode.effects and calculateSingleLevelUpgradeCost
+        // Cost reduction effect needs to be handled in calculateSingleLevelUpgradeCost
       },
     });
   }
@@ -527,9 +569,9 @@ const createAutoBuyUpgradeSkills = (business: Business, index: number): SkillNod
     id: `auto_buy_upgrades_${business.id}`,
     name: `${business.name} Automation`,
     description: `Automatically purchases affordable upgrades for ${business.name}.`,
-    cost: Math.max(5, Math.floor(index * 2) + 5), // Scaled cost
+    cost: Math.max(5, Math.floor(index * 2) + 5),
     icon: Zap,
-    dependencies: [`${business.id}_boost_1`], // Depends on the first income boost skill
+    dependencies: [`${business.id}_boost_1`],
     effects: { autoBuyUpgradesForBusiness: business.id },
   };
 };
@@ -723,7 +765,7 @@ const baseSkillTree: SkillNode[] = [
   {
     id: 'tech_empire_synergy',
     name: 'Tech Empire Synergy',
-    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, AI Lab, and QuantaLeap +15%.',
+    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, AI Lab, QuantaLeap & AeroSwift +15%.',
     cost: 22,
     icon: BrainCircuit,
     dependencies: ['global_income_boost_1'],
@@ -732,7 +774,7 @@ const baseSkillTree: SkillNode[] = [
   {
     id: 'logistics_network_optimization',
     name: 'Logistics Network Opt.',
-    description: 'Income of Horizon Logistics and GlobalLink Logistics +15%.',
+    description: 'Income of Horizon Logistics, GlobalLink Logistics & AeroSwift Delivery +15%.',
     cost: 20,
     icon: GitMerge,
     dependencies: ['global_income_boost_1'],
@@ -741,7 +783,7 @@ const baseSkillTree: SkillNode[] = [
   {
     id: 'media_mogul_influence',
     name: 'Media Mogul Influence',
-    description: 'Income of StreamFlix, Movie Studio, and OmniMedia Group +15%.',
+    description: 'Income of StreamFlix, Movie Studio, OmniMedia Group & Ad Agency +15%.',
     cost: 24,
     icon: Tv,
     dependencies: ['global_income_boost_1'],
@@ -764,7 +806,7 @@ const baseSkillTree: SkillNode[] = [
     description: `Unlocks bulk purchasing (10x, 25x, MAX) for ${business.name}.`,
     cost: Math.max(1, Math.floor(index || 0) + 2),
     icon: ShoppingCart,
-    dependencies: (index || 0) > 2 ? ['global_income_boost_1'] : [], // Only add dependency for later businesses
+    dependencies: (index || 0) > 2 ? ['global_income_boost_1'] : [], // Basic dependency for later businesses
     effects: { unlocksBulkBuyForBusiness: business.id },
   })),
 ];
@@ -831,7 +873,8 @@ export const calculateSingleLevelUpgradeCost = (
     upgradeCostMultiplier: number,
     purchasedUpgrades: BusinessUpgrade[] = [],
     unlockedSkillIds: string[] = [],
-    skillTree: SkillNode[] = []
+    skillTree: SkillNode[] = [],
+    businessId?: string // Added businessId for mastery check
   ): number => {
   let currentCost = baseCost * Math.pow(upgradeCostMultiplier, businessLevel);
 
@@ -844,31 +887,13 @@ export const calculateSingleLevelUpgradeCost = (
   let totalGlobalCostReduction = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
-    if (skill && skill.effects.globalCostReductionPercent) {
-      totalGlobalCostReduction += skill.effects.globalCostReductionPercent;
-    }
-    // Example: Check for business-specific cost reduction from mastery skills
-    if (skill && skill.id.endsWith('_mastery_1')) {
-        const masterySkill = skillTree.find(s => s.id === skillId);
-        // Check if this mastery skill is for the current business and has a cost reduction part in its description
-        const businessIdFromMastery = masterySkill?.dependencies?.[0]?.replace('_boost_2', ''); // Heuristic to get businessId
-        const businessOfMastery = INITIAL_BUSINESSES.find(b => b.id === businessIdFromMastery);
-
-        if (businessOfMastery && masterySkill?.description.includes('-5% level up cost')) {
-            const masteriedBusiness = INITIAL_BUSINESSES.find(b => b.id === masterySkill?.effects?.businessSpecificIncomeBoost?.businessId);
-            // This check is very fragile. A dedicated effect field for cost reduction would be better.
-            // For this example, assume the mastery skill for *this* current business is the one causing cost reduction.
-            // The baseCost, multiplier etc. are for the business being calculated, not necessarily the one whose mastery is being checked.
-            // This logic needs to be more precise:
-            // Does the skill `skillId` apply a cost reduction to the business for which we are calculating the cost?
-            const masterySkillForCurrentBusiness = skillTree.find(s =>
-                s.id === `${INITIAL_BUSINESSES.find(b => baseCost === b.baseCost && upgradeCostMultiplier === b.upgradeCostMultiplier)?.id}_mastery_1`);
-
-            if (masterySkillForCurrentBusiness && masterySkillForCurrentBusiness.id === skillId && masterySkillForCurrentBusiness.description.includes('-5% level up cost')) {
-                 // currentCost *= (1 - 5 / 100); // This is not how it should be applied. GlobalCostReduction is better.
-                 // Let's assume mastery skills contribute to globalCostReduction for simplicity here, or add a specific effect.
-                 // The current skill structure makes specific cost reduction hard to apply cleanly without a dedicated effect.
-            }
+    if (skill) {
+        if (skill.effects.globalCostReductionPercent) {
+          totalGlobalCostReduction += skill.effects.globalCostReductionPercent;
+        }
+        // Check for business-specific cost reduction from mastery skills
+        if (businessId && skill.id === `${businessId}_mastery_1` && skill.description.includes('-5% level up cost')) {
+            totalGlobalCostReduction += 5; // Assuming mastery skills provide a fixed 5% reduction for now
         }
     }
   });
@@ -902,7 +927,8 @@ export const calculateCostForNLevels = (
       business.upgradeCostMultiplier,
       business.upgrades?.filter(u => u.isPurchased),
       unlockedSkillIds,
-      skillTree
+      skillTree,
+      business.id // Pass businessId
     );
     totalCost += costForThisLevel;
     levelsPurchased++;
@@ -930,7 +956,8 @@ export const calculateMaxAffordableLevels = (
       business.upgradeCostMultiplier,
       business.upgrades?.filter(u => u.isPurchased),
       unlockedSkillIds,
-      skillTree
+      skillTree,
+      business.id // Pass businessId
     );
 
     if (moneyLeft >= costForNextLevel) {
@@ -991,7 +1018,7 @@ export const calculateDiminishingPrestigePoints = (totalLevels: number): number 
 };
 
 export const getCostForNthPoint = (n: number): number => {
-  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST; // Cost for the first point if asking for 0 or less
+  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST;
   return PRESTIGE_BASE_LEVEL_COST + (n - 1) * PRESTIGE_LEVEL_COST_INCREMENT;
 };
 
@@ -1003,3 +1030,4 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
+
