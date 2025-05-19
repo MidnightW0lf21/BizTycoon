@@ -804,8 +804,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
   ...INITIAL_BUSINESSES.flatMap((biz, index) => createAutoBuyUpgradeSkills(biz, index)),
 ];
 
-
-export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
+const tempHqUpgrades: HQUpgrade[] = [
   {
     id: 'hq_market_analysis_1',
     name: 'Market Analysis Department',
@@ -875,34 +874,6 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
     ]
   },
   {
-    id: 'hq_business_continuity_fund',
-    name: 'Business Continuity Fund',
-    description: 'Retain a percentage of business levels through prestige.',
-    icon: Archive,
-    requiredTimesPrestiged: 5, // Example: unlocks later in game
-    levels: [
-      { level: 1, costMoney: 50000000, costPrestigePoints: 25, description: 'Retain 20% of business levels on prestige.', effects: { retainBusinessLevelPercent: 20 } },
-      { level: 2, costMoney: 150000000, costPrestigePoints: 50, description: 'Retain 40% of business levels on prestige.', effects: { retainBusinessLevelPercent: 40 } },
-      { level: 3, costMoney: 400000000, costPrestigePoints: 100, description: 'Retain 60% of business levels on prestige.', effects: { retainBusinessLevelPercent: 60 } },
-      { level: 4, costMoney: 1000000000, costPrestigePoints: 200, description: 'Retain 80% of business levels on prestige.', effects: { retainBusinessLevelPercent: 80 } },
-      { level: 5, costMoney: 2500000000, costPrestigePoints: 400, description: 'Retain 100% of business levels on prestige.', effects: { retainBusinessLevelPercent: 100 } },
-    ]
-  },
-  {
-    id: 'hq_investment_portfolio_insurance',
-    name: 'Investment Portfolio Insurance',
-    description: 'Retain a percentage of stock shares through prestige.',
-    icon: ShieldEllipsis,
-    requiredTimesPrestiged: 6, // Example: unlocks later in game
-    levels: [
-      { level: 1, costMoney: 75000000, costPrestigePoints: 30, description: 'Retain 20% of stock shares on prestige.', effects: { retainStockSharesPercent: 20 } },
-      { level: 2, costMoney: 200000000, costPrestigePoints: 60, description: 'Retain 40% of stock shares on prestige.', effects: { retainStockSharesPercent: 40 } },
-      { level: 3, costMoney: 500000000, costPrestigePoints: 120, description: 'Retain 60% of stock shares on prestige.', effects: { retainStockSharesPercent: 60 } },
-      { level: 4, costMoney: 1200000000, costPrestigePoints: 240, description: 'Retain 80% of stock shares on prestige.', effects: { retainStockSharesPercent: 80 } },
-      { level: 5, costMoney: 3000000000, costPrestigePoints: 500, description: 'Retain 100% of stock shares on prestige.', effects: { retainStockSharesPercent: 100 } },
-    ]
-  },
-  {
     id: 'hq_quantum_entanglement_market_predictor',
     name: 'Quantum Market Predictor',
     description: 'Hypothetical tech giving a massive edge in stock dividends.',
@@ -915,8 +886,58 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   }
 ];
 
+// Per-Business Retention Upgrades
+const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business, index) => {
+  const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
+    level: levelIndex + 1,
+    costMoney: Math.floor(Math.pow(10, 5 + index * 0.2 + levelIndex * 0.5) * (1 + levelIndex * 2)),
+    costPrestigePoints: Math.floor(Math.pow(5, 1 + index * 0.1 + levelIndex * 0.4) * (1 + levelIndex)),
+    description: `Retain ${percent}% of ${business.name} levels.`,
+    effects: { retentionPercentage: percent },
+  }));
+  return {
+    id: `retain_level_${business.id}`,
+    name: `${business.name} Level Retention`,
+    description: `Secure a percentage of ${business.name}'s levels through prestige.`,
+    icon: Archive,
+    requiredTimesPrestiged: 5 + Math.floor(index / 4), 
+    levels,
+  };
+});
 
-export const calculateIncome = (business: Business, unlockedSkillIds: string[] = [], skillTree: SkillNode[] = [], purchasedHQUpgradeLevels: Record<string, number> = {}, hqUpgradesConfig: HQUpgrade[] = []): number => {
+// Per-Stock Retention Upgrades
+const stockRetentionUpgrades: HQUpgrade[] = INITIAL_STOCKS.map((stock, index) => {
+  const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
+    level: levelIndex + 1,
+    costMoney: Math.floor(Math.pow(10, 5.5 + index * 0.15 + levelIndex * 0.6) * (1 + levelIndex * 2.5)),
+    costPrestigePoints: Math.floor(Math.pow(5, 1.2 + index * 0.08 + levelIndex * 0.45) * (1 + levelIndex * 1.2)),
+    description: `Retain ${percent}% of ${stock.companyName} shares.`,
+    effects: { retentionPercentage: percent },
+  }));
+  return {
+    id: `retain_shares_${stock.id}`,
+    name: `${stock.companyName} Share Insurance`,
+    description: `Retain a percentage of ${stock.companyName}'s shares through prestige.`,
+    icon: ShieldEllipsis,
+    requiredTimesPrestiged: 6 + Math.floor(index / 4),
+    levels,
+  };
+});
+
+export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
+  ...tempHqUpgrades,
+  ...businessRetentionUpgrades,
+  ...stockRetentionUpgrades
+];
+
+
+export const calculateIncome = (
+    business: Business, 
+    unlockedSkillIds: string[] = [], 
+    skillTree: SkillNode[] = [], 
+    purchasedHQUpgradeLevels: Record<string, number> = {}, 
+    hqUpgradesConfig: HQUpgrade[] = []
+  ): number => {
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
 
@@ -1189,4 +1210,6 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
+    
+
     
