@@ -1,7 +1,7 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade } from '@/types';
 import {
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation // Added Megaphone, Navigation
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -9,6 +9,7 @@ export const MAX_BUSINESS_LEVEL = 100; // Base max level
 export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
 export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
+export const INITIAL_PURCHASED_HQ_UPGRADE_IDS: string[] = []; // New initial state
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;
 export const PRESTIGE_LEVEL_COST_INCREMENT = 30;
@@ -21,7 +22,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.06, // Slightly reduced
+    upgradeCostMultiplier: 1.07, // Slightly reduced
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -42,7 +43,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.12, // Slightly reduced
+    upgradeCostMultiplier: 1.13, // Slightly reduced
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -63,7 +64,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.11, // Slightly reduced
+    upgradeCostMultiplier: 1.12, // Slightly reduced
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -84,7 +85,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.10, // Slightly reduced
+    upgradeCostMultiplier: 1.11, // Slightly reduced
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -105,7 +106,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.13, // Slightly reduced
+    upgradeCostMultiplier: 1.14, // Slightly reduced
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -126,7 +127,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.125, // Slightly reduced
+    upgradeCostMultiplier: 1.13, // Slightly reduced
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -162,7 +163,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 're_international_clients', name: 'International Client Network', description: 'Expand market reach globally, +22% income.', cost: 70000, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 22 },
     ],
   },
-  { // NEW BUSINESS: Boutique Ad Agency (unlockIndex 7 - after Real Estate)
+  { 
     id: 'ad_agency',
     name: 'Boutique Ad Agency',
     level: 0,
@@ -351,7 +352,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gsn_weather_routing_systems', name: 'Advanced Weather Routing Systems', description: 'Optimize routes, save fuel, -7% level cost.', cost: 3000000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
     ],
   },
-  { // NEW BUSINESS: Drone Delivery Service (unlockIndex 15 - after Horizon Logistics)
+  { 
     id: 'drone_delivery_service',
     name: 'AeroSwift Delivery',
     level: 0,
@@ -522,6 +523,7 @@ export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logist
 export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group', 'ad_agency'];
 export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics'];
 
+
 const createBusinessBoostSkills = (business: Business, index: number): SkillNode[] => {
   const skills: SkillNode[] = [];
   const baseCost = 2 + Math.floor(index * 1.5);
@@ -547,7 +549,7 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
     effects: { businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 1.5) } },
   });
 
-  if (index >= 3) { // Only add Mastery for businesses unlocked later
+  if (index >= 3) { 
     skills.push({
       id: `${business.id}_mastery_1`,
       name: `${business.name} Mastery`,
@@ -576,9 +578,7 @@ const createAutoBuyUpgradeSkills = (business: Business, index: number): SkillNod
   };
 };
 
-
 const baseSkillTree: SkillNode[] = [
-  // --- Global Early Game Skills ---
   {
     id: 'global_income_boost_1',
     name: 'Entrepreneurial Spirit I',
@@ -611,8 +611,6 @@ const baseSkillTree: SkillNode[] = [
     icon: Sparkles,
     effects: {},
   },
-
-  // --- Global Mid Game Skills ---
   {
     id: 'global_income_boost_2',
     name: 'Entrepreneurial Spirit II',
@@ -639,8 +637,6 @@ const baseSkillTree: SkillNode[] = [
     icon: ShoppingBag,
     effects: { globalBusinessUpgradeCostReductionPercent: 5 },
   },
-
-  // --- Global Late Game Skills ---
   {
     id: 'global_income_boost_3',
     name: 'Entrepreneurial Spirit III',
@@ -668,8 +664,6 @@ const baseSkillTree: SkillNode[] = [
     dependencies: ['global_income_boost_3', 'prestige_power_2'],
     effects: { globalIncomeBoostPercent: 25 },
   },
-
-  // --- Max Level Increase Skills ---
   {
     id: 'advanced_management_1',
     name: 'Advanced Management I',
@@ -715,8 +709,6 @@ const baseSkillTree: SkillNode[] = [
     dependencies: ['advanced_management_4'],
     effects: { increaseMaxBusinessLevelBy: 30 },
   },
-
-  // --- Stock Market Skills ---
   {
     id: 'unlock_advanced_stocks_tier_1',
     name: 'Stock Market License I',
@@ -760,8 +752,6 @@ const baseSkillTree: SkillNode[] = [
     dependencies: ['market_analyst', 'dividend_magnifier_1'],
     effects: { globalDividendYieldBoostPercent: 5 },
   },
-
-  // --- Business Category Synergy Skills ---
   {
     id: 'tech_empire_synergy',
     name: 'Tech Empire Synergy',
@@ -798,15 +788,13 @@ const baseSkillTree: SkillNode[] = [
     dependencies: ['global_income_boost_1'],
     effects: {},
   },
-
-  // --- Per-business Bulk Buy Unlock Skills (Dynamically Generated) ---
   ...INITIAL_BUSINESSES.map((business, index) => ({
     id: `unlock_bulk_buy_${business.id}`,
     name: `${business.name} Logistics`,
     description: `Unlocks bulk purchasing (10x, 25x, MAX) for ${business.name}.`,
-    cost: Math.max(1, Math.floor(index || 0) + 2),
+    cost: Math.max(1, Math.floor(index || 0) + 2), 
     icon: ShoppingCart,
-    dependencies: (index || 0) > 2 ? ['global_income_boost_1'] : [], // Basic dependency for later businesses
+    dependencies: (index || 0) > 0 ? ['global_income_boost_1'] : [],
     effects: { unlocksBulkBuyForBusiness: business.id },
   })),
 ];
@@ -818,7 +806,66 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
 ];
 
 
-export const calculateIncome = (business: Business, unlockedSkillIds: string[] = [], skillTree: SkillNode[] = []): number => {
+export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
+  {
+    id: 'hq_market_analysis_1',
+    name: 'Basic Market Analysis',
+    description: '+0.5% to all business income.',
+    costMoney: 50000,
+    icon: Activity,
+    effects: { globalIncomeBoostPercent: 0.5 },
+  },
+  {
+    id: 'hq_operational_efficiency_1',
+    name: 'Efficiency Training I',
+    description: '-0.5% to all business level-up costs.',
+    costMoney: 75000,
+    icon: Scaling,
+    effects: { globalCostReductionPercent: 0.5 },
+  },
+  {
+    id: 'hq_stock_diversification_1',
+    name: 'Portfolio Diversification',
+    description: '+0.1% to all stock dividend yields.',
+    costMoney: 100000,
+    requiredTimesPrestiged: 1,
+    icon: Target,
+    effects: { globalDividendYieldBoostPercent: 0.1 },
+  },
+  {
+    id: 'hq_prestige_acumen_1',
+    name: 'Prestige Acumen I',
+    description: '+2% to Prestige Points gained when prestiging.',
+    costMoney: 250000,
+    costPrestigePoints: 5,
+    requiredTimesPrestiged: 2,
+    icon: Award,
+    effects: { globalPrestigePointBoostPercent: 2 },
+  },
+  {
+    id: 'hq_advanced_logistics_1',
+    name: 'Advanced Logistics Dept.',
+    description: '-0.75% to all business level-up costs.',
+    costMoney: 500000,
+    costPrestigePoints: 2,
+    requiredTimesPrestiged: 3,
+    icon: Package,
+    effects: { globalCostReductionPercent: 0.75 },
+  },
+  {
+    id: 'hq_global_marketing_1',
+    name: 'Global Marketing Reach',
+    description: '+0.75% to all business income.',
+    costMoney: 750000,
+    costPrestigePoints: 3,
+    requiredTimesPrestiged: 4,
+    icon: Megaphone,
+    effects: { globalIncomeBoostPercent: 0.75 },
+  }
+];
+
+
+export const calculateIncome = (business: Business, unlockedSkillIds: string[] = [], skillTree: SkillNode[] = [], purchasedHQUpgradeIds: string[] = [], hqUpgradesConfig: HQUpgrade[] = []): number => {
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
 
@@ -857,6 +904,14 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
     }
   });
 
+  purchasedHQUpgradeIds.forEach(hqId => {
+    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+    if (hqUpgrade && hqUpgrade.effects.globalIncomeBoostPercent) {
+      totalGlobalIncomeBoost += hqUpgrade.effects.globalIncomeBoostPercent;
+    }
+  });
+
+
   if (totalGlobalIncomeBoost > 0) {
     currentIncome *= (1 + totalGlobalIncomeBoost / 100);
   }
@@ -874,7 +929,9 @@ export const calculateSingleLevelUpgradeCost = (
     purchasedUpgrades: BusinessUpgrade[] = [],
     unlockedSkillIds: string[] = [],
     skillTree: SkillNode[] = [],
-    businessId?: string // Added businessId for mastery check
+    businessId?: string,
+    purchasedHQUpgradeIds: string[] = [], 
+    hqUpgradesConfig: HQUpgrade[] = []
   ): number => {
   let currentCost = baseCost * Math.pow(upgradeCostMultiplier, businessLevel);
 
@@ -891,10 +948,19 @@ export const calculateSingleLevelUpgradeCost = (
         if (skill.effects.globalCostReductionPercent) {
           totalGlobalCostReduction += skill.effects.globalCostReductionPercent;
         }
-        // Check for business-specific cost reduction from mastery skills
-        if (businessId && skill.id === `${businessId}_mastery_1` && skill.description.includes('-5% level up cost')) {
-            totalGlobalCostReduction += 5; // Assuming mastery skills provide a fixed 5% reduction for now
+        if (businessId && skill.id === `${businessId}_mastery_1`) {
+          const masterySkill = skillTree.find(s => s.id === `${businessId}_mastery_1`);
+          if (masterySkill && masterySkill.description.includes('level up cost -5%')) {
+             totalGlobalCostReduction += 5;
+          }
         }
+    }
+  });
+
+  purchasedHQUpgradeIds.forEach(hqId => {
+    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+    if (hqUpgrade && hqUpgrade.effects.globalCostReductionPercent) {
+      totalGlobalCostReduction += hqUpgrade.effects.globalCostReductionPercent;
     }
   });
 
@@ -911,7 +977,9 @@ export const calculateCostForNLevels = (
   levelsToAttempt: number,
   unlockedSkillIds: string[],
   skillTree: SkillNode[],
-  dynamicMaxLevel: number
+  dynamicMaxLevel: number,
+  purchasedHQUpgradeIds: string[],
+  hqUpgradesConfig: HQUpgrade[]
 ): { totalCost: number; levelsPurchasable: number } => {
   let totalCost = 0;
   let levelsPurchased = 0;
@@ -928,7 +996,9 @@ export const calculateCostForNLevels = (
       business.upgrades?.filter(u => u.isPurchased),
       unlockedSkillIds,
       skillTree,
-      business.id // Pass businessId
+      business.id,
+      purchasedHQUpgradeIds,
+      hqUpgradesConfig
     );
     totalCost += costForThisLevel;
     levelsPurchased++;
@@ -942,7 +1012,9 @@ export const calculateMaxAffordableLevels = (
   currentMoney: number,
   unlockedSkillIds: string[],
   skillTree: SkillNode[],
-  dynamicMaxLevel: number
+  dynamicMaxLevel: number,
+  purchasedHQUpgradeIds: string[],
+  hqUpgradesConfig: HQUpgrade[]
 ): { levelsToBuy: number; totalCost: number } => {
   let affordableLevels = 0;
   let cumulativeCost = 0;
@@ -957,7 +1029,9 @@ export const calculateMaxAffordableLevels = (
       business.upgrades?.filter(u => u.isPurchased),
       unlockedSkillIds,
       skillTree,
-      business.id // Pass businessId
+      business.id,
+      purchasedHQUpgradeIds,
+      hqUpgradesConfig
     );
 
     if (moneyLeft >= costForNextLevel) {
@@ -973,7 +1047,7 @@ export const calculateMaxAffordableLevels = (
 };
 
 
-export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
+export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: SkillNode[], purchasedHQUpgradeIds: string[], hqUpgradesConfig: HQUpgrade[]): number => {
   let bonus = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
@@ -981,10 +1055,16 @@ export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: Ski
       bonus += skill.effects.increaseStartingMoney;
     }
   });
+  purchasedHQUpgradeIds.forEach(hqId => {
+    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+    if (hqUpgrade && hqUpgrade.effects.increaseStartingMoney) {
+      bonus += hqUpgrade.effects.increaseStartingMoney;
+    }
+  });
   return bonus;
 };
 
-export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTree: SkillNode[]): number => {
+export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTree: SkillNode[], purchasedHQUpgradeIds: string[], hqUpgradesConfig: HQUpgrade[]): number => {
   let boostPercent = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
@@ -995,6 +1075,12 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
       if (skill.id === 'prestige_power_2') {
           boostPercent += 10;
       }
+    }
+  });
+  purchasedHQUpgradeIds.forEach(hqId => {
+    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+    if (hqUpgrade && hqUpgrade.effects.globalPrestigePointBoostPercent) {
+      boostPercent += hqUpgrade.effects.globalPrestigePointBoostPercent;
     }
   });
   return boostPercent;
