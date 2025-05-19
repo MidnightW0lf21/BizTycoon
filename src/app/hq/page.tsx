@@ -6,10 +6,16 @@ import { HQUpgradeCard } from "@/components/hq/HQUpgradeCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building as HQIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react"; // Added useState, useEffect
+import { Skeleton } from "@/components/ui/skeleton"; // Added Skeleton for loading state
 
 export default function HQPage() {
   const { playerStats, hqUpgrades, purchaseHQUpgrade } = useGame();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const categorizedUpgrades = useMemo(() => {
     const global: typeof hqUpgrades = [];
@@ -29,6 +35,37 @@ export default function HQPage() {
   }, [hqUpgrades]);
 
   const renderUpgradeGrid = (upgradesToRender: typeof hqUpgrades) => {
+    if (!mounted) { // Show skeletons while not mounted for the grid area
+      return (
+        <ScrollArea className="flex-grow pr-1 h-[calc(100vh-280px)]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => ( // Render a few skeletons
+              <Card className="flex flex-col relative transition-shadow duration-200 h-[240px] min-h-[220px]" key={i}>
+                <CardHeader className="pb-3 pt-4">
+                  <div className="flex items-start gap-3">
+                    <Skeleton className="h-8 w-8 mt-1 shrink-0 rounded-md" />
+                    <div className="flex-grow space-y-1.5">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-3 w-full mt-1" />
+                      <Skeleton className="h-3 w-1/2 mt-1" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-2 text-sm pt-2">
+                  <Skeleton className="h-3 w-1/3 mb-2" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-2/3 mt-1" />
+                  <Skeleton className="h-4 w-1/2 mt-2" />
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Skeleton className="h-9 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      );
+    }
     if (upgradesToRender.length === 0) {
       return (
         <div className="flex-grow flex items-center justify-center">
@@ -57,6 +94,22 @@ export default function HQPage() {
     );
   };
 
+  // Skeleton for the card component, used within HQUpgradeCard
+  // We can define it here for clarity or ensure HQUpgradeCard handles its own skeleton well
+  const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={className} {...props}>{children}</div>
+  );
+  const CardHeader = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={className} {...props}>{children}</div>
+  );
+  const CardContent = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={className} {...props}>{children}</div>
+  );
+  const CardFooter = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={className} {...props}>{children}</div>
+  );
+
+
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="space-y-1">
@@ -69,7 +122,7 @@ export default function HQPage() {
         </p>
       </div>
       
-      {hqUpgrades.length === 0 ? (
+      {hqUpgrades.length === 0 && mounted ? ( // Check mounted here too
         <div className="flex-grow flex items-center justify-center">
           <p className="text-center text-muted-foreground py-10">
             No HQ upgrades available yet. Check back later!
@@ -78,9 +131,9 @@ export default function HQPage() {
       ) : (
         <Tabs defaultValue="global" className="flex flex-col flex-grow">
           <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="global">Global ({categorizedUpgrades.global.length})</TabsTrigger>
-            <TabsTrigger value="business_retention">Business Retention ({categorizedUpgrades.businessRetention.length})</TabsTrigger>
-            <TabsTrigger value="stock_retention">Stock Retention ({categorizedUpgrades.stockRetention.length})</TabsTrigger>
+            <TabsTrigger value="global">Global {mounted && `(${categorizedUpgrades.global.length})`}</TabsTrigger>
+            <TabsTrigger value="business_retention">Business Retention {mounted && `(${categorizedUpgrades.businessRetention.length})`}</TabsTrigger>
+            <TabsTrigger value="stock_retention">Stock Retention {mounted && `(${categorizedUpgrades.stockRetention.length})`}</TabsTrigger>
           </TabsList>
           <TabsContent value="global" className="flex-grow flex flex-col">
             {renderUpgradeGrid(categorizedUpgrades.global)}
