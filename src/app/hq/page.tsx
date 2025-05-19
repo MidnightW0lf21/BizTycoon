@@ -37,7 +37,7 @@ export default function HQPage() {
                 playerMoney={playerStats.money}
                 playerPrestigePoints={playerStats.prestigePoints}
                 playerTimesPrestiged={playerStats.timesPrestiged}
-                purchasedHQUpgradeIds={playerStats.purchasedHQUpgradeIds}
+                currentUpgradeLevels={playerStats.hqUpgradeLevels} // Corrected prop passed
                 onPurchaseUpgrade={purchaseHQUpgrade}
               />
             ))}

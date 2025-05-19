@@ -16,17 +16,16 @@ interface HQUpgradeCardProps {
   playerMoney: number;
   playerPrestigePoints: number;
   playerTimesPrestiged: number;
-  purchasedHQUpgradeIds: string[]; // This will now be hqUpgradeLevels (Record<string, number>)
+  currentUpgradeLevels: Record<string, number>; // Corrected prop name and type
   onPurchaseUpgrade: (upgradeId: string) => void;
 }
 
-// Prop name changed for clarity, but it's still playerStats.hqUpgradeLevels from context
 export function HQUpgradeCard({
   hqUpgrade,
   playerMoney,
   playerPrestigePoints,
   playerTimesPrestiged,
-  purchasedHQUpgradeIds: currentUpgradeLevels, // Renamed for clarity in this component
+  currentUpgradeLevels, // Use the corrected prop name directly
   onPurchaseUpgrade,
 }: HQUpgradeCardProps) {
   const [mounted, setMounted] = useState(false);
@@ -35,7 +34,7 @@ export function HQUpgradeCard({
     setMounted(true);
   }, []);
 
-  const currentLevel = (currentUpgradeLevels as Record<string, number>)[hqUpgrade.id] || 0;
+  const currentLevel = currentUpgradeLevels[hqUpgrade.id] || 0; // Access directly
   const maxLevel = hqUpgrade.levels.length;
   const isMaxed = currentLevel >= maxLevel;
   const nextLevelData = !isMaxed ? hqUpgrade.levels.find(l => l.level === currentLevel + 1) : undefined;
