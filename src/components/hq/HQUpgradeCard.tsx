@@ -1,11 +1,11 @@
 
 "use client";
 
-import type { HQUpgrade } from "@/types";
+import type { HQUpgrade, HQUpgradeLevel } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LockKeyhole, CheckCircle2, Sparkles, DollarSign, Building } from "lucide-react";
+import { LockKeyhole, CheckCircle2, Sparkles, DollarSign, Building, TrendingUp, ChevronsUp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -16,16 +16,17 @@ interface HQUpgradeCardProps {
   playerMoney: number;
   playerPrestigePoints: number;
   playerTimesPrestiged: number;
-  purchasedHQUpgradeIds: string[];
+  purchasedHQUpgradeIds: string[]; // This will now be hqUpgradeLevels (Record<string, number>)
   onPurchaseUpgrade: (upgradeId: string) => void;
 }
 
+// Prop name changed for clarity, but it's still playerStats.hqUpgradeLevels from context
 export function HQUpgradeCard({
   hqUpgrade,
   playerMoney,
   playerPrestigePoints,
   playerTimesPrestiged,
-  purchasedHQUpgradeIds,
+  purchasedHQUpgradeIds: currentUpgradeLevels, // Renamed for clarity in this component
   onPurchaseUpgrade,
 }: HQUpgradeCardProps) {
   const [mounted, setMounted] = useState(false);
@@ -34,9 +35,14 @@ export function HQUpgradeCard({
     setMounted(true);
   }, []);
 
+  const currentLevel = (currentUpgradeLevels as Record<string, number>)[hqUpgrade.id] || 0;
+  const maxLevel = hqUpgrade.levels.length;
+  const isMaxed = currentLevel >= maxLevel;
+  const nextLevelData = !isMaxed ? hqUpgrade.levels.find(l => l.level === currentLevel + 1) : undefined;
+
   if (!mounted) {
     return (
-      <Card className="flex flex-col relative transition-shadow duration-200 h-[220px] min-h-[200px]">
+      <Card className="flex flex-col relative transition-shadow duration-200 h-[240px] min-h-[220px]">
         <CardHeader className="pb-3 pt-4">
           <div className="flex items-start gap-3">
             <Skeleton className="h-8 w-8 mt-1 shrink-0 rounded-md" />
@@ -48,8 +54,10 @@ export function HQUpgradeCard({
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-2 text-sm pt-2">
-          <Skeleton className="h-3 w-1/2" />
+          <Skeleton className="h-3 w-1/3 mb-2" />
           <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/3 mt-1" />
+          <Skeleton className="h-4 w-1/2 mt-2" />
         </CardContent>
         <CardFooter className="pt-2">
           <Skeleton className="h-9 w-full" />
@@ -59,53 +67,41 @@ export function HQUpgradeCard({
   }
 
   const Icon = hqUpgrade.icon;
-  const isPurchased = purchasedHQUpgradeIds.includes(hqUpgrade.id);
   
   const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
-  const canAffordMoney = playerMoney >= hqUpgrade.costMoney;
-  const canAffordPP = hqUpgrade.costPrestigePoints ? playerPrestigePoints >= hqUpgrade.costPrestigePoints : true;
   
-  const canPurchase = !isPurchased && meetsPrestigeRequirement && canAffordMoney && canAffordPP;
-  const isTrulyLocked = !isPurchased && (!meetsPrestigeRequirement || !canAffordMoney || !canAffordPP);
-
-  let lockReasonText = "";
-  if (isTrulyLocked) {
-    if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
-      lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
-    } else if (!canAffordMoney) {
-      lockReasonText = `Needs $${hqUpgrade.costMoney.toLocaleString('en-US')}.`;
-    } else if (!canAffordPP && hqUpgrade.costPrestigePoints) {
-      lockReasonText = `Needs ${hqUpgrade.costPrestigePoints.toLocaleString('en-US')} PP.`;
+  let canAffordMoney = false;
+  let canAffordPP = true; // Default to true if no PP cost
+  if (nextLevelData) {
+    canAffordMoney = playerMoney >= nextLevelData.costMoney;
+    if (nextLevelData.costPrestigePoints) {
+      canAffordPP = playerPrestigePoints >= nextLevelData.costPrestigePoints;
     }
   }
   
-  if (isPurchased) {
-    return (
-      <Card className={cn(
-        "flex flex-col relative transition-shadow duration-200 border-primary shadow-md",
-        "p-3 min-h-[80px] justify-center" 
-      )}>
-        <div className="flex items-center gap-2">
-          <Icon className="h-7 w-7 text-primary shrink-0" />
-          <div className="flex-grow">
-            <CardTitle className="text-base leading-tight font-medium">{hqUpgrade.name}</CardTitle>
-          </div>
-           <Badge variant="secondary" className="text-xs bg-primary/20 text-primary-foreground border-primary/30 py-0.5 px-1.5 shrink-0">
-            <CheckCircle2 className="mr-1 h-3 w-3" /> Purchased
-          </Badge>
-        </div>
-      </Card>
-    );
+  const canPurchaseNextLevel = !isMaxed && nextLevelData && meetsPrestigeRequirement && canAffordMoney && canAffordPP;
+  const isTrulyLocked = !isMaxed && (!meetsPrestigeRequirement || (nextLevelData && (!canAffordMoney || !canAffordPP)));
+
+  let lockReasonText = "";
+  if (!isMaxed && nextLevelData) {
+    if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
+      lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
+    } else if (!canAffordMoney) {
+      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US')}.`;
+    } else if (nextLevelData.costPrestigePoints && !canAffordPP) {
+      lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
+    }
   }
+
 
   return (
     <TooltipProvider delayDuration={100}>
       <Card className={cn(
-        "flex flex-col relative transition-shadow duration-200 min-h-[200px]", 
-        canPurchase && "hover:shadow-lg border-accent", 
-        isTrulyLocked && "border-dashed" 
+        "flex flex-col relative transition-shadow duration-200 min-h-[220px]", 
+        canPurchaseNextLevel && "hover:shadow-lg border-accent", 
+        isTrulyLocked && !isMaxed && "border-dashed" 
       )}>
-        {isTrulyLocked && (
+        {isTrulyLocked && !isMaxed && (
           <div className="absolute inset-0 bg-card/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-[calc(var(--radius)-1px)] p-4 text-center">
             <LockKeyhole className="h-10 w-10 text-primary mb-3" />
             <p className="text-md font-semibold text-primary mb-1">Upgrade Locked</p>
@@ -113,55 +109,79 @@ export function HQUpgradeCard({
           </div>
         )}
 
-        <CardHeader className={cn("pb-3 pt-4", isTrulyLocked && "opacity-30")}>
-          <div className="flex items-start gap-3">
-            <Icon className={cn("h-8 w-8 mt-1 shrink-0 text-muted-foreground", isTrulyLocked ? "opacity-70" : "")} />
-            <div className="flex-grow">
-              <CardTitle className="text-lg leading-tight">{hqUpgrade.name}</CardTitle>
-              <CardDescription className="text-xs mt-1">{hqUpgrade.description}</CardDescription>
+        <CardHeader className={cn("pb-3 pt-4", isTrulyLocked && !isMaxed && "opacity-30")}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <Icon className={cn("h-8 w-8 mt-1 shrink-0 text-muted-foreground", isTrulyLocked && !isMaxed && "opacity-70")} />
+              <div className="flex-grow">
+                <CardTitle className="text-lg leading-tight">{hqUpgrade.name}</CardTitle>
+                <CardDescription className="text-xs mt-1">{hqUpgrade.description}</CardDescription>
+              </div>
             </div>
+            <Badge variant={isMaxed ? "secondary" : "outline"} className="text-xs ml-2 shrink-0">
+              Level {currentLevel} / {maxLevel}
+            </Badge>
           </div>
         </CardHeader>
-        <CardContent className={cn("flex-grow space-y-2 text-sm pt-2", isTrulyLocked && "opacity-30")}>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Cost:</span>
-            <div className="flex items-center gap-1 font-semibold">
-              <DollarSign className="h-4 w-4 text-green-500" /> 
-              {hqUpgrade.costMoney.toLocaleString('en-US')}
-              {hqUpgrade.costPrestigePoints && (
-                <>
-                  <span className="text-muted-foreground mx-1">+</span> 
-                  <Sparkles className="h-4 w-4 text-amber-400" /> 
-                  {hqUpgrade.costPrestigePoints.toLocaleString('en-US')} PP
-                </>
-              )}
+        <CardContent className={cn("flex-grow space-y-2 text-sm pt-2", isTrulyLocked && !isMaxed && "opacity-30")}>
+          {nextLevelData ? (
+            <>
+              <p className="font-medium text-primary">Next Level ({nextLevelData.level}):</p>
+              <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-muted-foreground">Cost:</span>
+                <div className="flex items-center gap-1 font-semibold">
+                  <DollarSign className="h-4 w-4 text-green-500" /> 
+                  {nextLevelData.costMoney.toLocaleString('en-US')}
+                  {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
+                    <>
+                      <span className="text-muted-foreground mx-1">+</span> 
+                      <Sparkles className="h-4 w-4 text-amber-400" /> 
+                      {nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+             <div className="flex items-center justify-center flex-col h-full text-center">
+                <CheckCircle2 className="h-8 w-8 text-green-500 mb-2" />
+                <p className="font-semibold text-green-500">Fully Upgraded!</p>
+                <p className="text-xs text-muted-foreground">This HQ upgrade is at its maximum level.</p>
             </div>
-          </div>
-          {hqUpgrade.requiredTimesPrestiged && (
-            <div className="text-xs text-muted-foreground">
-              Requires: {hqUpgrade.requiredTimesPrestiged} Prestige(s)
+          )}
+          {hqUpgrade.requiredTimesPrestiged && !isMaxed && (
+            <div className="text-xs text-muted-foreground pt-1">
+              (Overall Prestige Req: {hqUpgrade.requiredTimesPrestiged})
             </div>
           )}
         </CardContent>
-        <CardFooter className={cn("pt-2", isTrulyLocked && "opacity-30")}>
+        <CardFooter className={cn("pt-2", isTrulyLocked && !isMaxed && "opacity-30")}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="w-full">
                 <Button
                   onClick={() => onPurchaseUpgrade(hqUpgrade.id)}
-                  disabled={!canPurchase || isTrulyLocked} 
+                  disabled={!canPurchaseNextLevel || isMaxed} 
                   className="w-full"
-                  variant={canPurchase ? "default" : "outline"}
+                  variant={canPurchaseNextLevel ? "default" : (isMaxed ? "secondary" : "outline")}
                 >
-                  <Building className="mr-2 h-4 w-4" /> Purchase Upgrade
+                  {isMaxed ? (
+                    <> <CheckCircle2 className="mr-2 h-4 w-4"/> Max Level</>
+                  ) : (
+                    <> <ChevronsUp className="mr-2 h-4 w-4" /> Upgrade to Level {currentLevel + 1} </>
+                  )}
                 </Button>
               </div>
             </TooltipTrigger>
-            {(!isPurchased && canPurchase && !isTrulyLocked) && (
-              <TooltipContent><p>Purchase this HQ Upgrade.</p></TooltipContent>
-            )}
-             {isTrulyLocked && (
+            {isTrulyLocked && !isMaxed && (
               <TooltipContent><p>{lockReasonText}</p></TooltipContent>
+            )}
+            {canPurchaseNextLevel && !isMaxed && (
+              <TooltipContent><p>Purchase next level.</p></TooltipContent>
+            )}
+             {isMaxed && (
+              <TooltipContent><p>{hqUpgrade.name} is fully upgraded.</p></TooltipContent>
             )}
           </Tooltip>
         </CardFooter>
@@ -169,3 +189,4 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
+    

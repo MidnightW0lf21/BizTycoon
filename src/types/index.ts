@@ -52,8 +52,9 @@ export interface SkillNodeEffects {
   globalDividendYieldBoostPercent?: number;
   globalBusinessUpgradeCostReductionPercent?: number;
   increaseMaxBusinessLevelBy?: number;
-  unlocksBulkBuyForBusiness?: string; // Specific business ID
-  autoBuyUpgradesForBusiness?: string; // Specific business ID
+  unlocksBulkBuyForBusiness?: string;
+  autoBuyUpgradesForBusiness?: string;
+  globalPrestigePointBoostPercent?: number; // Added for consistency if HQ also provides it
 }
 
 export interface SkillNode {
@@ -75,16 +76,21 @@ export interface HQUpgradeEffects {
   // Add other global effects as needed
 }
 
+export interface HQUpgradeLevel {
+  level: number; // 1-indexed
+  costMoney: number;
+  costPrestigePoints?: number;
+  description: string; // Description for this specific level's benefit
+  effects: HQUpgradeEffects;
+}
+
 export interface HQUpgrade {
   id: string;
   name: string;
-  description: string;
-  costMoney: number;
-  costPrestigePoints?: number;
-  requiredTimesPrestiged?: number;
+  description: string; // General description of the upgrade
   icon: LucideIcon;
-  effects: HQUpgradeEffects;
-  // isPurchased will be tracked via playerStats.purchasedHQUpgradeIds
+  requiredTimesPrestiged?: number; // Overall requirement to start upgrading this
+  levels: HQUpgradeLevel[];
 }
 
 
@@ -96,7 +102,7 @@ export interface PlayerStats {
   prestigePoints: number;
   timesPrestiged: number;
   unlockedSkillIds: string[];
-  purchasedHQUpgradeIds: string[]; // New field
+  hqUpgradeLevels: Record<string, number>; // e.g., { hq_market_analysis_1: 2 }
 }
 
 export interface SaveData {
@@ -106,4 +112,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-
+    
