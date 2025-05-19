@@ -5,9 +5,12 @@ import { useGame } from "@/contexts/GameContext";
 import { HQUpgradeCard } from "@/components/hq/HQUpgradeCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building as HQIcon } from "lucide-react";
-import { useMemo, useState, useEffect } from "react"; // Added useState, useEffect
-import { Skeleton } from "@/components/ui/skeleton"; // Added Skeleton for loading state
+import { Building as HQIcon, LockKeyhole } from "lucide-react"; // Added LockKeyhole
+import { useMemo, useState, useEffect } from "react"; 
+import { Skeleton } from "@/components/ui/skeleton"; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Added for locked state
+
+const REQUIRED_PRESTIGE_LEVEL_HQ = 3;
 
 export default function HQPage() {
   const { playerStats, hqUpgrades, purchaseHQUpgrade } = useGame();
@@ -16,6 +19,26 @@ export default function HQPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_HQ) {
+    return (
+      <Card className="w-full md:max-w-2xl mx-auto">
+        <CardHeader className="items-center">
+          <LockKeyhole className="h-16 w-16 text-primary mb-4" />
+          <CardTitle>Headquarters Locked</CardTitle>
+          <CardDescription className="text-center">
+            Headquarters provides powerful global upgrades. <br />
+            Unlock this feature by reaching Prestige Level {REQUIRED_PRESTIGE_LEVEL_HQ}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">
+            (Current Prestige Level: {playerStats.timesPrestiged})
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const categorizedUpgrades = useMemo(() => {
     const global: typeof hqUpgrades = [];
@@ -35,11 +58,11 @@ export default function HQPage() {
   }, [hqUpgrades]);
 
   const renderUpgradeGrid = (upgradesToRender: typeof hqUpgrades) => {
-    if (!mounted) { // Show skeletons while not mounted for the grid area
+    if (!mounted) { 
       return (
         <ScrollArea className="flex-grow pr-1 h-[calc(100vh-280px)]">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[...Array(8)].map((_, i) => ( // Render a few skeletons
+            {[...Array(8)].map((_, i) => ( 
               <Card className="flex flex-col relative transition-shadow duration-200 h-[240px] min-h-[220px]" key={i}>
                 <CardHeader className="pb-3 pt-4">
                   <div className="flex items-start gap-3">
@@ -76,7 +99,7 @@ export default function HQPage() {
       );
     }
     return (
-      <ScrollArea className="flex-grow pr-1 h-[calc(100vh-280px)]"> {/* Adjusted height for tabs */}
+      <ScrollArea className="flex-grow pr-1 h-[calc(100vh-280px)]"> 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {upgradesToRender.map((upgrade) => (
             <HQUpgradeCard
@@ -94,22 +117,6 @@ export default function HQPage() {
     );
   };
 
-  // Skeleton for the card component, used within HQUpgradeCard
-  // We can define it here for clarity or ensure HQUpgradeCard handles its own skeleton well
-  const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={className} {...props}>{children}</div>
-  );
-  const CardHeader = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={className} {...props}>{children}</div>
-  );
-  const CardContent = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={className} {...props}>{children}</div>
-  );
-  const CardFooter = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={className} {...props}>{children}</div>
-  );
-
-
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="space-y-1">
@@ -122,7 +129,7 @@ export default function HQPage() {
         </p>
       </div>
       
-      {hqUpgrades.length === 0 && mounted ? ( // Check mounted here too
+      {hqUpgrades.length === 0 && mounted ? ( 
         <div className="flex-grow flex items-center justify-center">
           <p className="text-center text-muted-foreground py-10">
             No HQ upgrades available yet. Check back later!

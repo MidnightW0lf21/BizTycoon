@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Palette, Building as HQIcon } from 'lucide-react'; // Added HQIcon
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon } from 'lucide-react'; // Added HQIcon
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -24,7 +24,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint, INITIAL_HQ_UPGRADES, INITIAL_SKILL_TREE } from "@/config/game-config";
 import { useToast } from "@/hooks/use-toast";
-// ThemeToggle is no longer needed here
 
 interface NavItem {
   href?: string;
@@ -37,14 +36,14 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/businesses', label: 'Businesses', icon: Store },
-  { href: '/hq', label: 'Headquarters', icon: HQIcon }, // Added Headquarters
-  { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
+  { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
+  { href: '/hq', label: 'Headquarters', icon: HQIcon, requiredTimesPrestiged: 3 }, // Locked HQ
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
 function AppLogo() {
-  const { playerStats, businesses, hqUpgrades, skillTree } = useGame(); // Added hqUpgrades and skillTree
+  const { playerStats, businesses } = useGame();
 
   const [prestigeProgress, setPrestigeProgress] = useState({
     percentage: 0,
@@ -56,6 +55,10 @@ function AppLogo() {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
     
+    // In God Mode, if prestigePoints are extremely high, calculate progress as if starting from 0 for UI responsiveness.
+    // This specific God Mode check is removed as per user request to fully remove God Mode.
+    // The progress bar should naturally reflect progress based on actual prestige points.
+
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
@@ -63,7 +66,7 @@ function AppLogo() {
     let percentage = 0;
     if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { 
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) { // If cost is Infinity but progress is made, show 100% (edge case for max PP)
+    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) { 
       percentage = 100;
     }
 
@@ -131,6 +134,8 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       onPrestigeClick();
     }
   };
+  
+  const actualOnClick = isLocked ? undefined : (action === 'prestige' && onPrestigeClick) ? handleInteraction : onMobileClick;
 
   if (isLocked) {
     return (
@@ -149,15 +154,15 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       </TooltipProvider>
     );
   }
-
+  
   if (action === 'prestige') {
-    return (
+     return (
       <button onClick={handleInteraction} className={linkClassName}>
         {linkContent}
       </button>
     );
   }
-  
+
   if (href) {
     return (
       <Link href={href} onClick={handleInteraction} className={linkClassName}>
@@ -166,6 +171,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
+  // Fallback for non-link, non-action items if any (though current navItems are all links or actions)
   return (
     <div className={linkClassName} onClick={handleInteraction}>
       {linkContent}
@@ -173,8 +179,9 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
   );
 }
 
+
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { playerStats, businesses, performPrestige, hqUpgrades, skillTree } = useGame(); // Added hqUpgrades, skillTree
+  const { playerStats, businesses, performPrestige } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
   const pathname = usePathname();
@@ -200,13 +207,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
+      if (item.action) return false; // Actions don't set page title
       if (item.href === '/') return pathname === '/'; 
       return item.href && item.href !== '/' && pathname.startsWith(item.href); 
     });
   
     if (pathname === '/') setCurrentPageTitle('Dashboard');
     else if (pathname === '/settings') setCurrentPageTitle('Settings'); 
-    else if (pathname === '/hq') setCurrentPageTitle('Headquarters'); // Added for HQ
     else if (activeItem) setCurrentPageTitle(activeItem.label);
     else setCurrentPageTitle('BizTycoon'); 
   }, [pathname]);
@@ -307,7 +314,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <AlertDialogTitle>Confirm Prestige</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to prestige? This will reset your current money,
-              all business levels, business upgrades, and stock holdings.
+              all business levels, business upgrades, and stock holdings (unless retained by HQ upgrades).
               <br /><br />
               You will gain approximately <strong className="text-primary">{newlyGainedPoints}</strong> new base prestige point(s) from business levels.
               <br />
@@ -333,4 +340,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
