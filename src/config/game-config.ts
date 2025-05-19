@@ -1,7 +1,7 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel } from '@/types';
 import {
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -559,7 +559,6 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
       dependencies: [`${business.id}_boost_2`],
       effects: {
         businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 2) },
-        // Cost reduction effect needs to be handled in calculateSingleLevelUpgradeCost
       },
     });
   }
@@ -802,7 +801,7 @@ const baseSkillTree: SkillNode[] = [
 export const INITIAL_SKILL_TREE: SkillNode[] = [
   ...baseSkillTree,
   ...INITIAL_BUSINESSES.flatMap((biz, index) => createBusinessBoostSkills(biz, index)),
-  ...INITIAL_BUSINESSES.flatMap((biz, index) => createAutoBuyUpgradeSkills(biz, index)), // Changed flatMap argument
+  ...INITIAL_BUSINESSES.flatMap((biz, index) => createAutoBuyUpgradeSkills(biz, index)),
 ];
 
 
@@ -814,8 +813,8 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
     icon: Activity,
     requiredTimesPrestiged: 0,
     levels: [
-      { level: 1, costMoney: 50000,  description: '+0.5% to all business income.', effects: { globalIncomeBoostPercent: 0.5 } },
-      { level: 2, costMoney: 250000, description: '+1.0% to all business income (total).', effects: { globalIncomeBoostPercent: 1.0 } },
+      { level: 1, costMoney: 50000, costPrestigePoints: 0, description: '+0.5% to all business income.', effects: { globalIncomeBoostPercent: 0.5 } },
+      { level: 2, costMoney: 250000, costPrestigePoints: 0, description: '+1.0% to all business income (total).', effects: { globalIncomeBoostPercent: 1.0 } },
       { level: 3, costMoney: 1000000, costPrestigePoints: 1, description: '+1.5% to all business income (total).', effects: { globalIncomeBoostPercent: 1.5 } },
       { level: 4, costMoney: 5000000, costPrestigePoints: 2, description: '+2.5% to all business income (total).', effects: { globalIncomeBoostPercent: 2.5 } },
       { level: 5, costMoney: 20000000, costPrestigePoints: 5, description: '+4.0% to all business income (total).', effects: { globalIncomeBoostPercent: 4.0 } },
@@ -828,8 +827,8 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
     icon: Scaling,
     requiredTimesPrestiged: 1,
     levels: [
-      { level: 1, costMoney: 75000, description: '-0.5% to all business level-up costs.', effects: { globalCostReductionPercent: 0.5 } },
-      { level: 2, costMoney: 350000, description: '-1.0% to all business level-up costs (total).', effects: { globalCostReductionPercent: 1.0 } },
+      { level: 1, costMoney: 75000, costPrestigePoints: 0, description: '-0.5% to all business level-up costs.', effects: { globalCostReductionPercent: 0.5 } },
+      { level: 2, costMoney: 350000, costPrestigePoints: 0, description: '-1.0% to all business level-up costs (total).', effects: { globalCostReductionPercent: 1.0 } },
       { level: 3, costMoney: 1500000, costPrestigePoints: 1, description: '-1.75% to all business level-up costs (total).', effects: { globalCostReductionPercent: 1.75 } },
       { level: 4, costMoney: 6000000, costPrestigePoints: 3, description: '-2.75% to all business level-up costs (total).', effects: { globalCostReductionPercent: 2.75 } },
       { level: 5, costMoney: 25000000, costPrestigePoints: 6, description: '-4.0% to all business level-up costs (total).', effects: { globalCostReductionPercent: 4.0 } },
@@ -842,8 +841,8 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
     icon: Target,
     requiredTimesPrestiged: 2,
     levels: [
-      { level: 1, costMoney: 100000, description: '+0.1% to all stock dividend yields.', effects: { globalDividendYieldBoostPercent: 0.1 } },
-      { level: 2, costMoney: 500000, description: '+0.25% to all stock dividend yields (total).', effects: { globalDividendYieldBoostPercent: 0.25 } },
+      { level: 1, costMoney: 100000, costPrestigePoints: 0, description: '+0.1% to all stock dividend yields.', effects: { globalDividendYieldBoostPercent: 0.1 } },
+      { level: 2, costMoney: 500000, costPrestigePoints: 0, description: '+0.25% to all stock dividend yields (total).', effects: { globalDividendYieldBoostPercent: 0.25 } },
       { level: 3, costMoney: 2000000, costPrestigePoints: 2, description: '+0.5% to all stock dividend yields (total).', effects: { globalDividendYieldBoostPercent: 0.5 } },
       { level: 4, costMoney: 8000000, costPrestigePoints: 4, description: '+1.0% to all stock dividend yields (total).', effects: { globalDividendYieldBoostPercent: 1.0 } },
       { level: 5, costMoney: 30000000, costPrestigePoints: 8, description: '+1.75% to all stock dividend yields (total).', effects: { globalDividendYieldBoostPercent: 1.75 } },
@@ -873,6 +872,45 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
         { level: 1, costMoney: 1000000, costPrestigePoints: 3, description: '+ $10,000 starting cash.', effects: { increaseStartingMoney: 10000 } },
         { level: 2, costMoney: 5000000, costPrestigePoints: 6, description: '+ $25,000 starting cash (total).', effects: { increaseStartingMoney: 25000 } },
         { level: 3, costMoney: 20000000, costPrestigePoints: 10, description: '+ $50,000 starting cash (total).', effects: { increaseStartingMoney: 50000 } },
+    ]
+  },
+  {
+    id: 'hq_business_continuity_fund',
+    name: 'Business Continuity Fund',
+    description: 'Retain a percentage of business levels through prestige.',
+    icon: Archive,
+    requiredTimesPrestiged: 5, // Example: unlocks later in game
+    levels: [
+      { level: 1, costMoney: 50000000, costPrestigePoints: 25, description: 'Retain 20% of business levels on prestige.', effects: { retainBusinessLevelPercent: 20 } },
+      { level: 2, costMoney: 150000000, costPrestigePoints: 50, description: 'Retain 40% of business levels on prestige.', effects: { retainBusinessLevelPercent: 40 } },
+      { level: 3, costMoney: 400000000, costPrestigePoints: 100, description: 'Retain 60% of business levels on prestige.', effects: { retainBusinessLevelPercent: 60 } },
+      { level: 4, costMoney: 1000000000, costPrestigePoints: 200, description: 'Retain 80% of business levels on prestige.', effects: { retainBusinessLevelPercent: 80 } },
+      { level: 5, costMoney: 2500000000, costPrestigePoints: 400, description: 'Retain 100% of business levels on prestige.', effects: { retainBusinessLevelPercent: 100 } },
+    ]
+  },
+  {
+    id: 'hq_investment_portfolio_insurance',
+    name: 'Investment Portfolio Insurance',
+    description: 'Retain a percentage of stock shares through prestige.',
+    icon: ShieldEllipsis,
+    requiredTimesPrestiged: 6, // Example: unlocks later in game
+    levels: [
+      { level: 1, costMoney: 75000000, costPrestigePoints: 30, description: 'Retain 20% of stock shares on prestige.', effects: { retainStockSharesPercent: 20 } },
+      { level: 2, costMoney: 200000000, costPrestigePoints: 60, description: 'Retain 40% of stock shares on prestige.', effects: { retainStockSharesPercent: 40 } },
+      { level: 3, costMoney: 500000000, costPrestigePoints: 120, description: 'Retain 60% of stock shares on prestige.', effects: { retainStockSharesPercent: 60 } },
+      { level: 4, costMoney: 1200000000, costPrestigePoints: 240, description: 'Retain 80% of stock shares on prestige.', effects: { retainStockSharesPercent: 80 } },
+      { level: 5, costMoney: 3000000000, costPrestigePoints: 500, description: 'Retain 100% of stock shares on prestige.', effects: { retainStockSharesPercent: 100 } },
+    ]
+  },
+  {
+    id: 'hq_quantum_entanglement_market_predictor',
+    name: 'Quantum Market Predictor',
+    description: 'Hypothetical tech giving a massive edge in stock dividends.',
+    icon: Gem,
+    requiredTimesPrestiged: 10,
+    levels: [
+      { level: 1, costMoney: 50000000000, costPrestigePoints: 1000, description: '+5% to all stock dividend yields. Truly game-changing.', effects: { globalDividendYieldBoostPercent: 5 } },
+      { level: 2, costMoney: 250000000000, costPrestigePoints: 2500, description: '+10% to all stock dividend yields (total). Unrivaled insight.', effects: { globalDividendYieldBoostPercent: 10 } },
     ]
   }
 ];
@@ -919,11 +957,13 @@ export const calculateIncome = (business: Business, unlockedSkillIds: string[] =
   
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
-    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
-    if (hqUpgrade && hqUpgrade.levels) {
-        const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-        if (levelData && levelData.effects.globalIncomeBoostPercent) {
-            totalGlobalIncomeBoost += levelData.effects.globalIncomeBoostPercent;
+    if (purchasedLevel > 0) {
+        const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+        if (hqUpgrade && hqUpgrade.levels) {
+            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+            if (levelData && levelData.effects.globalIncomeBoostPercent) {
+                totalGlobalIncomeBoost += levelData.effects.globalIncomeBoostPercent;
+            }
         }
     }
   }
@@ -966,11 +1006,9 @@ export const calculateSingleLevelUpgradeCost = (
           totalGlobalCostReduction += skill.effects.globalCostReductionPercent;
         }
         if (businessId && skill.id === `${businessId}_mastery_1`) {
-          // Assuming the mastery skill's description includes the cost reduction
-          // This part needs to be more robust if effects are directly in skill.effects
           const masterySkill = skillTree.find(s => s.id === `${businessId}_mastery_1`);
-          if (masterySkill && masterySkill.description.includes('level up cost -5%')) { // Example check
-             totalGlobalCostReduction += 5; // Example value
+          if (masterySkill && masterySkill.description.includes('level up cost -5%')) {
+             totalGlobalCostReduction += 5; 
           }
         }
     }
@@ -978,11 +1016,13 @@ export const calculateSingleLevelUpgradeCost = (
 
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
-    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
-    if (hqUpgrade && hqUpgrade.levels) {
-        const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-        if (levelData && levelData.effects.globalCostReductionPercent) {
-            totalGlobalCostReduction += levelData.effects.globalCostReductionPercent;
+    if (purchasedLevel > 0) {
+        const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+        if (hqUpgrade && hqUpgrade.levels) {
+            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+            if (levelData && levelData.effects.globalCostReductionPercent) {
+                totalGlobalCostReduction += levelData.effects.globalCostReductionPercent;
+            }
         }
     }
   }
@@ -1082,11 +1122,13 @@ export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: Ski
   
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
-    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
-    if (hqUpgrade && hqUpgrade.levels) {
-        const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-        if (levelData && levelData.effects.increaseStartingMoney) {
-            bonus += levelData.effects.increaseStartingMoney;
+    if (purchasedLevel > 0) {
+        const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+        if (hqUpgrade && hqUpgrade.levels) {
+            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+            if (levelData && levelData.effects.increaseStartingMoney) {
+                bonus += levelData.effects.increaseStartingMoney;
+            }
         }
     }
   }
@@ -1104,11 +1146,13 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
   
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
-    const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
-    if (hqUpgrade && hqUpgrade.levels) {
-        const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-        if (levelData && levelData.effects.globalPrestigePointBoostPercent) {
-            boostPercent += levelData.effects.globalPrestigePointBoostPercent;
+     if (purchasedLevel > 0) {
+        const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
+        if (hqUpgrade && hqUpgrade.levels) {
+            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+            if (levelData && levelData.effects.globalPrestigePointBoostPercent) {
+                boostPercent += levelData.effects.globalPrestigePointBoostPercent;
+            }
         }
     }
   }
@@ -1133,7 +1177,7 @@ export const calculateDiminishingPrestigePoints = (totalLevels: number): number 
 };
 
 export const getCostForNthPoint = (n: number): number => {
-  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST; // Should not happen if n is 1-indexed
+  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST;
   return PRESTIGE_BASE_LEVEL_COST + (n - 1) * PRESTIGE_LEVEL_COST_INCREMENT;
 };
 

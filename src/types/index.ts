@@ -10,7 +10,7 @@ export interface BusinessUpgrade {
   isPurchased: boolean;
   incomeBoostPercent?: number;
   levelUpgradeCostReductionPercent?: number;
-  // Removed: unlocksBulkBuy?: true; // This is now a skill effect for specific business
+  unlocksBulkBuy?: true;
 }
 
 export interface Business {
@@ -54,7 +54,7 @@ export interface SkillNodeEffects {
   increaseMaxBusinessLevelBy?: number;
   unlocksBulkBuyForBusiness?: string;
   autoBuyUpgradesForBusiness?: string;
-  globalPrestigePointBoostPercent?: number; // Added for consistency if HQ also provides it
+  globalPrestigePointBoostPercent?: number;
 }
 
 export interface SkillNode {
@@ -73,7 +73,8 @@ export interface HQUpgradeEffects {
   increaseStartingMoney?: number;
   globalDividendYieldBoostPercent?: number;
   globalPrestigePointBoostPercent?: number;
-  // Add other global effects as needed
+  retainBusinessLevelPercent?: number;
+  retainStockSharesPercent?: number;
 }
 
 export interface HQUpgradeLevel {

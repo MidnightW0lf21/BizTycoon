@@ -151,7 +151,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const savedUpg = savedBusiness?.upgrades?.find(su => su.id === initialUpg.id);
             return { ...initialUpg, isPurchased: savedUpg ? savedUpg.isPurchased : false };
           }) || [],
-          icon: initialBiz.icon, // Ensure icon is always from config
+          icon: initialBiz.icon,
         };
       }));
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
@@ -215,7 +215,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   const savedUpgData = savedBusinessState?.upgrades?.find(su => su.id === initialUpg.id);
                   return { ...initialUpg, isPurchased: savedUpgData ? savedUpgData.isPurchased : false };
                 }) || [],
-                icon: initialBiz.icon, // Ensure icon is always from config
+                icon: initialBiz.icon, 
               };
           });
         });
@@ -315,11 +315,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     for (const hqId in playerStats.hqUpgradeLevels) {
         const purchasedLevel = playerStats.hqUpgradeLevels[hqId];
-        const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
-        if (hqUpgrade && hqUpgrade.levels) {
-            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-            if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
-                globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent;
+        if (purchasedLevel > 0) {
+            const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
+            if (hqUpgrade && hqUpgrade.levels) {
+                const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+                if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
+                    globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent;
+                }
             }
         }
     }
@@ -341,8 +343,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!businessToUpdate || !businessToUpdate.upgrades) return false;
 
     const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
-    if (businessIndexInConfig === -1 && !isAutoBuy) return false; 
-
     if (playerStats.timesPrestiged < businessIndexInConfig && !isAutoBuy) {
       toast({ title: "Locked", description: `This business unlocks after ${businessIndexInConfig} prestige(s).`, variant: "destructive"});
       return false;
@@ -441,7 +441,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         currentMoneySnapshot -= actualCost;
                         purchasedInThisTick = true;
                         businessChanged = true;
-                        toast({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
+                        // Using a simpler toast for auto-buy to avoid spamming purchaseBusinessUpgrade's toast
+                        // toast({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
                         return { ...upgrade, isPurchased: true };
                     }
                 }
@@ -459,7 +460,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPlayerStats(prev => ({ ...prev, money: currentMoneySnapshot }));
       setBusinesses(updatedBusinesses);
     }
-  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState, toast ]);
+  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState]);
 
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
@@ -467,8 +468,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!businessToUpdate) return;
 
     const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
-    // if (businessIndexInConfig === -1) return; // This check might be too strict if businesses can be added dynamically later
-
     if (playerStats.timesPrestiged < businessIndexInConfig) {
        toast({ title: "Locked", description: `This business unlocks after prestiging ${businessIndexInConfig} time(s). (Currently: ${playerStats.timesPrestiged})`, variant: "destructive"});
        return;
@@ -602,23 +601,69 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState);
     moneyAfterPrestige += startingMoneyBonus;
 
+    let totalBusinessLevelRetentionPercent = 0;
+    let totalStockSharesRetentionPercent = 0;
+
+    for (const hqId in playerStats.hqUpgradeLevels) {
+      const purchasedLevel = playerStats.hqUpgradeLevels[hqId];
+      if (purchasedLevel > 0) {
+        const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
+        if (hqUpgrade && hqUpgrade.levels) {
+          const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+          if (levelData) {
+            if (levelData.effects.retainBusinessLevelPercent) {
+              totalBusinessLevelRetentionPercent += levelData.effects.retainBusinessLevelPercent;
+            }
+            if (levelData.effects.retainStockSharesPercent) {
+              totalStockSharesRetentionPercent += levelData.effects.retainStockSharesPercent;
+            }
+          }
+        }
+      }
+    }
+    totalBusinessLevelRetentionPercent = Math.min(100, totalBusinessLevelRetentionPercent);
+    totalStockSharesRetentionPercent = Math.min(100, totalStockSharesRetentionPercent);
+
+    const retainedBusinessLevels: Record<string, number> = {};
+    if (totalBusinessLevelRetentionPercent > 0) {
+      businesses.forEach(biz => {
+        retainedBusinessLevels[biz.id] = Math.floor(biz.level * (totalBusinessLevelRetentionPercent / 100));
+      });
+    }
+
+    const retainedStockHoldings: StockHolding[] = [];
+    if (totalStockSharesRetentionPercent > 0) {
+      playerStats.stockHoldings.forEach(holding => {
+        const sharesToRetain = Math.floor(holding.shares * (totalStockSharesRetentionPercent / 100));
+        if (sharesToRetain > 0) {
+          retainedStockHoldings.push({
+            stockId: holding.stockId,
+            shares: sharesToRetain,
+            averagePurchasePrice: holding.averagePurchasePrice, // Retain original avg price
+          });
+        }
+      });
+    }
+
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
-      investmentsValue: 0,
-      stockHoldings: [],
+      investmentsValue: 0, // Will be recalculated
+      stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      // unlockedSkillIds are kept
-      // hqUpgradeLevels are kept
+      // unlockedSkillIds & hqUpgradeLevels are kept
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
-      ...biz, level: 0, managerOwned: false,
+      ...biz, 
+      level: retainedBusinessLevels[biz.id] || 0, 
+      managerOwned: false, // Managers are reset
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
       icon: biz.icon,
     })));
-    toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Game reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
+
+    toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
   }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
 
   const unlockSkillNode = (skillId: string) => {
