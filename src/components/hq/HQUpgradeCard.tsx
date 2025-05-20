@@ -5,7 +5,7 @@ import type { HQUpgrade, HQUpgradeLevel } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LockKeyhole, CheckCircle2, Sparkles, DollarSign, Building, TrendingUp, ChevronsUp } from "lucide-react";
+import { LockKeyhole, CheckCircle2, Sparkles, Building, TrendingUp, ChevronsUp } from "lucide-react"; // Removed DollarSign as it's handled by toLocaleString
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -129,15 +129,16 @@ export function HQUpgradeCard({
               <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="flex items-center gap-1 font-semibold">
-                  <DollarSign className="h-4 w-4 text-green-500" />
-                  {nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <div className="flex items-center gap-2 font-semibold text-right"> {/* Changed to gap-2 and text-right for better spacing */}
+                  <span className="text-green-500">
+                    {nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  </span>
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
-                    <>
-                      <span className="text-muted-foreground mx-1">+</span>
-                      <Sparkles className="h-4 w-4 text-amber-400" />
-                      {nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP
-                    </>
+                    <div className="flex items-center gap-1"> {/* Group PP cost together */}
+                      <span className="text-muted-foreground font-normal mx-0.5">+</span>
+                      <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                      <span>{nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -168,7 +169,7 @@ export function HQUpgradeCard({
                   {isMaxed ? (
                     <> <CheckCircle2 className="mr-2 h-4 w-4"/> Max Level</>
                   ) : (
-                    <> <ChevronsUp className="mr-2 h-4 w-4" /> Upgrade to Level {currentLevel + 1} </>
+                    <> <ChevronsUp className="mr-2 h-4 w-4" /> Upgrade to Level {nextLevelData ? nextLevelData.level : currentLevel + 1} </>
                   )}
                 </Button>
               </div>
@@ -188,3 +189,5 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
+
+    
