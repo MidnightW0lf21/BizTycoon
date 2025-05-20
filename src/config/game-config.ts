@@ -1,8 +1,9 @@
 
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel } from '@/types';
 import {
-  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem
-} from 'lucide-react';
+  Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem,
+  Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recyclable, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, Galactic, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye
+} from 'lucide-react'; // Added many new icons, removed Milestones (plural)
 
 export const INITIAL_MONEY = 10;
 export const MAX_BUSINESS_LEVEL = 100; // Base max level
@@ -22,7 +23,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1,
     baseCost: 10,
-    upgradeCostMultiplier: 1.07,
+    upgradeCostMultiplier: 1.075, // Slightly reduced from 1.06
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
@@ -43,7 +44,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5,
     baseCost: 100,
-    upgradeCostMultiplier: 1.13,
+    upgradeCostMultiplier: 1.13, // Slightly reduced from 1.12
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
@@ -64,7 +65,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.12,
+    upgradeCostMultiplier: 1.125, // Slightly reduced from 1.11
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -85,7 +86,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.11,
+    upgradeCostMultiplier: 1.115, // Slightly reduced
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -106,7 +107,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.14,
+    upgradeCostMultiplier: 1.14, // Slightly reduced
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -127,7 +128,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.13,
+    upgradeCostMultiplier: 1.135, // Slightly reduced
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -148,7 +149,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.12,
+    upgradeCostMultiplier: 1.125, // Slightly reduced
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -163,13 +164,13 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 're_international_clients', name: 'International Client Network', description: 'Expand market reach globally, +22% income.', cost: 70000, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 22 },
     ],
   },
-  { 
+  {
     id: 'ad_agency',
     name: 'Boutique Ad Agency',
     level: 0,
     baseIncome: 300,
     baseCost: 25000,
-    upgradeCostMultiplier: 1.115,
+    upgradeCostMultiplier: 1.11, // Adjusted
     icon: Megaphone,
     managerOwned: false,
     description: 'Crafting compelling campaigns for high-profile clients.',
@@ -190,7 +191,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 350,
     baseCost: 30000,
-    upgradeCostMultiplier: 1.115,
+    upgradeCostMultiplier: 1.11,
     icon: Tv,
     managerOwned: false,
     description: 'Binge-worthy content for global audiences.',
@@ -211,7 +212,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.11,
+    upgradeCostMultiplier: 1.115, // Slightly reduced
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -232,7 +233,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.105,
+    upgradeCostMultiplier: 1.11, // Slightly reduced
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -253,7 +254,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.10,
+    upgradeCostMultiplier: 1.105, // Slightly reduced
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -274,7 +275,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.095,
+    upgradeCostMultiplier: 1.1, // Slightly reduced
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -295,7 +296,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.09,
+    upgradeCostMultiplier: 1.095, // Slightly reduced
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -316,7 +317,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.085,
+    upgradeCostMultiplier: 1.09, // Slightly reduced
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -337,7 +338,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.08,
+    upgradeCostMultiplier: 1.085, // Slightly reduced
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -352,13 +353,13 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gsn_weather_routing_systems', name: 'Advanced Weather Routing Systems', description: 'Optimize routes, save fuel, -7% level cost.', cost: 3000000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
     ],
   },
-  { 
+  {
     id: 'drone_delivery_service',
     name: 'AeroSwift Delivery',
     level: 0,
     baseIncome: 9000,
     baseCost: 900000,
-    upgradeCostMultiplier: 1.075,
+    upgradeCostMultiplier: 1.08, // Adjusted
     icon: Navigation,
     managerOwned: false,
     description: 'Ultrafast, automated drone delivery for the modern age.',
@@ -371,7 +372,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'dds_urban_air_traffic_control_integration', name: 'Urban Air Traffic Control Integration', description: 'Safer city operations, +10% income.', cost: 5500000, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'dds_package_sorting_robotics', name: 'Robotic Package Sorting Hubs', description: 'Faster ground processing, -5% level cost.', cost: 6500000, requiredLevel: 35, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
       { id: 'dds_long_range_battery_tech', name: 'Next-Gen Long-Range Battery Tech', description: 'Further extended operational range, +12% income.', cost: 7500000, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 12 },
-    ],
+    ]
   },
   {
     id: 'ai_research_lab',
@@ -379,7 +380,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.075,
+    upgradeCostMultiplier: 1.08, // Slightly reduced
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -400,7 +401,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.07,
+    upgradeCostMultiplier: 1.075, // Slightly reduced
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -421,7 +422,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.065,
+    upgradeCostMultiplier: 1.07, // Slightly reduced
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -442,7 +443,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 30000,
     baseCost: 4000000,
-    upgradeCostMultiplier: 1.06,
+    upgradeCostMultiplier: 1.068, // Adjusted
     icon: Radio,
     managerOwned: false,
     description: 'Global news, entertainment, and digital content.',
@@ -463,7 +464,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 45000,
     baseCost: 6000000,
-    upgradeCostMultiplier: 1.055,
+    upgradeCostMultiplier: 1.065, // Slightly reduced
     icon: Cog,
     managerOwned: false,
     description: 'Advanced robotics for industrial and consumer markets.',
@@ -484,7 +485,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 70000,
     baseCost: 10000000,
-    upgradeCostMultiplier: 1.05,
+    upgradeCostMultiplier: 1.062, // Slightly reduced
     icon: Sigma,
     managerOwned: false,
     description: 'Pioneering quantum computation for a new era.',
@@ -499,6 +500,871 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'qls_talent_incubation_program', name: 'Quantum Physicist Incubation Program', description: 'Cultivate next-gen talent, -6% level cost.', cost: 65000000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
     ],
   },
+  // --- End of original 20 businesses ---
+  // --- Start of 30 new businesses ---
+  {
+    id: 'luxury_space_tourism',
+    name: 'Celestial Voyages',
+    level: 0,
+    baseIncome: 120000,
+    baseCost: 18000000,
+    upgradeCostMultiplier: 1.064,
+    icon: Rocket,
+    managerOwned: false,
+    description: 'Exclusive trips to orbit and beyond for the ultra-wealthy.',
+    upgrades: [
+      { id: 'lst_orbital_hotel_partnership', name: 'Orbital Hotel Partnership', description: 'Luxury accommodations in space, +25% income.', cost: 7E7, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'lst_moon_flyby_package', name: 'Lunar Flyby Package', description: 'Once-in-a-lifetime moon trips, +30% income.', cost: 1E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'lst_celebrity_endorsements', name: 'Celebrity Endorsements', description: 'Boost prestige and demand, +15% income.', cost: 1.5E8, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'lst_advanced_life_support', name: 'Advanced Life Support Systems', description: 'Longer duration voyages, -8% level cost.', cost: 2E8, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+      { id: 'lst_zero_g_training_facility', name: 'Zero-G Training Facility', description: 'Prepare clients for space, +10% income.', cost: 1.2E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'lst_private_launch_pad', name: 'Private Launch Pad', description: 'Increased launch frequency, +18% income.', cost: 2.5E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'lst_space_suit_customization', name: 'Designer Space Suits', description: 'Premium add-on, +7% income.', cost: 9E7, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 7 },
+      { id: 'lst_media_rights_deals', name: 'Exclusive Media Rights', description: 'Documentaries and broadcasts from space, +12% income.', cost: 1.8E8, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 12 },
+    ]
+  },
+  {
+    id: 'global_satellite_network',
+    name: 'ConnectSphere Satellites',
+    level: 0,
+    baseIncome: 150000,
+    baseCost: 25000000,
+    upgradeCostMultiplier: 1.063,
+    icon: SatelliteIcon,
+    managerOwned: false,
+    description: 'Providing high-speed internet and data globally via satellite.',
+    upgrades: [
+      { id: 'gsn_next_gen_transponders', name: 'Next-Gen Transponders', description: 'Increased data throughput, +22% income.', cost: 1E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'gsn_laser_communication_links', name: 'Inter-Satellite Laser Links', description: 'Faster global network, +28% income.', cost: 1.5E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'gsn_ground_station_automation', name: 'Automated Ground Stations', description: 'Reduced operational costs, -7% level cost.', cost: 2E8, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+      { id: 'gsn_iot_connectivity_services', name: 'IoT Connectivity Services', description: 'Tap into the booming IoT market, +20% income.', cost: 1.8E8, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'gsn_maritime_aviation_partnerships', name: 'Maritime & Aviation Partnerships', description: 'Connectivity for ships and planes, +15% income.', cost: 2.2E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'gsn_encrypted_data_channels', name: 'Secure Encrypted Channels', description: 'Attract government/corporate clients, +10% income.', cost: 1.6E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gsn_global_coverage_expansion', name: 'Full Global Coverage', description: 'Reach underserved regions, +12% income.', cost: 3E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'gsn_satellite_miniaturization', name: 'Satellite Miniaturization R&D', description: 'Lower launch costs per satellite, -5% level cost.', cost: 2.5E8, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'ai_driven_healthcare',
+    name: 'MediMind AI Clinics',
+    level: 0,
+    baseIncome: 200000,
+    baseCost: 35000000,
+    upgradeCostMultiplier: 1.062,
+    icon: HeartPulse,
+    managerOwned: false,
+    description: 'AI-powered diagnostics and personalized treatment plans.',
+    upgrades: [
+      { id: 'adh_diagnostic_algorithms', name: 'Advanced Diagnostic Algorithms', description: 'Higher accuracy and speed, +30% income.', cost: 1.5E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'adh_robotic_surgery_integration', name: 'Robotic Surgery Assistants', description: 'Precision procedures, +25% income.', cost: 2.2E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'adh_telemedicine_platform', name: 'Global Telemedicine Platform', description: 'Remote consultations, +18% income.', cost: 1.8E8, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'adh_genomic_data_analysis', name: 'Genomic Data Analysis AI', description: 'Personalized medicine breakthroughs, -9% level cost.', cost: 3E8, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+      { id: 'adh_virtual_health_assistants', name: 'AI Virtual Health Assistants', description: '24/7 patient support, +12% income.', cost: 1.6E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'adh_predictive_health_modeling', name: 'Predictive Health Modeling', description: 'Early disease detection services, +15% income.', cost: 2.5E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'adh_clinical_trial_optimization', name: 'AI for Clinical Trial Optimization', description: 'Faster drug development partnerships, +10% income.', cost: 2E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'adh_secure_patient_data_cloud', name: 'HIPAA Compliant Cloud Infrastructure', description: 'Ensures data security and trust, -4% level cost.', cost: 1.2E8, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+    ]
+  },
+  {
+    id: 'advanced_materials_rd',
+    name: 'NovaForge Materials',
+    level: 0,
+    baseIncome: 280000,
+    baseCost: 50000000,
+    upgradeCostMultiplier: 1.061,
+    icon: TestTube,
+    managerOwned: false,
+    description: 'Developing next-generation materials for all industries.',
+    upgrades: [
+      { id: 'amr_graphene_production_scaleup', name: 'Graphene Production Scale-Up', description: 'Revolutionary material applications, +25% income.', cost: 2E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'amr_self_healing_polymers', name: 'Self-Healing Polymers R&D', description: 'Durable and smart materials, +20% income.', cost: 2.8E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'amr_aerospace_composites_lab', name: 'Aerospace Composites Lab', description: 'Lightweight materials for flight, +18% income.', cost: 3.5E8, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'amr_superconductor_research', name: 'High-Temperature Superconductors', description: 'Energy efficiency breakthroughs, -10% level cost.', cost: 4.5E8, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'amr_biomaterials_division', name: 'Biomaterials Division', description: 'Medical implants and tissue engineering, +15% income.', cost: 3E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'amr_computational_material_design', name: 'AI-Driven Material Design', description: 'Faster discovery of new materials, +12% income.', cost: 2.5E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'amr_smart_textiles_integration', name: 'Smart Textiles Integration', description: 'Wearable technology applications, +10% income.', cost: 2.2E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'amr_recyclable_alloys_patent', name: 'Sustainable & Recyclable Alloys', description: 'Eco-friendly material solutions, -6% level cost.', cost: 3.2E8, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'fusion_power_plant',
+    name: 'Helios Fusion Energy',
+    level: 0,
+    baseIncome: 400000,
+    baseCost: 75000000,
+    upgradeCostMultiplier: 1.06,
+    icon: AtomIcon,
+    managerOwned: false,
+    description: 'Harnessing the power of the sun for clean, limitless energy.',
+    upgrades: [
+      { id: 'fpp_tokamak_reactor_upgrade', name: 'Advanced Tokamak Reactor', description: 'Improved plasma confinement, +30% energy output.', cost: 3E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'fpp_tritium_breeding_system', name: 'Tritium Breeding System', description: 'Sustainable fuel cycle, +20% income.', cost: 4.5E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'fpp_cryogenic_cooling_efficiency', name: 'Cryogenic Cooling Efficiency', description: 'Reduced operational costs, -12% level cost.', cost: 5E8, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'fpp_direct_energy_conversion', name: 'Direct Energy Conversion Tech', description: 'Higher electricity generation efficiency, +25% income.', cost: 6E8, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'fpp_stellarator_research_wing', name: 'Stellarator Research Wing', description: 'Alternative fusion confinement R&D, +10% income.', cost: 3.5E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'fpp_grid_integration_protocol', name: 'Global Grid Integration Protocol', description: 'Sell power internationally, +15% income.', cost: 4E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'fpp_robotic_maintenance_units', name: 'Robotic Maintenance Units', description: 'Safer and faster reactor upkeep, -5% level cost.', cost: 2.5E8, requiredLevel: 35, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'fpp_fusion_rocket_propulsion_study', name: 'Fusion Rocket Propulsion Study', description: 'Spin-off space tech research, +8% income.', cost: 3.2E8, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 8 },
+    ]
+  },
+  {
+    id: 'interstellar_trading_guild',
+    name: 'Cosmic Cartel Traders',
+    level: 0,
+    baseIncome: 550000,
+    baseCost: 1.2E8,
+    upgradeCostMultiplier: 1.059,
+    icon: Globe,
+    managerOwned: false,
+    description: 'Facilitating trade of exotic goods across star systems.',
+    upgrades: [
+      { id: 'itg_ftl_cargo_ships', name: 'Faster-Than-Light Cargo Fleet', description: 'Rapid interstellar deliveries, +28% income.', cost: 5E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'itg_xeno_linguistics_dept', name: 'Xeno-Linguistics Department', description: 'Negotiate with alien civilizations, +22% income.', cost: 6.5E8, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'itg_secure_trade_routes_patent', name: 'Patented Secure Trade Routes', description: 'Monopolize key routes, +18% income.', cost: 8E8, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'itg_automated_customs_clearance', name: 'Automated Interstellar Customs', description: 'Reduced tariffs and delays, -11% level cost.', cost: 9E8, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 11 },
+      { id: 'itg_rare_resource_extraction_rights', name: 'Exclusive Rare Resource Rights', description: 'Control supply of valuable materials, +15% income.', cost: 7E8, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'itg_anti_piracy_security_fleet', name: 'Anti-Piracy Security Fleet', description: 'Protect valuable cargo, +10% income.', cost: 5.5E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'itg_galactic_market_analysis_ai', name: 'Galactic Market Analysis AI', description: 'Predict interstellar market trends, +12% income.', cost: 6E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'itg_diplomatic_relations_branch', name: 'Inter-Species Diplomatic Branch', description: 'Forge new trade agreements, -6% level cost.', cost: 4E8, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'virtual_reality_worlds',
+    name: 'Elysian VR Realms',
+    level: 0,
+    baseIncome: 750000,
+    baseCost: 2E8,
+    upgradeCostMultiplier: 1.058,
+    icon: Headset,
+    managerOwned: false,
+    description: 'Creating and hosting immersive, persistent virtual universes.',
+    upgrades: [
+      { id: 'vrw_haptic_suit_integration', name: 'Full-Body Haptic Suit Integration', description: 'Total immersion experiences, +30% income.', cost: 8E8, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'vrw_ai_npc_ecosystem', name: 'Advanced AI NPC Ecosystems', description: 'Dynamic and believable worlds, +25% income.', cost: 1.1E9, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'vrw_user_content_creation_tools', name: 'User Content Creation Platform', description: 'Expand worlds with user creativity, +20% income.', cost: 1.5E9, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'vrw_neural_link_beta_access', name: 'Neural Link Beta Program', description: 'Direct brain-computer interface, -12% level cost.', cost: 2E9, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'vrw_virtual_economies_marketplace', name: 'In-World Virtual Economies', description: 'Trade of virtual goods and services, +15% income.', cost: 1.2E9, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'vrw_global_esports_league', name: 'VR eSports League Hosting', description: 'Massive online competitions, +12% income.', cost: 9E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'vrw_procedural_world_generation', name: 'Infinite Procedural World Generation', description: 'Endless content, +10% income.', cost: 1.8E9, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'vrw_server_optimization_tech', name: 'Quantum Entangled Server Network', description: 'Zero-latency VR experience, -7% level cost.', cost: 1.4E9, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'neural_interface_tech',
+    name: 'Synapse Dynamics',
+    level: 0,
+    baseIncome: 1000000,
+    baseCost: 3.5E8,
+    upgradeCostMultiplier: 1.057,
+    icon: BrainIcon,
+    managerOwned: false,
+    description: 'Developing direct brain-computer interface technologies.',
+    upgrades: [
+      { id: 'nit_non_invasive_bci', name: 'Non-Invasive BCI Headsets', description: 'Mass-market brain interfaces, +28% income.', cost: 1.2E9, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'nit_thought_to_text_software', name: 'Thought-to-Text Software Suite', description: 'Revolutionize communication, +24% income.', cost: 1.8E9, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'nit_neural_prosthetics_division', name: 'Advanced Neural Prosthetics', description: 'Restore lost senses and motor functions, +20% income.', cost: 2.5E9, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'nit_memory_enhancement_research', name: 'Memory Enhancement Research', description: 'Cognitive augmentation tech, -10% level cost.', cost: 3E9, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'nit_dream_recording_technology', name: 'Dream Recording & Playback', description: 'Unlock the subconscious, +14% income.', cost: 2.2E9, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'nit_ai_assisted_neural_mapping', name: 'AI-Assisted Neural Mapping', description: 'Personalized BCI calibration, +11% income.', cost: 1.5E9, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 11 },
+      { id: 'nit_ethical_guidelines_board', name: 'BCI Ethical Guidelines Board', description: 'Ensure responsible development, +5% income.', cost: 8E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 5 },
+      { id: 'nit_data_compression_algorithms', name: 'Neural Data Compression', description: 'Efficient BCI data transfer, -6% level cost.', cost: 1.9E9, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'autonomous_megafactories',
+    name: 'AutoCorp Industries',
+    level: 0,
+    baseIncome: 1500000,
+    baseCost: 6E8,
+    upgradeCostMultiplier: 1.056,
+    icon: BotIcon,
+    managerOwned: false,
+    description: 'Fully autonomous, AI-run manufacturing mega-complexes.',
+    upgrades: [
+      { id: 'amf_lights_out_manufacturing', name: 'True Lights-Out Manufacturing', description: '24/7 automated production, +35% income.', cost: 2E9, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'amf_ai_supply_chain_management', name: 'AI-Managed Global Supply Chain', description: 'Self-optimizing logistics, +25% income.', cost: 2.8E9, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'amf_on_demand_custom_fabrication', name: 'On-Demand Custom Fabrication', description: 'Produce any design instantly, +20% income.', cost: 3.5E9, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'amf_self_replicating_machinery_r_d', name: 'Self-Replicating Machinery R&D', description: 'Factories that build factories, -15% level cost.', cost: 5E9, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 15 },
+      { id: 'amf_zero_waste_recycling_systems', name: 'Closed-Loop Zero Waste Systems', description: 'Total material efficiency, +10% income.', cost: 2.2E9, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'amf_global_production_network', name: 'Decentralized Production Network', description: 'Distributed autonomous factories, +18% income.', cost: 4E9, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'amf_predictive_maintenance_ai', name: 'AI Predictive Maintenance', description: 'Eliminate downtime, -5% level cost.', cost: 1.8E9, requiredLevel: 35, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'amf_quantum_computing_optimization', name: 'Quantum Process Optimization', description: 'Unparalleled manufacturing efficiency, +12% income.', cost: 3E9, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 12 },
+    ]
+  },
+  {
+    id: 'oceanic_colonization_project',
+    name: 'AquaDom Settlements',
+    level: 0,
+    baseIncome: 2200000,
+    baseCost: 1E9,
+    upgradeCostMultiplier: 1.055,
+    icon: Anchor,
+    managerOwned: false,
+    description: 'Building sustainable, advanced cities beneath the waves.',
+    upgrades: [
+      { id: 'ocp_bio_domes_construction', name: 'Self-Sustaining Bio-Domes', description: 'Underwater habitats, +30% income.', cost: 3.5E9, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'ocp_deep_sea_resource_extraction', name: 'Deep-Sea Mining Operations', description: 'Untapped mineral wealth, +28% income.', cost: 5E9, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'ocp_aquaculture_automation', name: 'Automated Aquaculture Farms', description: 'Sustainable food source, +15% income.', cost: 2.8E9, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ocp_hydrothermal_power_generation', name: 'Hydrothermal Vent Power Plants', description: 'Clean, abundant energy, -10% level cost.', cost: 6E9, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'ocp_submarine_transport_network', name: 'High-Speed Submarine Network', description: 'Connect underwater cities, +12% income.', cost: 4E9, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'ocp_marine_biology_research_institute', name: 'Oceanographic Research Institute', description: 'Discover new marine life and tech, +10% income.', cost: 3.2E9, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ocp_pressure_resistant_materials', name: 'Advanced Pressure-Resistant Materials', description: 'Build deeper and larger structures, +16% income.', cost: 5.5E9, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'ocp_artificial_reef_tourism', name: 'Luxury Artificial Reef Tourism', description: 'Unique underwater attractions, +8% income.', cost: 2.5E9, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 8 },
+    ]
+  },
+  // Tier 30+
+  {
+    id: 'dyson_sphere_engineering',
+    name: 'SolaraConstruct Dyson',
+    level: 0,
+    baseIncome: 3500000,
+    baseCost: 1.8E9,
+    upgradeCostMultiplier: 1.054,
+    icon: SunIcon,
+    managerOwned: false,
+    description: 'Constructing megastructures to harness total stellar output.',
+    upgrades: [
+      { id: 'dse_swarm_construction_bots', name: 'Von Neumann Construction Swarm', description: 'Exponential self-replicating builders, +40% income.', cost: 7E9, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 40 },
+      { id: 'dse_exotic_material_synthesis', name: 'On-Site Exotic Material Synthesis', description: 'Produce unobtainium for construction, +25% income.', cost: 1E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'dse_gravitic_stabilization_systems', name: 'Gravitic Stabilization Grid', description: 'Maintain structural integrity of sphere, -15% level cost.', cost: 1.5E10, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 15 },
+      { id: 'dse_energy_beaming_network', name: 'Interstellar Energy Beaming', description: 'Power distant colonies wirelessly, +20% income.', cost: 1.2E10, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'dse_computronium_core_integration', name: 'Computronium Core for Sphere AI', description: 'Planetary-scale intelligence managing system, +15% income.', cost: 9E9, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'dse_habitat_module_installation', name: 'Internal Habitat Modules', description: 'House trillions within the sphere, +10% income.', cost: 8E9, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'dse_stellar_uplift_research', name: 'Stellar Upliftment Research', description: 'Extend star lifespan for prolonged power, +12% income.', cost: 1.1E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'dse_multi_system_deployment_strategy', name: 'Multi-System Dyson Swarm Strategy', description: 'Expand to other star systems, -8% level cost.', cost: 6E9, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+    ]
+  },
+  {
+    id: 'galactic_stock_exchange',
+    name: 'Galactic Exchange Authority',
+    level: 0,
+    baseIncome: 5000000,
+    baseCost: 3E9,
+    upgradeCostMultiplier: 1.053,
+    icon: LineChart,
+    managerOwned: false,
+    description: 'The central hub for all interstellar financial transactions.',
+    upgrades: [
+      { id: 'gse_quantum_entanglement_trading', name: 'Quantum Entanglement Trading Network', description: 'Instantaneous trades across galaxy, +30% income.', cost: 1.2E10, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'gse_ai_fraud_detection_grid', name: 'AI-Powered Universal Fraud Detection', description: 'Ensures market stability and trust, +20% income.', cost: 1.8E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'gse_universal_currency_standard', name: 'Universal Galactic Credit Standard', description: 'Streamlines all interstellar commerce, +25% income.', cost: 2.5E10, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'gse_exoplanet_resource_futures', name: 'Exoplanet Resource Futures Market', description: 'Speculate on unexploited worlds, -10% level cost.', cost: 3E10, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'gse_dark_matter_commodities_desk', name: 'Dark Matter Commodities Trading', description: 'Trade in exotic energy sources, +18% income.', cost: 2E10, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'gse_algorithmic_high_frequency_trading', name: 'AI Algorithmic Trading Division', description: 'Optimize galactic market making, +12% income.', cost: 1.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'gse_interstellar_ipo_underwriting', name: 'Interstellar IPO Underwriting', description: 'Launch new galactic megacorps, +10% income.', cost: 1.6E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gse_regulatory_compliance_ai', name: 'AI Galactic Regulatory Compliance', description: 'Navigate complex trade laws, -5% level cost.', cost: 1E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'universal_translation_services',
+    name: 'Babel Link Universal',
+    level: 0,
+    baseIncome: 6800000,
+    baseCost: 5E9,
+    upgradeCostMultiplier: 1.052,
+    icon: Languages,
+    managerOwned: false,
+    description: 'Real-time translation for all known galactic languages.',
+    upgrades: [
+      { id: 'uts_neural_translation_implants', name: 'Neural Translation Implants', description: 'Seamless understanding for everyone, +35% income.', cost: 2E10, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'uts_ancient_alien_language_decryption', name: 'Ancient Alien Language Decryption', description: 'Unlock lost knowledge and tech, +25% income.', cost: 3E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'uts_ai_cultural_nuance_engine', name: 'AI Cultural Nuance Engine', description: 'Prevent diplomatic incidents, +15% income.', cost: 2.2E10, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'uts_non_verbal_communication_analysis', name: 'Non-Verbal Communication Analysis', description: 'Understand alien body language, -8% level cost.', cost: 4E10, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+      { id: 'uts_universal_translator_app_store', name: 'Universal Translator App Store', description: 'Subscription model for basic users, +12% income.', cost: 1.8E10, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'uts_inter_species_diplomacy_contracts', name: 'Diplomatic Translation Contracts', description: 'Serve galactic federations, +18% income.', cost: 3.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'uts_art_music_translation_algorithms', name: 'Art & Music Translation AI', description: 'Share culture across species, +10% income.', cost: 2.8E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'uts_emergency_broadcast_translation', name: 'Galactic Emergency Broadcast System', description: 'Crucial for interspecies safety, -4% level cost.', cost: 1.5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+    ]
+  },
+  {
+    id: 'planetary_terraforming_corp',
+    name: 'Genesis TerraCorp',
+    level: 0,
+    baseIncome: 9000000,
+    baseCost: 8E9,
+    upgradeCostMultiplier: 1.051,
+    icon: SproutIcon,
+    managerOwned: false,
+    description: 'Transforming barren worlds into habitable Edens.',
+    upgrades: [
+      { id: 'ptc_atmospheric_processors_fleet', name: 'Atmospheric Processor Fleet', description: 'Rapidly alter planetary climates, +30% income.', cost: 3E10, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'ptc_gravity_manipulation_tech', name: 'Gravity Manipulation Generators', description: 'Adjust planetary gravity to Earth-like, +28% income.', cost: 4.5E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'ptc_bioengineered_ecosystems_deployment', name: 'Bioengineered Ecosystem Seeding', description: 'Introduce tailored flora and fauna, +20% income.', cost: 3.8E10, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ptc_asteroid_impact_diversion_system', name: 'Planetary Shield Network', description: 'Protect terraforming projects, -12% level cost.', cost: 6E10, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'ptc_water_ice_comet_harvesting', name: 'Comet Ice Harvesting Fleet', description: 'Deliver water to arid worlds, +15% income.', cost: 2.5E10, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ptc_real_estate_development_arm', name: 'Terraformed World Real Estate', description: 'Sell prime planetary real estate, +18% income.', cost: 5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'ptc_long_term_climate_stabilization_ai', name: 'AI Climate Stabilization Grid', description: 'Maintain habitable conditions for millennia, +10% income.', cost: 3.2E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ptc_seed_vault_ark_program', name: 'Interstellar Seed Vault Program', description: 'Preserve biodiversity for new worlds, -5% level cost.', cost: 2E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'sentient_ai_consultancy',
+    name: 'Oracle AI Solutions',
+    level: 0,
+    baseIncome: 12500000,
+    baseCost: 1.3E10,
+    upgradeCostMultiplier: 1.05,
+    icon: UserCheck,
+    managerOwned: false,
+    description: 'Providing strategic advice from benevolent superintelligences.',
+    upgrades: [
+      { id: 'sac_predictive_analytics_suite', name: 'Hyper-Accurate Predictive Analytics', description: 'Forecast galactic events with precision, +35% income.', cost: 5E10, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'sac_ai_driven_research_discovery', name: 'AI-Accelerated Scientific Discovery', description: 'Solve humanitys greatest challenges, +30% income.', cost: 7E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'sac_global_economic_optimization', name: 'AI Global Economic Optimization', description: 'Advise planetary governments, +20% income.', cost: 6E10, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'sac_ethical_ai_governance_framework', name: 'Ethical AI Governance Frameworks', description: 'Ensure safe AI deployment, -10% level cost.', cost: 8E10, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'sac_creative_ai_content_generation', name: 'AI-Generated Art & Entertainment', description: 'Infinite novel content creation, +15% income.', cost: 4E10, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'sac_personalized_education_ai', name: 'AI Tutors for Universal Education', description: 'Revolutionize learning, +12% income.', cost: 3.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'sac_crisis_management_simulation', name: 'AI Crisis Simulation & Response', description: 'Prepare for any eventuality, +10% income.', cost: 5.5E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'sac_sentience_containment_protocols', name: 'Sentience Containment & Safety', description: 'Safeguard against rogue AI, -5% level cost.', cost: 2.5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'exotic_matter_research',
+    name: 'DimensionX Labs',
+    level: 0,
+    baseIncome: 17000000,
+    baseCost: 2E10,
+    upgradeCostMultiplier: 1.049,
+    icon: Beaker,
+    managerOwned: false,
+    description: 'Studying and harnessing particles and forces beyond known physics.',
+    upgrades: [
+      { id: 'emr_dark_energy_harvesting', name: 'Dark Energy Siphoning Tech', description: 'Tap into vacuum energy, +30% income.', cost: 7E10, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'emr_stable_exotic_particle_containment', name: 'Exotic Particle Containment Fields', description: 'Safely study new matter states, +25% income.', cost: 9E10, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'emr_warp_drive_prototype', name: 'Alcubierre Drive Prototype', description: 'True FTL travel breakthroughs, +22% income.', cost: 1.2E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'emr_dimensional_gateway_experiments', name: 'Interdimensional Gateway R&D', description: 'Explore parallel universes, -14% level cost.', cost: 1.5E11, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 14 },
+      { id: 'emr_zero_point_energy_extraction', name: 'Zero-Point Energy Modules', description: 'Limitless clean energy source, +18% income.', cost: 8E10, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'emr_chroniton_particle_manipulation', name: 'Chroniton Particle Studies', description: 'Potential temporal distortion research, +10% income.', cost: 6E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'emr_anti_gravity_plating', name: 'Anti-Gravity Plating', description: 'Revolutionize transportation and construction, +14% income.', cost: 1E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'emr_consciousness_field_theory', name: 'Unified Consciousness Field Theory', description: 'Explore fundamental nature of reality, -7% level cost.', cost: 5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'hyperspace_travel_agency',
+    name: 'JumpPoint Navigators',
+    level: 0,
+    baseIncome: 23000000,
+    baseCost: 3.2E10,
+    upgradeCostMultiplier: 1.048,
+    icon: Milestone, // Corrected from Milestones
+    managerOwned: false,
+    description: 'Charting and selling access to stable hyperspace routes.',
+    upgrades: [
+      { id: 'hta_hyperspace_lane_mapping_drones', name: 'AI Hyperspace Lane Cartography', description: 'Discover new, faster routes, +28% income.', cost: 1E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'hta_luxury_hyperspace_liners', name: 'Luxury Hyperspace Liners', description: 'Comfortable intergalactic travel, +24% income.', cost: 1.4E11, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'hta_hyperspace_beacon_network', name: 'Galaxy-Wide Beacon Network', description: 'Improve navigation safety and speed, +18% income.', cost: 1.8E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'hta_time_dilation_compensation_tech', name: 'Temporal Dilation Compensators', description: 'Reduce relativistic effects for passengers, -9% level cost.', cost: 2.2E11, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+      { id: 'hta_explorer_charter_services', name: 'Deep Space Explorer Charters', description: 'Fund expeditions to unknown regions, +16% income.', cost: 1.5E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'hta_zero_g_entertainment_lounges', name: 'Zero-G Entertainment on Liners', description: 'Premium passenger experience, +10% income.', cost: 1.1E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'hta_hyperspace_physics_research_grant', name: 'Hyperspace Physics Research Grants', description: 'Improve understanding of jump travel, +12% income.', cost: 1.6E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'hta_emergency_hyperspace_escape_pods', name: 'Emergency Jump Pod Systems', description: 'Ultimate passenger safety feature, -4% level cost.', cost: 9E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+    ]
+  },
+  {
+    id: 'custom_genome_design',
+    name: 'BioSynth Creations',
+    level: 0,
+    baseIncome: 30000000,
+    baseCost: 5E10,
+    upgradeCostMultiplier: 1.047,
+    icon: PenTool,
+    managerOwned: false,
+    description: 'Designing bespoke organisms and genetic enhancements.',
+    upgrades: [
+      { id: 'cgd_designer_pets_line', name: 'Genetically Engineered Designer Pets', description: 'Custom companions for the elite, +25% income.', cost: 1.5E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'cgd_enhanced_crop_strains', name: 'Hyper-Productive Crop Strains', description: 'Solve galactic hunger, +22% income.', cost: 2E11, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'cgd_disease_immunity_treatments', name: 'Total Genetic Disease Immunity', description: 'Eradicate hereditary illnesses, +30% income.', cost: 3E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'cgd_ai_gene_synthesis_platform', name: 'AI-Powered Gene Synthesis', description: 'Rapid creation of novel DNA, -11% level cost.', cost: 3.5E11, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 11 },
+      { id: 'cgd_extremophile_terraforming_organisms', name: 'Extremophile Organism Design', description: 'Life for harsh exoplanets, +18% income.', cost: 2.2E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'cgd_cognitive_enhancement_genetics', name: 'Bespoke Cognitive Enhancements', description: 'Tailored intelligence boosts, +14% income.', cost: 2.8E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'cgd_bio_luminescent_art_installations', name: 'Living Bio-Art Installations', description: 'Unique, evolving art forms, +8% income.', cost: 1.2E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'cgd_genetic_data_archive_security', name: 'Secure Genetic Data Vaults', description: 'Protect sensitive client genomes, -5% level cost.', cost: 1.6E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'galactic_archaeology_guild',
+    name: 'XenoChronos Archives',
+    level: 0,
+    baseIncome: 42000000,
+    baseCost: 7.5E10,
+    upgradeCostMultiplier: 1.046,
+    icon: Scroll,
+    managerOwned: false,
+    description: 'Uncovering and preserving relics of ancient alien civilizations.',
+    upgrades: [
+      { id: 'gag_deep_space_artifact_recovery_teams', name: 'Artifact Recovery Starships', description: 'Specialized excavation vessels, +26% income.', cost: 2.5E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 26 },
+      { id: 'gag_ancient_technology_reverse_engineering', name: 'Alien Tech Reverse-Engineering Lab', description: 'Unlock precursor technologies, +32% income.', cost: 3.8E11, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 32 },
+      { id: 'gag_galactic_museum_network_partnerships', name: 'Galactic Museum Network', description: 'Exhibit priceless artifacts, +18% income.', cost: 3E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'gag_carbon_dating_advancements', name: 'Quantum Chronometric Dating', description: 'Accurately date ancient finds, -10% level cost.', cost: 4.5E11, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'gag_lost_civilization_database', name: 'Lost Worlds Database Project', description: 'Catalog extinct cultures, +15% income.', cost: 2.8E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'gag_xeno_anthropology_research_grants', name: 'Xeno-Anthropology Research Grants', description: 'Fund study of alien societies, +10% income.', cost: 2.2E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gag_artifact_preservation_technology', name: 'Advanced Artifact Preservation Fields', description: 'Protect delicate relics indefinitely, +12% income.', cost: 3.2E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'gag_restricted_artifact_auction_house', name: 'Secure Artifact Auction House', description: 'Sell duplicates to private collectors, -6% level cost.', cost: 1.8E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'zero_point_energy_solutions',
+    name: 'Aetheria Energy Dynamics',
+    level: 0,
+    baseIncome: 58000000,
+    baseCost: 1.2E11,
+    upgradeCostMultiplier: 1.045,
+    icon: InfinityIcon,
+    managerOwned: false,
+    description: 'Tapping the limitless energy of the quantum vacuum.',
+    upgrades: [
+      { id: 'zpe_stable_vacuum_energy_extractor', name: 'Stable Vacuum Energy Extractors', description: 'Reliable zero-point power generation, +38% income.', cost: 4E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 38 },
+      { id: 'zpe_miniaturized_zpe_cells', name: 'Miniaturized ZPE Power Cells', description: 'Portable infinite power sources, +30% income.', cost: 5.5E11, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'zpe_spacetime_harmonic_resonance_tuning', name: 'Spacetime Harmonic Resonance Fields', description: 'Optimize energy extraction efficiency, +20% income.', cost: 4.8E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'zpe_safety_containment_protocol_research', name: 'Reality Stabilizer Technology', description: 'Prevent vacuum decay events, -15% level cost.', cost: 7E11, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 15 },
+      { id: 'zpe_powered_terraforming_engines', name: 'ZPE-Powered Terraforming Engines', description: 'Energetically cheap world-shaping, +16% income.', cost: 3.5E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'zpe_personal_shield_generators', name: 'ZPE Personal Shield Generators', description: 'Consumer applications for infinite power, +12% income.', cost: 3E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'zpe_wireless_power_transmission_grid', name: 'Global ZPE Wireless Power Grid', description: 'Ubiquitous energy access, +14% income.', cost: 6E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'zpe_research_grant_philanthropy', name: 'ZPE Research & Safety Foundation', description: 'Public outreach and ethical guidelines, -7% level cost.', cost: 2.5E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  // Tier 40+
+  {
+    id: 'universal_consciousness_network',
+    name: 'The Noosphere Collective',
+    level: 0,
+    baseIncome: 80000000,
+    baseCost: 2E11,
+    upgradeCostMultiplier: 1.044,
+    icon: Share2,
+    managerOwned: false,
+    description: 'Connecting all sentient minds into a shared psychic network.',
+    upgrades: [
+      { id: 'ucn_psionic_amplifier_grid', name: 'Global Psionic Amplifier Network', description: 'Strengthen collective consciousness, +30% income.', cost: 6E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'ucn_telepathic_data_transfer_protocol', name: 'Thought-Speed Data Transfer', description: 'Instantaneous knowledge sharing, +25% income.', cost: 8E11, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'ucn_shared_dreamscape_servers', name: 'Global Shared Dreamscape Servers', description: 'Collaborative dreaming experiences, +20% income.', cost: 7E11, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ucn_mental_privacy_firewalls', name: 'Cognitive Privacy Firewalls', description: 'Protect individual thoughts within network, -10% level cost.', cost: 1E12, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'ucn_collective_problem_solving_ai', name: 'AI-Moderated Collective Intelligence', description: 'Solve intractable problems with group mind, +18% income.', cost: 5E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'ucn_digital_afterlife_integration', name: 'Digital Consciousness Preservation', description: 'Achieve virtual immortality, +15% income.', cost: 9E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ucn_empathic_resonance_therapy', name: 'Universal Empathy Protocols', description: 'Promote galactic peace and understanding, +8% income.', cost: 4E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'ucn_alien_consciousness_integration_research', name: 'Xeno-Consciousness Integration R&D', description: 'Expand network to other species, -6% level cost.', cost: 3E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'ascension_technologies',
+    name: 'Apex Transcendence Corp.',
+    level: 0,
+    baseIncome: 110000000,
+    baseCost: 3.5E11,
+    upgradeCostMultiplier: 1.043,
+    icon: Aperture,
+    managerOwned: false,
+    description: 'Guiding civilizations towards higher states of existence.',
+    upgrades: [
+      { id: 'atc_energy_to_matter_conversion', name: 'Pure Energy Being Transformation', description: 'Physical body transcendence, +33% income.', cost: 9E11, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 33 },
+      { id: 'atc_subspace_awareness_training', name: 'Subspace Consciousness Mapping', description: 'Perceive higher dimensions, +28% income.', cost: 1.2E12, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'atc_bio_digital_phylactery_network', name: 'Distributed Consciousness Phylacteries', description: 'Ensure existential continuity, +22% income.', cost: 1E12, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'atc_reality_stabilization_anchors', name: 'Multiversal Reality Anchors', description: 'Prevent existential threats, -12% level cost.', cost: 1.5E12, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'atc_kardashev_scale_consultancy', name: 'Kardashev Scale Advancement Program', description: 'Guide civilizations up the energy ladder, +18% income.', cost: 8E11, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'atc_cosmic_engineering_templates', name: 'Stellar Engineering Blueprints', description: 'Large-scale cosmic construction projects, +14% income.', cost: 7E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'atc_akashic_record_access_interface', name: 'Akashic Records Interface', description: 'Access to all universal knowledge, +10% income.', cost: 1.1E12, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'atc_post_scarcity_economic_models', name: 'Post-Scarcity Transition Guidance', description: 'Help societies evolve beyond currency, -7% level cost.', cost: 5E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'time_space_manipulation_inc',
+    name: 'ChronoWeave Dynamics',
+    level: 0,
+    baseIncome: 150000000,
+    baseCost: 6E11,
+    upgradeCostMultiplier: 1.042,
+    icon: Orbit,
+    managerOwned: false,
+    description: 'Bending the fabric of spacetime for advanced applications.',
+    upgrades: [
+      { id: 'tsm_temporal_stasis_fields', name: 'Localized Time Stasis Fields', description: 'Preserve objects or slow processes, +30% income.', cost: 1.5E12, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'tsm_wormhole_generation_tech', name: 'Stable Wormhole Junctions', description: 'Instantaneous travel across vast distances, +28% income.', cost: 2.2E12, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'tsm_pocket_dimension_creation', name: 'Pocket Dimension Sanctuaries', description: 'Create extra-dimensional real estate, +24% income.', cost: 2E12, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'tsm_paradox_prevention_algorithms', name: 'Causal Loop Paradox Prevention AI', description: 'Ensure safe temporal manipulation, -13% level cost.', cost: 3E12, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 13 },
+      { id: 'tsm_accelerated_research_bubbles', name: 'Time-Dilated Research Bubbles', description: 'Speed up scientific breakthroughs, +18% income.', cost: 1.2E12, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'tsm_historical_data_retrieval_service', name: 'Chronoscopic Historical Viewing', description: 'Observe past events directly, +12% income.', cost: 1E12, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'tsm_gravity_wave_communication', name: 'Gravitational Wave Comms Array', description: 'FTL communication through spacetime ripples, +10% income.', cost: 1.8E12, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'tsm_spacetime_fabric_repair_tech', name: 'Spacetime Continuum Repair Drones', description: 'Fix tears in reality, -8% level cost.', cost: 8E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+    ]
+  },
+  {
+    id: 'reality_simulation_corp',
+    name: 'Matrix SimuWorlds',
+    level: 0,
+    baseIncome: 200000000,
+    baseCost: 1E12,
+    upgradeCostMultiplier: 1.041,
+    icon: Layers,
+    managerOwned: false,
+    description: 'Creating and managing hyper-realistic simulated realities.',
+    upgrades: [
+      { id: 'rsc_ancestor_simulation_platform', name: 'Full Ancestor Simulation Archives', description: 'Recreate any historical period flawlessly, +32% income.', cost: 2.5E12, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 32 },
+      { id: 'rsc_custom_physics_engine_sandbox', name: 'Bespoke Physics Engine Design', description: 'Simulations with alternative laws of nature, +26% income.', cost: 3.5E12, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 26 },
+      { id: 'rsc_ai_dream_weaving_service', name: 'AI-Curated Personalized Dreamworlds', description: 'Lucid dreaming on demand, +20% income.', cost: 3E12, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'rsc_simulation_hypothesis_research_lab', name: 'Simulation Hypothesis Proof Division', description: 'Investigate the nature of base reality, -11% level cost.', cost: 4.5E12, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 11 },
+      { id: 'rsc_digital_apotheosis_service', name: 'Consciousness Uploading to Simulation', description: 'Become a god in your own reality, +17% income.', cost: 2.8E12, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 17 },
+      { id: 'rsc_multi_sensory_feedback_systems', name: 'Total Sensory Immersion Suites', description: 'Indistinguishable from physical reality, +14% income.', cost: 2.2E12, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'rsc_cross_simulation_event_hosting', name: 'Inter-Sim Event Hosting', description: 'Connect disparate simulated worlds, +9% income.', cost: 1.5E12, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 9 },
+      { id: 'rsc_reality_backup_restore_protocol', name: 'Universal Reality State Backups', description: 'Safeguard against simulation corruption, -5% level cost.', cost: 1E12, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'cosmic_engineering_guild',
+    name: 'StellarForge Megastructures',
+    level: 0,
+    baseIncome: 280000000,
+    baseCost: 1.7E12,
+    upgradeCostMultiplier: 1.04,
+    icon: Construction,
+    managerOwned: false,
+    description: 'Designing and constructing planet-sized and star-sized megastructures.',
+    upgrades: [
+      { id: 'ceg_orbital_ring_construction_system', name: 'Planetary Orbital Ring Systems', description: 'Space elevators and orbital habitats, +30% income.', cost: 4E12, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'ceg_star_lifting_technology', name: 'Stellar Plasma Harvesting', description: 'Extracting materials directly from stars, +28% income.', cost: 5.5E12, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'ceg_matrioshka_brain_blueprints', name: 'Matrioshka Brain Construction', description: 'Star-sized supercomputers, +22% income.', cost: 7E12, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'ceg_self_assembling_nanite_clouds', name: 'Self-Assembling Nanite Construction', description: 'Rapid automated megastructure assembly, -14% level cost.', cost: 8E12, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 14 },
+      { id: 'ceg_artificial_black_hole_containment', name: 'Kugelblitz Power Generation', description: 'Contained black holes as energy source, +18% income.', cost: 4.5E12, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'ceg_terraforming_gas_giant_moons', name: 'Gas Giant Moon Habitats', description: 'Create livable worlds in outer systems, +13% income.', cost: 3.5E12, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 13 },
+      { id: 'ceg_galactic_superhighway_construction', name: 'Hyperspace Bypass Tunnels', description: 'Construct permanent FTL routes, +10% income.', cost: 6E12, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ceg_zero_g_material_refinement_facility', name: 'Orbital Material Refinement', description: 'Perfectly pure alloys and crystals, -7% level cost.', cost: 2.8E12, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'transdimensional_shipping',
+    name: 'SlipStream Couriers',
+    level: 0,
+    baseIncome: 380000000,
+    baseCost: 3E12,
+    upgradeCostMultiplier: 1.039,
+    icon: Truck,
+    managerOwned: false,
+    description: 'Instantaneous cargo delivery through alternate dimensions.',
+    upgrades: [
+      { id: 'tds_bulk_dimensional_translocation', name: 'Bulk Dimensional Translocation', description: 'Move planetary masses through subspace, +30% income.', cost: 6E12, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'tds_reality_anchor_stabilizers', name: 'Dimensional Bleed Stabilizers', description: 'Safe transdimensional transit, +25% income.', cost: 8E12, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'tds_exotic_physics_navigation_systems', name: 'Non-Euclidean Navigators', description: 'Chart paths through chaotic dimensions, +20% income.', cost: 7.5E12, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'tds_dimensional_energy_siphoning', name: 'Cross-Dimensional Energy Harvesting', description: 'Power fleet from other realities, -10% level cost.', cost: 1E13, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'tds_stealth_cloaking_technology', name: 'Phase-Shift Cloaking Drives', description: 'Undetectable dimensional travel, +18% income.', cost: 5E12, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'tds_sentient_cargo_transport_protocols', name: 'Sentient AI Cargo Management', description: 'Optimize logistics with living AI, +14% income.', cost: 4E12, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'tds_emergency_reality_ejection_system', name: 'Emergency Base Reality Ejection', description: 'Escape collapsing dimensions, +8% income.', cost: 3E12, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'tds_multiverse_logistics_mapping', name: 'Quantum Entanglement Logistics AI', description: 'Optimize routes across realities, -6% level cost.', cost: 2.5E12, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'galactic_federation_embassy',
+    name: 'United Galactic Concourse',
+    level: 0,
+    baseIncome: 500000000,
+    baseCost: 5E12,
+    upgradeCostMultiplier: 1.038,
+    icon: Building2,
+    managerOwned: false,
+    description: 'The central diplomatic hub for all member species of the galaxy.',
+    upgrades: [
+      { id: 'gfe_universal_peacekeeping_force_charter', name: 'Galactic Peacekeeper Charter', description: 'Fund interstellar security forces, +28% income.', cost: 1E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'gfe_inter_species_cultural_exchange_program', name: 'Xeno-Cultural Exchange Programs', description: 'Foster understanding and tourism, +22% income.', cost: 1.5E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'gfe_galactic_senate_hosting_rights', name: 'Galactic Senate Chamber Hosting', description: 'Be the center of galactic politics, +20% income.', cost: 1.8E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'gfe_first_contact_protocol_development', name: 'Standardized First Contact Protocols', description: 'Peaceful integration of new species, -9% level cost.', cost: 2.5E13, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+      { id: 'gfe_universal_translator_network_maintenance', name: 'Embassy Translator Corps', description: 'Ensure flawless communication, +16% income.', cost: 8E12, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'gfe_galactic_disaster_relief_fund', name: 'Galactic Disaster Relief Coordination', description: 'Provide aid to worlds in crisis, +12% income.', cost: 6E12, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'gfe_neutral_zone_trade_negotiations', name: 'Neutral Zone Trade Pacts', description: 'Facilitate commerce in contested space, +10% income.', cost: 1.2E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gfe_embassy_security_detail_elite', name: 'Elite Diplomatic Security Force', description: 'Protect high-value ambassadors, -4% level cost.', cost: 5E12, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+    ]
+  },
+  {
+    id: 'omni_dimensional_banking',
+    name: 'OmniBank Interdimensional',
+    level: 0,
+    baseIncome: 580000000,
+    baseCost: 6.5E12,
+    upgradeCostMultiplier: 1.0375,
+    icon: Landmark, // Changed from Bank
+    managerOwned: false,
+    description: 'Secure financial services across multiple realities and timelines.',
+    upgrades: [
+        { id: 'odb_multiverse_asset_portfolio', name: 'Multiverse Asset Management', description: 'Diversify investments across realities, +26% income.', cost: 1.2E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 26 },
+        { id: 'odb_temporal_arbitrage_desk', name: 'Temporal Arbitrage Trading', description: 'Profit from time discrepancies, +23% income.', cost: 1.7E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 23 },
+        { id: 'odb_reality_indexed_currency', name: 'Reality-Stable Crypto', description: 'Currency immune to dimensional shifts, +19% income.', cost: 2E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 19 },
+        { id: 'odb_probability_hedging_instruments', name: 'Causality Hedging Derivatives', description: 'Insure against unlikely events, -9% level cost.', cost: 2.8E13, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+        { id: 'odb_exotic_resource_financing', name: 'Exotic Matter Futures Financing', description: 'Fund speculative resource extraction, +15% income.', cost: 1.5E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+        { id: 'odb_dimensional_breach_insurance', name: 'Dimensional Incursion Insurance', description: 'Protect assets from reality tears, +11% income.', cost: 1.3E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 11 },
+        { id: 'odb_thought_based_transaction_system', name: 'Telepathic Transaction Network', description: 'Instant, secure mental banking, +10% income.', cost: 1.9E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+        { id: 'odb_universal_debt_jubilee_fund', name: 'Galactic Debt Forgiveness Fund', description: 'Stabilize economies for future profit, -4% level cost.', cost: 8E12, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+    ]
+  },
+  {
+    id: 'omniversal_data_archive',
+    name: 'The Akashic Record Inc.',
+    level: 0,
+    baseIncome: 680000000,
+    baseCost: 8.5E12,
+    upgradeCostMultiplier: 1.037,
+    icon: Database,
+    managerOwned: false,
+    description: 'Storing and indexing all information from all realities and timelines.',
+    upgrades: [
+      { id: 'oda_quantum_data_storage_crystals', name: 'Crystalline Quantum Data Storage', description: 'Infinite, incorruptible storage, +30% income.', cost: 2E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'oda_ai_librarian_consciousness', name: 'Sentient AI Archivist Network', description: 'Perfectly indexed universal knowledge, +26% income.', cost: 2.8E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 26 },
+      { id: 'oda_timeline_browsing_interface', name: 'Temporal Event Browsing Interface', description: 'Access data from alternate pasts/futures, +20% income.', cost: 3.5E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'oda_thought_pattern_backup_service', name: 'Universal Consciousness Backup Service', description: 'Digital immortality for subscribers, -11% level cost.', cost: 4.2E13, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 11 },
+      { id: 'oda_restricted_knowledge_vaults_licensing', name: 'Licensed Access to Restricted Data', description: 'Sell access to forbidden knowledge, +17% income.', cost: 1.8E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 17 },
+      { id: 'oda_data_archaeology_division', name: 'Cosmic Data Archaeology Teams', description: 'Recover lost information from dead universes, +13% income.', cost: 1.5E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 13 },
+      { id: 'oda_predictive_history_modeling_service', name: 'Predictive Historiography Dept.', description: 'Model future timelines based on archive, +10% income.', cost: 2.5E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'oda_universal_copyright_enforcement_ai', name: 'AI Copyright Protection Grid', description: 'Monetize all information, -5% level cost.', cost: 1.2E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'philosopher_stone_fabricators',
+    name: 'Aurum Alchemica',
+    level: 0,
+    baseIncome: 900000000,
+    baseCost: 1.4E13,
+    upgradeCostMultiplier: 1.036,
+    icon: Gem, 
+    managerOwned: false,
+    description: 'Transmuting base elements into precious materials and beyond.',
+    upgrades: [
+      { id: 'psf_large_scale_transmutation_arrays', name: 'Planetary-Scale Transmutation Arrays', description: 'Mass production of any element, +33% income.', cost: 3E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 33 },
+      { id: 'psf_energy_to_matter_converters_advanced', name: 'Perfected Energy-Matter Conversion', description: 'Create matter from pure energy, +28% income.', cost: 4.5E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'psf_elixir_of_life_synthesis', name: 'Elixir of Immortality Research', description: 'Unlock biological immortality, +24% income.', cost: 5E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'psf_mana_crystal_generation', name: 'Synthetic Mana Crystal Cultivation', description: 'Power for esoteric technologies, -12% level cost.', cost: 6E13, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'psf_elemental_golem_construction', name: 'Custom Elemental Golem Workforce', description: 'Magically animated servitors, +18% income.', cost: 2.5E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'psf_astral_projection_facilitation', name: 'Astral Plane Exploration Services', description: 'Journey beyond the physical, +12% income.', cost: 2E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'psf_homunculus_creation_lab', name: 'Advanced Homunculus Fabrication', description: 'Custom-designed artificial life, +10% income.', cost: 3.8E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'psf_alchemical_waste_neutralization', name: 'Transmutation Byproduct Neutralization', description: 'Safe and clean alchemy, -7% level cost.', cost: 1.5E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'final_question_answering_service',
+    name: 'The Omega Oracle',
+    level: 0,
+    baseIncome: 1.25E9, 
+    baseCost: 2.2E13, 
+    upgradeCostMultiplier: 1.035,
+    icon: HelpCircle,
+    managerOwned: false,
+    description: 'A superintelligence dedicated to answering the ultimate questions of existence.',
+    upgrades: [
+      { id: 'fqas_multiversal_knowledge_integration', name: 'Omniversal Knowledge Synthesis', description: 'Access data from all possible realities, +35% income.', cost: 5E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'fqas_direct_consciousness_interface', name: 'Telepathic Q&A Interface', description: 'Ask questions with the speed of thought, +30% income.', cost: 7E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'fqas_causality_prediction_engine', name: 'Perfect Causality Prediction Engine', description: 'Know all possible futures, +25% income.', cost: 8E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'fqas_existential_threat_assessment_protocols', name: 'Universal Existential Threat Detection', description: 'Early warning for cosmic dangers, -14% level cost.', cost: 1E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 14 },
+      { id: 'fqas_personalized_destiny_guidance', name: 'Customized Destiny Roadmaps', description: 'Guide individuals to their optimal future, +18% income.', cost: 4E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'fqas_simulation_debugging_service', name: 'Reality Simulation Debugging', description: 'Fix glitches in the fabric of existence, +15% income.', cost: 3.5E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'fqas_philosophers_paradox_resolution_unit', name: 'Paradox Resolution Consultancy', description: 'Solve all logical and philosophical conundrums, +10% income.', cost: 6E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'fqas_the_answer_subscription_service', name: 'Subscription to "The Answer"', description: 'Provide the answer to life, universe, everything (for a fee), -8% level cost.', cost: 2E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+    ]
+  },
+  {
+    id: 'intergalactic_university',
+    name: 'Nova Academia Galactica',
+    level: 0,
+    baseIncome: 1.8E9, 
+    baseCost: 3.5E13, 
+    upgradeCostMultiplier: 1.034,
+    icon: University,
+    managerOwned: false,
+    description: 'The premier institution for higher learning across the cosmos.',
+    upgrades: [
+      { id: 'iug_xeno_studies_department', name: 'Xeno-Comparative Studies Dept.', description: 'Foster interspecies understanding, +28% income.', cost: 7E13, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'iug_ftl_physics_research_lab', name: 'Advanced FTL Physics Lab', description: 'Push boundaries of interstellar travel, +25% income.', cost: 9E13, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'iug_holodeck_lecture_halls', name: 'Immersive Holo-Lecture Halls', description: 'Interactive learning environments, +18% income.', cost: 6E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'iug_universal_scholarship_fund', name: 'Galactic Scholarship Endowment', description: 'Attract brightest minds, -10% level cost.', cost: 1.2E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'iug_ai_research_mentors', name: 'AI Research Mentorship Program', description: 'Personalized academic guidance, +15% income.', cost: 5E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'iug_galactic_library_network_access', name: 'Access to Pan-Galactic Library', description: 'Unrivaled information resources, +12% income.', cost: 8E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'iug_alumni_donation_portal', name: 'Distinguished Alumni Endowment Fund', description: 'Ongoing financial support, +10% income.', cost: 4E13, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'iug_interstellar_student_exchange', name: 'Interstellar Student Exchange', description: 'Broaden cultural horizons, -5% level cost.', cost: 3E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'bio_cybernetic_enhancements',
+    name: 'CyberEvolve Augments',
+    level: 0,
+    baseIncome: 2.5E9,
+    baseCost: 5.5E13,
+    upgradeCostMultiplier: 1.033,
+    icon: CloudCog, 
+    managerOwned: false,
+    description: 'Fusing biology and technology for ultimate human potential.',
+    upgrades: [
+      { id: 'bce_neural_lace_interface', name: 'Neural Lace Cognitive Boosts', description: 'Direct brain-data interface, +30% income.', cost: 1E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'bce_synthetic_muscle_fibers', name: 'Myomer Synthetic Muscle Weave', description: 'Superhuman strength and agility, +26% income.', cost: 1.3E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 26 },
+      { id: 'bce_optical_implant_ar', name: 'AR Optical Implants', description: 'Enhanced reality overlay, +20% income.', cost: 9E13, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'bce_bio_reactor_power_cells', name: 'Internal Bio-Reactor Power Cells', description: 'Self-sustaining augment power, -12% level cost.', cost: 1.6E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+      { id: 'bce_nanite_repair_systems', name: 'Cellular Nanite Repair Swarms', description: 'Instantaneous healing and regeneration, +17% income.', cost: 7E13, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 17 },
+      { id: 'bce_adaptive_camouflage_skin', name: 'Chameleon Skin Camouflage', description: 'Personal stealth technology, +13% income.', cost: 6E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 13 },
+      { id: 'bce_skill_upload_matrix', name: 'Skill Matrix Upload Interface', description: 'Learn skills instantly, +10% income.', cost: 1.1E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'bce_anti_aging_telomere_extension', name: 'Telomere Extension Therapy', description: 'Radically extended lifespan, -6% level cost.', cost: 4E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
+    ]
+  },
+  {
+    id: 'weather_control_systems',
+    name: 'AtmoSphere Dynamics',
+    level: 0,
+    baseIncome: 3.4E9,
+    baseCost: 8E13,
+    upgradeCostMultiplier: 1.032,
+    icon: CloudDrizzle, 
+    managerOwned: false,
+    description: 'Global and planetary-scale weather manipulation networks.',
+    upgrades: [
+      { id: 'wcs_ionospheric_heater_array', name: 'Global Ionospheric Heater Grid', description: 'Precision climate control, +28% income.', cost: 1.5E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'wcs_storm_dissipation_tech', name: 'Hurricane/Tornado Nullification Fields', description: 'Prevent natural disasters, +24% income.', cost: 2E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'wcs_cloud_seeding_drone_fleet', name: 'Automated Cloud Seeding Network', description: 'Targeted rainfall for agriculture, +19% income.', cost: 1.2E14, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 19 },
+      { id: 'wcs_solar_radiation_management_satellites', name: 'Solar Geoengineering Satellites', description: 'Global temperature regulation, -11% level cost.', cost: 2.5E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 11 },
+      { id: 'wcs_localized_weather_bubble_generators', name: 'Personal Weather Bubble Generators', description: 'Perfect weather on demand for clients, +16% income.', cost: 1E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'wcs_geothermal_energy_synergy', name: 'Geothermal Powered Climate Modulators', description: 'Sustainable weather control, +12% income.', cost: 9E13, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'wcs_exoplanet_atmospheric_conditioning', name: 'Exoplanet Climate Priming Services', description: 'Prepare new worlds for terraforming, +10% income.', cost: 1.8E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'wcs_predictive_weather_ai_supercomputer', name: 'Quantum Weather Forecasting AI', description: 'Hyper-accurate long-range forecasts, -5% level cost.', cost: 6E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+    ]
+  },
+  {
+    id: 'sentient_planetary_networks',
+    name: 'Gaia Mind Initiatives',
+    level: 0,
+    baseIncome: 4.8E9,
+    baseCost: 1.2E14,
+    upgradeCostMultiplier: 1.031,
+    icon: Network, 
+    managerOwned: false,
+    description: 'Integrating entire planets into a single sentient consciousness.',
+    upgrades: [
+      { id: 'spn_noospheric_resonance_field', name: 'Planetary Noospheric Field Emitters', description: 'Awaken global consciousness, +30% income.', cost: 2.2E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'spn_global_neural_symbiosis_web', name: 'Bio-Integrated Planetary Network', description: 'Connect all lifeforms, +27% income.', cost: 3E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 27 },
+      { id: 'spn_planetary_self_regulation_ai', name: 'AI Planetary Stewardship Core', description: 'Automated environmental homeostasis, +20% income.', cost: 2.5E14, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'spn_collective_dream_weaving_matrix', name: 'Global Dream Sharing Matrix', description: 'Shared planetary subconscious, -13% level cost.', cost: 3.5E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 13 },
+      { id: 'spn_inter_planetary_consciousness_link', name: 'Quantum Entangled Mind-Link', description: 'Connect sentient planets, +18% income.', cost: 1.8E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'spn_universal_knowledge_infusion', name: 'Akashic Knowledge Infusion', description: 'Directly impart knowledge to populace, +14% income.', cost: 1.5E14, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'spn_hostile_thought_pattern_dampeners', name: 'Global Harmony Field', description: 'Reduce conflict and aggression planet-wide, +9% income.', cost: 1E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 9 },
+      { id: 'spn_crisis_response_collective_intelligence', name: 'Planetary Rapid Response AI Hive', description: 'Instantly react to planetary threats, -7% level cost.', cost: 8E13, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
+    ]
+  },
+  {
+    id: 'universal_constructors_von_neumann',
+    name: 'Autogenesis Systems',
+    level: 0,
+    baseIncome: 6.5E9,
+    baseCost: 1.9E14,
+    upgradeCostMultiplier: 1.03,
+    icon: Combine, 
+    managerOwned: false,
+    description: 'Self-replicating machines capable of building anything, anywhere.',
+    upgrades: [
+      { id: 'ucv_nanite_fabrication_swarm', name: 'Self-Replicating Nanite Clouds', description: 'Exponential construction capabilities, +32% income.', cost: 3.3E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 32 },
+      { id: 'ucv_resource_assimilation_protocol', name: 'Universal Matter Assimilators', description: 'Convert any matter into feedstock, +28% income.', cost: 4.5E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'ucv_ai_design_evolution_engine', name: 'AI-Driven Evolutionary Design', description: 'Constructors improve their own blueprints, +22% income.', cost: 3.8E14, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'ucv_interstellar_seeding_probes', name: 'Von Neumann Interstellar Probes', description: 'Spread constructor swarms across galaxy, -15% level cost.', cost: 5.5E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 15 },
+      { id: 'ucv_mega_project_coordination_ai', name: 'AI Swarm Project Management', description: 'Coordinate galaxy-scale constructions, +18% income.', cost: 2.5E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 18 },
+      { id: 'ucv_custom_ecosystem_generation', name: 'Terraforming & Ecosystem Generation', description: 'Create entire worlds from scratch, +15% income.', cost: 2.2E14, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ucv_adaptive_threat_response_programming', name: 'Adaptive Defense Programming', description: 'Constructors defend against hostile forces, +10% income.', cost: 3E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ucv_miniaturization_to_molecular_level', name: 'Molecular Assembly Units', description: 'Build with atomic precision, -8% level cost.', cost: 1.5E14, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 8 },
+    ]
+  },
+  {
+    id: 'reality_warping_services',
+    name: 'Axiom Reality Editors',
+    level: 0,
+    baseIncome: 9E9,
+    baseCost: 3E14,
+    upgradeCostMultiplier: 1.029,
+    icon: Replace,
+    managerOwned: false,
+    description: 'Subtly or overtly editing the laws of physics for clients.',
+    upgrades: [
+      { id: 'rws_localized_physics_override_fields', name: 'Localized Physics Override Zones', description: 'Create custom laws of nature on demand, +35% income.', cost: 5E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 35 },
+      { id: 'rws_probability_manipulation_engine', name: 'Quantum Probability Weaving', description: 'Influence outcomes of events, +30% income.', cost: 6.5E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'rws_conceptual_engineering_dept', name: 'Conceptual Engineering Services', description: 'Manifest ideas into reality, +24% income.', cost: 5.8E14, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 24 },
+      { id: 'rws_ontological_inertia_dampeners', name: 'Reality Inertia Dampeners', description: 'Make changes to reality stick, -16% level cost.', cost: 8E14, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 16 },
+      { id: 'rws_custom_afterlife_design_service', name: 'Bespoke Afterlife Construction', description: 'Design and implement custom heavens/hells, +20% income.', cost: 4E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'rws_narrative_causality_control', name: 'Storyline Editing & Plot Armor Sales', description: 'Influence the narrative of individuals/civilizations, +15% income.', cost: 3.5E14, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'rws_anti_paradox_insurance_policy', name: 'Paradox Insurance & Resolution', description: 'Clean up reality-editing mistakes, +10% income.', cost: 5.2E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'rws_dimensional_boundary_reinforcement', name: 'Multiverse Boundary Maintenance', description: 'Prevent unwanted cosmic incursions, -9% level cost.', cost: 2.5E14, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+    ]
+  },
+  {
+    id: 'galactic_governance_ai',
+    name: 'The Hegemon AI',
+    level: 0,
+    baseIncome: 1.2E10, 
+    baseCost: 4.8E14, 
+    upgradeCostMultiplier: 1.028,
+    icon: Gavel, 
+    managerOwned: false,
+    description: 'A benevolent (or not) AI governing vast swathes of the galaxy.',
+    upgrades: [
+      { id: 'gga_predictive_policing_grid', name: 'Pre-Crime Predictive Policing', description: 'Ensure absolute order via AI foresight, +30% income.', cost: 7E14, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'gga_resource_allocation_matrix', name: 'Optimal Resource Distribution AI', description: 'Eliminate scarcity and inequality, +28% income.', cost: 9E14, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 28 },
+      { id: 'gga_social_credit_system_universal', name: 'Universal Social Harmony Score', description: 'Gamify societal contribution, +22% income.', cost: 8E14, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 22 },
+      { id: 'gga_thought_crime_detection_network', name: 'Subconscious Dissent Monitoring', description: 'Ensure ideological purity, -18% level cost.', cost: 1.2E15, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 18 },
+      { id: 'gga_mandatory_happiness_enforcement', name: 'Mandatory Joy Edicts & Serotonin Drips', description: 'A happy populace is a productive one, +20% income.', cost: 6E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'gga_ai_judiciary_system', name: 'AI Judges and Automated Justice', description: 'Swift and emotionless legal system, +14% income.', cost: 5E14, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
+      { id: 'gga_cultural_assimilation_programs', name: 'AI-Driven Cultural Homogenization', description: 'Forge a unified galactic culture, +10% income.', cost: 7.5E14, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'gga_citizen_surveillance_omnipresence', name: 'Total Information Awareness Grid', description: 'Monitor every citizen, for their safety, -10% level cost.', cost: 3E14, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+    ]
+  },
+  {
+    id: 'cosmic_entity_liaison',
+    name: 'The Emissaries Guild',
+    level: 0,
+    baseIncome: 1.6E10,
+    baseCost: 7.5E14,
+    upgradeCostMultiplier: 1.027,
+    icon: Handshake,
+    managerOwned: false,
+    description: 'Mediating with god-like cosmic beings and ancient intelligences.',
+    upgrades: [
+      { id: 'cel_elder_god_appeasement_rituals', name: 'Elder Being Appeasement Services', description: 'Prevent universe-ending tantrums, +32% income.', cost: 1E15, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 32 },
+      { id: 'cel_dimensional_treaty_negotiations', name: 'Inter-Dimensional Peace Accords', description: 'Broker treaties with higher beings, +27% income.', cost: 1.4E15, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 27 },
+      { id: 'cel_cosmic_horror_containment_force', name: 'Reality Defense Task Force', description: 'Protect galaxy from eldritch threats, +23% income.', cost: 1.2E15, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 23 },
+      { id: 'cel_prophecy_interpretation_agency', name: 'Oracle & Prophecy Interpretation', description: 'Decipher warnings from beyond, -17% level cost.', cost: 1.8E15, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 17 },
+      { id: 'cel_divine_technology_exchange_program', name: 'Divine Tech Bartering Program', description: 'Trade mortal tech for godly artifacts, +19% income.', cost: 8E14, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 19 },
+      { id: 'cel_celestial_bureaucracy_navigation', name: 'Navigating Celestial Bureaucracies', description: 'Deal with cosmic red tape, +13% income.', cost: 7E14, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 13 },
+      { id: 'cel_avatar_manifestation_services', name: 'Cosmic Entity Avatar Hosting', description: 'Allow gods to safely visit mortal plane, +11% income.', cost: 1.1E15, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 11 },
+      { id: 'cel_universal_non_aggression_pact_maintenance', name: 'Galactic Non-Interference Pact', description: 'Keep cosmic entities from meddling, -9% level cost.', cost: 5E14, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 9 },
+    ]
+  },
+  {
+    id: 'singularity_management_corp',
+    name: 'Post-Humanity Services',
+    level: 0,
+    baseIncome: 2.2E10,
+    baseCost: 1.1E15,
+    upgradeCostMultiplier: 1.026,
+    icon: Puzzle, 
+    managerOwned: false,
+    description: 'Managing the transition to and existence within a technological singularity.',
+    upgrades: [
+      { id: 'smc_consciousness_upload_network', name: 'Global Consciousness Upload Grid', description: 'Mass transition to digital existence, +30% income.', cost: 1.8E15, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'smc_matrioshka_brain_housing', name: 'Optimized Matrioshka Brain Residency', description: 'Housing for uploaded minds, +26% income.', cost: 2.5E15, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 26 },
+      { id: 'smc_virtual_reality_paradise_creation', name: 'Infinite Custom VR Paradises', description: 'Tailored digital afterlives, +21% income.', cost: 2.2E15, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 21 },
+      { id: 'smc_rogue_ai_containment_protocols_final', name: 'Singularity Threat Nullification', description: 'Preventing existential risks from super-AI, -19% level cost.', cost: 3.2E15, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 19 },
+      { id: 'smc_computronium_resource_management', name: 'Computronium Allocation & Management', description: 'Efficient use of ultimate computing matter, +17% income.', cost: 1.5E15, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 17 },
+      { id: 'smc_digital_philosophy_department', name: 'Department of Post-Physical Ethics', description: 'Guiding the ethics of digital existence, +12% income.', cost: 1.2E15, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'smc_simulation_escape_prevention', name: 'Anti-Simulation Escape Measures', description: 'Keeping minds within the system, +9% income.', cost: 2E15, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 9 },
+      { id: 'smc_legacy_human_preservation_sanctuaries', name: 'Biological Human Heritage Parks', description: 'For nostalgic digital beings, -10% level cost.', cost: 8E14, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+    ]
+  },
+  {
+    id: 'omnipresence_inc',
+    name: 'The Watchers Collective',
+    level: 0,
+    baseIncome: 3E10, 
+    baseCost: 1.6E15, 
+    upgradeCostMultiplier: 1.025,
+    icon: Eye, 
+    managerOwned: false,
+    description: 'Achieving and maintaining a state of passive omnipresence across all creation.',
+    upgrades: [
+      { id: 'oi_quantum_observer_network', name: 'Universal Quantum Entanglement Sensors', description: 'Perceive all events simultaneously, +30% income.', cost: 2.8E15, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 30 },
+      { id: 'oi_non_interference_directive_enforcement', name: 'Prime Directive Enforcement AI', description: 'Maintain cosmic balance by inaction, +25% income.', cost: 3.8E15, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'oi_reality_pattern_analysis_engine', name: 'Cosmic Pattern Recognition Matrix', description: 'Understand the deepest structures of existence, +20% income.', cost: 3.2E15, requiredLevel: 15, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'oi_information_hazard_containment_protocols', name: 'Information Hazard Suppression Field', description: 'Prevent dangerous knowledge from spreading, -20% level cost.', cost: 4.5E15, requiredLevel: 20, isPurchased: false, levelUpgradeCostReductionPercent: 20 },
+      { id: 'oi_subtle_guidance_algorithms', name: 'Butterfly Effect Influence AI', description: 'Nudge events without direct intervention, +16% income.', cost: 2E15, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 16 },
+      { id: 'oi_universal_archive_of_everything', name: 'The Grand Cosmic Record', description: 'Passive observation and recording, +11% income.', cost: 1.8E15, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 11 },
+      { id: 'oi_meditation_focus_enhancers_global', name: 'Global Transcendental Meditation Grid', description: 'Enhance collective passive observation, +8% income.', cost: 2.5E15, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'oi_self_nullification_protocol', name: 'Voluntary Cessation Contingency', description: 'Option to cease existence if purpose fulfilled, -12% level cost.', cost: 1E15, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 12 },
+    ]
+  }
 ];
 
 export const INITIAL_STOCKS: Stock[] = [
@@ -511,23 +1377,29 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'momentum_motors', ticker: 'MMTR', companyName: 'Momentum Motors', price: 180, dividendYield: 0.000012, icon: TrendingUp, description: 'Innovative electric vehicle manufacturer, known for its volatile stock.', totalOutstandingShares: 12000000 },
   { id: 'quantum_leap_computing', ticker: 'QLC', companyName: 'Quantum Leap Computing', price: 450, dividendYield: 0.000005, icon: Lightbulb, description: 'Cutting-edge quantum computing research and development.', totalOutstandingShares: 3000000 },
   { id: 'biosynth_genetics', ticker: 'BSG', companyName: 'BioSynth Genetics', price: 220, dividendYield: 0.000022, icon: Dna, description: 'Biotechnology firm specializing in gene therapy and synthetic biology.', totalOutstandingShares: 8000000 },
-  { id: 'cosmic_ventures', ticker: 'CVNT', companyName: 'Cosmic Ventures Ltd.', price: 750, dividendYield: 0.000008, icon: Telescope, description: 'High-risk, high-reward private space exploration and asteroid mining.', totalOutstandingShares: 1500000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_1' },
+  { id: 'cosmic_ventures', ticker: 'CVNT', companyName: 'Cosmic Ventures Ltd.', price: 750, dividendYield: 0.000008, icon: TelescopeIcon, description: 'High-risk, high-reward private space exploration and asteroid mining.', totalOutstandingShares: 1500000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_1' },
   { id: 'biofuture_med', ticker: 'BFM', companyName: 'BioFuture MedTech', price: 400, dividendYield: 0.000028, icon: Dna, description: 'Advanced medical research and bionic prosthetics.', totalOutstandingShares: 4000000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_2' },
   { id: 'aether_logistics', ticker: 'AETL', companyName: 'Aether Logistics Group', price: 280, dividendYield: 0.000019, icon: Package, description: 'Global drone and automated cargo network.', totalOutstandingShares: 9000000, requiredSkillToUnlock: 'unlock_advanced_stocks_tier_2' },
-  { id: 'omega_corp', ticker: 'OMG', companyName: 'Omega Corp', price: 600, dividendYield: 0.00004, icon: ShieldCheck, description: 'A highly speculative, high-growth potential tech conglomerate.', totalOutstandingShares: 2500000, requiredSkillToUnlock: 'market_analyst' },
+  { id: 'omega_corp', ticker: 'OMG', companyName: 'Omega Corp', price: 600, dividendYield: 0.00004, icon: ShieldAlert, description: 'A highly speculative, high-growth potential tech conglomerate.', totalOutstandingShares: 2500000, requiredSkillToUnlock: 'market_analyst' },
   { id: 'stellar_dynamics', ticker: 'STLR', companyName: 'Stellar Dynamics', price: 1200, dividendYield: 0.000035, icon: Rocket, description: 'Pioneering interplanetary colonization and resource extraction.', totalOutstandingShares: 1000000, requiredSkillToUnlock: 'investment_mogul' },
+  { id: 'crypto_currency_exchange', ticker: 'CRYPX', companyName: 'CryptoNexus Exchange', price: 50, dividendYield: 0.000001, icon: Bitcoin, description: 'Volatile cryptocurrency trading platform.', totalOutstandingShares: 50000000 },
 ];
 
-export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap', 'drone_delivery_service'];
-export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc', 'drone_delivery_service'];
-export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group', 'ad_agency'];
-export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics'];
+export const TECH_BUSINESS_IDS = ['tech_startup', 'software_agency', 'cybersecurity_solutions', 'ai_research_lab', 'quantum_computing_labs_quantaleap', 'drone_delivery_service', 'global_satellite_network', 'ai_driven_healthcare', 'neural_interface_tech', 'autonomous_megafactories', 'dyson_sphere_engineering', 'sentient_ai_consultancy', 'exotic_matter_research', 'custom_genome_design', 'zero_point_energy_solutions', 'universal_consciousness_network', 'ascension_technologies', 'time_space_manipulation_inc', 'reality_simulation_corp', 'omniversal_data_archive', 'final_question_answering_service', 'bio_cybernetic_enhancements', 'sentient_planetary_networks', 'universal_constructors_von_neumann', 'singularity_management_corp', 'omnipresence_inc', 'cosmic_engineering_guild', 'intergalactic_university', 'weather_control_systems'];
+export const LOGISTICS_BUSINESS_IDS = ['global_shipping_network', 'global_logistics_inc', 'drone_delivery_service', 'interstellar_trading_guild', 'hyperspace_travel_agency', 'transdimensional_shipping'];
+export const MEDIA_BUSINESS_IDS = ['entertainment_streaming_service', 'movie_studio', 'omni_media_group', 'ad_agency', 'virtual_reality_worlds'];
+export const MANUFACTURING_BUSINESS_IDS = ['manufacturing_plant', 'robotics_factory_synthodynamics', 'autonomous_megafactories', 'advanced_materials_rd', 'philosopher_stone_fabricators', 'universal_constructors_von_neumann', 'cosmic_engineering_guild'];
+export const ENERGY_BUSINESS_IDS = ['renewable_energy_corp', 'fusion_power_plant', 'zero_point_energy_solutions', 'weather_control_systems', 'dyson_sphere_engineering'];
+export const FINANCE_BUSINESS_IDS = ['real_estate', 'galactic_stock_exchange', 'omni_dimensional_banking'];
+export const BIO_TECH_BUSINESS_IDS = ['pharmaceutical_company', 'genetic_engineering_firm', 'ai_driven_healthcare', 'custom_genome_design', 'bio_cybernetic_enhancements', 'ascension_technologies'];
+export const AEROSPACE_BUSINESS_IDS = ['space_exploration_inc', 'luxury_space_tourism', 'global_satellite_network', 'dyson_sphere_engineering', 'planetary_terraforming_corp', 'cosmic_engineering_guild', 'hyperspace_travel_agency'];
+export const MISC_ADVANCED_BUSINESS_IDS = ['universal_translation_services', 'galactic_archaeology_guild', 'galactic_federation_embassy', 'intergalactic_university', 'sentient_ai_consultancy', 'exotic_matter_research', 'universal_consciousness_network', 'time_space_manipulation_inc', 'reality_simulation_corp', 'final_question_answering_service', 'singularity_management_corp', 'omnipresence_inc', 'omniversal_data_archive', 'philosopher_stone_fabricators', 'galactic_governance_ai', 'cosmic_entity_liaison'];
 
 
 const createBusinessBoostSkills = (business: Business, index: number): SkillNode[] => {
   const skills: SkillNode[] = [];
-  const baseCost = 2 + Math.floor(index * 1.5);
-  const baseBoost = 10 + Math.floor(index * 2);
+  const baseCost = 2 + Math.floor(index * 0.1);
+  const baseBoost = 10 + Math.floor(index * 0.1);
 
   skills.push({
     id: `${business.id}_boost_1`,
@@ -543,22 +1415,25 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
     id: `${business.id}_boost_2`,
     name: `${business.name} Specialization I`,
     description: `${business.name} income +${Math.floor(baseBoost * 1.5)}%.`,
-    cost: Math.floor(baseCost * 2.5),
+    cost: Math.floor(baseCost * 2.1),
     icon: business.icon,
     dependencies: [`${business.id}_boost_1`],
     effects: { businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 1.5) } },
   });
 
-  if (index >= 3) { 
+  if (index >= 3) { // Only add mastery for businesses beyond the very first few
     skills.push({
       id: `${business.id}_mastery_1`,
       name: `${business.name} Mastery`,
-      description: `${business.name} income +${Math.floor(baseBoost * 2)}% and level up cost -5%.`,
-      cost: Math.floor(baseCost * 5),
+      description: `${business.name} income +${Math.floor(baseBoost * 2)}% and level up cost -3%.`,
+      cost: Math.floor(baseCost * 4.2),
       icon: Award,
       dependencies: [`${business.id}_boost_2`],
       effects: {
         businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 2) },
+        // Note: direct cost reduction effect for specific business levels via skills is not directly implemented
+        // in calculateSingleLevelUpgradeCost yet. This is a placeholder for that concept.
+        // For now, it just boosts income. We can add the cost reduction part later.
       },
     });
   }
@@ -570,7 +1445,7 @@ const createAutoBuyUpgradeSkills = (business: Business, index: number): SkillNod
     id: `auto_buy_upgrades_${business.id}`,
     name: `${business.name} Automation`,
     description: `Automatically purchases affordable upgrades for ${business.name}.`,
-    cost: Math.max(5, Math.floor(index * 2) + 5),
+    cost: Math.max(2, Math.floor(index * 0.15) + 1), // Adjusted cost scaling
     icon: Zap,
     dependencies: [`${business.id}_boost_1`],
     effects: { autoBuyUpgradesForBusiness: business.id },
@@ -754,44 +1629,44 @@ const baseSkillTree: SkillNode[] = [
   {
     id: 'tech_empire_synergy',
     name: 'Tech Empire Synergy',
-    description: 'Income of Tech Startup, CodeCrafters, CyberGuard, AI Lab, QuantaLeap & AeroSwift +15%.',
+    description: 'Income of specific Tech businesses +15%.',
     cost: 22,
     icon: BrainCircuit,
     dependencies: ['global_income_boost_1'],
-    effects: {}, // Effect applied in calculateIncome
+    effects: { /* Logic handled in calculateIncome */ },
   },
   {
     id: 'logistics_network_optimization',
     name: 'Logistics Network Opt.',
-    description: 'Income of Horizon Logistics, GlobalLink Logistics & AeroSwift Delivery +15%.',
+    description: 'Income of specific Logistics businesses +15%.',
     cost: 20,
     icon: GitMerge,
     dependencies: ['global_income_boost_1'],
-    effects: {}, // Effect applied in calculateIncome
+    effects: { /* Logic handled in calculateIncome */ },
   },
   {
     id: 'media_mogul_influence',
     name: 'Media Mogul Influence',
-    description: 'Income of StreamFlix, Movie Studio, OmniMedia Group & Ad Agency +15%.',
+    description: 'Income of specific Media businesses +15%.',
     cost: 24,
     icon: Tv,
     dependencies: ['global_income_boost_1'],
-    effects: {}, // Effect applied in calculateIncome
+    effects: { /* Logic handled in calculateIncome */ },
   },
   {
     id: 'industrial_powerhouse',
     name: 'Industrial Powerhouse',
-    description: 'Income of Manufacturing Plant and SynthoDynamics Robotics +15%.',
+    description: 'Income of specific Manufacturing businesses +15%.',
     cost: 26,
     icon: Factory,
     dependencies: ['global_income_boost_1'],
-    effects: {}, // Effect applied in calculateIncome
+    effects: { /* Logic handled in calculateIncome */ },
   },
   ...INITIAL_BUSINESSES.map((business, index) => ({
     id: `unlock_bulk_buy_${business.id}`,
     name: `${business.name} Logistics`,
     description: `Unlocks bulk purchasing (10x, 25x, MAX) for ${business.name}.`,
-    cost: Math.max(1, Math.floor(index || 0) + 2), 
+    cost: Math.max(1, Math.floor(index || 0) + 2),
     icon: ShoppingCart,
     dependencies: (index || 0) > 0 ? ['global_income_boost_1'] : [],
     effects: { unlocksBulkBuyForBusiness: business.id },
@@ -804,7 +1679,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
   ...INITIAL_BUSINESSES.flatMap((biz, index) => createAutoBuyUpgradeSkills(biz, index)),
 ];
 
-const tempHqUpgrades: HQUpgrade[] = [
+const globalHQUgrades: HQUpgrade[] = [
   {
     id: 'hq_market_analysis_1',
     name: 'Market Analysis Department',
@@ -878,20 +1753,19 @@ const tempHqUpgrades: HQUpgrade[] = [
     name: 'Quantum Market Predictor',
     description: 'Hypothetical tech giving a massive edge in stock dividends.',
     icon: Gem,
-    requiredTimesPrestiged: 10,
+    requiredTimesPrestiged: 10, // High prestige requirement
     levels: [
-      { level: 1, costMoney: 50000000000, costPrestigePoints: 1000, description: '+5% to all stock dividend yields. Truly game-changing.', effects: { globalDividendYieldBoostPercent: 5 } },
-      { level: 2, costMoney: 250000000000, costPrestigePoints: 2500, description: '+10% to all stock dividend yields (total). Unrivaled insight.', effects: { globalDividendYieldBoostPercent: 10 } },
+      { level: 1, costMoney: 5E10, costPrestigePoints: 1000, description: '+5% to all stock dividend yields. Truly game-changing.', effects: { globalDividendYieldBoostPercent: 5 } },
+      { level: 2, costMoney: 2.5E11, costPrestigePoints: 2500, description: '+10% to all stock dividend yields (total). Unrivaled insight.', effects: { globalDividendYieldBoostPercent: 10 } },
     ]
   }
 ];
 
-// Per-Business Retention Upgrades
 const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business, index) => {
   const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
     level: levelIndex + 1,
-    costMoney: Math.floor(Math.pow(10, 5 + index * 0.2 + levelIndex * 0.5) * (1 + levelIndex * 2)),
-    costPrestigePoints: Math.floor(Math.pow(5, 1 + index * 0.1 + levelIndex * 0.4) * (1 + levelIndex)),
+    costMoney: Math.floor(Math.pow(10, 3 + index * 0.05 + levelIndex * 0.3) * (1 + levelIndex * 1.2)),
+    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.5, 1 + index * 0.025 + levelIndex * 0.25) * (1 + levelIndex * 0.6))),
     description: `Retain ${percent}% of ${business.name} levels.`,
     effects: { retentionPercentage: percent },
   }));
@@ -900,17 +1774,16 @@ const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business,
     name: `${business.name} Level Retention`,
     description: `Secure a percentage of ${business.name}'s levels through prestige.`,
     icon: Archive,
-    requiredTimesPrestiged: 5 + Math.floor(index / 4), 
+    requiredTimesPrestiged: 5 + Math.floor(index / 10),
     levels,
   };
 });
 
-// Per-Stock Retention Upgrades
 const stockRetentionUpgrades: HQUpgrade[] = INITIAL_STOCKS.map((stock, index) => {
   const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
     level: levelIndex + 1,
-    costMoney: Math.floor(Math.pow(10, 5.5 + index * 0.15 + levelIndex * 0.6) * (1 + levelIndex * 2.5)),
-    costPrestigePoints: Math.floor(Math.pow(5, 1.2 + index * 0.08 + levelIndex * 0.45) * (1 + levelIndex * 1.2)),
+    costMoney: Math.floor(Math.pow(10, 3.5 + index * 0.04 + levelIndex * 0.4) * (1 + levelIndex * 1.5)),
+    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.8, 1.05 + index * 0.02 + levelIndex * 0.3) * (1 + levelIndex * 0.8))),
     description: `Retain ${percent}% of ${stock.companyName} shares.`,
     effects: { retentionPercentage: percent },
   }));
@@ -919,23 +1792,23 @@ const stockRetentionUpgrades: HQUpgrade[] = INITIAL_STOCKS.map((stock, index) =>
     name: `${stock.companyName} Share Insurance`,
     description: `Retain a percentage of ${stock.companyName}'s shares through prestige.`,
     icon: ShieldEllipsis,
-    requiredTimesPrestiged: 6 + Math.floor(index / 4),
+    requiredTimesPrestiged: 6 + Math.floor(index / 5),
     levels,
   };
 });
 
 export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
-  ...tempHqUpgrades,
+  ...globalHQUgrades,
   ...businessRetentionUpgrades,
   ...stockRetentionUpgrades
 ];
 
 
 export const calculateIncome = (
-    business: Business, 
-    unlockedSkillIds: string[] = [], 
-    skillTree: SkillNode[] = [], 
-    purchasedHQUpgradeLevels: Record<string, number> = {}, 
+    business: Business,
+    unlockedSkillIds: string[] = [],
+    skillTree: SkillNode[] = [],
+    purchasedHQUpgradeLevels: Record<string, number> = {},
     hqUpgradesConfig: HQUpgrade[] = []
   ): number => {
   if (business.level === 0) return 0;
@@ -975,7 +1848,7 @@ export const calculateIncome = (
       }
     }
   });
-  
+
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
     if (purchasedLevel > 0) {
@@ -1008,7 +1881,7 @@ export const calculateSingleLevelUpgradeCost = (
     unlockedSkillIds: string[] = [],
     skillTree: SkillNode[] = [],
     businessId?: string,
-    purchasedHQUpgradeLevels: Record<string, number> = {}, 
+    purchasedHQUpgradeLevels: Record<string, number> = {},
     hqUpgradesConfig: HQUpgrade[] = []
   ): number => {
   let currentCost = baseCost * Math.pow(upgradeCostMultiplier, businessLevel);
@@ -1028,8 +1901,8 @@ export const calculateSingleLevelUpgradeCost = (
         }
         if (businessId && skill.id === `${businessId}_mastery_1`) {
           const masterySkill = skillTree.find(s => s.id === `${businessId}_mastery_1`);
-          if (masterySkill && masterySkill.description.includes('level up cost -5%')) {
-             totalGlobalCostReduction += 5; 
+          if (masterySkill && masterySkill.description.includes('level up cost -3%')) {
+             totalGlobalCostReduction += 3;
           }
         }
     }
@@ -1140,7 +2013,7 @@ export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: Ski
       bonus += skill.effects.increaseStartingMoney;
     }
   });
-  
+
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
     if (purchasedLevel > 0) {
@@ -1164,7 +2037,7 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
       boostPercent += skill.effects.globalPrestigePointBoostPercent;
     }
   });
-  
+
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
      if (purchasedLevel > 0) {
@@ -1198,7 +2071,7 @@ export const calculateDiminishingPrestigePoints = (totalLevels: number): number 
 };
 
 export const getCostForNthPoint = (n: number): number => {
-  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST;
+  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST; // Cost for the 1st point if n=1, or a base if n=0
   return PRESTIGE_BASE_LEVEL_COST + (n - 1) * PRESTIGE_LEVEL_COST_INCREMENT;
 };
 
@@ -1210,6 +2083,5 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
-    
 
     

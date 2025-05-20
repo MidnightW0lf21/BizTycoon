@@ -4,19 +4,19 @@
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { IncomeChart } from "@/components/dashboard/IncomeChart";
 import { useGame } from "@/contexts/GameContext";
-import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon } from "lucide-react";
+import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
+import { useEffect, useState, useMemo } from "react";
+import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint, INITIAL_BUSINESSES } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 
 
 const WELCOME_BANNER_DISMISSED_KEY = 'bizTycoonWelcomeBannerDismissed_v1';
 
 export default function DashboardPage() {
-  const { playerStats, businesses } = useGame();
+  const { playerStats, businesses, getDynamicMaxBusinessLevel } = useGame();
   const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentIncome, setCurrentIncome] = useState(playerStats.totalIncomePerSecond);
   const [isWelcomeBoxVisible, setIsWelcomeBoxVisible] = useState(true);
@@ -41,10 +41,11 @@ export default function DashboardPage() {
     setCurrentIncome(playerStats.totalIncomePerSecond);
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const currentPrestigePoints = playerStats.prestigePoints;
+    
+    setPrestigeProgress(prev => ({...prev, currentTotalBusinessLevels: currentTotalLevels}));
 
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(currentPrestigePoints);
-    const costForNextPotentialPoint = getCostForNthPoint(currentPrestigePoints + 1);
+    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
+    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
     const levelsAchievedForNextSpecificPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
@@ -53,7 +54,7 @@ export default function DashboardPage() {
     } else if (levelsAchievedForNextSpecificPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = 100;
     }
-
+    
     setPrestigeProgress({
       percentage: percentage,
       levelsAchievedTowardsNextSpecificPoint: levelsAchievedForNextSpecificPoint,
@@ -61,6 +62,7 @@ export default function DashboardPage() {
       currentTotalBusinessLevels: currentTotalLevels,
       cumulativeLevelsForCurrentPoints: levelsForCurrentPointsPlayerHas,
     });
+
   }, [playerStats, businesses]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
@@ -86,6 +88,17 @@ export default function DashboardPage() {
     setIsWelcomeBoxVisible(false);
     localStorage.setItem(WELCOME_BANNER_DISMISSED_KEY, 'true');
   };
+
+  const allBusinessesMaxed = useMemo(() => {
+    if (!businesses || businesses.length === 0 || INITIAL_BUSINESSES.length === 0) {
+      return false;
+    }
+    const dynamicMaxLevel = getDynamicMaxBusinessLevel();
+    return INITIAL_BUSINESSES.every(initialBiz => {
+      const currentBusiness = businesses.find(b => b.id === initialBiz.id);
+      return currentBusiness && currentBusiness.level >= dynamicMaxLevel;
+    });
+  }, [businesses, getDynamicMaxBusinessLevel]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,7 +131,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <MetricCard
           title="Current Money"
           value={`$${Math.floor(currentMoney).toLocaleString('en-US')}`}
@@ -155,6 +168,13 @@ export default function DashboardPage() {
           icon={Settings2}
           description="Total number of prestiges."
         />
+        <MetricCard
+          title="Empire Status"
+          value={allBusinessesMaxed ? "Fully Maxed!" : "Expanding..."}
+          icon={allBusinessesMaxed ? CheckCircle2 : XCircle}
+          description="All businesses at max level?"
+          className="xl:col-span-1"
+        />
       </div>
 
       <Card>
@@ -176,7 +196,7 @@ export default function DashboardPage() {
                   Math.min(prestigeProgress.levelsAchievedTowardsNextSpecificPoint, prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint : prestigeProgress.levelsAchievedTowardsNextSpecificPoint)
                   .toLocaleString('en-US')
                 } / {
-                  (prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint : 'MAX').toLocaleString('en-US')
+                  (prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint.toLocaleString('en-US') : 'MAX')
                 }
               </span>
               <span>{prestigeProgress.percentage.toFixed(1)}%</span>
@@ -202,4 +222,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
