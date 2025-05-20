@@ -2,7 +2,7 @@
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel } from '@/types';
 import {
   Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem,
-  Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recyclable, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, Galactic, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye
+  Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recycle, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, Galactic, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -13,7 +13,7 @@ export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;
-export const PRESTIGE_LEVEL_COST_INCREMENT = 30;
+export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
 
 
 export const INITIAL_BUSINESSES: Business[] = [
@@ -22,20 +22,20 @@ export const INITIAL_BUSINESSES: Business[] = [
     name: 'Lemonade Stand',
     level: 0,
     baseIncome: 1,
-    baseCost: 8, // Made cheaper
-    upgradeCostMultiplier: 1.07, // Made cheaper
+    baseCost: 8,
+    upgradeCostMultiplier: 1.07,
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
     upgrades: [
-      { id: 'ls_bigger_pitcher', name: 'Bigger Pitcher', description: 'Serve more lemonade, +10% income.', cost: 40, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'ls_catchy_sign', name: 'Catchy Sign', description: 'Attract more customers, +15% income.', cost: 120, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
-      { id: 'ls_bulk_lemons', name: 'Bulk Lemons', description: 'Cheaper supplies, -5% level upgrade cost.', cost: 160, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-      { id: 'ls_premium_ingredients', name: 'Premium Ingredients', description: 'Use organic lemons & sugar, +20% income.', cost: 240, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
-      { id: 'ls_ice_machine', name: 'Ice Machine', description: 'Always cold lemonade, +10% income.', cost: 320, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'ls_franchise_manual', name: 'Franchise Manual', description: 'Standardize operations, +12% income.', cost: 480, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
-      { id: 'ls_marketing_flyers', name: 'Local Marketing Flyers', description: 'Increased local awareness, +8% income.', cost: 640, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
-      { id: 'ls_sugar_supplier_deal', name: 'Sugar Supplier Deal', description: 'Reduced sugar costs, -3% level upgrade cost.', cost: 800, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 3 },
+      { id: 'ls_bigger_pitcher', name: 'Bigger Pitcher', description: 'Serve more lemonade, +10% income.', cost: 30, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ls_catchy_sign', name: 'Catchy Sign', description: 'Attract more customers, +15% income.', cost: 90, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ls_bulk_lemons', name: 'Bulk Lemons', description: 'Cheaper supplies, -5% level upgrade cost.', cost: 120, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'ls_premium_ingredients', name: 'Premium Ingredients', description: 'Use organic lemons & sugar, +20% income.', cost: 180, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ls_ice_machine', name: 'Ice Machine', description: 'Always cold lemonade, +10% income.', cost: 240, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ls_franchise_manual', name: 'Franchise Manual', description: 'Standardize operations, +12% income.', cost: 360, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'ls_marketing_flyers', name: 'Local Marketing Flyers', description: 'Increased local awareness, +8% income.', cost: 480, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'ls_sugar_supplier_deal', name: 'Sugar Supplier Deal', description: 'Reduced sugar costs, -3% level upgrade cost.', cost: 600, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 3 },
     ],
   },
   {
@@ -43,20 +43,20 @@ export const INITIAL_BUSINESSES: Business[] = [
     name: 'Coffee Shop',
     level: 0,
     baseIncome: 5,
-    baseCost: 80, // Made cheaper
-    upgradeCostMultiplier: 1.12, // Made cheaper
+    baseCost: 80,
+    upgradeCostMultiplier: 1.12,
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
     upgrades: [
-      { id: 'cs_espresso_machine', name: 'Espresso Machine', description: 'Faster service, +20% income.', cost: 400, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 20 },
-      { id: 'cs_loyal_customer_program', name: 'Loyalty Program', description: 'Repeat customers, +10% income.', cost: 800, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'cs_efficient_barista_training', name: 'Efficient Barista Training', description: 'Streamlined operations, -10% level upgrade cost.', cost: 1000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
-      { id: 'cs_artisanal_beans', name: 'Artisanal Beans', description: 'Source high-quality beans, +25% income.', cost: 1600, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
-      { id: 'cs_pastry_selection', name: 'Pastry Selection', description: 'Offer pastries with coffee, +15% income.', cost: 2000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
-      { id: 'cs_ambiance_upgrade', name: 'Ambiance Upgrade', description: 'Comfortable seating and music, +10% income.', cost: 2800, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'cs_mobile_ordering_app', name: 'Mobile Ordering App', description: 'Convenience for customers, +12% income.', cost: 4000, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
-      { id: 'cs_bulk_milk_contract', name: 'Bulk Milk Contract', description: 'Reduced dairy costs, -4% level upgrade cost.', cost: 4800, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+      { id: 'cs_espresso_machine', name: 'Espresso Machine', description: 'Faster service, +20% income.', cost: 350, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'cs_loyal_customer_program', name: 'Loyalty Program', description: 'Repeat customers, +10% income.', cost: 700, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'cs_efficient_barista_training', name: 'Efficient Barista Training', description: 'Streamlined operations, -10% level upgrade cost.', cost: 900, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'cs_artisanal_beans', name: 'Artisanal Beans', description: 'Source high-quality beans, +25% income.', cost: 1400, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'cs_pastry_selection', name: 'Pastry Selection', description: 'Offer pastries with coffee, +15% income.', cost: 1750, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'cs_ambiance_upgrade', name: 'Ambiance Upgrade', description: 'Comfortable seating and music, +10% income.', cost: 2450, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'cs_mobile_ordering_app', name: 'Mobile Ordering App', description: 'Convenience for customers, +12% income.', cost: 3500, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'cs_bulk_milk_contract', name: 'Bulk Milk Contract', description: 'Reduced dairy costs, -4% level upgrade cost.', cost: 4200, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
     ],
   },
   {
@@ -1221,7 +1221,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 4.8E9,
     baseCost: 1.2E14,
     upgradeCostMultiplier: 1.031,
-    icon: Network,
+    icon: Network, // Using Network again, assuming distinctness is maintained by name
     managerOwned: false,
     description: 'Integrating entire planets into a single sentient consciousness.',
     upgrades: [
@@ -1450,7 +1450,7 @@ const baseSkillTree: SkillNode[] = [
     id: 'global_income_boost_1',
     name: 'Entrepreneurial Spirit I',
     description: 'All businesses generate +5% income.',
-    cost: 2,
+    cost: 1,
     icon: TrendingUpIcon,
     effects: { globalIncomeBoostPercent: 5 },
   },
@@ -2077,3 +2077,4 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
+
