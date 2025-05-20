@@ -95,7 +95,8 @@ function AppLogo() {
         <div className="flex justify-between items-center text-xs text-muted-foreground mb-0.5">
             <span className="flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-400"/>
-                Prestige Lvl Progress {prestigeProgress.newlyGainedPoints > 0 && `( +${prestigeProgress.newlyGainedPoints} PP)`}
+                {'Prestige Lvl Progress'} 
+                {prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints} PP)`}
             </span>
             <span>{prestigeProgress.percentage.toFixed(1)}%</span>
         </div>
@@ -352,3 +353,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
