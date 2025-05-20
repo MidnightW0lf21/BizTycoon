@@ -67,7 +67,7 @@ export function HQUpgradeCard({
 
   const Icon = hqUpgrade.icon;
 
-  const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
+  const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged !== undefined ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
 
   let canAffordMoney = false;
   let canAffordPP = true; 
@@ -83,12 +83,12 @@ export function HQUpgradeCard({
 
   let lockReasonText = "";
   if (!isMaxed && nextLevelData) {
-    if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
+    if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged !== undefined) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
+      lockReasonText = `Needs $${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && !canAffordPP) {
-      lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
+      lockReasonText = `Needs ${Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP.`;
     }
   }
 
@@ -129,16 +129,24 @@ export function HQUpgradeCard({
               <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="flex items-center gap-2 font-semibold text-right">
-                  <span className="text-green-500">
-                    $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  </span>
+                <div className="flex items-center gap-x-1.5 font-semibold text-right"> {/* Changed to gap-x-1.5 and ensure text-right */}
+                  {nextLevelData.costMoney > 0 && (
+                    <span className="text-green-500">
+                      {`$${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                    </span>
+                  )}
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground font-normal mx-0.5">+</span>
-                      <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
-                      <span>{nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP</span>
-                    </div>
+                    <>
+                      {nextLevelData.costMoney > 0 && <span className="text-muted-foreground font-normal mx-0.5">+</span>}
+                      <div className="flex items-center gap-1">
+                        <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                        <span>{Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP</span>
+                      </div>
+                    </>
+                  )}
+                  {/* Handle case where cost is genuinely free */}
+                  {nextLevelData.costMoney === 0 && (!nextLevelData.costPrestigePoints || nextLevelData.costPrestigePoints === 0) && (
+                    <span className="text-green-500">Free</span>
                   )}
                 </div>
               </div>
@@ -150,8 +158,8 @@ export function HQUpgradeCard({
                 <p className="text-xs text-muted-foreground">This HQ upgrade is at its maximum level.</p>
             </div>
           )}
-          {hqUpgrade.requiredTimesPrestiged && !isMaxed && nextLevelData && ( // Only show if not maxed and next level exists
-            <div className="text-xs text-muted-foreground pt-1">
+          {hqUpgrade.requiredTimesPrestiged !== undefined && hqUpgrade.requiredTimesPrestiged > 0 && !isMaxed && nextLevelData && ( 
+            <div className="text-xs text-muted-foreground"> {/* Removed pt-1 */}
               (Overall Prestige Req: {hqUpgrade.requiredTimesPrestiged})
             </div>
           )}
@@ -190,4 +198,4 @@ export function HQUpgradeCard({
   );
 }
 
-  
+    
