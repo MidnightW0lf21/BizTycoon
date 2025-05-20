@@ -35,15 +35,15 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
       <CardContent className="space-y-1.5 text-xs pt-2 pb-3">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Avg. Purchase Price:</span>
-          <span className="font-medium">${holding.averagePurchasePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-medium">${holding.averagePurchasePrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Current Price:</span>
-          <span className="font-medium">${stock.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-medium">${stock.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Current Value:</span>
-          <span className="font-bold text-primary">${currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="font-bold text-primary">${currentValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Dividend/sec:</span>
@@ -51,14 +51,14 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
             <TooltipTrigger asChild>
                 <span className="font-medium text-green-500 flex items-center">
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {dividendPerSecondFromHolding.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                    {dividendPerSecondFromHolding.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                      <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
             <TooltipContent>
                 <p>Total dividend from these shares per second.</p>
                 <p>Calculation: Shares × Price × Yield</p>
-                <p>{holding.shares.toLocaleString('en-US')} × ${stock.price.toFixed(2)} × {(stock.dividendYield * 100).toFixed(4)}%</p>
+                <p>{holding.shares.toLocaleString('en-US')} × ${stock.price.toLocaleString('en-US', {maximumFractionDigits:0})} × {(stock.dividendYield * 100).toFixed(4)}%</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -82,4 +82,3 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
     </TooltipProvider>
   );
 }
-

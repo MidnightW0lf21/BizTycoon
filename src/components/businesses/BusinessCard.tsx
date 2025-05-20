@@ -13,7 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { INITIAL_BUSINESSES } from "@/config/game-config"; // Import INITIAL_BUSINESSES
+import { INITIAL_BUSINESSES } from "@/config/game-config"; 
 
 type BuyAmountOption = 1 | 10 | 25 | 'MAX';
 
@@ -32,7 +32,6 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
-    // skillTree is not directly needed here if bulkBuyUnlockedForThisBusiness uses playerStats.unlockedSkillIds
   } = useGame();
   const Icon = business.icon;
 
@@ -146,7 +145,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
   let lockMessage = "";
   if (!isEffectivelyUnlocked) {
     if (unlockIndex === 0) {
-      lockMessage = "Available from start (this message should not appear)."; // Should always be unlocked
+      lockMessage = "Available from start (this message should not appear)."; 
     } else if (unlockIndex === 1) {
       lockMessage = `Unlock this business with your 1st prestige. (Currently: ${playerStats.timesPrestiged})`;
     } else {
@@ -183,7 +182,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           <div className="flex items-center gap-1">
             <DollarSign className="h-4 w-4 text-green-500" />
             <span className="font-semibold text-green-500">
-              {isEffectivelyUnlocked ? `$${income.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}` : 'N/A'}
+              {isEffectivelyUnlocked ? `$${income.toLocaleString('en-US', {maximumFractionDigits: 0})}` : 'N/A'}
             </span>
           </div>
         </div>
@@ -221,7 +220,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                 <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-red-500" />
                     <span className="font-semibold text-red-500">
-                    {isEffectivelyUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US')}` : (isMaxLevel ? 'N/A' : 'N/A')}
+                    {isEffectivelyUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US', {maximumFractionDigits: 0})}` : (isMaxLevel ? 'N/A' : 'N/A')}
                     </span>
                 </div>
             </div>
@@ -253,7 +252,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                             <div className="text-xs mt-1">
                               {!upgrade.isPurchased && (
                                 <>
-                                  <span>Cost: ${upgrade.cost.toLocaleString('en-US')}</span>
+                                  <span>Cost: ${upgrade.cost.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
                                   <span className="mx-1">|</span>
                                   <span>Req. Lvl: {upgrade.requiredLevel}</span>
                                 </>
@@ -278,7 +277,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 { !levelRequirementMet ? <p>Requires Level {upgrade.requiredLevel}</p> :
-                                  !canAffordThisUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US')}</p> :
+                                  !canAffordThisUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US', {maximumFractionDigits: 0})}</p> :
                                   <p>Purchase Upgrade</p>
                                 }
                               </TooltipContent>
@@ -324,4 +323,3 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </Card>
   );
 }
-

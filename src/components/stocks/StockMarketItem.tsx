@@ -48,7 +48,7 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
           </CardTitle>
           <div className="flex items-center text-lg font-semibold text-primary">
             <DollarSign className="h-5 w-5 mr-1" />
-            {stock.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {stock.price.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             <span className="text-xs text-muted-foreground ml-1">/ share</span>
           </div>
         </div>
@@ -61,7 +61,7 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
             <TooltipTrigger asChild>
                 <span className="font-semibold text-green-500 flex items-center">
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {dividendPerSharePerSec.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 })}
+                    {dividendPerSharePerSec.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                     <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
@@ -113,4 +113,3 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
     </TooltipProvider>
   );
 }
-

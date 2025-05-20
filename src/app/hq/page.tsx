@@ -5,10 +5,10 @@ import { useGame } from "@/contexts/GameContext";
 import { HQUpgradeCard } from "@/components/hq/HQUpgradeCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building as HQIcon, LockKeyhole } from "lucide-react"; // Added LockKeyhole
+import { Building as HQIcon, LockKeyhole } from "lucide-react"; 
 import { useMemo, useState, useEffect } from "react"; 
 import { Skeleton } from "@/components/ui/skeleton"; 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardFooter
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
 
 const REQUIRED_PRESTIGE_LEVEL_HQ = 3;
 
@@ -125,7 +125,7 @@ export default function HQPage() {
           Headquarters Upgrades
         </h1>
         <p className="text-muted-foreground">
-          Invest in global upgrades to boost your entire empire. You currently have <strong className="text-primary">${playerStats.money.toLocaleString('en-US')}</strong> and <strong className="text-primary">{playerStats.prestigePoints.toLocaleString('en-US')} PP</strong>.
+          Invest in global upgrades to boost your entire empire. You currently have <strong className="text-primary">${playerStats.money.toLocaleString('en-US', { maximumFractionDigits: 0 })}</strong> and <strong className="text-primary">{playerStats.prestigePoints.toLocaleString('en-US')} PP</strong>.
         </p>
       </div>
       

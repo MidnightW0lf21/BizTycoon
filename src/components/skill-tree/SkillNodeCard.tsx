@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { INITIAL_SKILL_TREE } from '@/config/game-config'; // Ensure this is the correct path
+import { INITIAL_SKILL_TREE } from '@/config/game-config'; 
 
 interface SkillNodeCardProps {
   skillNode: SkillNode;
@@ -28,7 +28,7 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
 
   if (!mounted) {
     return (
-      <Card className="flex flex-col relative transition-shadow duration-200 h-[200px] min-h-[180px]"> {/* Approx height of a card */}
+      <Card className="flex flex-col relative transition-shadow duration-200 h-[200px] min-h-[180px]"> 
         <CardHeader className="pb-3 pt-4">
           <div className="flex items-start gap-3">
             <Skeleton className="h-8 w-8 mt-1 shrink-0 rounded-md" />
@@ -80,7 +80,7 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
     return (
       <Card className={cn(
         "flex flex-col relative transition-shadow duration-200 border-primary shadow-md",
-        "p-3 min-h-[80px] justify-center" // Compact styling
+        "p-3 min-h-[80px] justify-center" 
       )}>
         <div className="flex items-center gap-2">
           <Icon className="h-7 w-7 text-primary shrink-0" />
@@ -98,12 +98,12 @@ export function SkillNodeCard({ skillNode, playerPrestigePoints, unlockedSkillId
   return (
     <TooltipProvider delayDuration={100}>
       <Card className={cn(
-        "flex flex-col relative transition-shadow duration-200 min-h-[180px]", // Ensure min-height for non-unlocked cards
+        "flex flex-col relative transition-shadow duration-200 min-h-[180px]", 
         canUnlock && "hover:shadow-lg border-accent", 
         isTrulyLocked && "border-dashed" 
       )}>
         {isTrulyLocked && (
-          <div className="absolute inset-0 bg-card/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-[calc(var(--radius)-1px)] p-4 text-center">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-[calc(var(--radius)-1px)] p-4 text-center">
             <LockKeyhole className="h-10 w-10 text-primary mb-3" />
             <p className="text-md font-semibold text-primary mb-1">Skill Locked</p>
             <p className="text-xs text-muted-foreground">{lockReasonText}</p>

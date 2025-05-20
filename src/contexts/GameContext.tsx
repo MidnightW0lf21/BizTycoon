@@ -6,7 +6,6 @@ import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
   calculateIncome,
-  MAX_BUSINESS_LEVEL,
   INITIAL_STOCKS,
   INITIAL_PRESTIGE_POINTS,
   INITIAL_TIMES_PRESTIGED,
@@ -20,12 +19,13 @@ import {
   calculateCostForNLevels,
   calculateMaxAffordableLevels,
   calculateSingleLevelUpgradeCost,
+  MAX_BUSINESS_LEVEL,
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
-const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+const AUTO_SAVE_INTERVAL = 30000; 
 
 interface GameContextType {
   playerStats: PlayerStats;
@@ -38,7 +38,7 @@ interface GameContextType {
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string, isAutoBuy?: boolean) => boolean;
   purchaseHQUpgrade: (upgradeId: string) => void;
   getBusinessIncome: (businessId: string) => number;
-  getBusinessUpgradeCost: (businessId: string) => number; // Cost for next single level
+  getBusinessUpgradeCost: (businessId: string) => number; 
   buyStock: (stockId: string, sharesToBuy: number) => void;
   sellStock: (stockId: string, sharesToSell: number) => void;
   performPrestige: () => void;
@@ -374,7 +374,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (playerStats.money < actualCost) {
-      if (!isAutoBuy) toast({ title: "Not Enough Money", description: `You need $${actualCost.toLocaleString('en-US')} to purchase ${upgrade.name}.`, variant: "destructive" });
+      if (!isAutoBuy) toast({ title: "Not Enough Money", description: `You need $${actualCost.toLocaleString('en-US', { maximumFractionDigits: 0 })} to purchase ${upgrade.name}.`, variant: "destructive" });
       return false;
     }
 
@@ -441,8 +441,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         currentMoneySnapshot -= actualCost;
                         purchasedInThisTick = true;
                         businessChanged = true;
-                        // Using a simpler toast for auto-buy to avoid spamming purchaseBusinessUpgrade's toast
-                        // toast({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
                         return { ...upgrade, isPurchased: true };
                     }
                 }
@@ -495,7 +493,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (playerStats.money < totalCost) {
-      toast({ title: "Not enough money!", description: `You need $${totalCost.toLocaleString('en-US')} to level up ${businessToUpdate.name} by ${levelsPurchasable} level(s).`, variant: "destructive" });
+      toast({ title: "Not enough money!", description: `You need $${totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 })} to level up ${businessToUpdate.name} by ${levelsPurchasable} level(s).`, variant: "destructive" });
       return;
     }
 
@@ -543,7 +541,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     const cost = stock.price * sharesToBuy;
     if (playerStats.money < cost) {
-      toast({ title: "Not Enough Money", description: `You need $${cost.toLocaleString('en-US')} to buy ${sharesToBuy.toLocaleString('en-US')} share(s).`, variant: "destructive" });
+      toast({ title: "Not Enough Money", description: `You need $${cost.toLocaleString('en-US', { maximumFractionDigits: 0 })} to buy ${sharesToBuy.toLocaleString('en-US')} share(s).`, variant: "destructive" });
       return;
     }
     setPlayerStats(prev => {
@@ -587,7 +585,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const performPrestige = useCallback(() => {
     const moneyRequiredForFirstPrestige = 100000;
     if (playerStats.money < moneyRequiredForFirstPrestige && playerStats.timesPrestiged === 0) {
-      toast({ title: "Not Enough Money", description: `Need $${moneyRequiredForFirstPrestige.toLocaleString('en-US')} to prestige for the first time.`, variant: "destructive" });
+      toast({ title: "Not Enough Money", description: `Need $${moneyRequiredForFirstPrestige.toLocaleString('en-US', { maximumFractionDigits: 0 })} to prestige for the first time.`, variant: "destructive" });
       return;
     }
 
@@ -601,69 +599,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const startingMoneyBonus = getStartingMoneyBonus(playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState);
     moneyAfterPrestige += startingMoneyBonus;
 
-    let totalBusinessLevelRetentionPercent = 0;
-    let totalStockSharesRetentionPercent = 0;
-
-    for (const hqId in playerStats.hqUpgradeLevels) {
-      const purchasedLevel = playerStats.hqUpgradeLevels[hqId];
-      if (purchasedLevel > 0) {
-        const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
-        if (hqUpgrade && hqUpgrade.levels) {
-          const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-          if (levelData) {
-            if (levelData.effects.retainBusinessLevelPercent) {
-              totalBusinessLevelRetentionPercent += levelData.effects.retainBusinessLevelPercent;
-            }
-            if (levelData.effects.retainStockSharesPercent) {
-              totalStockSharesRetentionPercent += levelData.effects.retainStockSharesPercent;
-            }
-          }
-        }
-      }
-    }
-    totalBusinessLevelRetentionPercent = Math.min(100, totalBusinessLevelRetentionPercent);
-    totalStockSharesRetentionPercent = Math.min(100, totalStockSharesRetentionPercent);
-
     const retainedBusinessLevels: Record<string, number> = {};
-    if (totalBusinessLevelRetentionPercent > 0) {
-      businesses.forEach(biz => {
-        retainedBusinessLevels[biz.id] = Math.floor(biz.level * (totalBusinessLevelRetentionPercent / 100));
-      });
-    }
-
     const retainedStockHoldings: StockHolding[] = [];
-    if (totalStockSharesRetentionPercent > 0) {
-      playerStats.stockHoldings.forEach(holding => {
-        const sharesToRetain = Math.floor(holding.shares * (totalStockSharesRetentionPercent / 100));
-        if (sharesToRetain > 0) {
-          retainedStockHoldings.push({
-            stockId: holding.stockId,
-            shares: sharesToRetain,
-            averagePurchasePrice: holding.averagePurchasePrice, // Retain original avg price
-          });
+
+    for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
+        const purchasedLevel = playerStats.hqUpgradeLevels[hqUpgradeId];
+        if (purchasedLevel > 0) {
+            const hqUpgradeConfig = hqUpgradesState.find(hq => hq.id === hqUpgradeId);
+            if (hqUpgradeConfig && hqUpgradeConfig.levels) {
+                const levelData = hqUpgradeConfig.levels.find(l => l.level === purchasedLevel);
+                if (levelData && levelData.effects.retentionPercentage) {
+                    const retentionPercentage = levelData.effects.retentionPercentage;
+                    if (hqUpgradeId.startsWith('retain_level_')) {
+                        const businessId = hqUpgradeId.replace('retain_level_', '');
+                        const business = businesses.find(b => b.id === businessId);
+                        if (business) {
+                            retainedBusinessLevels[businessId] = Math.floor(business.level * (retentionPercentage / 100));
+                        }
+                    } else if (hqUpgradeId.startsWith('retain_shares_')) {
+                        const stockId = hqUpgradeId.replace('retain_shares_', '');
+                        const currentHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
+                        if (currentHolding) {
+                            const retainedShares = Math.floor(currentHolding.shares * (retentionPercentage / 100));
+                            if (retainedShares > 0) {
+                                retainedStockHoldings.push({ stockId, shares: retainedShares, averagePurchasePrice: currentHolding.averagePurchasePrice });
+                            }
+                        }
+                    }
+                }
+            }
         }
-      });
     }
+    
 
     setPlayerStats(prev => ({
       ...prev,
       money: moneyAfterPrestige,
-      investmentsValue: 0, // Will be recalculated
+      investmentsValue: 0, 
       stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      // unlockedSkillIds & hqUpgradeLevels are kept
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, 
       level: retainedBusinessLevels[biz.id] || 0, 
-      managerOwned: false, // Managers are reset
+      managerOwned: false, 
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
       icon: biz.icon,
     })));
 
-    toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US')}.` });
+    toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${moneyAfterPrestige.toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
   }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
 
   const unlockSkillNode = (skillId: string) => {
@@ -717,7 +703,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (playerStats.money < nextLevelData.costMoney) {
-      toast({ title: "Not Enough Money", description: `Need $${nextLevelData.costMoney.toLocaleString('en-US')}.`, variant: "destructive"});
+      toast({ title: "Not Enough Money", description: `Need $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}.`, variant: "destructive"});
       return;
     }
     if (nextLevelData.costPrestigePoints && playerStats.prestigePoints < nextLevelData.costPrestigePoints) {
@@ -775,4 +761,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-    

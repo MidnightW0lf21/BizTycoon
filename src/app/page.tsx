@@ -122,13 +122,13 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         <MetricCard
           title="Current Money"
-          value={`$${Math.floor(currentMoney).toLocaleString('en-US')}`}
+          value={`$${Math.floor(currentMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
           icon={DollarSign}
           description="Your total available cash."
         />
         <MetricCard
           title="Income / Sec"
-          value={`$${currentIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+          value={`$${currentIncome.toLocaleString('en-US', {maximumFractionDigits: 0})}`}
           icon={TrendingUp}
           description="Passive income from all sources."
         />
@@ -140,7 +140,7 @@ export default function DashboardPage() {
         />
          <MetricCard
           title="Investment Value"
-          value={`$${playerStats.investmentsValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+          value={`$${playerStats.investmentsValue.toLocaleString('en-US', {maximumFractionDigits: 0})}`}
           icon={ShieldCheck}
           description="Current value of your stock portfolio."
         />
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           )}
           {playerStats.timesPrestiged === 0 && (
             <p className="text-xs text-muted-foreground pt-2">
-              Note: You also need at least $100,000 to perform a prestige for the first time. 
+              Note: You also need at least $${(100000).toLocaleString('en-US', { maximumFractionDigits: 0 })} to perform a prestige for the first time. 
               The points shown in the Prestige dialog are newly gained base points before skill bonuses.
               After prestiging, progress towards the next point starts after your total levels surpass the cumulative cost of points you already own.
             </p>

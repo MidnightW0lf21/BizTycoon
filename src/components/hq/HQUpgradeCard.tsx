@@ -16,7 +16,7 @@ interface HQUpgradeCardProps {
   playerMoney: number;
   playerPrestigePoints: number;
   playerTimesPrestiged: number;
-  currentUpgradeLevels: Record<string, number>; // Corrected prop name and type
+  currentUpgradeLevels: Record<string, number>; 
   onPurchaseUpgrade: (upgradeId: string) => void;
 }
 
@@ -25,7 +25,7 @@ export function HQUpgradeCard({
   playerMoney,
   playerPrestigePoints,
   playerTimesPrestiged,
-  currentUpgradeLevels, // Use the corrected prop name directly
+  currentUpgradeLevels, 
   onPurchaseUpgrade,
 }: HQUpgradeCardProps) {
   const [mounted, setMounted] = useState(false);
@@ -34,7 +34,7 @@ export function HQUpgradeCard({
     setMounted(true);
   }, []);
 
-  const currentLevel = currentUpgradeLevels[hqUpgrade.id] || 0; // Access directly
+  const currentLevel = currentUpgradeLevels[hqUpgrade.id] || 0; 
   const maxLevel = hqUpgrade.levels.length;
   const isMaxed = currentLevel >= maxLevel;
   const nextLevelData = !isMaxed ? hqUpgrade.levels.find(l => l.level === currentLevel + 1) : undefined;
@@ -70,7 +70,7 @@ export function HQUpgradeCard({
   const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
   
   let canAffordMoney = false;
-  let canAffordPP = true; // Default to true if no PP cost
+  let canAffordPP = true; 
   if (nextLevelData) {
     canAffordMoney = playerMoney >= nextLevelData.costMoney;
     if (nextLevelData.costPrestigePoints) {
@@ -86,7 +86,7 @@ export function HQUpgradeCard({
     if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US')}.`;
+      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && !canAffordPP) {
       lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
     }
@@ -131,7 +131,7 @@ export function HQUpgradeCard({
                 <span className="text-muted-foreground">Cost:</span>
                 <div className="flex items-center gap-1 font-semibold">
                   <DollarSign className="h-4 w-4 text-green-500" /> 
-                  {nextLevelData.costMoney.toLocaleString('en-US')}
+                  {nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
                     <>
                       <span className="text-muted-foreground mx-1">+</span> 
@@ -188,4 +188,3 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
-    

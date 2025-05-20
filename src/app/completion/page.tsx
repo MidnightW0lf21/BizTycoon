@@ -19,7 +19,7 @@ interface CategoryProgressProps {
 
 function CategoryProgress({ title, icon: Icon, currentValue, totalValue, unit }: CategoryProgressProps) {
   const percentage = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
-  const displayPercentage = Math.min(100, Math.max(0, percentage)); // Clamp between 0 and 100
+  const displayPercentage = Math.min(100, Math.max(0, percentage)); 
 
   return (
     <Card>
@@ -32,7 +32,7 @@ function CategoryProgress({ title, icon: Icon, currentValue, totalValue, unit }:
       <CardContent>
         <Progress value={displayPercentage} className="w-full mb-2 h-3" />
         <p className="text-sm text-muted-foreground text-center">
-          {currentValue.toLocaleString('en-US')} / {totalValue.toLocaleString('en-US')} {unit} completed ({displayPercentage.toFixed(1)}%)
+          {currentValue.toLocaleString('en-US', {maximumFractionDigits: 0})} / {totalValue.toLocaleString('en-US', {maximumFractionDigits: 0})} {unit} completed ({displayPercentage.toFixed(1)}%)
         </p>
       </CardContent>
     </Card>
@@ -50,7 +50,6 @@ export default function CompletionPage() {
   const completionData = useMemo(() => {
     const dynamicMaxLevel = getDynamicMaxBusinessLevel();
 
-    // 1. Business Completion
     let achievedBusinessMaxLevelPoints = 0;
     let achievedBusinessUpgradePoints = 0;
     
@@ -77,12 +76,10 @@ export default function CompletionPage() {
     const currentTotalBusinessCompletionPoints = achievedBusinessMaxLevelPoints + achievedBusinessUpgradePoints;
     const businessCompletionPercentage = maxTotalBusinessCompletionPoints > 0 ? (currentTotalBusinessCompletionPoints / maxTotalBusinessCompletionPoints) * 100 : 0;
 
-    // 2. Skill Tree Completion
     const totalSkills = INITIAL_SKILL_TREE.length;
     const unlockedSkills = playerStats.unlockedSkillIds.length;
     const skillCompletionPercentage = totalSkills > 0 ? (unlockedSkills / totalSkills) * 100 : 0;
 
-    // 3. HQ Upgrades Completion
     let totalPossibleHQLevels = 0;
     let achievedHQLevels = 0;
     INITIAL_HQ_UPGRADES.forEach(hqUpgrade => {
@@ -91,7 +88,6 @@ export default function CompletionPage() {
     });
     const hqCompletionPercentage = totalPossibleHQLevels > 0 ? (achievedHQLevels / totalPossibleHQLevels) * 100 : 0;
     
-    // 4. Stocks Completion (based on owning all shares of each *defined* stock)
     const totalPossibleSharesToOwn = INITIAL_STOCKS.reduce((sum, stock) => sum + stock.totalOutstandingShares, 0);
     let currentOwnedShares = 0;
     playerStats.stockHoldings.forEach(holding => {
@@ -100,7 +96,6 @@ export default function CompletionPage() {
     const stockCompletionPercentage = totalPossibleSharesToOwn > 0 ? (currentOwnedShares / totalPossibleSharesToOwn) * 100 : 0;
 
 
-    // Overall Completion
     const overallCompletionPercentage = (businessCompletionPercentage + skillCompletionPercentage + hqCompletionPercentage + stockCompletionPercentage) / 4;
 
     return {

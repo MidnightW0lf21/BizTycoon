@@ -22,11 +22,11 @@ export function IncomeChart() {
     const data = businesses
       .filter(b => b.level > 0)
       .map(business => ({
-        name: business.name.length > 15 ? `${business.name.substring(0,12)}...` : business.name, // Truncate long names
+        name: business.name.length > 15 ? `${business.name.substring(0,12)}...` : business.name, 
         income: getBusinessIncome(business.id),
       }))
-      .sort((a,b) => b.income - a.income) // Sort by income desc
-      .slice(0, 5); // Show top 5
+      .sort((a,b) => b.income - a.income) 
+      .slice(0, 5); 
       
     setChartData(data);
   }, [businesses, getBusinessIncome]);
@@ -59,13 +59,13 @@ export function IncomeChart() {
                 axisLine={false}
               />
               <YAxis 
-                tickFormatter={(value) => `$${value.toLocaleString('en-US')}`}
+                tickFormatter={(value) => `$${value.toLocaleString('en-US', {maximumFractionDigits: 0})}`}
               />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent 
                             indicator="dot" 
-                            valueNumberFormatOptions={{ maximumFractionDigits: 0 }} 
+                            valueNumberFormatOptions={{ maximumFractionDigits: 0, style: 'currency', currency: 'USD', minimumFractionDigits: 0 }} 
                          />}
               />
               <Bar dataKey="income" fill="var(--color-income)" radius={4} />

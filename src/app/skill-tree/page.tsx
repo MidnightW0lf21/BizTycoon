@@ -16,14 +16,13 @@ export default function SkillTreePage() {
 
   const REQUIRED_PRESTIGE_LEVEL = 1;
 
-  // Call all hooks before any conditional returns
   const sortedSkillTree = useMemo(() => {
     return [...INITIAL_SKILL_TREE].sort((a, b) => {
       const aUnlocked = playerStats.unlockedSkillIds.includes(a.id);
       const bUnlocked = playerStats.unlockedSkillIds.includes(b.id);
-      if (aUnlocked && !bUnlocked) return -1; // Unlocked skills first
+      if (aUnlocked && !bUnlocked) return -1; 
       if (!aUnlocked && bUnlocked) return 1;
-      return a.cost - b.cost; // Then sort by cost
+      return a.cost - b.cost; 
     });
   }, [playerStats.unlockedSkillIds]);
 
@@ -39,11 +38,10 @@ export default function SkillTreePage() {
         ? skill.dependencies.every(depId => playerStats.unlockedSkillIds.includes(depId))
         : true;
       
-      return dependenciesMet; // Show if unlocked or dependencies are met
+      return dependenciesMet; 
     });
   }, [sortedSkillTree, playerStats.unlockedSkillIds, showAllSkills]);
 
-  // Now, perform the conditional rendering
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
     return (
       <Card className="w-full md:max-w-2xl mx-auto">
@@ -97,7 +95,7 @@ export default function SkillTreePage() {
           </p>
         </div>
       ) : (
-        <ScrollArea className="flex-grow pr-1 h-[calc(100vh-250px)]"> {/* Adjusted height based on surrounding elements */}
+        <ScrollArea className="flex-grow pr-1 h-[calc(100vh-250px)]"> 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {filteredSkillTree.map((skill) => (
               <SkillNodeCard

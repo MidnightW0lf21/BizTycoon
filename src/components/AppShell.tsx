@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react'; // Added HQIcon, ListChecks
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react'; 
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -123,7 +123,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
 
   const handleInteraction = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent> | React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (isLocked) {
-      event.preventDefault(); // Prevent navigation for Link if locked
+      event.preventDefault(); 
       return;
     }
 
@@ -140,7 +140,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={linkClassName} onClick={(e) => e.preventDefault()} aria-disabled="true"> {/* Ensure div is not clickable */}
+            <div className={linkClassName} onClick={(e) => e.preventDefault()} aria-disabled="true">
               {linkContent}
             </div>
           </TooltipTrigger>
@@ -161,7 +161,6 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
-  // Default to Link if href is provided and not an action
   if (href) {
     return (
       <Link href={href} onClick={handleInteraction} className={linkClassName}>
@@ -170,7 +169,6 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
-  // Fallback for non-link, non-action items (should ideally not happen with current navItems)
   return (
     <div className={linkClassName} onClick={onMobileClick}>
       {linkContent}
@@ -223,7 +221,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
       toast({
         title: "Not Ready to Prestige",
-        description: `You need at least $${moneyRequiredForPrestige.toLocaleString('en-US')} to prestige for the first time.`,
+        description: `You need at least $${moneyRequiredForPrestige.toLocaleString('en-US', { maximumFractionDigits: 0 })} to prestige for the first time.`,
         variant: "destructive",
       });
     } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
@@ -293,7 +291,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <DollarSign className="h-5 w-5" />
-              <span>${Math.floor(currentMoney).toLocaleString('en-US')}</span>
+              <span>${Math.floor(currentMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">
@@ -315,7 +313,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Are you sure you want to prestige? This will reset your current money,
               all business levels, business upgrades, and stock holdings (unless retained by HQ upgrades).
               <br /><br />
-              You will gain approximately <strong className="text-primary">{newlyGainedPoints}</strong> new base prestige point(s) from business levels.
+              You will gain approximately <strong className="text-primary">{newlyGainedPoints.toLocaleString('en-US')}</strong> new base prestige point(s) from business levels.
               <br />
               (HQ Upgrades, Skill bonuses, if any, will be applied on top of this value by the system.)
               <br />
@@ -339,6 +337,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-
-    

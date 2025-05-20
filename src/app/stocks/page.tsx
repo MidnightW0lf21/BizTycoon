@@ -55,7 +55,7 @@ export default function StocksPage() {
             <p className="text-center text-muted-foreground">No stocks available in the market currently.</p>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-220px)] pr-4"> {/* Adjusted height to be more dynamic */}
+          <ScrollArea className="h-[calc(100vh-220px)] pr-4"> 
             <div className="space-y-4">
               {stocks.map((stock) => (
                 <StockMarketItem key={stock.id} stock={stock} />
@@ -72,10 +72,10 @@ export default function StocksPage() {
           <p className="text-sm text-muted-foreground">Overview of your current stock holdings.</p>
         </div>
         
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 flex-grow flex flex-col"> {/* Added card-like styling here for the content area */}
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 flex-grow flex flex-col"> 
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">Total Investment Value:</p>
-            <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-bold text-primary">${playerStats.investmentsValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
           </div>
           <Separator className="my-4" />
           {playerHoldingsWithStockData.length === 0 ? (
@@ -83,7 +83,7 @@ export default function StocksPage() {
               <p className="text-center text-muted-foreground">You do not own any stocks yet.</p>
             </div>
           ) : (
-            <ScrollArea className="h-[calc(100vh-380px)] pr-4"> {/* Adjusted height */}
+            <ScrollArea className="h-[calc(100vh-380px)] pr-4"> 
               <div className="space-y-4">
                 {playerHoldingsWithStockData.map((holdingItem) => (
                   holdingItem.stockDetails ? (

@@ -3,28 +3,39 @@
 
 import { BusinessCard } from "@/components/businesses/BusinessCard";
 import { useGame } from "@/contexts/GameContext";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { INITIAL_BUSINESSES } from "@/config/game-config"; // Import initial config to get unlock order
+import { INITIAL_BUSINESSES } from "@/config/game-config"; 
+
+const HIDE_MAXED_BUSINESSES_KEY = 'bizTycoonHideMaxedBusinesses_v1';
 
 export default function BusinessesPage() {
   const { businesses, playerStats, getDynamicMaxBusinessLevel } = useGame();
   const [showMaxedBusinesses, setShowMaxedBusinesses] = useState(true);
+
+  useEffect(() => {
+    const savedPreference = localStorage.getItem(HIDE_MAXED_BUSINESSES_KEY);
+    if (savedPreference !== null) {
+      setShowMaxedBusinesses(savedPreference === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(HIDE_MAXED_BUSINESSES_KEY, String(showMaxedBusinesses));
+  }, [showMaxedBusinesses]);
 
   const filteredBusinesses = useMemo(() => {
     const dynamicMaxLevel = getDynamicMaxBusinessLevel();
     
     return businesses.filter(business => {
       const unlockIndex = INITIAL_BUSINESSES.findIndex(b => b.id === business.id);
-      if (unlockIndex === -1) return false; // Should not happen if data is consistent
+      if (unlockIndex === -1) return false; 
 
-      // Filter 1: Hide businesses locked too far ahead in prestige
       const prestigeVisibilityThreshold = playerStats.timesPrestiged + 3;
       if (unlockIndex > prestigeVisibilityThreshold) {
         return false;
       }
 
-      // Filter 2: Hide maxed out businesses if toggled
       if (!showMaxedBusinesses) {
         const isMaxed = business.level >= dynamicMaxLevel;
         if (isMaxed) {
