@@ -54,24 +54,25 @@ function AppLogo() {
 
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
-
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
-    const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
-    const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
-
+    
+    // Logic mirrored from dashboard progress bar
+    const potentialTotalPoints = calculateDiminishingPrestigePoints(currentTotalLevels);
+    const targetPointNumber = potentialTotalPoints + 1;
+    const costForTargetPoint = getCostForNthPoint(targetPointNumber);
+    const levelsRequiredForPotentialTotalPoints = getLevelsRequiredForNPoints(potentialTotalPoints);
+    const levelsAchievedForTarget = Math.max(0, currentTotalLevels - levelsRequiredForPotentialTotalPoints);
+    
     let percentage = 0;
-    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) {
-      percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) {
+    if (costForTargetPoint > 0 && costForTargetPoint !== Infinity) {
+      percentage = Math.min(100, (levelsAchievedForTarget / costForTargetPoint) * 100);
+    } else if (levelsAchievedForTarget > 0 && costForTargetPoint !== Infinity) { // If cost is infinity but levels are achieved, it means maxed out
       percentage = 100;
     }
 
-
     setPrestigeProgress({
       percentage: percentage,
-      levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
+      levelsAchieved: levelsAchievedForTarget,
+      levelsForNext: costForTargetPoint === Infinity ? 0 : costForTargetPoint,
     });
   }, [playerStats, businesses]);
 
@@ -95,15 +96,20 @@ function AppLogo() {
   );
 }
 
-interface NavLinkProps extends NavItem {
-  onMobileClick?: () => void;
+interface NavLinkProps {
+  href?: string;
+  label: string;
+  icon: LucideIcon;
+  requiredTimesPrestiged?: number;
   currentTimesPrestiged: number;
+  action?: 'prestige';
   onPrestigeClick?: () => void;
+  onMobileClick?: () => void;
 }
 
 function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged = 0, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = action ? false : pathname === href;
+  const isActive = action ? false : (href === '/' ? pathname === href : (href && pathname.startsWith(href)));
   const isLocked = currentTimesPrestiged < requiredTimesPrestiged;
 
   const linkClassName = cn(
@@ -121,7 +127,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     </>
   );
 
-  const handleInteraction = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent> | React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleInteraction = (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
     if (isLocked) {
       event.preventDefault();
       return;
@@ -169,6 +175,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
+  // Fallback for items that might not be links or actions (though not used in current navItems)
   return (
     <div className={linkClassName} onClick={onMobileClick}>
       {linkContent}
@@ -200,7 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
     setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
 
-  }, [playerStats, businesses]);
+  }, [playerStats.money, playerStats.prestigePoints, playerStats.timesPrestiged, businesses]);
 
   useEffect(() => {
     const activeItem = navItems.find(item => {
