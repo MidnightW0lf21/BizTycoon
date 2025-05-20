@@ -86,7 +86,7 @@ export function HQUpgradeCard({
     if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged !== undefined) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs $${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
+      lockReasonText = `Needs ${Number(nextLevelData.costMoney).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && !canAffordPP) {
       lockReasonText = `Needs ${Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP.`;
     }
@@ -129,10 +129,15 @@ export function HQUpgradeCard({
               <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="flex items-center gap-x-1.5 font-semibold text-right"> {/* Changed to gap-x-1.5 and ensure text-right */}
+                <div className="flex items-center gap-x-1.5 font-semibold text-right">
                   {nextLevelData.costMoney > 0 && (
                     <span className="text-green-500">
-                      {`$${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                      {Number(nextLevelData.costMoney).toLocaleString('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
                     </span>
                   )}
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
@@ -144,7 +149,6 @@ export function HQUpgradeCard({
                       </div>
                     </>
                   )}
-                  {/* Handle case where cost is genuinely free */}
                   {nextLevelData.costMoney === 0 && (!nextLevelData.costPrestigePoints || nextLevelData.costPrestigePoints === 0) && (
                     <span className="text-green-500">Free</span>
                   )}
@@ -159,7 +163,7 @@ export function HQUpgradeCard({
             </div>
           )}
           {hqUpgrade.requiredTimesPrestiged !== undefined && hqUpgrade.requiredTimesPrestiged > 0 && !isMaxed && nextLevelData && ( 
-            <div className="text-xs text-muted-foreground"> {/* Removed pt-1 */}
+            <div className="text-xs text-muted-foreground">
               (Overall Prestige Req: {hqUpgrade.requiredTimesPrestiged})
             </div>
           )}
@@ -197,5 +201,5 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
-
+    
     
