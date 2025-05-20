@@ -3,7 +3,7 @@ import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeL
 import {
   Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem,
   Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recyclable, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, Galactic, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye
-} from 'lucide-react'; // Added many new icons, removed Milestones (plural)
+} from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
 export const MAX_BUSINESS_LEVEL = 100; // Base max level
@@ -22,20 +22,20 @@ export const INITIAL_BUSINESSES: Business[] = [
     name: 'Lemonade Stand',
     level: 0,
     baseIncome: 1,
-    baseCost: 10,
-    upgradeCostMultiplier: 1.075, // Slightly reduced from 1.06
+    baseCost: 8, // Made cheaper
+    upgradeCostMultiplier: 1.07, // Made cheaper
     icon: Citrus,
     managerOwned: false,
     description: 'A humble start, selling refreshing lemonade.',
     upgrades: [
-      { id: 'ls_bigger_pitcher', name: 'Bigger Pitcher', description: 'Serve more lemonade, +10% income.', cost: 50, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'ls_catchy_sign', name: 'Catchy Sign', description: 'Attract more customers, +15% income.', cost: 150, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
-      { id: 'ls_bulk_lemons', name: 'Bulk Lemons', description: 'Cheaper supplies, -5% level upgrade cost.', cost: 200, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-      { id: 'ls_premium_ingredients', name: 'Premium Ingredients', description: 'Use organic lemons & sugar, +20% income.', cost: 300, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
-      { id: 'ls_ice_machine', name: 'Ice Machine', description: 'Always cold lemonade, +10% income.', cost: 400, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'ls_franchise_manual', name: 'Franchise Manual', description: 'Standardize operations, +12% income.', cost: 600, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
-      { id: 'ls_marketing_flyers', name: 'Local Marketing Flyers', description: 'Increased local awareness, +8% income.', cost: 800, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
-      { id: 'ls_sugar_supplier_deal', name: 'Sugar Supplier Deal', description: 'Reduced sugar costs, -3% level upgrade cost.', cost: 1000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 3 },
+      { id: 'ls_bigger_pitcher', name: 'Bigger Pitcher', description: 'Serve more lemonade, +10% income.', cost: 40, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ls_catchy_sign', name: 'Catchy Sign', description: 'Attract more customers, +15% income.', cost: 120, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'ls_bulk_lemons', name: 'Bulk Lemons', description: 'Cheaper supplies, -5% level upgrade cost.', cost: 160, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
+      { id: 'ls_premium_ingredients', name: 'Premium Ingredients', description: 'Use organic lemons & sugar, +20% income.', cost: 240, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'ls_ice_machine', name: 'Ice Machine', description: 'Always cold lemonade, +10% income.', cost: 320, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'ls_franchise_manual', name: 'Franchise Manual', description: 'Standardize operations, +12% income.', cost: 480, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'ls_marketing_flyers', name: 'Local Marketing Flyers', description: 'Increased local awareness, +8% income.', cost: 640, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
+      { id: 'ls_sugar_supplier_deal', name: 'Sugar Supplier Deal', description: 'Reduced sugar costs, -3% level upgrade cost.', cost: 800, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 3 },
     ],
   },
   {
@@ -43,20 +43,20 @@ export const INITIAL_BUSINESSES: Business[] = [
     name: 'Coffee Shop',
     level: 0,
     baseIncome: 5,
-    baseCost: 100,
-    upgradeCostMultiplier: 1.13, // Slightly reduced from 1.12
+    baseCost: 80, // Made cheaper
+    upgradeCostMultiplier: 1.12, // Made cheaper
     icon: Coffee,
     managerOwned: false,
     description: 'Caffeinate the masses and your profits.',
     upgrades: [
-      { id: 'cs_espresso_machine', name: 'Espresso Machine', description: 'Faster service, +20% income.', cost: 500, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 20 },
-      { id: 'cs_loyal_customer_program', name: 'Loyalty Program', description: 'Repeat customers, +10% income.', cost: 1000, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'cs_efficient_barista_training', name: 'Efficient Barista Training', description: 'Streamlined operations, -10% level upgrade cost.', cost: 1200, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
-      { id: 'cs_artisanal_beans', name: 'Artisanal Beans', description: 'Source high-quality beans, +25% income.', cost: 2000, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
-      { id: 'cs_pastry_selection', name: 'Pastry Selection', description: 'Offer pastries with coffee, +15% income.', cost: 2500, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
-      { id: 'cs_ambiance_upgrade', name: 'Ambiance Upgrade', description: 'Comfortable seating and music, +10% income.', cost: 3500, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
-      { id: 'cs_mobile_ordering_app', name: 'Mobile Ordering App', description: 'Convenience for customers, +12% income.', cost: 5000, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
-      { id: 'cs_bulk_milk_contract', name: 'Bulk Milk Contract', description: 'Reduced dairy costs, -4% level upgrade cost.', cost: 6000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
+      { id: 'cs_espresso_machine', name: 'Espresso Machine', description: 'Faster service, +20% income.', cost: 400, requiredLevel: 5, isPurchased: false, incomeBoostPercent: 20 },
+      { id: 'cs_loyal_customer_program', name: 'Loyalty Program', description: 'Repeat customers, +10% income.', cost: 800, requiredLevel: 10, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'cs_efficient_barista_training', name: 'Efficient Barista Training', description: 'Streamlined operations, -10% level upgrade cost.', cost: 1000, requiredLevel: 15, isPurchased: false, levelUpgradeCostReductionPercent: 10 },
+      { id: 'cs_artisanal_beans', name: 'Artisanal Beans', description: 'Source high-quality beans, +25% income.', cost: 1600, requiredLevel: 20, isPurchased: false, incomeBoostPercent: 25 },
+      { id: 'cs_pastry_selection', name: 'Pastry Selection', description: 'Offer pastries with coffee, +15% income.', cost: 2000, requiredLevel: 25, isPurchased: false, incomeBoostPercent: 15 },
+      { id: 'cs_ambiance_upgrade', name: 'Ambiance Upgrade', description: 'Comfortable seating and music, +10% income.', cost: 2800, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
+      { id: 'cs_mobile_ordering_app', name: 'Mobile Ordering App', description: 'Convenience for customers, +12% income.', cost: 4000, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
+      { id: 'cs_bulk_milk_contract', name: 'Bulk Milk Contract', description: 'Reduced dairy costs, -4% level upgrade cost.', cost: 4800, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
     ],
   },
   {
@@ -65,7 +65,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 12,
     baseCost: 400,
-    upgradeCostMultiplier: 1.125, // Slightly reduced from 1.11
+    upgradeCostMultiplier: 1.125,
     icon: Cookie,
     managerOwned: false,
     description: 'Delicious baked goods for the discerning palate.',
@@ -86,7 +86,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20,
     baseCost: 750,
-    upgradeCostMultiplier: 1.115, // Slightly reduced
+    upgradeCostMultiplier: 1.115,
     icon: Utensils,
     managerOwned: false,
     description: 'Serve quick meals to hungry customers.',
@@ -107,7 +107,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 50,
     baseCost: 1500,
-    upgradeCostMultiplier: 1.14, // Slightly reduced
+    upgradeCostMultiplier: 1.14,
     icon: Cpu,
     managerOwned: false,
     description: 'Innovate and disrupt with cutting-edge technology.',
@@ -128,7 +128,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 120,
     baseCost: 5000,
-    upgradeCostMultiplier: 1.135, // Slightly reduced
+    upgradeCostMultiplier: 1.135,
     icon: Code2,
     managerOwned: false,
     description: 'Custom software solutions for businesses.',
@@ -149,7 +149,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 250,
     baseCost: 10000,
-    upgradeCostMultiplier: 1.125, // Slightly reduced
+    upgradeCostMultiplier: 1.125,
     icon: Landmark,
     managerOwned: false,
     description: 'Buy, sell, and lease properties for big returns.',
@@ -170,7 +170,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 300,
     baseCost: 25000,
-    upgradeCostMultiplier: 1.11, // Adjusted
+    upgradeCostMultiplier: 1.11,
     icon: Megaphone,
     managerOwned: false,
     description: 'Crafting compelling campaigns for high-profile clients.',
@@ -212,7 +212,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 800,
     baseCost: 50000,
-    upgradeCostMultiplier: 1.115, // Slightly reduced
+    upgradeCostMultiplier: 1.115,
     icon: Film,
     managerOwned: false,
     description: 'Produce blockbuster films and entertain the world.',
@@ -233,7 +233,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1000,
     baseCost: 75000,
-    upgradeCostMultiplier: 1.11, // Slightly reduced
+    upgradeCostMultiplier: 1.11,
     icon: Factory,
     managerOwned: false,
     description: 'Mass produce goods and dominate the market.',
@@ -254,7 +254,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1500,
     baseCost: 120000,
-    upgradeCostMultiplier: 1.105, // Slightly reduced
+    upgradeCostMultiplier: 1.105,
     icon: Wind,
     managerOwned: false,
     description: 'Harnessing nature for a cleaner future.',
@@ -275,7 +275,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 1800,
     baseCost: 150000,
-    upgradeCostMultiplier: 1.1, // Slightly reduced
+    upgradeCostMultiplier: 1.1,
     icon: ShieldCheck,
     managerOwned: false,
     description: 'Protecting digital assets from emerging threats.',
@@ -296,7 +296,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 2000,
     baseCost: 200000,
-    upgradeCostMultiplier: 1.095, // Slightly reduced
+    upgradeCostMultiplier: 1.095,
     icon: FlaskConical,
     managerOwned: false,
     description: 'Develop life-saving drugs and treatments.',
@@ -317,7 +317,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 5000,
     baseCost: 500000,
-    upgradeCostMultiplier: 1.09, // Slightly reduced
+    upgradeCostMultiplier: 1.09,
     icon: Rocket,
     managerOwned: false,
     description: 'Reach for the stars and astronomical profits.',
@@ -338,7 +338,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 7500,
     baseCost: 750000,
-    upgradeCostMultiplier: 1.085, // Slightly reduced
+    upgradeCostMultiplier: 1.085,
     icon: Ship,
     managerOwned: false,
     description: 'Connecting the world, one container at a time.',
@@ -359,7 +359,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 9000,
     baseCost: 900000,
-    upgradeCostMultiplier: 1.08, // Adjusted
+    upgradeCostMultiplier: 1.08,
     icon: Navigation,
     managerOwned: false,
     description: 'Ultrafast, automated drone delivery for the modern age.',
@@ -380,7 +380,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 10000,
     baseCost: 1000000,
-    upgradeCostMultiplier: 1.08, // Slightly reduced
+    upgradeCostMultiplier: 1.08,
     icon: BrainCircuit,
     managerOwned: false,
     description: 'Pioneer the future of artificial intelligence.',
@@ -401,7 +401,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 15000,
     baseCost: 1800000,
-    upgradeCostMultiplier: 1.075, // Slightly reduced
+    upgradeCostMultiplier: 1.075,
     icon: Package,
     managerOwned: false,
     description: 'Precision global supply chain management.',
@@ -422,7 +422,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 20000,
     baseCost: 2500000,
-    upgradeCostMultiplier: 1.07, // Slightly reduced
+    upgradeCostMultiplier: 1.07,
     icon: Dna,
     managerOwned: false,
     description: 'Rewriting the code of life for a better tomorrow.',
@@ -443,7 +443,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 30000,
     baseCost: 4000000,
-    upgradeCostMultiplier: 1.068, // Adjusted
+    upgradeCostMultiplier: 1.068,
     icon: Radio,
     managerOwned: false,
     description: 'Global news, entertainment, and digital content.',
@@ -464,7 +464,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 45000,
     baseCost: 6000000,
-    upgradeCostMultiplier: 1.065, // Slightly reduced
+    upgradeCostMultiplier: 1.065,
     icon: Cog,
     managerOwned: false,
     description: 'Advanced robotics for industrial and consumer markets.',
@@ -485,7 +485,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     level: 0,
     baseIncome: 70000,
     baseCost: 10000000,
-    upgradeCostMultiplier: 1.062, // Slightly reduced
+    upgradeCostMultiplier: 1.062,
     icon: Sigma,
     managerOwned: false,
     description: 'Pioneering quantum computation for a new era.',
@@ -500,8 +500,6 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'qls_talent_incubation_program', name: 'Quantum Physicist Incubation Program', description: 'Cultivate next-gen talent, -6% level cost.', cost: 65000000, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
     ],
   },
-  // --- End of original 20 businesses ---
-  // --- Start of 30 new businesses ---
   {
     id: 'luxury_space_tourism',
     name: 'Celestial Voyages',
@@ -712,7 +710,6 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ocp_artificial_reef_tourism', name: 'Luxury Artificial Reef Tourism', description: 'Unique underwater attractions, +8% income.', cost: 2.5E9, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 8 },
     ]
   },
-  // Tier 30+
   {
     id: 'dyson_sphere_engineering',
     name: 'SolaraConstruct Dyson',
@@ -846,7 +843,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 23000000,
     baseCost: 3.2E10,
     upgradeCostMultiplier: 1.048,
-    icon: Milestone, // Corrected from Milestones
+    icon: Milestone,
     managerOwned: false,
     description: 'Charting and selling access to stable hyperspace routes.',
     upgrades: [
@@ -923,7 +920,6 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'zpe_research_grant_philanthropy', name: 'ZPE Research & Safety Foundation', description: 'Public outreach and ethical guidelines, -7% level cost.', cost: 2.5E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
     ]
   },
-  // Tier 40+
   {
     id: 'universal_consciousness_network',
     name: 'The Noosphere Collective',
@@ -1078,7 +1074,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 580000000,
     baseCost: 6.5E12,
     upgradeCostMultiplier: 1.0375,
-    icon: Landmark, // Changed from Bank
+    icon: Landmark,
     managerOwned: false,
     description: 'Secure financial services across multiple realities and timelines.',
     upgrades: [
@@ -1120,7 +1116,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 900000000,
     baseCost: 1.4E13,
     upgradeCostMultiplier: 1.036,
-    icon: Gem, 
+    icon: Gem,
     managerOwned: false,
     description: 'Transmuting base elements into precious materials and beyond.',
     upgrades: [
@@ -1138,8 +1134,8 @@ export const INITIAL_BUSINESSES: Business[] = [
     id: 'final_question_answering_service',
     name: 'The Omega Oracle',
     level: 0,
-    baseIncome: 1.25E9, 
-    baseCost: 2.2E13, 
+    baseIncome: 1.25E9,
+    baseCost: 2.2E13,
     upgradeCostMultiplier: 1.035,
     icon: HelpCircle,
     managerOwned: false,
@@ -1159,8 +1155,8 @@ export const INITIAL_BUSINESSES: Business[] = [
     id: 'intergalactic_university',
     name: 'Nova Academia Galactica',
     level: 0,
-    baseIncome: 1.8E9, 
-    baseCost: 3.5E13, 
+    baseIncome: 1.8E9,
+    baseCost: 3.5E13,
     upgradeCostMultiplier: 1.034,
     icon: University,
     managerOwned: false,
@@ -1183,7 +1179,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 2.5E9,
     baseCost: 5.5E13,
     upgradeCostMultiplier: 1.033,
-    icon: CloudCog, 
+    icon: CloudCog,
     managerOwned: false,
     description: 'Fusing biology and technology for ultimate human potential.',
     upgrades: [
@@ -1204,7 +1200,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 3.4E9,
     baseCost: 8E13,
     upgradeCostMultiplier: 1.032,
-    icon: CloudDrizzle, 
+    icon: CloudDrizzle,
     managerOwned: false,
     description: 'Global and planetary-scale weather manipulation networks.',
     upgrades: [
@@ -1225,7 +1221,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 4.8E9,
     baseCost: 1.2E14,
     upgradeCostMultiplier: 1.031,
-    icon: Network, 
+    icon: Network,
     managerOwned: false,
     description: 'Integrating entire planets into a single sentient consciousness.',
     upgrades: [
@@ -1246,7 +1242,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 6.5E9,
     baseCost: 1.9E14,
     upgradeCostMultiplier: 1.03,
-    icon: Combine, 
+    icon: Combine,
     managerOwned: false,
     description: 'Self-replicating machines capable of building anything, anywhere.',
     upgrades: [
@@ -1285,10 +1281,10 @@ export const INITIAL_BUSINESSES: Business[] = [
     id: 'galactic_governance_ai',
     name: 'The Hegemon AI',
     level: 0,
-    baseIncome: 1.2E10, 
-    baseCost: 4.8E14, 
+    baseIncome: 1.2E10,
+    baseCost: 4.8E14,
     upgradeCostMultiplier: 1.028,
-    icon: Gavel, 
+    icon: Gavel,
     managerOwned: false,
     description: 'A benevolent (or not) AI governing vast swathes of the galaxy.',
     upgrades: [
@@ -1330,7 +1326,7 @@ export const INITIAL_BUSINESSES: Business[] = [
     baseIncome: 2.2E10,
     baseCost: 1.1E15,
     upgradeCostMultiplier: 1.026,
-    icon: Puzzle, 
+    icon: Puzzle,
     managerOwned: false,
     description: 'Managing the transition to and existence within a technological singularity.',
     upgrades: [
@@ -1348,10 +1344,10 @@ export const INITIAL_BUSINESSES: Business[] = [
     id: 'omnipresence_inc',
     name: 'The Watchers Collective',
     level: 0,
-    baseIncome: 3E10, 
-    baseCost: 1.6E15, 
+    baseIncome: 3E10,
+    baseCost: 1.6E15,
     upgradeCostMultiplier: 1.025,
-    icon: Eye, 
+    icon: Eye,
     managerOwned: false,
     description: 'Achieving and maintaining a state of passive omnipresence across all creation.',
     upgrades: [
@@ -1421,7 +1417,7 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
     effects: { businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 1.5) } },
   });
 
-  if (index >= 3) { // Only add mastery for businesses beyond the very first few
+  if (index >= 3) {
     skills.push({
       id: `${business.id}_mastery_1`,
       name: `${business.name} Mastery`,
@@ -1431,9 +1427,6 @@ const createBusinessBoostSkills = (business: Business, index: number): SkillNode
       dependencies: [`${business.id}_boost_2`],
       effects: {
         businessSpecificIncomeBoost: { businessId: business.id, percent: Math.floor(baseBoost * 2) },
-        // Note: direct cost reduction effect for specific business levels via skills is not directly implemented
-        // in calculateSingleLevelUpgradeCost yet. This is a placeholder for that concept.
-        // For now, it just boosts income. We can add the cost reduction part later.
       },
     });
   }
@@ -1445,7 +1438,7 @@ const createAutoBuyUpgradeSkills = (business: Business, index: number): SkillNod
     id: `auto_buy_upgrades_${business.id}`,
     name: `${business.name} Automation`,
     description: `Automatically purchases affordable upgrades for ${business.name}.`,
-    cost: Math.max(2, Math.floor(index * 0.15) + 1), // Adjusted cost scaling
+    cost: Math.max(2, Math.floor(index * 0.15) + 1),
     icon: Zap,
     dependencies: [`${business.id}_boost_1`],
     effects: { autoBuyUpgradesForBusiness: business.id },
@@ -1679,6 +1672,7 @@ export const INITIAL_SKILL_TREE: SkillNode[] = [
   ...INITIAL_BUSINESSES.flatMap((biz, index) => createAutoBuyUpgradeSkills(biz, index)),
 ];
 
+
 const globalHQUgrades: HQUpgrade[] = [
   {
     id: 'hq_market_analysis_1',
@@ -1753,7 +1747,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Quantum Market Predictor',
     description: 'Hypothetical tech giving a massive edge in stock dividends.',
     icon: Gem,
-    requiredTimesPrestiged: 10, // High prestige requirement
+    requiredTimesPrestiged: 10,
     levels: [
       { level: 1, costMoney: 5E10, costPrestigePoints: 1000, description: '+5% to all stock dividend yields. Truly game-changing.', effects: { globalDividendYieldBoostPercent: 5 } },
       { level: 2, costMoney: 2.5E11, costPrestigePoints: 2500, description: '+10% to all stock dividend yields (total). Unrivaled insight.', effects: { globalDividendYieldBoostPercent: 10 } },
@@ -1764,8 +1758,8 @@ const globalHQUgrades: HQUpgrade[] = [
 const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business, index) => {
   const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
     level: levelIndex + 1,
-    costMoney: Math.floor(Math.pow(10, 3 + index * 0.05 + levelIndex * 0.3) * (1 + levelIndex * 1.2)),
-    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.5, 1 + index * 0.025 + levelIndex * 0.25) * (1 + levelIndex * 0.6))),
+    costMoney: Math.floor(Math.pow(10, 3 + index * 0.18 + levelIndex * 0.5) * (2 + levelIndex * 2.5)), // Increased scaling
+    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.2, 1 + index * 0.1 + levelIndex * 0.6) * (2 + levelIndex * 1.5))), // Increased scaling
     description: `Retain ${percent}% of ${business.name} levels.`,
     effects: { retentionPercentage: percent },
   }));
@@ -1774,7 +1768,7 @@ const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business,
     name: `${business.name} Level Retention`,
     description: `Secure a percentage of ${business.name}'s levels through prestige.`,
     icon: Archive,
-    requiredTimesPrestiged: 5 + Math.floor(index / 10),
+    requiredTimesPrestiged: 5 + Math.floor(index / 5), // Required prestige increases for later businesses
     levels,
   };
 });
@@ -1782,8 +1776,8 @@ const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business,
 const stockRetentionUpgrades: HQUpgrade[] = INITIAL_STOCKS.map((stock, index) => {
   const levels: HQUpgradeLevel[] = [20, 40, 60, 80, 100].map((percent, levelIndex) => ({
     level: levelIndex + 1,
-    costMoney: Math.floor(Math.pow(10, 3.5 + index * 0.04 + levelIndex * 0.4) * (1 + levelIndex * 1.5)),
-    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.8, 1.05 + index * 0.02 + levelIndex * 0.3) * (1 + levelIndex * 0.8))),
+    costMoney: Math.floor(Math.pow(10, 3.5 + index * 0.16 + levelIndex * 0.55) * (2.5 + levelIndex * 2.8)), // Increased scaling
+    costPrestigePoints: Math.max(1, Math.floor(Math.pow(2.3, 1.05 + index * 0.11 + levelIndex * 0.65) * (2.5 + levelIndex * 1.8))), // Increased scaling
     description: `Retain ${percent}% of ${stock.companyName} shares.`,
     effects: { retentionPercentage: percent },
   }));
@@ -1792,7 +1786,7 @@ const stockRetentionUpgrades: HQUpgrade[] = INITIAL_STOCKS.map((stock, index) =>
     name: `${stock.companyName} Share Insurance`,
     description: `Retain a percentage of ${stock.companyName}'s shares through prestige.`,
     icon: ShieldEllipsis,
-    requiredTimesPrestiged: 6 + Math.floor(index / 5),
+    requiredTimesPrestiged: 6 + Math.floor(index / 3), // Required prestige increases for later stocks
     levels,
   };
 });
@@ -2043,7 +2037,7 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
      if (purchasedLevel > 0) {
         const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
         if (hqUpgrade && hqUpgrade.levels) {
-            const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+            const levelData = hqUpgradesConfig.find(h => h.id === hqId)?.levels.find(l => l.level === purchasedLevel);
             if (levelData && levelData.effects.globalPrestigePointBoostPercent) {
                 boostPercent += levelData.effects.globalPrestigePointBoostPercent;
             }
@@ -2071,7 +2065,7 @@ export const calculateDiminishingPrestigePoints = (totalLevels: number): number 
 };
 
 export const getCostForNthPoint = (n: number): number => {
-  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST; // Cost for the 1st point if n=1, or a base if n=0
+  if (n <= 0) return PRESTIGE_BASE_LEVEL_COST;
   return PRESTIGE_BASE_LEVEL_COST + (n - 1) * PRESTIGE_LEVEL_COST_INCREMENT;
 };
 
@@ -2083,5 +2077,3 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
-
-    
