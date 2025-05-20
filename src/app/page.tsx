@@ -4,11 +4,11 @@
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { IncomeChart } from "@/components/dashboard/IncomeChart";
 import { useGame } from "@/contexts/GameContext";
-import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon, BarChart } from "lucide-react";
+import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 
@@ -23,10 +23,11 @@ export default function DashboardPage() {
 
   const [prestigeProgress, setPrestigeProgress] = useState({
     percentage: 0,
-    levelsAchievedTowardsNextSpecificPoint: 0,
-    costOfNextSpecificPoint: 0,
+    levelsAchievedTowardsDynamicTarget: 0,
+    costOfDynamicTargetPoint: 0,
     currentTotalBusinessLevels: 0,
-    cumulativeLevelsForCurrentPoints: 0,
+    cumulativeLevelsForCurrentOwnedPoints: 0, // For the note about surpassing current owned points
+    potentialPointsIfPrestigedNow: 0, // How many points they'd have if they prestiged
   });
 
   useEffect(() => {
@@ -42,25 +43,30 @@ export default function DashboardPage() {
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     
-    setPrestigeProgress(prev => ({...prev, currentTotalBusinessLevels: currentTotalLevels}));
-
-    const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(playerStats.prestigePoints);
-    const costForNextPotentialPoint = getCostForNthPoint(playerStats.prestigePoints + 1);
-    const levelsAchievedForNextSpecificPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
-
+    // Calculate how many points player would have if they prestiged now
+    const potentialTotalPoints = calculateDiminishingPrestigePoints(currentTotalLevels);
+    
+    // Target the point *after* all potentially claimable points
+    const targetPointNumber = potentialTotalPoints + 1;
+    const costForTargetPoint = getCostForNthPoint(targetPointNumber);
+    const levelsRequiredForPotentialTotalPoints = getLevelsRequiredForNPoints(potentialTotalPoints);
+    
+    const levelsAchievedForTarget = Math.max(0, currentTotalLevels - levelsRequiredForPotentialTotalPoints);
+    
     let percentage = 0;
-    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) {
-      percentage = Math.min(100, (levelsAchievedForNextSpecificPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsAchievedForNextSpecificPoint > 0 && costForNextPotentialPoint !== Infinity) {
+    if (costForTargetPoint > 0 && costForTargetPoint !== Infinity) {
+      percentage = Math.min(100, (levelsAchievedForTarget / costForTargetPoint) * 100);
+    } else if (levelsAchievedForTarget > 0 && costForTargetPoint !== Infinity) {
       percentage = 100;
     }
     
     setPrestigeProgress({
       percentage: percentage,
-      levelsAchievedTowardsNextSpecificPoint: levelsAchievedForNextSpecificPoint,
-      costOfNextSpecificPoint: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
+      levelsAchievedTowardsDynamicTarget: levelsAchievedForTarget,
+      costOfDynamicTargetPoint: costForTargetPoint === Infinity ? 0 : costForTargetPoint,
       currentTotalBusinessLevels: currentTotalLevels,
-      cumulativeLevelsForCurrentPoints: levelsForCurrentPointsPlayerHas,
+      cumulativeLevelsForCurrentOwnedPoints: getLevelsRequiredForNPoints(playerStats.prestigePoints), // For the note
+      potentialPointsIfPrestigedNow: potentialTotalPoints,
     });
 
   }, [playerStats, businesses]);
@@ -68,8 +74,6 @@ export default function DashboardPage() {
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
   const totalBusinessLevels = businesses.reduce((sum, b) => sum + b.level, 0);
 
-
-  const currentTotalLevelsForDialog = businesses.reduce((sum, b) => sum + b.level, 0);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
 
    useEffect(() => {
@@ -77,11 +81,11 @@ export default function DashboardPage() {
       const moneyRequiredForPrestige = 100000; 
        if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
 
-      const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevelsForDialog);
+      const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(totalBusinessLevels);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
     setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
-  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses, currentTotalLevelsForDialog]);
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, totalBusinessLevels]);
 
   const handleDismissWelcomeBox = () => {
     setIsWelcomeBoxVisible(false);
@@ -165,19 +169,18 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           <Progress value={prestigeProgress.percentage} className="w-full" />
-          {playerStats.prestigePoints > 0 && prestigeProgress.currentTotalBusinessLevels < prestigeProgress.cumulativeLevelsForCurrentPoints ? (
+          {playerStats.prestigePoints > 0 && prestigeProgress.currentTotalBusinessLevels < prestigeProgress.cumulativeLevelsForCurrentOwnedPoints ? (
             <p className="text-sm text-muted-foreground text-center py-1">
-              Reach {prestigeProgress.cumulativeLevelsForCurrentPoints.toLocaleString('en-US')} total business levels to start progress on your next point.
+              Reach {prestigeProgress.cumulativeLevelsForCurrentOwnedPoints.toLocaleString('en-US')} total business levels to start progress on your next point.
               (Currently: {prestigeProgress.currentTotalBusinessLevels.toLocaleString('en-US')})
             </p>
           ) : (
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>
-                Levels towards next point: {
-                  Math.min(prestigeProgress.levelsAchievedTowardsNextSpecificPoint, prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint : prestigeProgress.levelsAchievedTowardsNextSpecificPoint)
-                  .toLocaleString('en-US')
+                Levels towards Point #{prestigeProgress.potentialPointsIfPrestigedNow + 1}: {
+                  prestigeProgress.levelsAchievedTowardsDynamicTarget.toLocaleString('en-US')
                 } / {
-                  (prestigeProgress.costOfNextSpecificPoint > 0 ? prestigeProgress.costOfNextSpecificPoint.toLocaleString('en-US') : 'MAX')
+                  (prestigeProgress.costOfDynamicTargetPoint > 0 ? prestigeProgress.costOfDynamicTargetPoint.toLocaleString('en-US') : 'MAX')
                 }
               </span>
               <span>{prestigeProgress.percentage.toFixed(1)}%</span>
@@ -203,3 +206,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
