@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint, INITIAL_HQ_UPGRADES, INITIAL_SKILL_TREE } from "@/config/game-config";
+import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
 import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
@@ -50,29 +50,38 @@ function AppLogo() {
     percentage: 0,
     levelsAchieved: 0,
     levelsForNext: 0,
+    newlyGainedPoints: 0,
   });
 
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     
-    // Logic mirrored from dashboard progress bar
-    const potentialTotalPoints = calculateDiminishingPrestigePoints(currentTotalLevels);
-    const targetPointNumber = potentialTotalPoints + 1;
+    const potentialTotalPointsIfPrestigedNow = calculateDiminishingPrestigePoints(currentTotalLevels);
+    
+    const targetPointNumber = potentialTotalPointsIfPrestigedNow + 1;
     const costForTargetPoint = getCostForNthPoint(targetPointNumber);
-    const levelsRequiredForPotentialTotalPoints = getLevelsRequiredForNPoints(potentialTotalPoints);
+    const levelsRequiredForPotentialTotalPoints = getLevelsRequiredForNPoints(potentialTotalPointsIfPrestigedNow);
+    
     const levelsAchievedForTarget = Math.max(0, currentTotalLevels - levelsRequiredForPotentialTotalPoints);
     
     let percentage = 0;
     if (costForTargetPoint > 0 && costForTargetPoint !== Infinity) {
       percentage = Math.min(100, (levelsAchievedForTarget / costForTargetPoint) * 100);
-    } else if (levelsAchievedForTarget > 0 && costForTargetPoint !== Infinity) { // If cost is infinity but levels are achieved, it means maxed out
+    } else if (levelsAchievedForTarget > 0 && costForTargetPoint !== Infinity) { 
       percentage = 100;
+    }
+
+    let calculatedNewlyGainedPoints = 0;
+    const moneyRequiredForPrestige = 100000;
+    if (!(playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0)) {
+      calculatedNewlyGainedPoints = Math.max(0, potentialTotalPointsIfPrestigedNow - playerStats.prestigePoints);
     }
 
     setPrestigeProgress({
       percentage: percentage,
       levelsAchieved: levelsAchievedForTarget,
       levelsForNext: costForTargetPoint === Infinity ? 0 : costForTargetPoint,
+      newlyGainedPoints: calculatedNewlyGainedPoints,
     });
   }, [playerStats, businesses]);
 
@@ -86,7 +95,7 @@ function AppLogo() {
         <div className="flex justify-between items-center text-xs text-muted-foreground mb-0.5">
             <span className="flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-400"/>
-                Prestige Lvl Progress
+                Prestige Lvl Progress {prestigeProgress.newlyGainedPoints > 0 && `( +${prestigeProgress.newlyGainedPoints} PP)`}
             </span>
             <span>{prestigeProgress.percentage.toFixed(1)}%</span>
         </div>
@@ -132,7 +141,6 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       event.preventDefault();
       return;
     }
-
     if (onMobileClick) {
       onMobileClick();
     }
@@ -158,7 +166,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       </TooltipProvider>
     );
   }
-
+  
   if (action === 'prestige') {
      return (
       <button onClick={handleInteraction} className={linkClassName}>
