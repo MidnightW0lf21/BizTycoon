@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon } from 'lucide-react'; // Added HQIcon
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react'; // Added HQIcon, ListChecks
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -34,11 +34,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/businesses', label: 'Businesses', icon: Store },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, requiredTimesPrestiged: 0 },
+  { href: '/businesses', label: 'Businesses', icon: Store, requiredTimesPrestiged: 0 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
-  { href: '/hq', label: 'Headquarters', icon: HQIcon, requiredTimesPrestiged: 3 }, // Locked HQ
+  { href: '/hq', label: 'Headquarters', icon: HQIcon, requiredTimesPrestiged: 3 },
+  { href: '/completion', label: 'Completion', icon: ListChecks, requiredTimesPrestiged: 0 },
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
 
@@ -55,10 +56,6 @@ function AppLogo() {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
     
-    // In God Mode, if prestigePoints are extremely high, calculate progress as if starting from 0 for UI responsiveness.
-    // This specific God Mode check is removed as per user request to fully remove God Mode.
-    // The progress bar should naturally reflect progress based on actual prestige points.
-
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
@@ -104,10 +101,10 @@ interface NavLinkProps extends NavItem {
   onPrestigeClick?: () => void; 
 }
 
-function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
+function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged = 0, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = action ? false : pathname === href; 
-  const isLocked = requiredTimesPrestiged !== undefined && currentTimesPrestiged < requiredTimesPrestiged;
+  const isLocked = currentTimesPrestiged < requiredTimesPrestiged;
 
   const linkClassName = cn(
     "flex items-center gap-3 rounded-lg px-3 py-1 text-muted-foreground transition-all",
@@ -124,8 +121,11 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     </>
   );
 
-  const handleInteraction = () => {
-    if (isLocked) return; 
+  const handleInteraction = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent> | React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (isLocked) {
+      event.preventDefault(); // Prevent navigation for Link if locked
+      return;
+    }
 
     if (onMobileClick) {
       onMobileClick();
@@ -135,14 +135,12 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     }
   };
   
-  const actualOnClick = isLocked ? undefined : (action === 'prestige' && onPrestigeClick) ? handleInteraction : onMobileClick;
-
   if (isLocked) {
     return (
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={linkClassName}>
+            <div className={linkClassName} onClick={(e) => e.preventDefault()} aria-disabled="true"> {/* Ensure div is not clickable */}
               {linkContent}
             </div>
           </TooltipTrigger>
@@ -163,6 +161,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
+  // Default to Link if href is provided and not an action
   if (href) {
     return (
       <Link href={href} onClick={handleInteraction} className={linkClassName}>
@@ -171,9 +170,9 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
-  // Fallback for non-link, non-action items if any (though current navItems are all links or actions)
+  // Fallback for non-link, non-action items (should ideally not happen with current navItems)
   return (
-    <div className={linkClassName} onClick={handleInteraction}>
+    <div className={linkClassName} onClick={onMobileClick}>
       {linkContent}
     </div>
   );
@@ -207,7 +206,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      if (item.action) return false; // Actions don't set page title
+      if (item.action) return false; 
       if (item.href === '/') return pathname === '/'; 
       return item.href && item.href !== '/' && pathname.startsWith(item.href); 
     });
@@ -340,3 +339,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+
+    
