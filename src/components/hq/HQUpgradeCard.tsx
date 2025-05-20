@@ -5,7 +5,7 @@ import type { HQUpgrade, HQUpgradeLevel } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LockKeyhole, CheckCircle2, Sparkles, Building, TrendingUp, ChevronsUp } from "lucide-react"; // Removed DollarSign as it's handled by toLocaleString
+import { LockKeyhole, CheckCircle2, Sparkles, Building, TrendingUp, ChevronsUp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from 'react';
@@ -70,10 +70,10 @@ export function HQUpgradeCard({
   const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
 
   let canAffordMoney = false;
-  let canAffordPP = true;
+  let canAffordPP = true; // Default to true, only check if costPrestigePoints exists and is > 0
   if (nextLevelData) {
     canAffordMoney = playerMoney >= nextLevelData.costMoney;
-    if (nextLevelData.costPrestigePoints) {
+    if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0) {
       canAffordPP = playerPrestigePoints >= nextLevelData.costPrestigePoints;
     }
   }
@@ -87,7 +87,7 @@ export function HQUpgradeCard({
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
       lockReasonText = `Needs ${nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}.`;
-    } else if (nextLevelData.costPrestigePoints && !canAffordPP) {
+    } else if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && !canAffordPP) {
       lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
     }
   }
@@ -129,12 +129,12 @@ export function HQUpgradeCard({
               <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="flex items-center gap-2 font-semibold text-right"> {/* Changed to gap-2 and text-right for better spacing */}
+                <div className="flex items-center gap-2 font-semibold text-right">
                   <span className="text-green-500">
                     {nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </span>
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
-                    <div className="flex items-center gap-1"> {/* Group PP cost together */}
+                    <div className="flex items-center gap-1">
                       <span className="text-muted-foreground font-normal mx-0.5">+</span>
                       <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
                       <span>{nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP</span>
@@ -189,5 +189,3 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
-
-    
