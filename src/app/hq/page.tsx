@@ -20,6 +20,23 @@ export default function HQPage() {
     setMounted(true);
   }, []);
 
+  const categorizedUpgrades = useMemo(() => {
+    const global: typeof hqUpgrades = [];
+    const businessRetention: typeof hqUpgrades = [];
+    const stockRetention: typeof hqUpgrades = [];
+
+    hqUpgrades.forEach(upgrade => {
+      if (upgrade.id.startsWith('retain_level_')) {
+        businessRetention.push(upgrade);
+      } else if (upgrade.id.startsWith('retain_shares_')) {
+        stockRetention.push(upgrade);
+      } else {
+        global.push(upgrade);
+      }
+    });
+    return { global, businessRetention, stockRetention };
+  }, [hqUpgrades]);
+
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_HQ) {
     return (
       <Card className="w-full md:max-w-2xl mx-auto">
@@ -39,23 +56,6 @@ export default function HQPage() {
       </Card>
     );
   }
-
-  const categorizedUpgrades = useMemo(() => {
-    const global: typeof hqUpgrades = [];
-    const businessRetention: typeof hqUpgrades = [];
-    const stockRetention: typeof hqUpgrades = [];
-
-    hqUpgrades.forEach(upgrade => {
-      if (upgrade.id.startsWith('retain_level_')) {
-        businessRetention.push(upgrade);
-      } else if (upgrade.id.startsWith('retain_shares_')) {
-        stockRetention.push(upgrade);
-      } else {
-        global.push(upgrade);
-      }
-    });
-    return { global, businessRetention, stockRetention };
-  }, [hqUpgrades]);
 
   const renderUpgradeGrid = (upgradesToRender: typeof hqUpgrades) => {
     if (!mounted) { 
