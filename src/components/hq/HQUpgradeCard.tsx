@@ -86,12 +86,26 @@ export function HQUpgradeCard({
     if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged !== undefined) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs ${Number(nextLevelData.costMoney).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}.`;
+      lockReasonText = `Needs $${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && !canAffordPP) {
       lockReasonText = `Needs ${Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP.`;
     }
   }
 
+  let moneyDisplay: string | null = null;
+  let ppDisplay: string | null = null;
+
+  if (nextLevelData) {
+    if (nextLevelData.costMoney > 0) {
+      moneyDisplay = `$${Number(nextLevelData.costMoney).toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })}`;
+    }
+    if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0) {
+      ppDisplay = `${Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP`;
+    }
+  }
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -129,28 +143,24 @@ export function HQUpgradeCard({
               <p className="text-xs text-muted-foreground">{nextLevelData.description}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
-                <div className="flex items-center gap-x-1.5 font-semibold text-right">
-                  {nextLevelData.costMoney > 0 && (
-                    <span className="text-green-500">
-                      {Number(nextLevelData.costMoney).toLocaleString('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}
-                    </span>
-                  )}
-                  {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
-                    <>
-                      {nextLevelData.costMoney > 0 && <span className="text-muted-foreground font-normal mx-0.5">+</span>}
-                      <div className="flex items-center gap-1">
-                        <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
-                        <span>{Number(nextLevelData.costPrestigePoints).toLocaleString('en-US')} PP</span>
-                      </div>
-                    </>
-                  )}
-                  {nextLevelData.costMoney === 0 && (!nextLevelData.costPrestigePoints || nextLevelData.costPrestigePoints === 0) && (
+                <div className="font-semibold text-right">
+                  {!moneyDisplay && !ppDisplay ? (
                     <span className="text-green-500">Free</span>
+                  ) : (
+                    <div className="flex items-center gap-x-1.5">
+                      {moneyDisplay && (
+                        <span className="text-green-500">{moneyDisplay}</span>
+                      )}
+                      {moneyDisplay && ppDisplay && (
+                        <span className="text-muted-foreground font-normal mx-0.5">+</span>
+                      )}
+                      {ppDisplay && (
+                        <div className="flex items-center gap-1">
+                          <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                          <span>{ppDisplay}</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -162,7 +172,7 @@ export function HQUpgradeCard({
                 <p className="text-xs text-muted-foreground">This HQ upgrade is at its maximum level.</p>
             </div>
           )}
-          {hqUpgrade.requiredTimesPrestiged !== undefined && hqUpgrade.requiredTimesPrestiged > 0 && !isMaxed && nextLevelData && ( 
+          {!isMaxed && nextLevelData && hqUpgrade.requiredTimesPrestiged !== undefined && hqUpgrade.requiredTimesPrestiged > 0 && ( 
             <div className="text-xs text-muted-foreground">
               (Overall Prestige Req: {hqUpgrade.requiredTimesPrestiged})
             </div>
@@ -201,5 +211,5 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
-    
+
     
