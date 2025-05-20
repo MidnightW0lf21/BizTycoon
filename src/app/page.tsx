@@ -4,7 +4,7 @@
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { IncomeChart } from "@/components/dashboard/IncomeChart";
 import { useGame } from "@/contexts/GameContext";
-import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon } from "lucide-react";
+import { DollarSign, TrendingUp, Briefcase, ShieldCheck, Star, Settings2, XIcon, BarChart } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -66,9 +66,8 @@ export default function DashboardPage() {
   }, [playerStats, businesses]);
 
   const totalBusinessesOwned = businesses.filter(b => b.level > 0).length;
-  const averageBusinessLevel = totalBusinessesOwned > 0
-    ? businesses.reduce((sum, b) => sum + b.level, 0) / totalBusinessesOwned
-    : 0;
+  const totalBusinessLevels = businesses.reduce((sum, b) => sum + b.level, 0);
+
 
   const currentTotalLevelsForDialog = businesses.reduce((sum, b) => sum + b.level, 0);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
@@ -120,7 +119,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3"> {/* Adjusted xl:grid-cols */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         <MetricCard
           title="Current Money"
           value={`$${Math.floor(currentMoney).toLocaleString('en-US')}`}
@@ -137,7 +136,7 @@ export default function DashboardPage() {
           title="Businesses Owned"
           value={totalBusinessesOwned}
           icon={Briefcase}
-          description={`Avg. Level: ${averageBusinessLevel.toFixed(1)}`}
+          description={`Total Levels: ${totalBusinessLevels.toLocaleString('en-US')}`}
         />
          <MetricCard
           title="Investment Value"
