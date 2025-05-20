@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react'; 
+import { Briefcase, LayoutDashboard, Store, Menu, DollarSign, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -55,15 +55,15 @@ function AppLogo() {
   useEffect(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     let displayPrestigePointsForProgressBar = playerStats.prestigePoints;
-    
+
     const levelsForCurrentPointsPlayerHas = getLevelsRequiredForNPoints(displayPrestigePointsForProgressBar);
     const costForNextPotentialPoint = getCostForNthPoint(displayPrestigePointsForProgressBar + 1);
     const levelsProgressedForNextPoint = Math.max(0, currentTotalLevels - levelsForCurrentPointsPlayerHas);
 
     let percentage = 0;
-    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) { 
+    if (costForNextPotentialPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = Math.min(100, (levelsProgressedForNextPoint / costForNextPotentialPoint) * 100);
-    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) { 
+    } else if (levelsProgressedForNextPoint > 0 && costForNextPotentialPoint !== Infinity) {
       percentage = 100;
     }
 
@@ -71,9 +71,9 @@ function AppLogo() {
     setPrestigeProgress({
       percentage: percentage,
       levelsAchieved: levelsProgressedForNextPoint,
-      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint, 
+      levelsForNext: costForNextPotentialPoint === Infinity ? 0 : costForNextPotentialPoint,
     });
-  }, [playerStats, businesses]); 
+  }, [playerStats, businesses]);
 
   return (
     <div className="flex flex-col p-4 border-b border-border gap-3">
@@ -96,14 +96,14 @@ function AppLogo() {
 }
 
 interface NavLinkProps extends NavItem {
-  onMobileClick?: () => void; 
+  onMobileClick?: () => void;
   currentTimesPrestiged: number;
-  onPrestigeClick?: () => void; 
+  onPrestigeClick?: () => void;
 }
 
 function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged = 0, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = action ? false : pathname === href; 
+  const isActive = action ? false : pathname === href;
   const isLocked = currentTimesPrestiged < requiredTimesPrestiged;
 
   const linkClassName = cn(
@@ -123,7 +123,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
 
   const handleInteraction = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent> | React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (isLocked) {
-      event.preventDefault(); 
+      event.preventDefault();
       return;
     }
 
@@ -134,7 +134,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       onPrestigeClick();
     }
   };
-  
+
   if (isLocked) {
     return (
       <TooltipProvider delayDuration={100}>
@@ -152,7 +152,7 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       </TooltipProvider>
     );
   }
-  
+
   if (action === 'prestige') {
      return (
       <button onClick={handleInteraction} className={linkClassName}>
@@ -192,36 +192,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     const calculateNewlyGainedPointsLocal = () => {
-      const moneyRequiredForPrestige = 100000; 
+      const moneyRequiredForPrestige = 100000;
       if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
-      
+
       const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
       return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
     };
     setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
 
   }, [playerStats, businesses]);
-  
+
   useEffect(() => {
     const activeItem = navItems.find(item => {
-      if (item.action) return false; 
-      if (item.href === '/') return pathname === '/'; 
-      return item.href && item.href !== '/' && pathname.startsWith(item.href); 
+      if (item.action) return false;
+      if (item.href === '/') return pathname === '/';
+      return item.href && item.href !== '/' && pathname.startsWith(item.href);
     });
-  
+
     if (pathname === '/') setCurrentPageTitle('Dashboard');
-    else if (pathname === '/settings') setCurrentPageTitle('Settings'); 
+    else if (pathname === '/settings') setCurrentPageTitle('Settings');
     else if (activeItem) setCurrentPageTitle(activeItem.label);
-    else setCurrentPageTitle('BizTycoon'); 
+    else setCurrentPageTitle('BizTycoon');
   }, [pathname]);
 
   const handlePrestigeNavClick = () => {
-    const moneyRequiredForPrestige = 100000; 
+    const moneyRequiredForPrestige = 100000;
 
     if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
       toast({
         title: "Not Ready to Prestige",
-        description: `You need at least $${moneyRequiredForPrestige.toLocaleString('en-US', { maximumFractionDigits: 0 })} to prestige for the first time.`,
+        description: `You need at least ${moneyRequiredForPrestige.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })} to prestige for the first time.`,
         variant: "destructive",
       });
     } else if (newlyGainedPoints === 0 && playerStats.money >= moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
@@ -230,7 +230,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         description: "You have enough money to prestige, but you wouldn't gain any prestige points from business levels yet. Level up your businesses further!",
         variant: "default",
       });
-    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) { 
+    } else if (newlyGainedPoints === 0 && playerStats.timesPrestiged > 0) {
       toast({
         title: "No New Points to Gain",
         description: "You wouldn't gain any new prestige points from business levels right now. Level up your businesses further!",
@@ -244,13 +244,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-0"> 
+        <div className="flex h-full max-h-screen flex-col gap-0">
           <AppLogo />
-          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4"> 
+          <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
             {navItems.map(item => (
-              <NavLink 
-                key={item.label} 
-                {...item} 
+              <NavLink
+                key={item.label}
+                {...item}
                 currentTimesPrestiged={playerStats.timesPrestiged}
                 onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
               />
@@ -271,11 +271,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <AppLogo />
               <nav className="grid gap-2 text-lg font-medium p-4">
                 {navItems.map(item => (
-                  <NavLink 
-                    key={item.label} 
-                    {...item} 
+                  <NavLink
+                    key={item.label}
+                    {...item}
                     currentTimesPrestiged={playerStats.timesPrestiged}
-                    onMobileClick={() => { 
+                    onMobileClick={() => {
                       const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
                       document.dispatchEvent(escapeKeyEvent);
                     }}
@@ -291,7 +291,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <DollarSign className="h-5 w-5" />
-              <span>${Math.floor(currentMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+              <span>{currentMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">

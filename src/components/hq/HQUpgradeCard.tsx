@@ -16,7 +16,7 @@ interface HQUpgradeCardProps {
   playerMoney: number;
   playerPrestigePoints: number;
   playerTimesPrestiged: number;
-  currentUpgradeLevels: Record<string, number>; 
+  currentUpgradeLevels: Record<string, number>;
   onPurchaseUpgrade: (upgradeId: string) => void;
 }
 
@@ -25,7 +25,7 @@ export function HQUpgradeCard({
   playerMoney,
   playerPrestigePoints,
   playerTimesPrestiged,
-  currentUpgradeLevels, 
+  currentUpgradeLevels,
   onPurchaseUpgrade,
 }: HQUpgradeCardProps) {
   const [mounted, setMounted] = useState(false);
@@ -34,7 +34,7 @@ export function HQUpgradeCard({
     setMounted(true);
   }, []);
 
-  const currentLevel = currentUpgradeLevels[hqUpgrade.id] || 0; 
+  const currentLevel = currentUpgradeLevels[hqUpgrade.id] || 0;
   const maxLevel = hqUpgrade.levels.length;
   const isMaxed = currentLevel >= maxLevel;
   const nextLevelData = !isMaxed ? hqUpgrade.levels.find(l => l.level === currentLevel + 1) : undefined;
@@ -66,18 +66,18 @@ export function HQUpgradeCard({
   }
 
   const Icon = hqUpgrade.icon;
-  
+
   const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
-  
+
   let canAffordMoney = false;
-  let canAffordPP = true; 
+  let canAffordPP = true;
   if (nextLevelData) {
     canAffordMoney = playerMoney >= nextLevelData.costMoney;
     if (nextLevelData.costPrestigePoints) {
       canAffordPP = playerPrestigePoints >= nextLevelData.costPrestigePoints;
     }
   }
-  
+
   const canPurchaseNextLevel = !isMaxed && nextLevelData && meetsPrestigeRequirement && canAffordMoney && canAffordPP;
   const isTrulyLocked = !isMaxed && (!meetsPrestigeRequirement || (nextLevelData && (!canAffordMoney || !canAffordPP)));
 
@@ -86,7 +86,7 @@ export function HQUpgradeCard({
     if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
+      lockReasonText = `Needs ${nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && !canAffordPP) {
       lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
     }
@@ -96,9 +96,9 @@ export function HQUpgradeCard({
   return (
     <TooltipProvider delayDuration={100}>
       <Card className={cn(
-        "flex flex-col relative transition-shadow duration-200 min-h-[220px]", 
-        canPurchaseNextLevel && "hover:shadow-lg border-accent", 
-        isTrulyLocked && !isMaxed && "border-dashed" 
+        "flex flex-col relative transition-shadow duration-200 min-h-[220px]",
+        canPurchaseNextLevel && "hover:shadow-lg border-accent",
+        isTrulyLocked && !isMaxed && "border-dashed"
       )}>
         {isTrulyLocked && !isMaxed && (
           <div className="absolute inset-0 bg-card/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-[calc(var(--radius)-1px)] p-4 text-center">
@@ -130,12 +130,12 @@ export function HQUpgradeCard({
               <div className="flex items-center justify-between mt-1">
                 <span className="text-muted-foreground">Cost:</span>
                 <div className="flex items-center gap-1 font-semibold">
-                  <DollarSign className="h-4 w-4 text-green-500" /> 
-                  {nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                  {nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
                     <>
-                      <span className="text-muted-foreground mx-1">+</span> 
-                      <Sparkles className="h-4 w-4 text-amber-400" /> 
+                      <span className="text-muted-foreground mx-1">+</span>
+                      <Sparkles className="h-4 w-4 text-amber-400" />
                       {nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP
                     </>
                   )}
@@ -161,7 +161,7 @@ export function HQUpgradeCard({
               <div className="w-full">
                 <Button
                   onClick={() => onPurchaseUpgrade(hqUpgrade.id)}
-                  disabled={!canPurchaseNextLevel || isMaxed} 
+                  disabled={!canPurchaseNextLevel || isMaxed}
                   className="w-full"
                   variant={canPurchaseNextLevel ? "default" : (isMaxed ? "secondary" : "outline")}
                 >
