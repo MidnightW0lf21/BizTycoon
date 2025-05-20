@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building as HQIcon, LockKeyhole } from "lucide-react"; // Added LockKeyhole
 import { useMemo, useState, useEffect } from "react"; 
 import { Skeleton } from "@/components/ui/skeleton"; 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Added for locked state
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Added CardFooter
 
 const REQUIRED_PRESTIGE_LEVEL_HQ = 3;
 
