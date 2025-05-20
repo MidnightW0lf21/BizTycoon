@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -111,6 +112,7 @@ const ChartTooltipContent = React.forwardRef<
       indicator?: "line" | "dot" | "dashed"
       nameKey?: string
       labelKey?: string
+      valueNumberFormatOptions?: Intl.NumberFormatOptions
     }
 >(
   (
@@ -128,6 +130,7 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
+      valueNumberFormatOptions,
     },
     ref
   ) => {
@@ -238,9 +241,11 @@ const ChartTooltipContent = React.forwardRef<
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value != null && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {typeof item.value === 'number'
+                            ? item.value.toLocaleString('en-US', valueNumberFormatOptions)
+                            : String(item.value)}
                         </span>
                       )}
                     </div>

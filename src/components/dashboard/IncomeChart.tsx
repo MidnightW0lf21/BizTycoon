@@ -63,7 +63,10 @@ export function IncomeChart() {
               />
               <ChartTooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" />}
+                content={<ChartTooltipContent 
+                            indicator="dot" 
+                            valueNumberFormatOptions={{ maximumFractionDigits: 0 }} 
+                         />}
               />
               <Bar dataKey="income" fill="var(--color-income)" radius={4} />
             </BarChart>
