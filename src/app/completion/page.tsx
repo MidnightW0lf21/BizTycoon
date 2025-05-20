@@ -40,7 +40,7 @@ function CategoryProgress({ title, icon: Icon, currentValue, totalValue, unit }:
 }
 
 export default function CompletionPage() {
-  const { playerStats, businesses, getDynamicMaxBusinessLevel, stocks: availableStocksConfig } = useGame(); // `stocks` from context is already filtered
+  const { playerStats, businesses, getDynamicMaxBusinessLevel } = useGame();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -91,16 +91,13 @@ export default function CompletionPage() {
     });
     const hqCompletionPercentage = totalPossibleHQLevels > 0 ? (achievedHQLevels / totalPossibleHQLevels) * 100 : 0;
     
-    // 4. Stocks Completion (based on owning at least one share of each *defined* stock)
-    const totalConfigStocks = INITIAL_STOCKS.length;
-    let acquiredUniqueStocks = 0;
-    const ownedStockIds = new Set(playerStats.stockHoldings.map(h => h.stockId));
-    INITIAL_STOCKS.forEach(stock => {
-        if(ownedStockIds.has(stock.id)) {
-            acquiredUniqueStocks++;
-        }
+    // 4. Stocks Completion (based on owning all shares of each *defined* stock)
+    const totalPossibleSharesToOwn = INITIAL_STOCKS.reduce((sum, stock) => sum + stock.totalOutstandingShares, 0);
+    let currentOwnedShares = 0;
+    playerStats.stockHoldings.forEach(holding => {
+        currentOwnedShares += holding.shares;
     });
-    const stockCompletionPercentage = totalConfigStocks > 0 ? (acquiredUniqueStocks / totalConfigStocks) * 100 : 0;
+    const stockCompletionPercentage = totalPossibleSharesToOwn > 0 ? (currentOwnedShares / totalPossibleSharesToOwn) * 100 : 0;
 
 
     // Overall Completion
@@ -111,7 +108,7 @@ export default function CompletionPage() {
       businesses: { current: currentTotalBusinessCompletionPoints, total: maxTotalBusinessCompletionPoints, percentage: businessCompletionPercentage },
       skills: { current: unlockedSkills, total: totalSkills, percentage: skillCompletionPercentage },
       hq: { current: achievedHQLevels, total: totalPossibleHQLevels, percentage: hqCompletionPercentage },
-      stocks: { current: acquiredUniqueStocks, total: totalConfigStocks, percentage: stockCompletionPercentage },
+      stocks: { current: currentOwnedShares, total: totalPossibleSharesToOwn, percentage: stockCompletionPercentage },
     };
   }, [playerStats, businesses, getDynamicMaxBusinessLevel]);
 
@@ -194,15 +191,13 @@ export default function CompletionPage() {
           unit="levels"
         />
         <CategoryProgress 
-          title="Stock Portfolio Diversity"
+          title="Total Share Ownership"
           icon={BarChart}
           currentValue={completionData.stocks.current}
           totalValue={completionData.stocks.total}
-          unit="stocks acquired"
+          unit="shares owned"
         />
       </div>
     </div>
   );
 }
-
-    
