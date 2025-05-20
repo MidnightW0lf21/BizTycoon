@@ -70,7 +70,7 @@ export function HQUpgradeCard({
   const meetsPrestigeRequirement = hqUpgrade.requiredTimesPrestiged ? playerTimesPrestiged >= hqUpgrade.requiredTimesPrestiged : true;
 
   let canAffordMoney = false;
-  let canAffordPP = true; // Default to true, only check if costPrestigePoints exists and is > 0
+  let canAffordPP = true; 
   if (nextLevelData) {
     canAffordMoney = playerMoney >= nextLevelData.costMoney;
     if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0) {
@@ -86,7 +86,7 @@ export function HQUpgradeCard({
     if (!meetsPrestigeRequirement && hqUpgrade.requiredTimesPrestiged) {
       lockReasonText = `Requires ${hqUpgrade.requiredTimesPrestiged} Prestige(s). You have ${playerTimesPrestiged}.`;
     } else if (!canAffordMoney) {
-      lockReasonText = `Needs ${nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}.`;
+      lockReasonText = `Needs $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     } else if (nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && !canAffordPP) {
       lockReasonText = `Needs ${nextLevelData.costPrestigePoints.toLocaleString('en-US')} PP.`;
     }
@@ -131,7 +131,7 @@ export function HQUpgradeCard({
                 <span className="text-muted-foreground">Cost:</span>
                 <div className="flex items-center gap-2 font-semibold text-right">
                   <span className="text-green-500">
-                    {nextLevelData.costMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    $${nextLevelData.costMoney.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                   </span>
                   {nextLevelData.costPrestigePoints && nextLevelData.costPrestigePoints > 0 && (
                     <div className="flex items-center gap-1">
@@ -150,7 +150,7 @@ export function HQUpgradeCard({
                 <p className="text-xs text-muted-foreground">This HQ upgrade is at its maximum level.</p>
             </div>
           )}
-          {hqUpgrade.requiredTimesPrestiged && !isMaxed && (
+          {hqUpgrade.requiredTimesPrestiged && !isMaxed && nextLevelData && ( // Only show if not maxed and next level exists
             <div className="text-xs text-muted-foreground pt-1">
               (Overall Prestige Req: {hqUpgrade.requiredTimesPrestiged})
             </div>
@@ -189,3 +189,5 @@ export function HQUpgradeCard({
     </TooltipProvider>
   );
 }
+
+  
