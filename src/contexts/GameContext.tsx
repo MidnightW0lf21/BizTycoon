@@ -31,6 +31,7 @@ const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000; 
 const STOCK_PRICE_UPDATE_INTERVAL = 150000; // 2.5 minutes
 const FACTORY_PURCHASE_COST = 1000000;
+const MATERIAL_COLLECTION_AMOUNT = 10;
 const MATERIAL_COLLECTION_COOLDOWN_MS = 5000; // 5 seconds
 
 interface GameContextType {
@@ -44,6 +45,7 @@ interface GameContextType {
   setLastMarketTrends: (trends: string) => void;
   lastRiskTolerance: "low" | "medium" | "high";
   setLastRiskTolerance: (tolerance: "low" | "medium" | "high") => void;
+  materialCollectionCooldownEnd: number;
   upgradeBusiness: (businessId: string, levelsToBuy?: number) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string, isAutoBuy?: boolean) => boolean;
   purchaseHQUpgrade: (upgradeId: string) => void;
@@ -275,7 +277,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
     localStorage.removeItem(SAVE_DATA_KEY);
     setLastSavedTimestamp(null);
-    setMaterialCollectionCooldownEnd(0); // Reset cooldown on wipe
+    setMaterialCollectionCooldownEnd(0); 
     toast({
       title: "Game Data Wiped",
       description: "All progress has been reset to default.",
@@ -1029,10 +1031,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setPlayerStats(prev => ({
       ...prev,
-      factoryRawMaterials: prev.factoryRawMaterials + 10,
+      factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT,
     }));
     setMaterialCollectionCooldownEnd(now + MATERIAL_COLLECTION_COOLDOWN_MS);
-    toast({ title: "Materials Collected!", description: "+10 Raw Materials added." });
+    toast({ title: "Materials Collected!", description: `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.` });
   };
 
   const calculateNextMachineCost = (ownedMachineCount: number): number => {
@@ -1060,7 +1062,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { updatedProductionLines, assignedLineId, assignedSlotIndex };
   };
 
-  const _attemptAutoAssignWaitingMachines = () => {
+  const _attemptAutoAssignWaitingMachines = useCallback(() => {
     setPlayerStats(prev => {
         let newMachines = [...prev.factoryMachines];
         let newProductionLines = [...prev.factoryProductionLines];
@@ -1085,7 +1087,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         return prev; 
     });
-  };
+  }, [toast]);
 
 
   const purchaseFactoryMachine = (configId: string) => {
@@ -1141,17 +1143,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const unassignMachineFromProductionLine = (productionLineId: string, slotIndex: number) => {
+  const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
       setPlayerStats(prev => {
           const targetProductionLineIndex = prev.factoryProductionLines.findIndex(pl => pl.id === productionLineId);
           if (targetProductionLineIndex === -1) {
-              toast({ title: "Production line not found", variant: "destructive" });
               return prev;
           }
           
           const targetProductionLine = prev.factoryProductionLines[targetProductionLineIndex];
           if (slotIndex < 0 || slotIndex >= targetProductionLine.machineInstanceIds.length) {
-              toast({ title: "Invalid slot index", variant: "destructive" });
               return prev;
           }
 
@@ -1162,13 +1162,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           const machineToUpdateIndex = prev.factoryMachines.findIndex(m => m.instanceId === machineInstanceIdToUnassign);
           if (machineToUpdateIndex === -1) {
-              toast({ title: "Machine instance not found in stats", variant: "destructive" });
               return prev; 
           }
           
-          const machineConfigId = prev.factoryMachines[machineToUpdateIndex].configId;
-          const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineConfigId);
-
           const newFactoryMachines = [...prev.factoryMachines];
           newFactoryMachines[machineToUpdateIndex] = { ...newFactoryMachines[machineToUpdateIndex], assignedProductionLineId: null };
 
@@ -1177,7 +1173,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           newLineInstanceIds[slotIndex] = null;
           newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], machineInstanceIds: newLineInstanceIds };
           
-          // toast({ title: "Machine Unassigned", description: `${machineConfig?.name || 'Machine'} removed from ${targetProductionLine.name} - Slot ${slotIndex + 1}.` });
           return {
               ...prev,
               factoryMachines: newFactoryMachines,
@@ -1185,7 +1180,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           };
       });
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
-  };
+  }, [_attemptAutoAssignWaitingMachines]);
 
 
   return (
@@ -1200,6 +1195,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLastMarketTrends,
       lastRiskTolerance,
       setLastRiskTolerance,
+      materialCollectionCooldownEnd,
       upgradeBusiness,
       purchaseBusinessUpgrade,
       purchaseHQUpgrade,
@@ -1235,4 +1231,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-

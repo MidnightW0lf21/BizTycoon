@@ -11,9 +11,11 @@ import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuild
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState, useEffect } from "react";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST = 1000000;
+const MATERIAL_COLLECTION_AMOUNT = 10;
 
 export default function MyFactoryPage() {
   const { 
@@ -23,7 +25,35 @@ export default function MyFactoryPage() {
     manuallyCollectRawMaterials,
     purchaseFactoryMachine,
     calculateNextMachineCost,
+    materialCollectionCooldownEnd,
   } = useGame();
+
+  const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
+
+  useEffect(() => {
+    if (!playerStats.factoryPurchased) return;
+
+    let intervalId: NodeJS.Timeout;
+
+    const updateCooldown = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((materialCollectionCooldownEnd - now) / 1000));
+      setSecondsRemainingForCooldown(remaining);
+
+      if (remaining === 0) {
+        clearInterval(intervalId);
+      }
+    };
+
+    if (materialCollectionCooldownEnd > Date.now()) {
+      updateCooldown(); // Initial update
+      intervalId = setInterval(updateCooldown, 1000);
+    } else {
+      setSecondsRemainingForCooldown(0);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
 
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
@@ -155,8 +185,15 @@ export default function MyFactoryPage() {
                 <p className="text-lg">
                   Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
                 </p>
-                <Button onClick={manuallyCollectRawMaterials} size="lg">
-                  <Box className="mr-2 h-5 w-5"/>Manually Collect 10 Raw Materials
+                <Button 
+                  onClick={manuallyCollectRawMaterials} 
+                  size="lg"
+                  disabled={secondsRemainingForCooldown > 0}
+                >
+                  <Box className="mr-2 h-5 w-5"/>
+                  {secondsRemainingForCooldown > 0 
+                    ? `Collect (Wait ${secondsRemainingForCooldown}s)` 
+                    : `Manually Collect ${MATERIAL_COLLECTION_AMOUNT} Raw Materials`}
                 </Button>
                 <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
               </CardContent>

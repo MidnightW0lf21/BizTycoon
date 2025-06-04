@@ -123,7 +123,7 @@ export interface FactoryMachineConfig {
   name: string;
   icon: LucideIcon;
   description: string;
-  baseCost: number; // This might be for unlocking the *type*, instance costs could vary
+  baseCost: number; 
   powerConsumptionKw: number;
   outputComponentId: string;
   baseProductionTimeSeconds: number;
@@ -131,15 +131,15 @@ export interface FactoryMachineConfig {
 }
 
 export interface FactoryMachine {
-  instanceId: string; // Unique ID for this machine instance, e.g., generated on purchase
-  configId: string;   // ID of the FactoryMachineConfig (e.g., "basic_assembler_mk1")
+  instanceId: string; 
+  configId: string;   
   assignedProductionLineId: string | null;
 }
 
 export interface FactoryProductionLine {
-  id: string; // Unique ID for this line, e.g., "line_1"
-  name: string; // e.g., "Production Line 1"
-  machineInstanceIds: (string | null)[]; // Array of 6: machine instance IDs or null for empty slot
+  id: string; 
+  name: string; 
+  machineInstanceIds: (string | null)[]; 
 }
 
 export interface PlayerStats {
@@ -159,12 +159,12 @@ export interface PlayerStats {
   // Factory Specific Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
-  factoryPowerConsumptionKw: number; // New
+  factoryPowerConsumptionKw: number; 
   factoryRawMaterials: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
   factoryPowerBuildings: FactoryPowerBuilding[];
-  factoryProducedComponents: Record<string, number>; // Tracks counts of produced components
+  factoryProducedComponents: Record<string, number>; 
 }
 
 export interface SaveData {
