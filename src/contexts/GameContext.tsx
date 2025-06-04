@@ -13,8 +13,8 @@ import {
   INITIAL_UNLOCKED_SKILL_IDS,
   INITIAL_HQ_UPGRADE_LEVELS,
   INITIAL_HQ_UPGRADES,
-  INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, // Added for purchaseFactoryPowerBuilding
-  INITIAL_FACTORY_MACHINE_CONFIGS, // Added for purchaseFactoryMachine
+  INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
+  INITIAL_FACTORY_MACHINE_CONFIGS,
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
@@ -63,6 +63,8 @@ interface GameContextType {
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
   calculateNextMachineCost: (ownedMachineCount: number) => number;
+  assignMachineToProductionLine: (machineInstanceId: string, productionLineId: string, slotIndex: number) => void;
+  unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -79,7 +81,6 @@ const getInitialPlayerStats = (): PlayerStats => {
     unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
     hqUpgradeLevels: { ...INITIAL_HQ_UPGRADE_LEVELS },
     achievedBusinessMilestones: {},
-    // Factory defaults
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
     factoryRawMaterials: 0,
@@ -593,7 +594,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPlayerStats(prev => ({ ...prev, money: currentMoneySnapshot }));
       setBusinesses(updatedBusinesses);
     }
-  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState, toast]);
+  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState, toast, playerStats.achievedBusinessMilestones]);
 
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
@@ -770,7 +771,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
         const purchasedLevel = playerStats.hqUpgradeLevels[hqUpgradeId];
         if (purchasedLevel > 0) {
-            const hqUpgradeConfig = hqUpgradesState.find(hq => hq.id === hqUpgradeId);
+            const hqUpgradeConfig = hqUpgradesState.find(hq => h.id === hqUpgradeId);
             if (hqUpgradeConfig && hqUpgradeConfig.levels) {
                 const levelData = hqUpgradeConfig.levels.find(l => l.level === purchasedLevel);
                 if (levelData && levelData.effects.retentionPercentage) {
@@ -971,8 +972,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const calculateNextMachineCost = (ownedMachineCount: number): number => {
-      const baseCost = 100000; // Cost of the first machine
-      const scalingFactor = 1.25; // Each subsequent machine costs 25% more than the last
+      const baseCost = 100000; 
+      const scalingFactor = 1.25; 
       return Math.floor(baseCost * Math.pow(scalingFactor, ownedMachineCount));
   };
 
@@ -996,14 +997,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const newMachine: FactoryMachine = {
-      instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       configId: machineConfig.id,
       assignedProductionLineId: null,
-      // workerAssigned: false, // Initialize future states
-      // currentProductionComponentId: null,
-      // productionProgress: 0,
-      // productionTimeTotal: 0,
-      // upgrades: { speedLevel: 0, batchSizeLevel: 0 },
     };
 
     setPlayerStats(prev => ({
@@ -1012,6 +1008,112 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       factoryMachines: [...prev.factoryMachines, newMachine],
     }));
     toast({ title: "Machine Built!", description: `A new ${machineConfig.name} is ready.` });
+  };
+
+  const assignMachineToProductionLine = (machineInstanceId: string, productionLineId: string, slotIndex: number) => {
+    setPlayerStats(prev => {
+        const machineToAssign = prev.factoryMachines.find(m => m.instanceId === machineInstanceId);
+        if (!machineToAssign) {
+            toast({ title: "Machine not found", variant: "destructive" });
+            return prev;
+        }
+
+        const targetProductionLine = prev.factoryProductionLines.find(pl => pl.id === productionLineId);
+        if (!targetProductionLine) {
+            toast({ title: "Production line not found", variant: "destructive" });
+            return prev;
+        }
+
+        if (slotIndex < 0 || slotIndex >= targetProductionLine.machineInstanceIds.length) {
+            toast({ title: "Invalid slot index", variant: "destructive" });
+            return prev;
+        }
+        
+        // Create new arrays/objects for immutability
+        const newFactoryMachines = prev.factoryMachines.map(m => {
+            // If this is the machine we are assigning, update its assignment
+            if (m.instanceId === machineInstanceId) {
+                return { ...m, assignedProductionLineId: productionLineId };
+            }
+            // If this machine was previously in the target slot, unassign it
+            if (m.assignedProductionLineId === productionLineId && targetProductionLine.machineInstanceIds[slotIndex] === m.instanceId) {
+                 return { ...m, assignedProductionLineId: null };
+            }
+            return m;
+        });
+        
+        const newFactoryProductionLines = prev.factoryProductionLines.map(pl => {
+            if (pl.id === productionLineId) {
+                const newMachineInstanceIds = [...pl.machineInstanceIds];
+                // If another machine is in the target slot, clear its assignment first (done in newFactoryMachines map)
+                // Then place the new machine
+                newMachineInstanceIds[slotIndex] = machineInstanceId;
+                return { ...pl, machineInstanceIds: newMachineInstanceIds };
+            }
+            // If the machine being assigned was in another line, clear its old slot
+            if (machineToAssign.assignedProductionLineId && pl.id === machineToAssign.assignedProductionLineId) {
+                const oldSlotIndex = pl.machineInstanceIds.indexOf(machineInstanceId);
+                if (oldSlotIndex !== -1) {
+                    const newMachineInstanceIds = [...pl.machineInstanceIds];
+                    newMachineInstanceIds[oldSlotIndex] = null;
+                    return { ...pl, machineInstanceIds: newMachineInstanceIds };
+                }
+            }
+            return pl;
+        });
+
+        toast({ title: "Machine Assigned", description: `${machineToAssign.configId} assigned to ${targetProductionLine.name} - Slot ${slotIndex + 1}` });
+        return {
+            ...prev,
+            factoryMachines: newFactoryMachines,
+            factoryProductionLines: newFactoryProductionLines,
+        };
+    });
+  };
+
+  const unassignMachineFromProductionLine = (productionLineId: string, slotIndex: number) => {
+      setPlayerStats(prev => {
+          const targetProductionLine = prev.factoryProductionLines.find(pl => pl.id === productionLineId);
+          if (!targetProductionLine) {
+              toast({ title: "Production line not found", variant: "destructive" });
+              return prev;
+          }
+          if (slotIndex < 0 || slotIndex >= targetProductionLine.machineInstanceIds.length) {
+              toast({ title: "Invalid slot index", variant: "destructive" });
+              return prev;
+          }
+
+          const machineInstanceIdToUnassign = targetProductionLine.machineInstanceIds[slotIndex];
+          if (!machineInstanceIdToUnassign) {
+              toast({ title: "No machine in this slot", variant: "default" });
+              return prev;
+          }
+          
+          const machineConfigId = prev.factoryMachines.find(m => m.instanceId === machineInstanceIdToUnassign)?.configId || "Unknown Machine";
+
+
+          const newFactoryMachines = prev.factoryMachines.map(m =>
+              m.instanceId === machineInstanceIdToUnassign
+                  ? { ...m, assignedProductionLineId: null }
+                  : m
+          );
+
+          const newFactoryProductionLines = prev.factoryProductionLines.map(pl => {
+              if (pl.id === productionLineId) {
+                  const newMachineInstanceIds = [...pl.machineInstanceIds];
+                  newMachineInstanceIds[slotIndex] = null;
+                  return { ...pl, machineInstanceIds: newMachineInstanceIds };
+              }
+              return pl;
+          });
+          
+          toast({ title: "Machine Unassigned", description: `${machineConfigId} from ${targetProductionLine.name} - Slot ${slotIndex + 1}` });
+          return {
+              ...prev,
+              factoryMachines: newFactoryMachines,
+              factoryProductionLines: newFactoryProductionLines,
+          };
+      });
   };
 
 
@@ -1048,6 +1150,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manuallyCollectRawMaterials,
       purchaseFactoryMachine,
       calculateNextMachineCost,
+      assignMachineToProductionLine,
+      unassignMachineFromProductionLine,
     }}>
       {children}
     </GameContext.Provider>
@@ -1061,3 +1165,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
