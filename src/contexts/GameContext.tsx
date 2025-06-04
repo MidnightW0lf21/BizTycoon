@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -27,11 +27,12 @@ import { useToast } from "@/hooks/use-toast";
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000; 
 const STOCK_PRICE_UPDATE_INTERVAL = 150000; // 2.5 minutes
+const FACTORY_PURCHASE_COST = 1000000;
 
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
-  stocks: Stock[]; // This will be the dynamically priced, unlocked stocks
+  stocks: Stock[]; 
   skillTree: SkillNode[];
   hqUpgrades: HQUpgrade[];
   lastSavedTimestamp: number | null;
@@ -55,6 +56,7 @@ interface GameContextType {
   exportGameState: () => string;
   importGameState: (jsonString: string) => boolean;
   wipeGameData: () => void;
+  purchaseFactoryBuilding: () => void; // New factory function
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -71,6 +73,14 @@ const getInitialPlayerStats = (): PlayerStats => {
     unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
     hqUpgradeLevels: { ...INITIAL_HQ_UPGRADE_LEVELS },
     achievedBusinessMilestones: {},
+    // Factory defaults
+    factoryPurchased: false,
+    factoryPowerUnitsGenerated: 0,
+    factoryRawMaterials: 0,
+    factoryMachines: [],
+    factoryProductionLines: [],
+    factoryPowerBuildings: [],
+    factoryProducedComponents: {},
   };
 };
 
@@ -92,9 +102,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }))
   );
 
-  // Holds ALL stocks with their CURRENT DYNAMIC prices. Initialized with base prices.
   const [stocksWithDynamicPrices, setStocksWithDynamicPrices] = useState<Stock[]>(() =>
-    INITIAL_STOCKS.map(s => ({ ...s })) // Create a mutable copy with initial prices
+    INITIAL_STOCKS.map(s => ({ ...s })) 
   );
 
   const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Tech stocks are performing well, while energy sectors are seeing a slight downturn.");
@@ -109,18 +118,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLastRiskToleranceInternal(tolerance);
   };
 
-  // Effect for dynamic stock price updates
   useEffect(() => {
     const stockUpdateInterval = setInterval(() => {
       setStocksWithDynamicPrices(prevStocks =>
         prevStocks.map(currentStock => {
           const initialStockData = INITIAL_STOCKS.find(is => is.id === currentStock.id);
-          if (!initialStockData) return currentStock; // Should ideally not happen
+          if (!initialStockData) return currentStock; 
 
-          const basePrice = initialStockData.price; // Base price from initial config
-          const percentageChange = Math.random() * 0.8 - 0.3; // Random factor between -0.3 (-30%) and +0.5 (+50%)
+          const basePrice = initialStockData.price; 
+          const percentageChange = Math.random() * 0.8 - 0.3; 
           let newPrice = basePrice * (1 + percentageChange);
-          newPrice = Math.max(1, Math.floor(newPrice)); // Ensure price is at least $1 and an integer
+          newPrice = Math.max(1, Math.floor(newPrice)); 
 
           return { ...currentStock, price: newPrice };
         })
@@ -128,17 +136,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, STOCK_PRICE_UPDATE_INTERVAL);
 
     return () => clearInterval(stockUpdateInterval);
-  }, []); // Runs once on mount
+  }, []); 
 
 
-  // Memoized list of stocks accessible to the player, with their current dynamic prices
   const unlockedStocks = useMemo(() => {
     return stocksWithDynamicPrices.filter(currentDynamicStock => {
-      // Find the corresponding initial stock data to check for unlock requirements
       const initialStockData = INITIAL_STOCKS.find(is => is.id === currentDynamicStock.id);
-      if (!initialStockData) return false; // Should not happen if lists are in sync
+      if (!initialStockData) return false; 
 
-      if (!initialStockData.requiredSkillToUnlock) return true; // No skill required
+      if (!initialStockData.requiredSkillToUnlock) return true; 
       return playerStats.unlockedSkillIds.includes(initialStockData.requiredSkillToUnlock);
     });
   }, [stocksWithDynamicPrices, playerStats.unlockedSkillIds]);
@@ -147,11 +153,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveStateToLocalStorage = useCallback(() => {
     try {
       const currentTimestamp = Date.now();
+      // PlayerStats now includes factory data, which will be saved.
       const saveData: SaveData = {
-        playerStats,
+        playerStats, 
         businesses,
         lastSaved: currentTimestamp,
-        // Dynamic stock prices are NOT saved; they reset to base on load.
       };
       localStorage.setItem(SAVE_DATA_KEY, JSON.stringify(saveData));
       setLastSavedTimestamp(currentTimestamp);
@@ -176,7 +182,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const exportGameState = (): string => {
     const currentTimestamp = Date.now();
      const saveData: SaveData = {
-        playerStats,
+        playerStats, // PlayerStats includes factory data
         businesses,
         lastSaved: currentTimestamp,
       };
@@ -189,15 +195,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (!importedData.playerStats || !importedData.businesses) {
         throw new Error("Invalid save data structure.");
       }
+      
+      // Initialize with defaults, then spread imported data to handle potentially missing factory fields in old saves
+      const initialDefaults = getInitialPlayerStats();
+      const mergedPlayerStats: PlayerStats = {
+        ...initialDefaults, // Start with all possible fields from a fresh state
+        ...importedData.playerStats, // Override with saved data
+        // Explicitly ensure arrays/objects are correctly typed if missing from older saves
+        unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+        hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
+        stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
+        achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
+        // Factory fields - if not present in save, they'll get defaults from initialDefaults
+        factoryPurchased: typeof importedData.playerStats.factoryPurchased === 'boolean' ? importedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
+        factoryPowerUnitsGenerated: typeof importedData.playerStats.factoryPowerUnitsGenerated === 'number' ? importedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+        factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+        factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
+        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines,
+        factoryPowerBuildings: Array.isArray(importedData.playerStats.factoryPowerBuildings) ? importedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
+        factoryProducedComponents: typeof importedData.playerStats.factoryProducedComponents === 'object' && importedData.playerStats.factoryProducedComponents !== null ? importedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+      };
 
-      setPlayerStats(prev => ({
-         ...getInitialPlayerStats(), 
-         ...importedData.playerStats, 
-         unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : INITIAL_UNLOCKED_SKILL_IDS,
-         hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : INITIAL_HQ_UPGRADE_LEVELS,
-         stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : [],
-         achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : {},
-      }));
+      setPlayerStats(mergedPlayerStats);
 
       setBusinesses(INITIAL_BUSINESSES.map(initialBiz => {
         const savedBusiness = importedData.businesses.find(b => b.id === initialBiz.id);
@@ -213,7 +232,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
       }));
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
-      // Reset stock prices to base on import; they will start fluctuating again via the interval.
       setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
       toast({
@@ -233,7 +251,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const wipeGameData = () => {
-    setPlayerStats(getInitialPlayerStats());
+    setPlayerStats(getInitialPlayerStats()); // This now includes factory defaults
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz,
       level: 0,
@@ -241,7 +259,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
       icon: biz.icon,
     })));
-    // Reset stock prices to base on wipe
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
     localStorage.removeItem(SAVE_DATA_KEY);
     setLastSavedTimestamp(null);
@@ -258,14 +275,26 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const savedDataString = localStorage.getItem(SAVE_DATA_KEY);
       if (savedDataString) {
         const loadedData: SaveData = JSON.parse(savedDataString);
-        setPlayerStats(prev => ({
-          ...getInitialPlayerStats(),
-          ...loadedData.playerStats,
-          unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : INITIAL_UNLOCKED_SKILL_IDS,
-          hqUpgradeLevels: typeof loadedData.playerStats.hqUpgradeLevels === 'object' && loadedData.playerStats.hqUpgradeLevels !== null ? loadedData.playerStats.hqUpgradeLevels : INITIAL_HQ_UPGRADE_LEVELS,
-          stockHoldings: Array.isArray(loadedData.playerStats.stockHoldings) ? loadedData.playerStats.stockHoldings : [],
-          achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : {},
-        }));
+        
+        const initialDefaults = getInitialPlayerStats();
+        const mergedPlayerStats: PlayerStats = {
+            ...initialDefaults,
+            ...loadedData.playerStats,
+            unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+            hqUpgradeLevels: typeof loadedData.playerStats.hqUpgradeLevels === 'object' && loadedData.playerStats.hqUpgradeLevels !== null ? loadedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
+            stockHoldings: Array.isArray(loadedData.playerStats.stockHoldings) ? loadedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
+            achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
+            // Factory fields
+            factoryPurchased: typeof loadedData.playerStats.factoryPurchased === 'boolean' ? loadedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
+            factoryPowerUnitsGenerated: typeof loadedData.playerStats.factoryPowerUnitsGenerated === 'number' ? loadedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+            factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+            factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
+            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines,
+            factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
+            factoryProducedComponents: typeof loadedData.playerStats.factoryProducedComponents === 'object' && loadedData.playerStats.factoryProducedComponents !== null ? loadedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+        };
+        setPlayerStats(mergedPlayerStats);
+
         setBusinesses(() => {
           return INITIAL_BUSINESSES.map(initialBiz => {
             const savedBusinessState = loadedData.businesses.find(b => b.id === initialBiz.id);
@@ -282,17 +311,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
         });
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
-        // Stock prices are not saved, so they initialize from INITIAL_STOCKS via stocksWithDynamicPrices state
       } else {
         setPlayerStats(getInitialPlayerStats());
-        // stocksWithDynamicPrices is already initialized from INITIAL_STOCKS
       }
     } catch (error) {
       console.error("Error loading game state from local storage:", error);
       localStorage.removeItem(SAVE_DATA_KEY);
       toast({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
-      // stocksWithDynamicPrices is already initialized from INITIAL_STOCKS
     }
   }, [toast]);
 
@@ -384,16 +410,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     for (const holding of playerStats.stockHoldings) {
-      // Use `unlockedStocks` here as it contains stocks with their current dynamic prices
-      const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+      const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); 
       if (stockDetails) {
-        let currentDividendYield = stockDetails.dividendYield; // Base yield from definition
+        let currentDividendYield = stockDetails.dividendYield; 
         const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
-        if(initialStockInfo) { // Ensure we have base yield
+        if(initialStockInfo) { 
             currentDividendYield = initialStockInfo.dividendYield;
         }
         currentDividendYield *= (1 + globalDividendBoost / 100);
-        dividendIncome += holding.shares * stockDetails.price * currentDividendYield; // stockDetails.price is dynamic
+        dividendIncome += holding.shares * stockDetails.price * currentDividendYield; 
       }
     }
     setPlayerStats(prev => ({ ...prev, totalIncomePerSecond: totalBusinessIncome + dividendIncome }));
@@ -482,7 +507,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newMoney = prev.money + prev.totalIncomePerSecond;
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); // unlockedStocks has dynamic prices
+          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); 
           if (stockDetails) {
             currentInvestmentsValue += holding.shares * stockDetails.price;
           }
@@ -491,7 +516,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, 1000);
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, unlockedStocks]); // Add unlockedStocks dependency
+  }, [playerStats.totalIncomePerSecond, unlockedStocks]); 
 
 
   useEffect(() => {
@@ -625,22 +650,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   const buyStock = (stockId: string, sharesToBuyInput: number) => {
-    if (playerStats.timesPrestiged < 2) {
-        toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
+    if (playerStats.timesPrestiged < 8) { // Updated to 8 from stocks page
+        toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
     }
     if (sharesToBuyInput <= 0) {
       toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks which has dynamic prices
+    const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
       toast({ title: "Stock Not Found", description: "This stock is not available or does not exist.", variant: "destructive" });
       return;
     }
 
     const initialStockData = INITIAL_STOCKS.find(is => is.id === stockId);
-    if (!initialStockData) return; // Should not happen
+    if (!initialStockData) return; 
 
     const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
@@ -659,7 +684,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased.`, variant: "destructive" });
         return;
     }
-    const cost = stock.price * sharesToBuy; // Use dynamic price from `stock` (which is from unlockedStocks)
+    const cost = stock.price * sharesToBuy; 
     if (playerStats.money < cost) {
       toast({ title: "Not Enough Money", description: `You need $${Number(cost).toLocaleString('en-US', { maximumFractionDigits: 0 })} to buy ${sharesToBuy.toLocaleString('en-US')} share(s).`, variant: "destructive" });
       return;
@@ -674,15 +699,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const sellStock = (stockId: string, sharesToSell: number) => {
-     if (playerStats.timesPrestiged < 2) {
-        toast({ title: "Stocks Locked", description: "You need to prestige at least 2 times to access the stock market.", variant: "destructive" });
+     if (playerStats.timesPrestiged < 8) { // Updated to 8 from stocks page
+        toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
     }
     if (sharesToSell <= 0) {
       toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks which has dynamic prices
+    const stock = unlockedStocks.find(s => s.id === stockId); 
     if (!stock) {
       toast({ title: "Stock Not Found", variant: "destructive" });
       return;
@@ -692,7 +717,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "Not Enough Shares", description: `You only own ${existingHolding?.shares || 0} share(s).`, variant: "destructive" });
       return;
     }
-    const earnings = stock.price * sharesToSell; // Use dynamic price from `stock`
+    const earnings = stock.price * sharesToSell; 
     setPlayerStats(prev => {
       const newHoldings = existingHolding.shares === sharesToSell
         ? prev.stockHoldings.filter(h => h.stockId !== stockId)
@@ -721,6 +746,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const retainedBusinessLevels: Record<string, number> = {};
     const retainedStockHoldings: StockHolding[] = [];
+
+    // Preserve factory stats
+    const { 
+      factoryPurchased, 
+      factoryPowerUnitsGenerated, 
+      factoryRawMaterials, 
+      factoryMachines, 
+      factoryProductionLines, 
+      factoryPowerBuildings,
+      factoryProducedComponents 
+    } = playerStats;
+
 
     for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
         const purchasedLevel = playerStats.hqUpgradeLevels[hqUpgradeId];
@@ -753,12 +790,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
 
     setPlayerStats(prev => ({
-      ...prev,
+      ...prev, // Keep unlocked skills, HQ upgrades, and factory data
       money: moneyAfterPrestige,
       investmentsValue: 0, 
       stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
+      achievedBusinessMilestones: {}, // Reset business milestones
+      // Factory stats are preserved from the destructured constants above
+      factoryPurchased,
+      factoryPowerUnitsGenerated,
+      factoryRawMaterials,
+      factoryMachines,
+      factoryProductionLines,
+      factoryPowerBuildings,
+      factoryProducedComponents,
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -769,7 +815,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       icon: biz.icon,
     })));
     
-    // Reset stock prices to base on prestige
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
@@ -846,12 +891,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevel}.` });
   };
 
+  const purchaseFactoryBuilding = () => {
+    if (playerStats.factoryPurchased) {
+      toast({ title: "Factory Already Owned", description: "You have already purchased the factory building.", variant: "default" });
+      return;
+    }
+    if (playerStats.money < FACTORY_PURCHASE_COST) {
+      toast({ title: "Not Enough Money", description: `You need $${FACTORY_PURCHASE_COST.toLocaleString()} to purchase the factory.`, variant: "destructive" });
+      return;
+    }
+    setPlayerStats(prev => ({
+      ...prev,
+      money: prev.money - FACTORY_PURCHASE_COST,
+      factoryPurchased: true,
+    }));
+    toast({ title: "Factory Purchased!", description: "You can now start building your industrial empire!" });
+  };
+
 
   return (
     <GameContext.Provider value={{
       playerStats,
       businesses,
-      stocks: unlockedStocks, // Provide the dynamically priced, unlocked stocks
+      stocks: unlockedStocks, 
       skillTree: skillTreeState,
       hqUpgrades: hqUpgradesState,
       lastSavedTimestamp,
@@ -875,6 +937,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       exportGameState,
       importGameState,
       wipeGameData,
+      purchaseFactoryBuilding,
     }}>
       {children}
     </GameContext.Provider>
@@ -888,4 +951,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
