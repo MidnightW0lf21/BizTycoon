@@ -184,7 +184,6 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
     );
   }
 
-  // Fallback for items that might not be links or actions (though not used in current navItems)
   return (
     <div className={linkClassName} onClick={onMobileClick}>
       {linkContent}
@@ -263,22 +262,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Define base classes
+  const sidebarBaseClasses = "hidden border-r bg-muted/40 md:block";
+  const sidebarNavBaseClasses = "grid items-start px-2 py-2 text-sm font-medium lg:px-4";
+  const contentColumnBaseClasses = "flex flex-col";
+  const headerBaseClasses = "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6";
+  const mainBaseClasses = "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background";
+  const mobileNavBaseClasses = "grid gap-2 text-lg font-medium p-4";
+
+  // Determine dynamic classes based on mounted state
+  const sidebarDynamicClasses = mounted ? "sticky top-0 h-screen" : "";
+  const sidebarNavDynamicClasses = mounted ? "overflow-y-auto" : "";
+  const contentColumnDynamicClasses = mounted ? "h-screen overflow-hidden" : "";
+  const headerDynamicClasses = mounted ? "sticky top-0 z-10 bg-background shrink-0" : "bg-muted/40";
+  const mainDynamicClasses = mounted ? "overflow-y-auto" : "";
+  const mobileNavDynamicClasses = mounted ? "overflow-y-auto" : "";
+  
+  const finalSidebarClasses = `${sidebarBaseClasses} ${sidebarDynamicClasses}`.trim();
+  const finalSidebarNavClasses = `${sidebarNavBaseClasses} ${sidebarNavDynamicClasses}`.trim();
+  const finalContentColumnClasses = `${contentColumnBaseClasses} ${contentColumnDynamicClasses}`.trim();
+  const finalHeaderClasses = `${headerBaseClasses} ${headerDynamicClasses}`.trim();
+  const finalMainClasses = `${mainBaseClasses} ${mainDynamicClasses}`.trim();
+  const finalMobileNavClasses = `${mobileNavBaseClasses} ${mobileNavDynamicClasses}`.trim();
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div 
-        className={cn(
-            "hidden border-r bg-muted/40 md:block",
-            mounted && "sticky top-0 h-screen" // Sticky behavior only on client
-        )}
-      >
+      <div className={finalSidebarClasses}>
         <div className="flex h-full max-h-screen flex-col gap-0">
           <AppLogo />
-          <nav 
-            className={cn(
-                "grid items-start px-2 py-2 text-sm font-medium lg:px-4",
-                mounted && "overflow-y-auto" // Scrollable nav only on client
-            )}
-          >
+          <nav className={finalSidebarNavClasses}>
             {navItems.map(item => (
               <NavLink
                 key={item.label}
@@ -290,18 +303,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </div>
-      <div 
-        className={cn(
-            "flex flex-col",
-            mounted && "h-screen overflow-hidden" // Height constraint and overflow hidden only on client
-        )}
-      >
-        <header 
-            className={cn(
-                "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6", // Base classes
-                mounted ? "sticky top-0 z-10 bg-background shrink-0" : "bg-muted/40" // Conditional sticky and bg
-            )}
-        >
+      <div className={finalContentColumnClasses}>
+        <header className={finalHeaderClasses}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -311,12 +314,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
               <AppLogo />
-              <nav 
-                className={cn(
-                    "grid gap-2 text-lg font-medium p-4",
-                    mounted && "overflow-y-auto" // Scrollable nav only on client
-                )}
-               >
+              <nav className={finalMobileNavClasses}>
                 {navItems.map(item => (
                   <NavLink
                     key={item.label}
@@ -348,12 +346,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main 
-            className={cn(
-                "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background", // Base layout for main content
-                mounted && "overflow-y-auto" // Add overflow only when mounted
-            )}
-        >
+        <main className={finalMainClasses}>
           {children}
         </main>
       </div>
@@ -389,4 +382,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+    
+
     
