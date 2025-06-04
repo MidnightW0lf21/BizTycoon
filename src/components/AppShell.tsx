@@ -6,7 +6,12 @@ import { usePathname } from 'next/navigation';
 import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle // Imported SheetTitle
+} from '@/components/ui/sheet';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +20,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle as AlertDialogUtiTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
@@ -261,29 +266,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setIsPrestigeDialogOpen(true);
     }
   };
-
-  // Define base classes
-  const sidebarBaseClasses = "hidden border-r bg-muted/40 md:block";
-  const sidebarNavBaseClasses = "grid items-start px-2 py-2 text-sm font-medium lg:px-4";
-  const contentColumnBaseClasses = "flex flex-col";
-  const headerBaseClasses = "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6";
-  const mainBaseClasses = "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background";
-  const mobileNavBaseClasses = "grid gap-2 text-lg font-medium p-4";
-
-  // Determine dynamic classes based on mounted state
-  const sidebarDynamicClasses = mounted ? "sticky top-0 h-screen" : "";
-  const sidebarNavDynamicClasses = mounted ? "overflow-y-auto" : "";
-  const contentColumnDynamicClasses = mounted ? "h-screen overflow-hidden" : "";
-  const headerDynamicClasses = mounted ? "sticky top-0 z-10 bg-background shrink-0" : "bg-muted/40";
-  const mainDynamicClasses = mounted ? "overflow-y-auto" : "";
-  const mobileNavDynamicClasses = mounted ? "overflow-y-auto" : "";
   
-  const finalSidebarClasses = `${sidebarBaseClasses} ${sidebarDynamicClasses}`.trim();
-  const finalSidebarNavClasses = `${sidebarNavBaseClasses} ${sidebarNavDynamicClasses}`.trim();
-  const finalContentColumnClasses = `${contentColumnBaseClasses} ${contentColumnDynamicClasses}`.trim();
-  const finalHeaderClasses = `${headerBaseClasses} ${headerDynamicClasses}`.trim();
-  const finalMainClasses = `${mainBaseClasses} ${mainDynamicClasses}`.trim();
-  const finalMobileNavClasses = `${mobileNavBaseClasses} ${mobileNavDynamicClasses}`.trim();
+  const baseSidebarClasses = "hidden border-r bg-muted/40 md:block";
+  const mountedSidebarClasses = "sticky top-0 h-screen";
+  const finalSidebarClasses = mounted ? `${baseSidebarClasses} ${mountedSidebarClasses}` : baseSidebarClasses;
+
+  const baseSidebarNavClasses = "grid items-start px-2 py-2 text-sm font-medium lg:px-4";
+  const mountedSidebarNavClasses = "overflow-y-auto";
+  const finalSidebarNavClasses = mounted ? `${baseSidebarNavClasses} ${mountedSidebarNavClasses}` : baseSidebarNavClasses;
+
+  const baseContentColumnClasses = "flex flex-col";
+  const mountedContentColumnClasses = "h-screen overflow-hidden";
+  const finalContentColumnClasses = mounted ? `${baseContentColumnClasses} ${mountedContentColumnClasses}` : baseContentColumnClasses;
+  
+  const baseHeaderClasses = "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6";
+  const mountedHeaderClasses = "sticky top-0 z-10 bg-background shrink-0";
+  const unmountedHeaderClasses = "bg-muted/40";
+  const finalHeaderClasses = mounted ? `${baseHeaderClasses} ${mountedHeaderClasses}` : `${baseHeaderClasses} ${unmountedHeaderClasses}`;
+  
+  const baseMainClasses = "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background";
+  const mountedMainClasses = "overflow-y-auto"; 
+  const finalMainClasses = mounted ? `${baseMainClasses.replace("flex-col gap-4 lg:gap-6", "")} ${mountedMainClasses}` : baseMainClasses;
+
+  const baseMobileNavClasses = "grid gap-2 text-lg font-medium p-4";
+  const mountedMobileNavClasses = "overflow-y-auto";
+  const finalMobileNavClasses = mounted ? `${baseMobileNavClasses} ${mountedMobileNavClasses}` : baseMobileNavClasses;
 
 
   return (
@@ -304,7 +311,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <div className={finalContentColumnClasses}>
-        <header className={finalHeaderClasses}>
+        <header 
+            className={finalHeaderClasses}
+          >
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -313,6 +322,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
+              <SheetTitle className="sr-only">Main Navigation</SheetTitle>
               <AppLogo />
               <nav className={finalMobileNavClasses}>
                 {navItems.map(item => (
@@ -346,14 +356,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className={finalMainClasses}>
+        <main 
+            className={finalMainClasses}
+          >
           {children}
         </main>
       </div>
       <AlertDialog open={isPrestigeDialogOpen} onOpenChange={setIsPrestigeDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Prestige</AlertDialogTitle>
+            <AlertDialogUtiTitle>Confirm Prestige</AlertDialogUtiTitle>
             <AlertDialogDescription>
               Are you sure you want to prestige? This will reset your current money,
               all business levels, business upgrades, and stock holdings (unless retained by HQ upgrades).
