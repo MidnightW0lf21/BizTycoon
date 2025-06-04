@@ -113,8 +113,6 @@ export interface FactoryPowerBuilding {
 
 export interface FactoryComponentEffects {
   globalIncomeBoostPerComponentPercent?: number;
-  // Future: globalFactoryProductionSpeedBoostPercent?: number;
-  // Future: specificBusinessBoostPerComponent?: { businessId: string; percent: number };
 }
 
 export interface FactoryComponent {
@@ -122,31 +120,39 @@ export interface FactoryComponent {
   name: string;
   description: string;
   icon: LucideIcon;
+  tier: number;
+  recipe: { componentId: string, quantity: number }[];
+  rawMaterialCost: number;
+  productionTimeSeconds: number;
+  requiredAssemblerMark: number;
   effects?: FactoryComponentEffects;
 }
 
 export interface FactoryMachineConfig {
-  id: string; // e.g., "basic_assembler_mk1"
+  id: string;
   name: string;
   icon: LucideIcon;
   description: string;
-  baseCost: number; 
+  baseCost: number;
   powerConsumptionKw: number;
-  outputComponentId: string;
-  baseProductionTimeSeconds: number; // For now, effectively 1s if conditions met
-  rawMaterialCostPerComponent: number;
+  maxCraftableTier: number;
 }
 
 export interface FactoryMachine {
-  instanceId: string; 
-  configId: string;   
+  instanceId: string;
+  configId: string;
   assignedProductionLineId: string | null;
 }
 
+export interface FactoryProductionLineSlot {
+  machineInstanceId: string | null;
+  targetComponentId: string | null; // ID of the FactoryComponent to produce
+}
+
 export interface FactoryProductionLine {
-  id: string; 
-  name: string; 
-  machineInstanceIds: (string | null)[]; 
+  id: string;
+  name: string;
+  slots: FactoryProductionLineSlot[];
 }
 
 export interface PlayerStats {
@@ -166,12 +172,12 @@ export interface PlayerStats {
   // Factory Specific Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
-  factoryPowerConsumptionKw: number; 
+  factoryPowerConsumptionKw: number;
   factoryRawMaterials: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
   factoryPowerBuildings: FactoryPowerBuilding[];
-  factoryProducedComponents: Record<string, number>; 
+  factoryProducedComponents: Record<string, number>;
 }
 
 export interface SaveData {
@@ -181,4 +187,3 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-
