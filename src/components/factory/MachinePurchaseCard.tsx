@@ -4,7 +4,7 @@
 import type { FactoryMachineConfig } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Zap, ShoppingCart, Info } from "lucide-react";
+import { DollarSign, Zap, ShoppingCart, Info, Box } from "lucide-react"; // Added Box
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MachinePurchaseCardProps {
@@ -36,14 +36,22 @@ export function MachinePurchaseCard({
               <Icon className="h-6 w-6 text-primary" />
               {machineConfig.name}
             </CardTitle>
-            <div className="flex items-center text-sm font-semibold text-orange-400">
-              <Zap className="h-4 w-4 mr-1" />
-              {machineConfig.powerConsumptionKw} kW
-            </div>
           </div>
           <CardDescription className="text-xs">{machineConfig.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 pt-2 pb-3 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Power Consumption:</span>
+            <div className="flex items-center gap-1 font-semibold text-orange-400">
+              <Zap className="h-4 w-4" /> {machineConfig.powerConsumptionKw} kW
+            </div>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Materials per Unit:</span>
+             <div className="flex items-center gap-1 font-semibold text-blue-400">
+              <Box className="h-4 w-4" /> {machineConfig.rawMaterialCostPerComponent} units
+            </div>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Cost for Next:</span>
             <div className="flex items-center gap-1">
@@ -53,7 +61,6 @@ export function MachinePurchaseCard({
               </span>
             </div>
           </div>
-          {/* Add more details here later, like number owned of this type if relevant */}
         </CardContent>
         <CardFooter className="pt-2">
           <Tooltip>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -15,6 +15,7 @@ import {
   INITIAL_HQ_UPGRADES,
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_MACHINE_CONFIGS,
+  INITIAL_FACTORY_COMPONENTS_CONFIG, // Added
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
@@ -63,7 +64,6 @@ interface GameContextType {
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
   calculateNextMachineCost: (ownedMachineCount: number) => number;
-  // assignMachineToProductionLine function removed as it's now internal to auto-assignment
   unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void;
 }
 
@@ -83,12 +83,13 @@ const getInitialPlayerStats = (): PlayerStats => {
     achievedBusinessMilestones: {},
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
+    factoryPowerConsumptionKw: 0, // New
     factoryRawMaterials: 0,
     factoryMachines: [],
     factoryProductionLines: Array.from({ length: 5 }, (_, i) => ({
       id: `line_${i + 1}`,
       name: `Production Line ${i + 1}`,
-      machineInstanceIds: [null, null, null, null, null, null], // 6 slots per line
+      machineInstanceIds: [null, null, null, null, null, null], 
     })),
     factoryPowerBuildings: [],
     factoryProducedComponents: {},
@@ -216,6 +217,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
         factoryPurchased: typeof importedData.playerStats.factoryPurchased === 'boolean' ? importedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
         factoryPowerUnitsGenerated: typeof importedData.playerStats.factoryPowerUnitsGenerated === 'number' ? importedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+        factoryPowerConsumptionKw: typeof importedData.playerStats.factoryPowerConsumptionKw === 'number' ? importedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
         factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
         factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
         factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) 
@@ -295,6 +297,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
             factoryPurchased: typeof loadedData.playerStats.factoryPurchased === 'boolean' ? loadedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
             factoryPowerUnitsGenerated: typeof loadedData.playerStats.factoryPowerUnitsGenerated === 'number' ? loadedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+            factoryPowerConsumptionKw: typeof loadedData.playerStats.factoryPowerConsumptionKw === 'number' ? loadedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
             factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
             factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
             factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) 
@@ -393,46 +396,183 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [businesses, playerStats.money, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, getDynamicMaxBusinessLevel]);
 
 
-  useEffect(() => {
-    const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
-
-    let dividendIncome = 0;
-    let globalDividendBoost = 0;
-    playerStats.unlockedSkillIds.forEach(skillId => {
-      const skill = skillTreeState.find(s => s.id === skillId);
-      if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) {
-        globalDividendBoost += skill.effects.globalDividendYieldBoostPercent;
-      }
-    });
-    
-    for (const hqId in playerStats.hqUpgradeLevels) {
-        const purchasedLevel = playerStats.hqUpgradeLevels[hqId];
-        if (purchasedLevel > 0) {
+  useEffect(() => { // Game Loop
+    const gameLoopInterval = setInterval(() => {
+      setPlayerStats(prev => {
+        // Calculate total income
+        const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
+        let dividendIncome = 0;
+        let globalDividendBoost = 0;
+        prev.unlockedSkillIds.forEach(skillId => {
+          const skill = skillTreeState.find(s => s.id === skillId);
+          if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) {
+            globalDividendBoost += skill.effects.globalDividendYieldBoostPercent;
+          }
+        });
+        for (const hqId in prev.hqUpgradeLevels) {
+          const purchasedLevel = prev.hqUpgradeLevels[hqId];
+          if (purchasedLevel > 0) {
             const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
             if (hqUpgrade && hqUpgrade.levels) {
-                const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-                if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
-                    globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent;
+              const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+              if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
+                globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent;
+              }
+            }
+          }
+        }
+        for (const holding of prev.stockHoldings) {
+          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+          if (stockDetails) {
+            let currentDividendYield = stockDetails.dividendYield;
+            const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
+            if(initialStockInfo) { 
+                currentDividendYield = initialStockInfo.dividendYield;
+            }
+            currentDividendYield *= (1 + globalDividendBoost / 100);
+            dividendIncome += holding.shares * stockDetails.price * currentDividendYield;
+          }
+        }
+        const newTotalIncomePerSecond = totalBusinessIncome + dividendIncome;
+        const newMoneyFromIncome = prev.money + newTotalIncomePerSecond;
+
+        // Calculate investment value
+        let currentInvestmentsValue = 0;
+        for (const holding of prev.stockHoldings) {
+          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+          if (stockDetails) {
+            currentInvestmentsValue += holding.shares * stockDetails.price;
+          }
+        }
+
+        // Factory Production Logic
+        let newFactoryPowerConsumptionKw = 0;
+        let newFactoryRawMaterials = prev.factoryRawMaterials;
+        let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
+
+        if (prev.factoryPurchased) {
+          // Calculate power consumption
+          prev.factoryProductionLines.forEach(line => {
+            line.machineInstanceIds.forEach(machineInstanceId => {
+              if (machineInstanceId) {
+                const machine = prev.factoryMachines.find(m => m.instanceId === machineInstanceId);
+                if (machine) {
+                  const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+                  if (machineConfig) {
+                    newFactoryPowerConsumptionKw += machineConfig.powerConsumptionKw;
+                  }
                 }
+              }
+            });
+          });
+
+          // Process production if power is sufficient
+          const hasSufficientPower = prev.factoryPowerUnitsGenerated >= newFactoryPowerConsumptionKw;
+          if (hasSufficientPower) {
+            prev.factoryProductionLines.forEach(line => {
+              line.machineInstanceIds.forEach(machineInstanceId => {
+                if (machineInstanceId) {
+                  const machine = prev.factoryMachines.find(m => m.instanceId === machineInstanceId);
+                  if (machine) {
+                    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+                    if (machineConfig) {
+                      // Assuming 1 component per second for simplicity (baseProductionTimeSeconds = 1)
+                      // For other times, you'd need to track progress across ticks
+                      if (newFactoryRawMaterials >= machineConfig.rawMaterialCostPerComponent) {
+                        newFactoryRawMaterials -= machineConfig.rawMaterialCostPerComponent;
+                        newFactoryProducedComponents[machineConfig.outputComponentId] = 
+                          (newFactoryProducedComponents[machineConfig.outputComponentId] || 0) + 1;
+                      }
+                    }
+                  }
+                }
+              });
+            });
+          }
+        }
+
+        return { 
+          ...prev, 
+          money: newMoneyFromIncome, 
+          totalIncomePerSecond: newTotalIncomePerSecond,
+          investmentsValue: currentInvestmentsValue,
+          factoryPowerConsumptionKw: newFactoryPowerConsumptionKw,
+          factoryRawMaterials: newFactoryRawMaterials,
+          factoryProducedComponents: newFactoryProducedComponents,
+        };
+      });
+    }, 1000);
+    return () => clearInterval(gameLoopInterval);
+  }, [businesses, getBusinessIncome, playerStats.stockHoldings, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, unlockedStocks]);
+
+
+  useEffect(() => {
+    let purchasedInThisTick = false;
+    let currentMoneySnapshot = playerStats.money;
+    
+    const updatedBusinesses = businesses.map(business => {
+        let businessChanged = false;
+        const skillIdToCheck = `auto_buy_upgrades_${business.id}`;
+
+        if (playerStats.unlockedSkillIds.includes(skillIdToCheck) && business.upgrades) {
+            const updatedUpgrades = business.upgrades.map(upgrade => {
+                if (!upgrade.isPurchased && business.level >= upgrade.requiredLevel) {
+                    let actualCost = upgrade.cost;
+                    let globalUpgradeCostReduction = 0;
+                    playerStats.unlockedSkillIds.forEach(sId => {
+                        const sk = skillTreeState.find(s => s.id === sId);
+                        if (sk && sk.effects && sk.effects.globalBusinessUpgradeCostReductionPercent) {
+                            globalUpgradeCostReduction += sk.effects.globalBusinessUpgradeCostReductionPercent;
+                        }
+                    });
+                    if (globalUpgradeCostReduction > 0) {
+                        actualCost *= (1 - globalUpgradeCostReduction / 100);
+                        actualCost = Math.max(0, Math.floor(actualCost));
+                    }
+
+                    if (currentMoneySnapshot >= actualCost) {
+                        currentMoneySnapshot -= actualCost;
+                        purchasedInThisTick = true;
+                        businessChanged = true;
+                        setPlayerStats(prev => {
+                            const existingMilestonesForBusiness = prev.achievedBusinessMilestones?.[business.id] || {};
+                            const existingPurchasedUpgrades = existingMilestonesForBusiness.purchasedUpgradeIds || [];
+                            let updatedPurchasedUpgradesForAuto = [...existingPurchasedUpgrades];
+                    
+                            if (!existingPurchasedUpgrades.includes(upgrade.id)) {
+                                updatedPurchasedUpgradesForAuto.push(upgrade.id);
+                                toast({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
+                            }
+                            return {
+                                ...prev,
+                                achievedBusinessMilestones: {
+                                    ...prev.achievedBusinessMilestones,
+                                    [business.id]: {
+                                        ...existingMilestonesForBusiness,
+                                        purchasedUpgradeIds: updatedPurchasedUpgradesForAuto,
+                                    },
+                                },
+                            };
+                        });
+                        return { ...upgrade, isPurchased: true };
+                    }
+                }
+                return upgrade;
+            });
+            if (businessChanged) {
+                return { ...business, upgrades: updatedUpgrades };
             }
         }
-    }
+        return business;
+    });
 
 
-    for (const holding of playerStats.stockHoldings) {
-      const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); 
-      if (stockDetails) {
-        let currentDividendYield = stockDetails.dividendYield; 
-        const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
-        if(initialStockInfo) { 
-            currentDividendYield = initialStockInfo.dividendYield;
-        }
-        currentDividendYield *= (1 + globalDividendBoost / 100);
-        dividendIncome += holding.shares * stockDetails.price * currentDividendYield; 
-      }
+    if (purchasedInThisTick) {
+      setPlayerStats(prev => ({ ...prev, money: currentMoneySnapshot }));
+      setBusinesses(updatedBusinesses);
     }
-    setPlayerStats(prev => ({ ...prev, totalIncomePerSecond: totalBusinessIncome + dividendIncome }));
-  }, [businesses, getBusinessIncome, playerStats.stockHoldings, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, unlockedStocks]);
+  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState, toast, playerStats.achievedBusinessMilestones]);
+
 
   const purchaseBusinessUpgrade = useCallback((businessId: string, upgradeId: string, isAutoBuy: boolean = false): boolean => {
     const businessToUpdate = businesses.find(b => b.id === businessId);
@@ -509,92 +649,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     return true;
   }, [businesses, playerStats.money, playerStats.timesPrestiged, playerStats.unlockedSkillIds, skillTreeState, playerStats.achievedBusinessMilestones, toast]);
-
-
-  useEffect(() => {
-    const gameLoop = setInterval(() => {
-      setPlayerStats(prev => {
-        const newMoney = prev.money + prev.totalIncomePerSecond;
-        let currentInvestmentsValue = 0;
-        for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); 
-          if (stockDetails) {
-            currentInvestmentsValue += holding.shares * stockDetails.price;
-          }
-        }
-        return { ...prev, money: newMoney, investmentsValue: currentInvestmentsValue };
-      });
-    }, 1000);
-    return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, unlockedStocks]); 
-
-
-  useEffect(() => {
-    let purchasedInThisTick = false;
-    let currentMoneySnapshot = playerStats.money;
-    
-    const updatedBusinesses = businesses.map(business => {
-        let businessChanged = false;
-        const skillIdToCheck = `auto_buy_upgrades_${business.id}`;
-
-        if (playerStats.unlockedSkillIds.includes(skillIdToCheck) && business.upgrades) {
-            const updatedUpgrades = business.upgrades.map(upgrade => {
-                if (!upgrade.isPurchased && business.level >= upgrade.requiredLevel) {
-                    let actualCost = upgrade.cost;
-                    let globalUpgradeCostReduction = 0;
-                    playerStats.unlockedSkillIds.forEach(sId => {
-                        const sk = skillTreeState.find(s => s.id === sId);
-                        if (sk && sk.effects && sk.effects.globalBusinessUpgradeCostReductionPercent) {
-                            globalUpgradeCostReduction += sk.effects.globalBusinessUpgradeCostReductionPercent;
-                        }
-                    });
-                    if (globalUpgradeCostReduction > 0) {
-                        actualCost *= (1 - globalUpgradeCostReduction / 100);
-                        actualCost = Math.max(0, Math.floor(actualCost));
-                    }
-
-                    if (currentMoneySnapshot >= actualCost) {
-                        currentMoneySnapshot -= actualCost;
-                        purchasedInThisTick = true;
-                        businessChanged = true;
-                        setPlayerStats(prev => {
-                            const existingMilestonesForBusiness = prev.achievedBusinessMilestones?.[business.id] || {};
-                            const existingPurchasedUpgrades = existingMilestonesForBusiness.purchasedUpgradeIds || [];
-                            let updatedPurchasedUpgradesForAuto = [...existingPurchasedUpgrades];
-                    
-                            if (!existingPurchasedUpgrades.includes(upgrade.id)) {
-                                updatedPurchasedUpgradesForAuto.push(upgrade.id);
-                                toast({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
-                            }
-                            return {
-                                ...prev,
-                                achievedBusinessMilestones: {
-                                    ...prev.achievedBusinessMilestones,
-                                    [business.id]: {
-                                        ...existingMilestonesForBusiness,
-                                        purchasedUpgradeIds: updatedPurchasedUpgradesForAuto,
-                                    },
-                                },
-                            };
-                        });
-                        return { ...upgrade, isPurchased: true };
-                    }
-                }
-                return upgrade;
-            });
-            if (businessChanged) {
-                return { ...business, upgrades: updatedUpgrades };
-            }
-        }
-        return business;
-    });
-
-
-    if (purchasedInThisTick) {
-      setPlayerStats(prev => ({ ...prev, money: currentMoneySnapshot }));
-      setBusinesses(updatedBusinesses);
-    }
-  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, skillTreeState, toast, playerStats.achievedBusinessMilestones]);
 
 
   const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
@@ -764,7 +818,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       factoryMachines, 
       factoryProductionLines, 
       factoryPowerBuildings,
-      factoryProducedComponents 
+      factoryProducedComponents // This will persist
     } = playerStats;
 
 
@@ -807,12 +861,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       timesPrestiged: prev.timesPrestiged + 1,
       achievedBusinessMilestones: {}, 
       factoryPurchased,
-      factoryPowerUnitsGenerated,
-      factoryRawMaterials,
-      factoryMachines,
-      factoryProductionLines,
-      factoryPowerBuildings,
-      factoryProducedComponents,
+      factoryPowerUnitsGenerated, // Persists
+      factoryPowerConsumptionKw: 0, // Reset power consumption
+      factoryRawMaterials, // Persists
+      factoryMachines, // Persist
+      factoryProductionLines, // Persist
+      factoryPowerBuildings, // Persist
+      factoryProducedComponents, // This is key - PERSISTS
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -981,7 +1036,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let assignedLineId: string | null = null;
     let assignedSlotIndex: number | null = null;
     const updatedProductionLines = currentProductionLines.map(line => {
-        if (assignedLineId) return line; // Already assigned in a previous line iteration
+        if (assignedLineId) return line; 
 
         const emptySlotIndex = line.machineInstanceIds.indexOf(null);
         if (emptySlotIndex !== -1) {
@@ -1003,7 +1058,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let machineAssignedThisCall = false;
 
         for (let i = 0; i < newMachines.length; i++) {
-            if (newMachines[i].assignedProductionLineId === null) { // Found an unassigned machine
+            if (newMachines[i].assignedProductionLineId === null) { 
                 const assignResult = _attemptAutoAssignSingleMachine(newMachines[i].instanceId, newProductionLines);
                 if (assignResult.assignedLineId !== null && assignResult.assignedSlotIndex !== null) {
                     newMachines[i] = { ...newMachines[i], assignedProductionLineId: assignResult.assignedLineId };
@@ -1012,14 +1067,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const line = newProductionLines.find(l => l.id === assignResult.assignedLineId);
                     toast({ title: "Machine Auto-Assigned", description: `${machineConfig?.name || 'Machine'} placed in ${line?.name || 'Line'}, Slot ${assignResult.assignedSlotIndex + 1}.`, duration: 2000 });
                     machineAssignedThisCall = true;
-                    break; // Assign one machine per call to this helper
+                    break; 
                 }
             }
         }
         if (machineAssignedThisCall) {
             return { ...prev, factoryMachines: newMachines, factoryProductionLines: newProductionLines };
         }
-        return prev; // No changes if no machine was assigned
+        return prev; 
     });
   };
 
@@ -1056,7 +1111,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let updatedProductionLines = [...prev.factoryProductionLines];
         let assignmentMessage = "";
 
-        // Attempt to auto-assign the newly purchased machine
         const assignResult = _attemptAutoAssignSingleMachine(newMachineInstanceId, updatedProductionLines);
         if (assignResult.assignedLineId !== null && assignResult.assignedSlotIndex !== null) {
             updatedMachines = updatedMachines.map(m => m.instanceId === newMachineInstanceId ? { ...m, assignedProductionLineId: assignResult.assignedLineId } : m);
@@ -1094,14 +1148,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           const machineInstanceIdToUnassign = targetProductionLine.machineInstanceIds[slotIndex];
           if (!machineInstanceIdToUnassign) {
-              // toast({ title: "No machine in this slot", variant: "default" }); // Might be too noisy
               return prev;
           }
           
           const machineToUpdateIndex = prev.factoryMachines.findIndex(m => m.instanceId === machineInstanceIdToUnassign);
           if (machineToUpdateIndex === -1) {
               toast({ title: "Machine instance not found in stats", variant: "destructive" });
-              return prev; // Should not happen
+              return prev; 
           }
           
           const machineConfigId = prev.factoryMachines[machineToUpdateIndex].configId;
@@ -1116,16 +1169,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], machineInstanceIds: newLineInstanceIds };
           
           toast({ title: "Machine Unassigned", description: `${machineConfig?.name || 'Machine'} removed from ${targetProductionLine.name} - Slot ${slotIndex + 1}.` });
-
-          // Return new state, _attemptAutoAssignWaitingMachines will be called in useEffect
           return {
               ...prev,
               factoryMachines: newFactoryMachines,
               factoryProductionLines: newFactoryProductionLines,
           };
       });
-      // Trigger auto-assignment attempt after state update
-      // Using a timeout to ensure state update completes before trying to auto-assign
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
   };
 

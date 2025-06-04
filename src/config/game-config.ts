@@ -1,8 +1,8 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent } from '@/types';
 import {
   Citrus, Coffee, Cpu, Landmark, Rocket, Factory, Utensils, Film, FlaskConical, BrainCircuit, Cookie, Code2, Wind, Ship, Dna, Package, Lightbulb, Users, TrendingUp, Building, Zap, BarChart, Tv, ShieldCheck, Briefcase, Network, GitMerge, TrendingUpIcon, ChevronsUp, ArrowDownCircle, Banknote, Sparkles, DollarSign, Settings2, PiggyBank, Unlock, Percent, ShoppingCart, Telescope, Star, Crown, Radio, Cog, Sigma, ShoppingBag, Award, Activity, Scaling, Target, Megaphone, Navigation, Archive, ShieldEllipsis, Gem,
-  Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recycle, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye, Hammer, Wrench
+  Satellite, Wifi, HeartPulse, TestTube, Atom, Globe, Headset, Gamepad2, Ear, Anchor, Waves, Sun, Construction, LineChart, Languages, MessagesSquare, MountainSnow, Sprout, UserCheck, Beaker, Plane, PenTool, Scroll, Bone, InfinityIcon, Power, Share2, Aperture, Clock, Orbit, Layers, SquareCode, Compass, Truck, Replace, Building2, Handshake, Database, HelpCircle, MessageCircleQuestion, Bot, Cloud, Palette, Users2, Unplug, Recycle, Trees, Drama, HandCoins, LandPlot, Microscope, Combine, Group, Castle, Coins, Brain, Swords, Diamond, TelescopeIcon, Biohazard, Gavel, Library, Map, Pyramid, Hourglass, University, KeyRound, TowerControl, Puzzle, Binary, Route, AtomIcon, SproutIcon, SunIcon, SatelliteIcon, BrainIcon, ShieldAlert, CloudCog, Milestone, Bitcoin, BotIcon, CloudDrizzle, Eye, Hammer, Wrench, Settings, PackageCheck
 } from 'lucide-react';
 
 export const INITIAL_MONEY = 10;
@@ -1821,27 +1821,36 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
   {
     id: 'diesel_generator_basic',
     name: 'Backup Diesel Generator',
-    icon: Zap, // Re-using, consider a more specific one if available or custom SVG later
+    icon: Zap, 
     description: 'A reliable but less efficient power source. Consumes conceptual fuel.',
     baseCost: 150000,
     costMultiplier: 1.25,
     powerOutputKw: 500,
-    // No maxInstances, implying it's for emergency or supplementary power
   },
+];
+
+export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
+  {
+    id: 'basic_gear',
+    name: 'Basic Gear',
+    description: 'A simple metallic gear, a fundamental building block for many machines.',
+    icon: Settings, // Using Settings icon as a generic gear
+  },
+  // Future components can be added here: e.g., circuits, casings, etc.
 ];
 
 export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   {
     id: 'basic_assembler_mk1',
     name: 'Basic Assembler Mk1',
-    icon: Wrench, // Using Wrench for now, can be more specific
+    icon: Wrench, 
     description: 'A versatile, entry-level machine for simple component assembly.',
-    baseCost: 100000, // This baseCost is for the type, GameContext will handle scaling instance cost
+    baseCost: 100000, 
     powerConsumptionKw: 50,
-    // outputComponentId: null, // This would be set by the player when assigning a task
-    // baseProductionTimeSeconds: 60, // Example base time for a generic component
+    outputComponentId: 'basic_gear', // Produces Basic Gears
+    baseProductionTimeSeconds: 5, // Takes 5 seconds to produce one gear
+    rawMaterialCostPerComponent: 10, // Costs 10 raw materials per gear
   }
-  // We can add more machine types later, e.g., "Advanced Fabricator", "Chemical Mixer" etc.
 ];
 
 
@@ -2082,8 +2091,6 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
      if (purchasedLevel > 0) {
-        // const hqUpgrade = hqUpgradesState.find(h => h.id === hqId); // This line caused an error if hqUpgradesState is not defined here.
-        // Safely find the hqUpgrade from the config passed in.
         const hqUpgradeConfigEntry = hqUpgradesConfig.find(h => h.id === hqId);
         if (hqUpgradeConfigEntry && hqUpgradeConfigEntry.levels) {
             const levelData = hqUpgradeConfigEntry.levels.find(l => l.level === purchasedLevel);

@@ -4,12 +4,13 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, ThermometerSnowflake } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST = 1000000;
@@ -22,7 +23,6 @@ export default function MyFactoryPage() {
     manuallyCollectRawMaterials,
     purchaseFactoryMachine,
     calculateNextMachineCost,
-    factoryMachines // Renamed from playerStats.factoryMachines for brevity
   } = useGame();
 
 
@@ -85,21 +85,28 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
   const nextMachineCost = calculateNextMachineCost(playerStats.factoryMachines.length);
+  const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl flex items-center gap-2">
               <Factory className="h-7 w-7 text-primary" /> Your Industrial Complex
             </CardTitle>
-            <div className="flex gap-4 text-sm">
-              <span className="flex items-center gap-1 font-medium">
-                <Zap className="h-4 w-4 text-yellow-400" /> Power: {playerStats.factoryPowerUnitsGenerated.toLocaleString()} kW
+            <div className="flex gap-4 text-sm flex-wrap justify-end">
+              <span className="flex items-center gap-1 font-medium text-yellow-400">
+                <Zap className="h-4 w-4" /> Power Gen: {playerStats.factoryPowerUnitsGenerated.toLocaleString()} kW
               </span>
-              <span className="flex items-center gap-1 font-medium">
-                <Box className="h-4 w-4 text-orange-400" /> Materials: {playerStats.factoryRawMaterials.toLocaleString()} units
+              <span className="flex items-center gap-1 font-medium text-red-400">
+                <Zap className="h-4 w-4" /> Power Cons: {playerStats.factoryPowerConsumptionKw.toLocaleString()} kW
+              </span>
+              <span className={`flex items-center gap-1 font-bold ${netPower >= 0 ? 'text-green-500' : 'text-destructive'}`}>
+                <Zap className="h-4 w-4" /> Net Power: {netPower.toLocaleString()} kW
+              </span>
+              <span className="flex items-center gap-1 font-medium text-orange-400">
+                <Box className="h-4 w-4" /> Materials: {playerStats.factoryRawMaterials.toLocaleString()} units
               </span>
             </div>
           </div>
@@ -107,57 +114,62 @@ export default function MyFactoryPage() {
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="power" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+      <Tabs defaultValue="production" className="w-full flex-grow flex flex-col">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="power"><Zap className="mr-2 h-4 w-4"/>Power</TabsTrigger>
           <TabsTrigger value="materials"><Box className="mr-2 h-4 w-4"/>Materials</TabsTrigger>
           <TabsTrigger value="production"><Wrench className="mr-2 h-4 w-4"/>Production</TabsTrigger>
+          <TabsTrigger value="inventory"><PackageCheck className="mr-2 h-4 w-4"/>Inventory</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="power">
-          <Card>
-            <CardHeader>
-              <CardTitle>Power Generation</CardTitle>
-              <CardDescription>Build and manage power buildings to supply your factory.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.map(config => (
-                <FactoryPowerBuildingCard
-                  key={config.id}
-                  powerBuildingConfig={config}
-                  numOwned={ownedPowerBuildingCounts[config.id] || 0}
-                  currentMoney={playerStats.money}
-                  onPurchase={() => purchaseFactoryPowerBuilding(config.id)}
-                />
-              ))}
-            </CardContent>
-          </Card>
+        <TabsContent value="power" className="flex-grow">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Power Generation</CardTitle>
+                <CardDescription>Build and manage power buildings to supply your factory.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.map(config => (
+                  <FactoryPowerBuildingCard
+                    key={config.id}
+                    powerBuildingConfig={config}
+                    numOwned={ownedPowerBuildingCounts[config.id] || 0}
+                    currentMoney={playerStats.money}
+                    onPurchase={() => purchaseFactoryPowerBuilding(config.id)}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+          </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="materials">
-          <Card>
-            <CardHeader>
-              <CardTitle>Raw Material Acquisition</CardTitle>
-              <CardDescription>Gather raw materials needed for production.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-lg">
-                Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
-              </p>
-              <Button onClick={manuallyCollectRawMaterials} size="lg">
-                <Box className="mr-2 h-5 w-5"/>Manually Collect 100 Raw Materials
-              </Button>
-              <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
-            </CardContent>
-          </Card>
+        <TabsContent value="materials" className="flex-grow">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Raw Material Acquisition</CardTitle>
+                <CardDescription>Gather raw materials needed for production.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-lg">
+                  Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
+                </p>
+                <Button onClick={manuallyCollectRawMaterials} size="lg">
+                  <Box className="mr-2 h-5 w-5"/>Manually Collect 100 Raw Materials
+                </Button>
+                <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
+              </CardContent>
+            </Card>
+          </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="production">
-          <div className="space-y-6">
+        <TabsContent value="production" className="flex-grow flex flex-col">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Build Machines</CardTitle>
-                <CardDescription>Construct machines to place in your production lines.</CardDescription>
+                <CardDescription>Construct machines to place in your production lines. Machines are auto-assigned.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => (
@@ -175,7 +187,7 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Production Lines</CardTitle>
-                <CardDescription>Assign machines to production lines to manufacture components.</CardDescription>
+                <CardDescription>Machines are auto-assigned to empty slots. Production starts if power and materials are sufficient.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {playerStats.factoryProductionLines.map((line, index) => (
@@ -186,16 +198,45 @@ export default function MyFactoryPage() {
                     lineIndex={index}
                   />
                 ))}
-                <p className="text-sm text-muted-foreground text-center pt-4">
-                  Machine assignment and component production coming soon!
-                </p>
               </CardContent>
             </Card>
-          </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="inventory" className="flex-grow">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Produced Components</CardTitle>
+                <CardDescription>Inventory of components manufactured by your factory. These persist through prestige.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(playerStats.factoryProducedComponents).length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">No components produced yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {INITIAL_FACTORY_COMPONENTS_CONFIG.map(compConfig => {
+                      const count = playerStats.factoryProducedComponents[compConfig.id] || 0;
+                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents).includes(compConfig.id)) { // Show if count > 0 or if it was ever produced
+                        const Icon = compConfig.icon;
+                        return (
+                          <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
+                            <Icon className="h-10 w-10 text-primary mb-2" />
+                            <p className="font-semibold">{compConfig.name}</p>
+                            <p className="text-2xl font-bold text-accent">{count.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">{compConfig.description}</p>
+                          </Card>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </ScrollArea>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-
-    

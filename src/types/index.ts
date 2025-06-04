@@ -111,6 +111,13 @@ export interface FactoryPowerBuilding {
   currentOutputKw: number; // Current output, might change with level or efficiency
 }
 
+export interface FactoryComponent {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+}
+
 export interface FactoryMachineConfig {
   id: string; // e.g., "basic_assembler_mk1"
   name: string;
@@ -118,20 +125,15 @@ export interface FactoryMachineConfig {
   description: string;
   baseCost: number; // This might be for unlocking the *type*, instance costs could vary
   powerConsumptionKw: number;
+  outputComponentId: string;
+  baseProductionTimeSeconds: number;
+  rawMaterialCostPerComponent: number;
 }
 
 export interface FactoryMachine {
   instanceId: string; // Unique ID for this machine instance, e.g., generated on purchase
   configId: string;   // ID of the FactoryMachineConfig (e.g., "basic_assembler_mk1")
   assignedProductionLineId: string | null;
-  // workerAssigned: boolean; // Future state
-  // currentProductionComponentId: string | null; // Future state
-  // productionProgress: number; // 0 to 1, future state
-  // productionTimeTotal: number; // seconds, future state
-  // upgrades: { // Future state
-  //   speedLevel: number;
-  //   batchSizeLevel: number;
-  // };
 }
 
 export interface FactoryProductionLine {
@@ -154,14 +156,15 @@ export interface PlayerStats {
     purchasedUpgradeIds?: string[];
   }>;
 
-  // Factory Specific Stats - These DO NOT reset on prestige
+  // Factory Specific Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
+  factoryPowerConsumptionKw: number; // New
   factoryRawMaterials: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
   factoryPowerBuildings: FactoryPowerBuilding[];
-  factoryProducedComponents: Record<string, number>;
+  factoryProducedComponents: Record<string, number>; // Tracks counts of produced components
 }
 
 export interface SaveData {
