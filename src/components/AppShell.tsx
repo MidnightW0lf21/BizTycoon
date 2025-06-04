@@ -268,7 +268,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div 
         className={cn(
             "hidden border-r bg-muted/40 md:block",
-            mounted && "sticky top-0 h-screen"
+            mounted && "sticky top-0 h-screen" // Sticky behavior only on client
         )}
       >
         <div className="flex h-full max-h-screen flex-col gap-0">
@@ -276,7 +276,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav 
             className={cn(
                 "grid items-start px-2 py-2 text-sm font-medium lg:px-4",
-                mounted && "overflow-y-auto"
+                mounted && "overflow-y-auto" // Scrollable nav only on client
             )}
           >
             {navItems.map(item => (
@@ -293,13 +293,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div 
         className={cn(
             "flex flex-col",
-            mounted && "h-screen overflow-hidden"
+            mounted && "h-screen overflow-hidden" // Height constraint and overflow hidden only on client
         )}
       >
         <header 
             className={cn(
-                "flex h-14 shrink-0 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6",
-                mounted ? "sticky top-0 z-10 bg-background" : "bg-muted/40" 
+                "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6", // Base classes
+                mounted ? "sticky top-0 z-10 bg-background shrink-0" : "bg-muted/40" // Conditional sticky and bg
             )}
         >
           <Sheet>
@@ -314,7 +314,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <nav 
                 className={cn(
                     "grid gap-2 text-lg font-medium p-4",
-                    mounted && "overflow-y-auto"
+                    mounted && "overflow-y-auto" // Scrollable nav only on client
                 )}
                >
                 {navItems.map(item => (
@@ -350,8 +350,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <main 
             className={cn(
-                "flex-1 p-4 lg:p-6 bg-background",
-                mounted ? "overflow-y-auto" : "flex flex-col gap-4 lg:gap-6"
+                "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background", // Base layout for main content
+                mounted && "overflow-y-auto" // Add overflow only when mounted
             )}
         >
           {children}
@@ -389,5 +389,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
     
