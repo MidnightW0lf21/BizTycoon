@@ -3,14 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks, Factory } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
+  SheetTrigger, // Reordered
   Sheet,
   SheetContent,
-  SheetTrigger,
-  SheetTitle // Imported SheetTitle
+  SheetTitle
 } from '@/components/ui/sheet';
 import {
   AlertDialog,
@@ -20,7 +20,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as AlertDialogUtiTitle, // Renamed to avoid conflict
+  AlertDialogTitle as AlertDialogUtiTitle,
 } from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
@@ -42,8 +42,9 @@ const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, requiredTimesPrestiged: 0 },
   { href: '/businesses', label: 'Businesses', icon: Store, requiredTimesPrestiged: 0 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
-  { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 2 },
   { href: '/hq', label: 'Headquarters', icon: HQIcon, requiredTimesPrestiged: 3 },
+  { href: '/my-factory', label: 'My Factory', icon: Factory, requiredTimesPrestiged: 5 },
+  { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 8 },
   { href: '/completion', label: 'Completion', icon: ListChecks, requiredTimesPrestiged: 0 },
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
 ];
@@ -274,24 +275,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const baseSidebarNavClasses = "grid items-start px-2 py-2 text-sm font-medium lg:px-4";
   const mountedSidebarNavClasses = "overflow-y-auto";
   const finalSidebarNavClasses = mounted ? `${baseSidebarNavClasses} ${mountedSidebarNavClasses}` : baseSidebarNavClasses;
-
+  
   const baseContentColumnClasses = "flex flex-col";
   const mountedContentColumnClasses = "h-screen overflow-hidden";
   const finalContentColumnClasses = mounted ? `${baseContentColumnClasses} ${mountedContentColumnClasses}` : baseContentColumnClasses;
   
   const baseHeaderClasses = "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6";
   const mountedHeaderClasses = "sticky top-0 z-10 bg-background shrink-0";
-  const unmountedHeaderClasses = "bg-muted/40";
+  const unmountedHeaderClasses = "bg-muted/40"; // Ensure shrink-0 is not here for server render if it caused issues
   const finalHeaderClasses = mounted ? `${baseHeaderClasses} ${mountedHeaderClasses}` : `${baseHeaderClasses} ${unmountedHeaderClasses}`;
   
-  const baseMainClasses = "flex flex-1 flex-col gap-4 p-4 lg:p-6 lg:gap-6 bg-background";
+  const baseMainClasses = "flex-1 bg-background flex flex-col gap-4 p-4 lg:p-6 lg:gap-6";
   const mountedMainClasses = "overflow-y-auto"; 
-  const finalMainClasses = mounted ? `${baseMainClasses.replace("flex-col gap-4 lg:gap-6", "")} ${mountedMainClasses}` : baseMainClasses;
+  const finalMainClasses = mounted ? `${baseMainClasses.replace("flex flex-col gap-4 lg:gap-6", "")} ${mountedMainClasses}` : baseMainClasses;
+
 
   const baseMobileNavClasses = "grid gap-2 text-lg font-medium p-4";
   const mountedMobileNavClasses = "overflow-y-auto";
   const finalMobileNavClasses = mounted ? `${baseMobileNavClasses} ${mountedMobileNavClasses}` : baseMobileNavClasses;
-
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -322,7 +323,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
-              <SheetTitle className="sr-only">Main Navigation</SheetTitle>
+              <SheetTitle className="sr-only">Main Navigation</SheetTitle> 
               <AppLogo />
               <nav className={finalMobileNavClasses}>
                 {navItems.map(item => (
@@ -395,5 +396,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
     
+
+    
+
 
     

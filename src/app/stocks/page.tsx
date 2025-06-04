@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { LockKeyhole, BarChart } from "lucide-react";
 
-const REQUIRED_PRESTIGE_LEVEL = 2;
+const REQUIRED_PRESTIGE_LEVEL = 8;
 
 export default function StocksPage() {
   const { stocks, playerStats } = useGame();
