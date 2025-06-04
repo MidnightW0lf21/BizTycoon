@@ -15,7 +15,7 @@ import {
   INITIAL_HQ_UPGRADES,
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_MACHINE_CONFIGS,
-  INITIAL_FACTORY_COMPONENTS_CONFIG, // Added
+  INITIAL_FACTORY_COMPONENTS_CONFIG,
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
@@ -31,6 +31,7 @@ const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000; 
 const STOCK_PRICE_UPDATE_INTERVAL = 150000; // 2.5 minutes
 const FACTORY_PURCHASE_COST = 1000000;
+const MATERIAL_COLLECTION_COOLDOWN_MS = 5000; // 5 seconds
 
 interface GameContextType {
   playerStats: PlayerStats;
@@ -83,7 +84,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     achievedBusinessMilestones: {},
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
-    factoryPowerConsumptionKw: 0, // New
+    factoryPowerConsumptionKw: 0, 
     factoryRawMaterials: 0,
     factoryMachines: [],
     factoryProductionLines: Array.from({ length: 5 }, (_, i) => ({
@@ -120,6 +121,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Tech stocks are performing well, while energy sectors are seeing a slight downturn.");
   const [lastRiskTolerance, setLastRiskToleranceInternal] = useState<"low" | "medium" | "high">("medium");
+  const [materialCollectionCooldownEnd, setMaterialCollectionCooldownEnd] = useState<number>(0);
 
 
   const setLastMarketTrends = (trends: string) => {
@@ -273,6 +275,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
     localStorage.removeItem(SAVE_DATA_KEY);
     setLastSavedTimestamp(null);
+    setMaterialCollectionCooldownEnd(0); // Reset cooldown on wipe
     toast({
       title: "Game Data Wiped",
       description: "All progress has been reset to default.",
@@ -476,8 +479,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   if (machine) {
                     const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
                     if (machineConfig) {
-                      // Assuming 1 component per second for simplicity (baseProductionTimeSeconds = 1)
-                      // For other times, you'd need to track progress across ticks
                       if (newFactoryRawMaterials >= machineConfig.rawMaterialCostPerComponent) {
                         newFactoryRawMaterials -= machineConfig.rawMaterialCostPerComponent;
                         newFactoryProducedComponents[machineConfig.outputComponentId] = 
@@ -818,7 +819,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       factoryMachines, 
       factoryProductionLines, 
       factoryPowerBuildings,
-      factoryProducedComponents // This will persist
+      factoryProducedComponents 
     } = playerStats;
 
 
@@ -861,13 +862,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       timesPrestiged: prev.timesPrestiged + 1,
       achievedBusinessMilestones: {}, 
       factoryPurchased,
-      factoryPowerUnitsGenerated, // Persists
-      factoryPowerConsumptionKw: 0, // Reset power consumption
-      factoryRawMaterials, // Persists
-      factoryMachines, // Persist
-      factoryProductionLines, // Persist
-      factoryPowerBuildings, // Persist
-      factoryProducedComponents, // This is key - PERSISTS
+      factoryPowerUnitsGenerated, 
+      factoryPowerConsumptionKw: 0, 
+      factoryRawMaterials, 
+      factoryMachines, 
+      factoryProductionLines, 
+      factoryPowerBuildings, 
+      factoryProducedComponents, 
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -1015,15 +1016,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const manuallyCollectRawMaterials = () => {
-     if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
+    if (!playerStats.factoryPurchased) {
+     toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+     return;
     }
+    const now = Date.now();
+    if (now < materialCollectionCooldownEnd) {
+        const timeLeft = Math.ceil((materialCollectionCooldownEnd - now) / 1000);
+        toast({ title: "On Cooldown", description: `Please wait ${timeLeft}s before collecting again.`, variant: "default"});
+        return;
+    }
+
     setPlayerStats(prev => ({
       ...prev,
-      factoryRawMaterials: prev.factoryRawMaterials + 100,
+      factoryRawMaterials: prev.factoryRawMaterials + 10,
     }));
-    toast({ title: "Materials Collected!", description: "+100 Raw Materials added." });
+    setMaterialCollectionCooldownEnd(now + MATERIAL_COLLECTION_COOLDOWN_MS);
+    toast({ title: "Materials Collected!", description: "+10 Raw Materials added." });
   };
 
   const calculateNextMachineCost = (ownedMachineCount: number): number => {
@@ -1168,7 +1177,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           newLineInstanceIds[slotIndex] = null;
           newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], machineInstanceIds: newLineInstanceIds };
           
-          toast({ title: "Machine Unassigned", description: `${machineConfig?.name || 'Machine'} removed from ${targetProductionLine.name} - Slot ${slotIndex + 1}.` });
+          // toast({ title: "Machine Unassigned", description: `${machineConfig?.name || 'Machine'} removed from ${targetProductionLine.name} - Slot ${slotIndex + 1}.` });
           return {
               ...prev,
               factoryMachines: newFactoryMachines,
@@ -1226,3 +1235,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+

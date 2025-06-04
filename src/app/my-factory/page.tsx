@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, ThermometerSnowflake } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -156,7 +156,7 @@ export default function MyFactoryPage() {
                   Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
                 </p>
                 <Button onClick={manuallyCollectRawMaterials} size="lg">
-                  <Box className="mr-2 h-5 w-5"/>Manually Collect 100 Raw Materials
+                  <Box className="mr-2 h-5 w-5"/>Manually Collect 10 Raw Materials
                 </Button>
                 <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
               </CardContent>
@@ -217,7 +217,7 @@ export default function MyFactoryPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {INITIAL_FACTORY_COMPONENTS_CONFIG.map(compConfig => {
                       const count = playerStats.factoryProducedComponents[compConfig.id] || 0;
-                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents).includes(compConfig.id)) { // Show if count > 0 or if it was ever produced
+                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents).includes(compConfig.id)) { 
                         const Icon = compConfig.icon;
                         return (
                           <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
