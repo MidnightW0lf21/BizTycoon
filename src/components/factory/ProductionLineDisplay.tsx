@@ -4,19 +4,19 @@
 import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Wrench, XCircle } from "lucide-react";
+import { PlusCircle, Wrench, XCircle, Loader2 } from "lucide-react"; // Added Loader2 for empty slot
 import { INITIAL_FACTORY_MACHINE_CONFIGS } from "@/config/game-config";
-import { useGame } from "@/contexts/GameContext"; // Added useGame
+import { useGame } from "@/contexts/GameContext"; 
 
 interface ProductionLineDisplayProps {
   productionLine: FactoryProductionLine;
   allMachines: FactoryMachine[];
   lineIndex: number;
-  onOpenAssignDialog: (productionLineId: string, slotIndex: number) => void; // Added prop
+  // onOpenAssignDialog prop removed as assignment is automatic
 }
 
-export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, onOpenAssignDialog }: ProductionLineDisplayProps) {
-  const { unassignMachineFromProductionLine } = useGame(); // Get unassign function
+export function ProductionLineDisplay({ productionLine, allMachines, lineIndex }: ProductionLineDisplayProps) {
+  const { unassignMachineFromProductionLine } = useGame(); 
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
     if (!instanceId) return null;
@@ -29,7 +29,7 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
     <Card className="border-border shadow-sm">
       <CardHeader className="pb-2 pt-3">
         <CardTitle className="text-lg">{productionLine.name}</CardTitle>
-        <CardDescription className="text-xs">Assign machines to this line to produce components.</CardDescription>
+        <CardDescription className="text-xs">Machines placed here will produce components. Unassign with (X).</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-3">
         {productionLine.machineInstanceIds.map((machineInstanceId, slotIndex) => {
@@ -37,7 +37,7 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
           return (
             <div
               key={slotIndex}
-              className="aspect-square border border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 hover:bg-muted/40 transition-colors relative group"
+              className="aspect-square border border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 hover:bg-muted/30 transition-colors relative group"
             >
               {machineInstanceId && machineConfig ? (
                 <>
@@ -49,6 +49,7 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
                     size="icon"
                     className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => unassignMachineFromProductionLine(productionLine.id, slotIndex)}
+                    title="Unassign Machine"
                   >
                     <XCircle className="h-3 w-3" />
                     <span className="sr-only">Unassign Machine</span>
@@ -56,15 +57,8 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
                 </>
               ) : (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex flex-col items-center justify-center h-full w-full p-1"
-                    onClick={() => onOpenAssignDialog(productionLine.id, slotIndex)}
-                  >
-                    <PlusCircle className="h-5 w-5 sm:h-6 sm:w-6 mb-1 text-muted-foreground" />
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Assign</p>
-                  </Button>
+                  <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 mb-1 text-muted-foreground/50 animate-pulse" />
+                  <p className="text-[10px] sm:text-xs text-muted-foreground/70">Empty Slot</p>
                 </>
               )}
             </div>
@@ -74,5 +68,3 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
     </Card>
   );
 }
-
-    
