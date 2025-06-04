@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -13,6 +13,8 @@ import {
   INITIAL_UNLOCKED_SKILL_IDS,
   INITIAL_HQ_UPGRADE_LEVELS,
   INITIAL_HQ_UPGRADES,
+  INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, // Added for purchaseFactoryPowerBuilding
+  INITIAL_FACTORY_MACHINE_CONFIGS, // Added for purchaseFactoryMachine
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
@@ -56,7 +58,11 @@ interface GameContextType {
   exportGameState: () => string;
   importGameState: (jsonString: string) => boolean;
   wipeGameData: () => void;
-  purchaseFactoryBuilding: () => void; // New factory function
+  purchaseFactoryBuilding: () => void;
+  purchaseFactoryPowerBuilding: (configId: string) => void;
+  manuallyCollectRawMaterials: () => void;
+  purchaseFactoryMachine: (configId: string) => void;
+  calculateNextMachineCost: (ownedMachineCount: number) => number;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -78,7 +84,11 @@ const getInitialPlayerStats = (): PlayerStats => {
     factoryPowerUnitsGenerated: 0,
     factoryRawMaterials: 0,
     factoryMachines: [],
-    factoryProductionLines: [],
+    factoryProductionLines: Array.from({ length: 5 }, (_, i) => ({
+      id: `line_${i + 1}`,
+      name: `Production Line ${i + 1}`,
+      machineInstanceIds: [null, null, null, null, null, null],
+    })),
     factoryPowerBuildings: [],
     factoryProducedComponents: {},
   };
@@ -153,7 +163,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveStateToLocalStorage = useCallback(() => {
     try {
       const currentTimestamp = Date.now();
-      // PlayerStats now includes factory data, which will be saved.
       const saveData: SaveData = {
         playerStats, 
         businesses,
@@ -182,7 +191,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const exportGameState = (): string => {
     const currentTimestamp = Date.now();
      const saveData: SaveData = {
-        playerStats, // PlayerStats includes factory data
+        playerStats,
         businesses,
         lastSaved: currentTimestamp,
       };
@@ -196,22 +205,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error("Invalid save data structure.");
       }
       
-      // Initialize with defaults, then spread imported data to handle potentially missing factory fields in old saves
       const initialDefaults = getInitialPlayerStats();
       const mergedPlayerStats: PlayerStats = {
-        ...initialDefaults, // Start with all possible fields from a fresh state
-        ...importedData.playerStats, // Override with saved data
-        // Explicitly ensure arrays/objects are correctly typed if missing from older saves
+        ...initialDefaults, 
+        ...importedData.playerStats,
         unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
         hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
         stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
         achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
-        // Factory fields - if not present in save, they'll get defaults from initialDefaults
         factoryPurchased: typeof importedData.playerStats.factoryPurchased === 'boolean' ? importedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
         factoryPowerUnitsGenerated: typeof importedData.playerStats.factoryPowerUnitsGenerated === 'number' ? importedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
         factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
         factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines,
+        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) 
+            ? (importedData.playerStats.factoryProductionLines.length === 5 ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines) // Ensure 5 lines
+            : initialDefaults.factoryProductionLines,
         factoryPowerBuildings: Array.isArray(importedData.playerStats.factoryPowerBuildings) ? importedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
         factoryProducedComponents: typeof importedData.playerStats.factoryProducedComponents === 'object' && importedData.playerStats.factoryProducedComponents !== null ? importedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
       };
@@ -251,7 +259,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const wipeGameData = () => {
-    setPlayerStats(getInitialPlayerStats()); // This now includes factory defaults
+    setPlayerStats(getInitialPlayerStats());
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz,
       level: 0,
@@ -284,12 +292,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             hqUpgradeLevels: typeof loadedData.playerStats.hqUpgradeLevels === 'object' && loadedData.playerStats.hqUpgradeLevels !== null ? loadedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
             stockHoldings: Array.isArray(loadedData.playerStats.stockHoldings) ? loadedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
             achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
-            // Factory fields
             factoryPurchased: typeof loadedData.playerStats.factoryPurchased === 'boolean' ? loadedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
             factoryPowerUnitsGenerated: typeof loadedData.playerStats.factoryPowerUnitsGenerated === 'number' ? loadedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
             factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
             factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines,
+            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) 
+                ? (loadedData.playerStats.factoryProductionLines.length === 5 ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
+                : initialDefaults.factoryProductionLines,
             factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
             factoryProducedComponents: typeof loadedData.playerStats.factoryProducedComponents === 'object' && loadedData.playerStats.factoryProducedComponents !== null ? loadedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
         };
@@ -650,7 +659,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   const buyStock = (stockId: string, sharesToBuyInput: number) => {
-    if (playerStats.timesPrestiged < 8) { // Updated to 8 from stocks page
+    if (playerStats.timesPrestiged < 8) {
         toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
     }
@@ -699,7 +708,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const sellStock = (stockId: string, sharesToSell: number) => {
-     if (playerStats.timesPrestiged < 8) { // Updated to 8 from stocks page
+     if (playerStats.timesPrestiged < 8) {
         toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
     }
@@ -747,7 +756,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const retainedBusinessLevels: Record<string, number> = {};
     const retainedStockHoldings: StockHolding[] = [];
 
-    // Preserve factory stats
     const { 
       factoryPurchased, 
       factoryPowerUnitsGenerated, 
@@ -790,14 +798,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
 
     setPlayerStats(prev => ({
-      ...prev, // Keep unlocked skills, HQ upgrades, and factory data
+      ...prev,
       money: moneyAfterPrestige,
       investmentsValue: 0, 
       stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      achievedBusinessMilestones: {}, // Reset business milestones
-      // Factory stats are preserved from the destructured constants above
+      achievedBusinessMilestones: {}, 
       factoryPurchased,
       factoryPowerUnitsGenerated,
       factoryRawMaterials,
@@ -908,6 +915,105 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast({ title: "Factory Purchased!", description: "You can now start building your industrial empire!" });
   };
 
+  const purchaseFactoryPowerBuilding = (configId: string) => {
+    if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+    const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
+    if (!config) {
+      toast({ title: "Power Building Not Found", variant: "destructive"});
+      return;
+    }
+
+    const numOwned = playerStats.factoryPowerBuildings.filter(pb => pb.configId === configId).length;
+    if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
+      toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
+      return;
+    }
+
+    const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.1, numOwned);
+    if (playerStats.money < costForNext) {
+      toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
+      return;
+    }
+
+    const newBuilding: FactoryPowerBuilding = {
+      instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      configId: config.id,
+      level: 1,
+      currentOutputKw: config.powerOutputKw,
+    };
+
+    setPlayerStats(prev => {
+      const updatedPowerBuildings = [...prev.factoryPowerBuildings, newBuilding];
+      const newTotalPower = updatedPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
+      return {
+        ...prev,
+        money: prev.money - costForNext,
+        factoryPowerBuildings: updatedPowerBuildings,
+        factoryPowerUnitsGenerated: newTotalPower,
+      };
+    });
+    toast({ title: "Power Building Purchased!", description: `Built a new ${config.name}.` });
+  };
+
+  const manuallyCollectRawMaterials = () => {
+     if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+    setPlayerStats(prev => ({
+      ...prev,
+      factoryRawMaterials: prev.factoryRawMaterials + 100,
+    }));
+    toast({ title: "Materials Collected!", description: "+100 Raw Materials added." });
+  };
+
+  const calculateNextMachineCost = (ownedMachineCount: number): number => {
+      const baseCost = 100000; // Cost of the first machine
+      const scalingFactor = 1.25; // Each subsequent machine costs 25% more than the last
+      return Math.floor(baseCost * Math.pow(scalingFactor, ownedMachineCount));
+  };
+
+  const purchaseFactoryMachine = (configId: string) => {
+    if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
+    if (!machineConfig) {
+      toast({ title: "Machine Type Not Found", variant: "destructive"});
+      return;
+    }
+
+    const currentMachineCount = playerStats.factoryMachines.length;
+    const cost = calculateNextMachineCost(currentMachineCount);
+
+    if (playerStats.money < cost) {
+      toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build the next ${machineConfig.name}.`, variant: "destructive"});
+      return;
+    }
+
+    const newMachine: FactoryMachine = {
+      instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      configId: machineConfig.id,
+      assignedProductionLineId: null,
+      // workerAssigned: false, // Initialize future states
+      // currentProductionComponentId: null,
+      // productionProgress: 0,
+      // productionTimeTotal: 0,
+      // upgrades: { speedLevel: 0, batchSizeLevel: 0 },
+    };
+
+    setPlayerStats(prev => ({
+      ...prev,
+      money: prev.money - cost,
+      factoryMachines: [...prev.factoryMachines, newMachine],
+    }));
+    toast({ title: "Machine Built!", description: `A new ${machineConfig.name} is ready.` });
+  };
+
 
   return (
     <GameContext.Provider value={{
@@ -938,6 +1044,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       importGameState,
       wipeGameData,
       purchaseFactoryBuilding,
+      purchaseFactoryPowerBuilding,
+      manuallyCollectRawMaterials,
+      purchaseFactoryMachine,
+      calculateNextMachineCost,
     }}>
       {children}
     </GameContext.Provider>

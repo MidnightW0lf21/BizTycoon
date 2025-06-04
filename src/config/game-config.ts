@@ -603,7 +603,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'fpp_grid_integration_protocol', name: 'Global Grid Integration Protocol', description: 'Sell power internationally, +15% income.', cost: 4E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 15 },
       { id: 'fpp_robotic_maintenance_units', name: 'Robotic Maintenance Units', description: 'Safer and faster reactor upkeep, -5% level cost.', cost: 2.5E8, requiredLevel: 35, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
       { id: 'fpp_fusion_rocket_propulsion_study', name: 'Fusion Rocket Propulsion Study', description: 'Spin-off space tech research, +8% income.', cost: 3.2E8, requiredLevel: 40, isPurchased: false, incomeBoostPercent: 8 },
-    ]
+    ],
   },
   {
     id: 'interstellar_trading_guild',
@@ -624,7 +624,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'itg_anti_piracy_security_fleet', name: 'Anti-Piracy Security Fleet', description: 'Protect valuable cargo, +10% income.', cost: 5.5E8, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'itg_galactic_market_analysis_ai', name: 'Galactic Market Analysis AI', description: 'Predict interstellar market trends, +12% income.', cost: 6E8, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
       { id: 'itg_diplomatic_relations_branch', name: 'Inter-Species Diplomatic Branch', description: 'Forge new trade agreements, -6% level cost.', cost: 4E8, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
-    ]
+    ],
   },
   {
     id: 'virtual_reality_worlds',
@@ -750,7 +750,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gse_algorithmic_high_frequency_trading', name: 'AI Algorithmic Trading Division', description: 'Optimize galactic market making, +12% income.', cost: 1.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
       { id: 'gse_interstellar_ipo_underwriting', name: 'Interstellar IPO Underwriting', description: 'Launch new galactic megacorps, +10% income.', cost: 1.6E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'gse_regulatory_compliance_ai', name: 'AI Galactic Regulatory Compliance', description: 'Navigate complex trade laws, -5% level cost.', cost: 1E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-    ]
+    ],
   },
   {
     id: 'universal_translation_services',
@@ -771,7 +771,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'uts_inter_species_diplomacy_contracts', name: 'Diplomatic Translation Contracts', description: 'Serve galactic federations, +18% income.', cost: 3.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
       { id: 'uts_art_music_translation_algorithms', name: 'Art & Music Translation AI', description: 'Share culture across species, +10% income.', cost: 2.8E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'uts_emergency_broadcast_translation', name: 'Galactic Emergency Broadcast System', description: 'Crucial for interspecies safety, -4% level cost.', cost: 1.5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 4 },
-    ]
+    ],
   },
   {
     id: 'planetary_terraforming_corp',
@@ -792,7 +792,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'ptc_real_estate_development_arm', name: 'Terraformed World Real Estate', description: 'Sell prime planetary real estate, +18% income.', cost: 5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 18 },
       { id: 'ptc_long_term_climate_stabilization_ai', name: 'AI Climate Stabilization Grid', description: 'Maintain habitable conditions for millennia, +10% income.', cost: 3.2E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'ptc_seed_vault_ark_program', name: 'Interstellar Seed Vault Program', description: 'Preserve biodiversity for new worlds, -5% level cost.', cost: 2E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-    ]
+    ],
   },
   {
     id: 'sentient_ai_consultancy',
@@ -813,7 +813,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'sac_personalized_education_ai', name: 'AI Tutors for Universal Education', description: 'Revolutionize learning, +12% income.', cost: 3.5E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
       { id: 'sac_crisis_management_simulation', name: 'AI Crisis Simulation & Response', description: 'Prepare for any eventuality, +10% income.', cost: 5.5E10, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'sac_sentience_containment_protocols', name: 'Sentience Containment & Safety', description: 'Safeguard against rogue AI, -5% level cost.', cost: 2.5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-    ]
+    ],
   },
   {
     id: 'exotic_matter_research',
@@ -834,7 +834,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'emr_chroniton_particle_manipulation', name: 'Chroniton Particle Studies', description: 'Potential temporal distortion research, +10% income.', cost: 6E10, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'emr_anti_gravity_plating', name: 'Anti-Gravity Plating', description: 'Revolutionize transportation and construction, +14% income.', cost: 1E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 14 },
       { id: 'emr_consciousness_field_theory', name: 'Unified Consciousness Field Theory', description: 'Explore fundamental nature of reality, -7% level cost.', cost: 5E10, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
-    ]
+    ],
   },
   {
     id: 'hyperspace_travel_agency',
@@ -876,7 +876,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'cgd_cognitive_enhancement_genetics', name: 'Bespoke Cognitive Enhancements', description: 'Tailored intelligence boosts, +14% income.', cost: 2.8E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 14 },
       { id: 'cgd_bio_luminescent_art_installations', name: 'Living Bio-Art Installations', description: 'Unique, evolving art forms, +8% income.', cost: 1.2E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 8 },
       { id: 'cgd_genetic_data_archive_security', name: 'Secure Genetic Data Vaults', description: 'Protect sensitive client genomes, -5% level cost.', cost: 1.6E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 5 },
-    ]
+    ],
   },
   {
     id: 'galactic_archaeology_guild',
@@ -897,7 +897,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'gag_xeno_anthropology_research_grants', name: 'Xeno-Anthropology Research Grants', description: 'Fund study of alien societies, +10% income.', cost: 2.2E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 10 },
       { id: 'gag_artifact_preservation_technology', name: 'Advanced Artifact Preservation Fields', description: 'Protect delicate relics indefinitely, +12% income.', cost: 3.2E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 12 },
       { id: 'gag_restricted_artifact_auction_house', name: 'Secure Artifact Auction House', description: 'Sell duplicates to private collectors, -6% level cost.', cost: 1.8E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 6 },
-    ]
+    ],
   },
   {
     id: 'zero_point_energy_solutions',
@@ -918,7 +918,7 @@ export const INITIAL_BUSINESSES: Business[] = [
       { id: 'zpe_personal_shield_generators', name: 'ZPE Personal Shield Generators', description: 'Consumer applications for infinite power, +12% income.', cost: 3E11, requiredLevel: 30, isPurchased: false, incomeBoostPercent: 12 },
       { id: 'zpe_wireless_power_transmission_grid', name: 'Global ZPE Wireless Power Grid', description: 'Ubiquitous energy access, +14% income.', cost: 6E11, requiredLevel: 35, isPurchased: false, incomeBoostPercent: 14 },
       { id: 'zpe_research_grant_philanthropy', name: 'ZPE Research & Safety Foundation', description: 'Public outreach and ethical guidelines, -7% level cost.', cost: 2.5E11, requiredLevel: 40, isPurchased: false, levelUpgradeCostReductionPercent: 7 },
-    ]
+    ],
   },
   {
     id: 'universal_consciousness_network',
@@ -2082,9 +2082,11 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
   for (const hqId in purchasedHQUpgradeLevels) {
     const purchasedLevel = purchasedHQUpgradeLevels[hqId];
      if (purchasedLevel > 0) {
-        const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
-        if (hqUpgrade && hqUpgrade.levels) {
-            const levelData = hqUpgradesConfig.find(h => h.id === hqId)?.levels.find(l => l.level === purchasedLevel);
+        // const hqUpgrade = hqUpgradesState.find(h => h.id === hqId); // This line caused an error if hqUpgradesState is not defined here.
+        // Safely find the hqUpgrade from the config passed in.
+        const hqUpgradeConfigEntry = hqUpgradesConfig.find(h => h.id === hqId);
+        if (hqUpgradeConfigEntry && hqUpgradeConfigEntry.levels) {
+            const levelData = hqUpgradeConfigEntry.levels.find(l => l.level === purchasedLevel);
             if (levelData && levelData.effects.globalPrestigePointBoostPercent) {
                 boostPercent += levelData.effects.globalPrestigePointBoostPercent;
             }
@@ -2124,15 +2126,4 @@ export const getLevelsRequiredForNPoints = (pointsToAchieve: number): number => 
   }
   return totalLevels;
 };
-
-export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
-  {
-    id: 'basic_assembler_mk1',
-    name: 'Basic Assembler Mk1',
-    icon: Wrench, // Using Wrench for now, can be more specific
-    description: 'A versatile, entry-level machine for simple component assembly.',
-    baseCost: 100000, // This baseCost is for the type, GameContext will handle scaling instance cost
-    powerConsumptionKw: 50,
-  }
-];
     
