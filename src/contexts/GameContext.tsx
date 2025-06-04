@@ -21,16 +21,17 @@ import {
   calculateSingleLevelUpgradeCost,
   MAX_BUSINESS_LEVEL,
 } from '@/config/game-config';
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000; 
+const STOCK_PRICE_UPDATE_INTERVAL = 150000; // 2.5 minutes
 
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
-  stocks: Stock[];
+  stocks: Stock[]; // This will be the dynamically priced, unlocked stocks
   skillTree: SkillNode[];
   hqUpgrades: HQUpgrade[];
   lastSavedTimestamp: number | null;
@@ -91,22 +92,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }))
   );
 
-  const [unlockedStocks, setUnlockedStocks] = useState<Stock[]>([]);
+  // Holds ALL stocks with their CURRENT DYNAMIC prices. Initialized with base prices.
+  const [stocksWithDynamicPrices, setStocksWithDynamicPrices] = useState<Stock[]>(() =>
+    INITIAL_STOCKS.map(s => ({ ...s })) // Create a mutable copy with initial prices
+  );
+
   const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Tech stocks are performing well, while energy sectors are seeing a slight downturn.");
   const [lastRiskTolerance, setLastRiskToleranceInternal] = useState<"low" | "medium" | "high">("medium");
 
 
   const setLastMarketTrends = (trends: string) => {
     setLastMarketTrendsInternal(trends);
-    // Optionally save to localStorage if you want these to persist beyond session
-    // localStorage.setItem('lastMarketTrends', trends);
   };
 
   const setLastRiskTolerance = (tolerance: "low" | "medium" | "high") => {
     setLastRiskToleranceInternal(tolerance);
-    // Optionally save to localStorage
-    // localStorage.setItem('lastRiskTolerance', tolerance);
   };
+
+  // Effect for dynamic stock price updates
+  useEffect(() => {
+    const stockUpdateInterval = setInterval(() => {
+      setStocksWithDynamicPrices(prevStocks =>
+        prevStocks.map(currentStock => {
+          const initialStockData = INITIAL_STOCKS.find(is => is.id === currentStock.id);
+          if (!initialStockData) return currentStock; // Should ideally not happen
+
+          const basePrice = initialStockData.price; // Base price from initial config
+          const percentageChange = Math.random() * 0.8 - 0.3; // Random factor between -0.3 (-30%) and +0.5 (+50%)
+          let newPrice = basePrice * (1 + percentageChange);
+          newPrice = Math.max(1, Math.floor(newPrice)); // Ensure price is at least $1 and an integer
+
+          return { ...currentStock, price: newPrice };
+        })
+      );
+    }, STOCK_PRICE_UPDATE_INTERVAL);
+
+    return () => clearInterval(stockUpdateInterval);
+  }, []); // Runs once on mount
+
+
+  // Memoized list of stocks accessible to the player, with their current dynamic prices
+  const unlockedStocks = useMemo(() => {
+    return stocksWithDynamicPrices.filter(currentDynamicStock => {
+      // Find the corresponding initial stock data to check for unlock requirements
+      const initialStockData = INITIAL_STOCKS.find(is => is.id === currentDynamicStock.id);
+      if (!initialStockData) return false; // Should not happen if lists are in sync
+
+      if (!initialStockData.requiredSkillToUnlock) return true; // No skill required
+      return playerStats.unlockedSkillIds.includes(initialStockData.requiredSkillToUnlock);
+    });
+  }, [stocksWithDynamicPrices, playerStats.unlockedSkillIds]);
+
 
   const saveStateToLocalStorage = useCallback(() => {
     try {
@@ -115,6 +151,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         playerStats,
         businesses,
         lastSaved: currentTimestamp,
+        // Dynamic stock prices are NOT saved; they reset to base on load.
       };
       localStorage.setItem(SAVE_DATA_KEY, JSON.stringify(saveData));
       setLastSavedTimestamp(currentTimestamp);
@@ -154,9 +191,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       setPlayerStats(prev => ({
-         ...getInitialPlayerStats(), // Start with defaults
-         ...importedData.playerStats, // Overlay saved stats
-         // Ensure crucial arrays/objects are properly initialized if missing from save
+         ...getInitialPlayerStats(), 
+         ...importedData.playerStats, 
          unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : INITIAL_UNLOCKED_SKILL_IDS,
          hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : INITIAL_HQ_UPGRADE_LEVELS,
          stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : [],
@@ -177,15 +213,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
       }));
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
+      // Reset stock prices to base on import; they will start fluctuating again via the interval.
+      setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
-      // saveStateToLocalStorage(); // Save immediately after import to sync localStorage if needed
       toast({
         title: "Game Loaded Successfully!",
         description: "Your game state has been imported.",
       });
-      // Reload to ensure all context consumers get the new state cleanly
-      // Consider if a full window.location.reload() is too disruptive or necessary
-      // For now, state updates should propagate, but keep in mind for complex states.
       return true;
     } catch (error) {
       console.error("Error importing game state:", error);
@@ -207,6 +241,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
       icon: biz.icon,
     })));
+    // Reset stock prices to base on wipe
+    setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
     localStorage.removeItem(SAVE_DATA_KEY);
     setLastSavedTimestamp(null);
     toast({
@@ -246,14 +282,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
         });
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
+        // Stock prices are not saved, so they initialize from INITIAL_STOCKS via stocksWithDynamicPrices state
       } else {
         setPlayerStats(getInitialPlayerStats());
+        // stocksWithDynamicPrices is already initialized from INITIAL_STOCKS
       }
     } catch (error) {
       console.error("Error loading game state from local storage:", error);
       localStorage.removeItem(SAVE_DATA_KEY);
       toast({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
+      // stocksWithDynamicPrices is already initialized from INITIAL_STOCKS
     }
   }, [toast]);
 
@@ -264,15 +303,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, AUTO_SAVE_INTERVAL);
     return () => clearInterval(intervalId);
   }, [saveStateToLocalStorage]);
-
-
-  useEffect(() => {
-    const filteredStocks = INITIAL_STOCKS.filter(stock => {
-      if (!stock.requiredSkillToUnlock) return true;
-      return playerStats.unlockedSkillIds.includes(stock.requiredSkillToUnlock);
-    });
-    setUnlockedStocks(filteredStocks);
-  }, [playerStats.unlockedSkillIds]);
 
   const getDynamicMaxBusinessLevel = useCallback((): number => {
     let currentMaxLevel = MAX_BUSINESS_LEVEL; 
@@ -354,15 +384,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     for (const holding of playerStats.stockHoldings) {
+      // Use `unlockedStocks` here as it contains stocks with their current dynamic prices
       const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
       if (stockDetails) {
-        let currentDividendYield = stockDetails.dividendYield;
+        let currentDividendYield = stockDetails.dividendYield; // Base yield from definition
+        const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
+        if(initialStockInfo) { // Ensure we have base yield
+            currentDividendYield = initialStockInfo.dividendYield;
+        }
         currentDividendYield *= (1 + globalDividendBoost / 100);
-        dividendIncome += holding.shares * stockDetails.price * currentDividendYield;
+        dividendIncome += holding.shares * stockDetails.price * currentDividendYield; // stockDetails.price is dynamic
       }
     }
     setPlayerStats(prev => ({ ...prev, totalIncomePerSecond: totalBusinessIncome + dividendIncome }));
-  }, [businesses, getBusinessIncome, playerStats.stockHoldings, unlockedStocks, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState]);
+  }, [businesses, getBusinessIncome, playerStats.stockHoldings, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, unlockedStocks]);
 
   const purchaseBusinessUpgrade = useCallback((businessId: string, upgradeId: string, isAutoBuy: boolean = false): boolean => {
     const businessToUpdate = businesses.find(b => b.id === businessId);
@@ -447,7 +482,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newMoney = prev.money + prev.totalIncomePerSecond;
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId); // unlockedStocks has dynamic prices
           if (stockDetails) {
             currentInvestmentsValue += holding.shares * stockDetails.price;
           }
@@ -456,7 +491,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, 1000);
     return () => clearInterval(gameLoop);
-  }, [playerStats.totalIncomePerSecond, unlockedStocks]);
+  }, [playerStats.totalIncomePerSecond, unlockedStocks]); // Add unlockedStocks dependency
 
 
   useEffect(() => {
@@ -487,7 +522,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         currentMoneySnapshot -= actualCost;
                         purchasedInThisTick = true;
                         businessChanged = true;
-                        // Also update achievedBusinessMilestones for auto-buy
                         setPlayerStats(prev => {
                             const existingMilestonesForBusiness = prev.achievedBusinessMilestones?.[business.id] || {};
                             const existingPurchasedUpgrades = existingMilestonesForBusiness.purchasedUpgradeIds || [];
@@ -599,15 +633,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId);
+    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks which has dynamic prices
     if (!stock) {
       toast({ title: "Stock Not Found", description: "This stock is not available or does not exist.", variant: "destructive" });
       return;
     }
 
+    const initialStockData = INITIAL_STOCKS.find(is => is.id === stockId);
+    if (!initialStockData) return; // Should not happen
+
     const existingHolding = playerStats.stockHoldings.find(h => h.stockId === stockId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
-    const sharesAvailableToBuy = stock.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
+    const sharesAvailableToBuy = initialStockData.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
 
     if (sharesAvailableToBuy <= 0) {
       toast({ title: "No Shares Available", description: `All outstanding shares of ${stock.companyName} (${stock.ticker}) are accounted for.`, variant: "default" });
@@ -622,7 +659,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast({ title: "No Shares to Buy", description: `No shares of ${stock.companyName} (${stock.ticker}) could be purchased.`, variant: "destructive" });
         return;
     }
-    const cost = stock.price * sharesToBuy;
+    const cost = stock.price * sharesToBuy; // Use dynamic price from `stock` (which is from unlockedStocks)
     if (playerStats.money < cost) {
       toast({ title: "Not Enough Money", description: `You need $${Number(cost).toLocaleString('en-US', { maximumFractionDigits: 0 })} to buy ${sharesToBuy.toLocaleString('en-US')} share(s).`, variant: "destructive" });
       return;
@@ -645,7 +682,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "Invalid Amount", description: "Number of shares must be positive.", variant: "destructive" });
       return;
     }
-    const stock = unlockedStocks.find(s => s.id === stockId);
+    const stock = unlockedStocks.find(s => s.id === stockId); // Use unlockedStocks which has dynamic prices
     if (!stock) {
       toast({ title: "Stock Not Found", variant: "destructive" });
       return;
@@ -655,7 +692,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "Not Enough Shares", description: `You only own ${existingHolding?.shares || 0} share(s).`, variant: "destructive" });
       return;
     }
-    const earnings = stock.price * sharesToSell;
+    const earnings = stock.price * sharesToSell; // Use dynamic price from `stock`
     setPlayerStats(prev => {
       const newHoldings = existingHolding.shares === sharesToSell
         ? prev.stockHoldings.filter(h => h.stockId !== stockId)
@@ -722,7 +759,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      // achievedBusinessMilestones is intentionally NOT reset here
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -732,6 +768,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
       icon: biz.icon,
     })));
+    
+    // Reset stock prices to base on prestige
+    setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
   }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
@@ -812,7 +851,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <GameContext.Provider value={{
       playerStats,
       businesses,
-      stocks: unlockedStocks,
+      stocks: unlockedStocks, // Provide the dynamically priced, unlocked stocks
       skillTree: skillTreeState,
       hqUpgrades: hqUpgradesState,
       lastSavedTimestamp,
@@ -849,3 +888,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
