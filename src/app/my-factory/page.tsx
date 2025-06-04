@@ -4,13 +4,27 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS } from "@/config/game-config";
+import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
+import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
+import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST = 1000000;
 
 export default function MyFactoryPage() {
-  const { playerStats, purchaseFactoryBuilding } = useGame();
+  const { 
+    playerStats, 
+    purchaseFactoryBuilding,
+    purchaseFactoryPowerBuilding,
+    manuallyCollectRawMaterials,
+    purchaseFactoryMachine,
+    calculateNextMachineCost,
+    factoryMachines // Renamed from playerStats.factoryMachines for brevity
+  } = useGame();
+
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
     return (
@@ -65,28 +79,123 @@ export default function MyFactoryPage() {
     );
   }
 
+  const ownedPowerBuildingCounts = playerStats.factoryPowerBuildings.reduce((acc, building) => {
+    acc[building.configId] = (acc[building.configId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const nextMachineCost = calculateNextMachineCost(playerStats.factoryMachines.length);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <Card className="w-full max-w-md text-center">
+    <div className="flex flex-col gap-6">
+      <Card>
         <CardHeader>
-          <div className="flex justify-center mb-4">
-            <Factory className="h-20 w-20 text-primary" />
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Factory className="h-7 w-7 text-primary" /> Your Industrial Complex
+            </CardTitle>
+            <div className="flex gap-4 text-sm">
+              <span className="flex items-center gap-1 font-medium">
+                <Zap className="h-4 w-4 text-yellow-400" /> Power: {playerStats.factoryPowerUnitsGenerated.toLocaleString()} kW
+              </span>
+              <span className="flex items-center gap-1 font-medium">
+                <Box className="h-4 w-4 text-orange-400" /> Materials: {playerStats.factoryRawMaterials.toLocaleString()} units
+              </span>
+            </div>
           </div>
-          <CardTitle className="text-3xl">Welcome to Your Factory!</CardTitle>
-          <CardDescription>
-            This is where your industrial empire will take shape.
-          </CardDescription>
+          <CardDescription>Manage power, materials, and production lines to create valuable components.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-lg text-muted-foreground">
-            Factory management features are coming soon. Stay tuned for exciting updates!
-            <br/><br/>
-            (Power Units: {playerStats.factoryPowerUnitsGenerated.toLocaleString() || 0} kW)
-            <br/>
-            (Raw Materials: {playerStats.factoryRawMaterials.toLocaleString() || 0})
-          </p>
-        </CardContent>
       </Card>
+
+      <Tabs defaultValue="power" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="power"><Zap className="mr-2 h-4 w-4"/>Power</TabsTrigger>
+          <TabsTrigger value="materials"><Box className="mr-2 h-4 w-4"/>Materials</TabsTrigger>
+          <TabsTrigger value="production"><Wrench className="mr-2 h-4 w-4"/>Production</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="power">
+          <Card>
+            <CardHeader>
+              <CardTitle>Power Generation</CardTitle>
+              <CardDescription>Build and manage power buildings to supply your factory.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.map(config => (
+                <FactoryPowerBuildingCard
+                  key={config.id}
+                  powerBuildingConfig={config}
+                  numOwned={ownedPowerBuildingCounts[config.id] || 0}
+                  currentMoney={playerStats.money}
+                  onPurchase={() => purchaseFactoryPowerBuilding(config.id)}
+                />
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="materials">
+          <Card>
+            <CardHeader>
+              <CardTitle>Raw Material Acquisition</CardTitle>
+              <CardDescription>Gather raw materials needed for production.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-lg">
+                Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
+              </p>
+              <Button onClick={manuallyCollectRawMaterials} size="lg">
+                <Box className="mr-2 h-5 w-5"/>Manually Collect 100 Raw Materials
+              </Button>
+              <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="production">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Build Machines</CardTitle>
+                <CardDescription>Construct machines to place in your production lines.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => (
+                  <MachinePurchaseCard
+                    key={config.id}
+                    machineConfig={config}
+                    nextMachineCost={nextMachineCost}
+                    playerMoney={playerStats.money}
+                    onPurchase={() => purchaseFactoryMachine(config.id)}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Production Lines</CardTitle>
+                <CardDescription>Assign machines to production lines to manufacture components.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {playerStats.factoryProductionLines.map((line, index) => (
+                  <ProductionLineDisplay
+                    key={line.id}
+                    productionLine={line}
+                    allMachines={playerStats.factoryMachines} 
+                    lineIndex={index}
+                  />
+                ))}
+                <p className="text-sm text-muted-foreground text-center pt-4">
+                  Machine assignment and component production coming soon!
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+
+    
