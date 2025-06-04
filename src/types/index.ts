@@ -73,8 +73,7 @@ export interface HQUpgradeEffects {
   increaseStartingMoney?: number;
   globalDividendYieldBoostPercent?: number;
   globalPrestigePointBoostPercent?: number;
-  retainBusinessLevelPercent?: number;
-  retainStockSharesPercent?: number;
+  retentionPercentage?: number; // Generic retention for both business levels and stock shares
 }
 
 export interface HQUpgradeLevel {
@@ -104,6 +103,10 @@ export interface PlayerStats {
   timesPrestiged: number;
   unlockedSkillIds: string[];
   hqUpgradeLevels: Record<string, number>; // e.g., { hq_market_analysis_1: 2 }
+  achievedBusinessMilestones?: Record<string, {
+    maxLevelReached?: boolean;
+    purchasedUpgradeIds?: string[];
+  }>;
 }
 
 export interface SaveData {

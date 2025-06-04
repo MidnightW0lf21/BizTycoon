@@ -40,7 +40,7 @@ function CategoryProgress({ title, icon: Icon, currentValue, totalValue, unit }:
 }
 
 export default function CompletionPage() {
-  const { playerStats, businesses, getDynamicMaxBusinessLevel } = useGame();
+  const { playerStats, getDynamicMaxBusinessLevel } = useGame(); // Removed businesses from direct destructuring
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -48,31 +48,40 @@ export default function CompletionPage() {
   }, []);
 
   const completionData = useMemo(() => {
-    const dynamicMaxLevel = getDynamicMaxBusinessLevel();
+    // getDynamicMaxBusinessLevel is still relevant for knowing what "max level" means, 
+    // but the achieved state comes from achievedBusinessMilestones.
+    // const dynamicMaxLevel = getDynamicMaxBusinessLevel(); 
 
     let achievedBusinessMaxLevelPoints = 0;
     let achievedBusinessUpgradePoints = 0;
     
     const totalBusinessMaxLevelPoints = INITIAL_BUSINESSES.length;
     const totalBusinessUpgradePoints = INITIAL_BUSINESSES.reduce((sum, biz) => sum + (biz.upgrades?.length || 0), 0);
-    const maxTotalBusinessCompletionPoints = totalBusinessMaxLevelPoints + totalBusinessUpgradePoints;
+    
+    if (playerStats.achievedBusinessMilestones) {
+      INITIAL_BUSINESSES.forEach(initialBusinessConfig => {
+        const unlockIndex = INITIAL_BUSINESSES.findIndex(ib => ib.id === initialBusinessConfig.id);
+        // Determine if the business milestone should be counted based on prestige unlock visibility
+        // This ensures that milestones for businesses not yet "visible" due to prestige level aren't counted early.
+        const isBusinessVisibleForCompletion = playerStats.timesPrestiged >= unlockIndex;
 
-    businesses.forEach(playerBusiness => {
-      const initialBusinessConfig = INITIAL_BUSINESSES.find(ib => ib.id === playerBusiness.id);
-      if (!initialBusinessConfig) return;
-
-      const unlockIndex = INITIAL_BUSINESSES.findIndex(ib => ib.id === playerBusiness.id);
-      const isBusinessEffectivelyUnlocked = playerStats.timesPrestiged >= unlockIndex;
-
-      if (isBusinessEffectivelyUnlocked) {
-        if (playerBusiness.level >= dynamicMaxLevel) {
-          achievedBusinessMaxLevelPoints++;
+        if (isBusinessVisibleForCompletion) {
+          const milestones = playerStats.achievedBusinessMilestones?.[initialBusinessConfig.id];
+          if (milestones?.maxLevelReached) {
+            achievedBusinessMaxLevelPoints++;
+          }
+          if (milestones?.purchasedUpgradeIds) {
+            // We count all *distinct* upgrades available for this business in its initial config
+            // and compare against the *distinct* purchased ones from milestones.
+            // This prevents counting more upgrades than exist if data were somehow inconsistent.
+            const totalUpgradesForThisBiz = initialBusinessConfig.upgrades?.length || 0;
+            const purchasedCountForThisBiz = milestones.purchasedUpgradeIds.length;
+            achievedBusinessUpgradePoints += Math.min(purchasedCountForThisBiz, totalUpgradesForThisBiz);
+          }
         }
-        playerBusiness.upgrades?.forEach(upg => {
-          if (upg.isPurchased) achievedBusinessUpgradePoints++;
-        });
-      }
-    });
+      });
+    }
+    const maxTotalBusinessCompletionPoints = totalBusinessMaxLevelPoints + totalBusinessUpgradePoints;
     const currentTotalBusinessCompletionPoints = achievedBusinessMaxLevelPoints + achievedBusinessUpgradePoints;
     const businessCompletionPercentage = maxTotalBusinessCompletionPoints > 0 ? (currentTotalBusinessCompletionPoints / maxTotalBusinessCompletionPoints) * 100 : 0;
 
@@ -105,7 +114,7 @@ export default function CompletionPage() {
       hq: { current: achievedHQLevels, total: totalPossibleHQLevels, percentage: hqCompletionPercentage },
       stocks: { current: currentOwnedShares, total: totalPossibleSharesToOwn, percentage: stockCompletionPercentage },
     };
-  }, [playerStats, businesses, getDynamicMaxBusinessLevel]);
+  }, [playerStats.achievedBusinessMilestones, playerStats.unlockedSkillIds, playerStats.hqUpgradeLevels, playerStats.stockHoldings, playerStats.timesPrestiged]); // Removed businesses, added playerStats.achievedBusinessMilestones, playerStats.timesPrestiged
 
 
   if (!mounted) {
