@@ -67,7 +67,7 @@ interface GameContextType {
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
   calculateNextMachineCost: (ownedMachineCount: number) => number;
-  unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void;
+  // unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void; // No longer directly callable from UI
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -362,8 +362,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const getBusinessIncome = useCallback((businessId: string): number => {
     const business = businesses.find(b => b.id === businessId);
-    return business ? calculateIncome(business, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState) : 0;
-  }, [businesses, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState]);
+    return business ? calculateIncome(business, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, playerStats.factoryProducedComponents, INITIAL_FACTORY_COMPONENTS_CONFIG) : 0;
+  }, [businesses, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, playerStats.factoryProducedComponents]);
 
 
   const getBusinessUpgradeCost = useCallback((businessId: string): number => {
@@ -816,13 +816,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { 
       factoryPurchased, 
-      factoryPowerUnitsGenerated, 
+      // factoryPowerUnitsGenerated, // This should reset or be recalculated based on retained power buildings if any
       factoryRawMaterials, 
       factoryMachines, 
       factoryProductionLines, 
-      factoryPowerBuildings,
-      factoryProducedComponents 
+      // factoryPowerBuildings, // If power buildings are not retained, this should be empty
+      factoryProducedComponents // These persist
     } = playerStats;
+
+    // Recalculate power based on retained power buildings (currently none are retained by default)
+    // For now, assuming power buildings are reset and thus power generated also resets
+    const retainedFactoryPowerBuildings: FactoryPowerBuilding[] = []; // Placeholder
+    const retainedFactoryPowerUnitsGenerated = retainedFactoryPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
 
 
     for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
@@ -856,22 +861,34 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
 
     setPlayerStats(prev => ({
-      ...prev,
+      ...getInitialPlayerStats(), // Start with fresh defaults for most things
       money: moneyAfterPrestige,
-      investmentsValue: 0, 
-      stockHoldings: retainedStockHoldings,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      achievedBusinessMilestones: {}, 
-      factoryPurchased,
-      factoryPowerUnitsGenerated, 
-      factoryPowerConsumptionKw: 0, 
-      factoryRawMaterials, 
-      factoryMachines, 
-      factoryProductionLines, 
-      factoryPowerBuildings, 
-      factoryProducedComponents, 
+      unlockedSkillIds: prev.unlockedSkillIds, // Skills persist
+      hqUpgradeLevels: prev.hqUpgradeLevels, // HQ upgrades persist
+      stockHoldings: retainedStockHoldings, // Only retained stocks
+      
+      // Factory related stats that persist or are re-evaluated
+      factoryPurchased, // Persists
+      factoryPowerUnitsGenerated: retainedFactoryPowerUnitsGenerated, // Recalculated
+      factoryPowerConsumptionKw: 0, // Resets as machines are no longer assigned
+      factoryRawMaterials, // Persists
+      factoryMachines, // Persists (but will be unassigned)
+      factoryProductionLines: prev.factoryProductionLines.map(line => ({ // Lines persist, but machines unassigned
+        ...line,
+        machineInstanceIds: line.machineInstanceIds.map(() => null) 
+      })), 
+      factoryPowerBuildings: retainedFactoryPowerBuildings, // Retained power buildings
+      factoryProducedComponents, // Persists!
     }));
+
+    // Re-assign machine.assignedProductionLineId to null
+    setPlayerStats(prev => ({
+      ...prev,
+      factoryMachines: prev.factoryMachines.map(fm => ({...fm, assignedProductionLineId: null}))
+    }));
+
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, 
@@ -882,6 +899,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     })));
     
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
+    _attemptAutoAssignWaitingMachines(); // Attempt to re-assign machines after prestige
 
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
   }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
@@ -1217,7 +1235,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manuallyCollectRawMaterials,
       purchaseFactoryMachine,
       calculateNextMachineCost,
-      unassignMachineFromProductionLine,
+      // unassignMachineFromProductionLine, // Not exposed directly
     }}>
       {children}
     </GameContext.Provider>
@@ -1231,3 +1249,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+

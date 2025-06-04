@@ -1833,10 +1833,12 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
   {
     id: 'basic_gear',
     name: 'Basic Gear',
-    description: 'A simple metallic gear, a fundamental building block for many machines.',
+    description: 'A simple metallic gear, a fundamental building block for many machines. Provides a small global income boost.',
     icon: Settings, // Using Settings icon as a generic gear
+    effects: {
+      globalIncomeBoostPerComponentPercent: 0.001, // Each gear gives +0.001% global income
+    }
   },
-  // Future components can be added here: e.g., circuits, casings, etc.
 ];
 
 export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
@@ -1847,9 +1849,9 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     description: 'A versatile, entry-level machine for simple component assembly.',
     baseCost: 100000, 
     powerConsumptionKw: 50,
-    outputComponentId: 'basic_gear', // Produces Basic Gears
-    baseProductionTimeSeconds: 5, // Takes 5 seconds to produce one gear
-    rawMaterialCostPerComponent: 10, // Costs 10 raw materials per gear
+    outputComponentId: 'basic_gear', 
+    baseProductionTimeSeconds: 1, // Effective 1s per game tick for now
+    rawMaterialCostPerComponent: 10,
   }
 ];
 
@@ -1859,7 +1861,9 @@ export const calculateIncome = (
     unlockedSkillIds: string[] = [],
     skillTree: SkillNode[] = [],
     purchasedHQUpgradeLevels: Record<string, number> = {},
-    hqUpgradesConfig: HQUpgrade[] = []
+    hqUpgradesConfig: HQUpgrade[] = [],
+    producedFactoryComponents: Record<string, number> = {},
+    factoryComponentsConfig: FactoryComponent[] = []
   ): number => {
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
@@ -1909,6 +1913,16 @@ export const calculateIncome = (
                 totalGlobalIncomeBoost += levelData.effects.globalIncomeBoostPercent;
             }
         }
+    }
+  }
+
+  for (const componentId in producedFactoryComponents) {
+    const count = producedFactoryComponents[componentId];
+    if (count > 0) {
+      const componentConfig = factoryComponentsConfig.find(fc => fc.id === componentId);
+      if (componentConfig && componentConfig.effects?.globalIncomeBoostPerComponentPercent) {
+        totalGlobalIncomeBoost += count * componentConfig.effects.globalIncomeBoostPerComponentPercent;
+      }
     }
   }
 

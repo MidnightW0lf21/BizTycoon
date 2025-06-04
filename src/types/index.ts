@@ -111,11 +111,18 @@ export interface FactoryPowerBuilding {
   currentOutputKw: number; // Current output, might change with level or efficiency
 }
 
+export interface FactoryComponentEffects {
+  globalIncomeBoostPerComponentPercent?: number;
+  // Future: globalFactoryProductionSpeedBoostPercent?: number;
+  // Future: specificBusinessBoostPerComponent?: { businessId: string; percent: number };
+}
+
 export interface FactoryComponent {
   id: string;
   name: string;
   description: string;
   icon: LucideIcon;
+  effects?: FactoryComponentEffects;
 }
 
 export interface FactoryMachineConfig {
@@ -126,7 +133,7 @@ export interface FactoryMachineConfig {
   baseCost: number; 
   powerConsumptionKw: number;
   outputComponentId: string;
-  baseProductionTimeSeconds: number;
+  baseProductionTimeSeconds: number; // For now, effectively 1s if conditions met
   rawMaterialCostPerComponent: number;
 }
 
@@ -174,3 +181,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+

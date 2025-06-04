@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -12,6 +12,7 @@ import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST = 1000000;
@@ -241,11 +242,12 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="inventory" className="flex-grow">
+        <TooltipProvider>
           <ScrollArea className="h-[calc(100vh-300px)] pr-2">
             <Card>
               <CardHeader>
                 <CardTitle>Produced Components</CardTitle>
-                <CardDescription>Inventory of components manufactured by your factory. These persist through prestige.</CardDescription>
+                <CardDescription>Inventory of components manufactured by your factory. These persist through prestige and may provide bonuses.</CardDescription>
               </CardHeader>
               <CardContent>
                 {Object.keys(playerStats.factoryProducedComponents).length === 0 ? (
@@ -256,12 +258,29 @@ export default function MyFactoryPage() {
                       const count = playerStats.factoryProducedComponents[compConfig.id] || 0;
                       if (count > 0 || Object.keys(playerStats.factoryProducedComponents).includes(compConfig.id)) { 
                         const Icon = compConfig.icon;
+                        const totalBonus = compConfig.effects?.globalIncomeBoostPerComponentPercent 
+                                            ? count * compConfig.effects.globalIncomeBoostPerComponentPercent 
+                                            : 0;
                         return (
                           <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
                             <Icon className="h-10 w-10 text-primary mb-2" />
                             <p className="font-semibold">{compConfig.name}</p>
                             <p className="text-2xl font-bold text-accent">{count.toLocaleString()}</p>
                             <p className="text-xs text-muted-foreground">{compConfig.description}</p>
+                            {compConfig.effects?.globalIncomeBoostPerComponentPercent && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="mt-2 text-xs text-green-500 flex items-center gap-1">
+                                    <Lightbulb className="h-3 w-3"/>
+                                    <span>Bonus: +{totalBonus.toFixed(3)}% Global Income</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Each {compConfig.name} provides +{compConfig.effects.globalIncomeBoostPerComponentPercent.toFixed(4)}% global income.</p>
+                                  <p>Total from {count.toLocaleString()} units: +{totalBonus.toFixed(3)}%</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                           </Card>
                         );
                       }
@@ -272,8 +291,10 @@ export default function MyFactoryPage() {
               </CardContent>
             </Card>
           </ScrollArea>
+          </TooltipProvider>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
