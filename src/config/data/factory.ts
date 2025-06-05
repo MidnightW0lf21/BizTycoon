@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, FactoryMachineUpgradeConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -68,10 +68,11 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     tier: 1,
     recipe: [],
     rawMaterialCost: 10,
-    productionTimeSeconds: 1,
+    productionTimeSeconds: 20, // Increased from 1
     requiredAssemblerMark: 1,
     effects: {
       globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 5,
     }
   },
   {
@@ -82,10 +83,131 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     tier: 2,
     recipe: [{ componentId: 'basic_gear', quantity: 5 }],
     rawMaterialCost: 20,
-    productionTimeSeconds: 3,
+    productionTimeSeconds: 60, // Increased from 3
     requiredAssemblerMark: 2,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.005,
+      globalIncomeBoostPerComponentPercent: 0.003,
+      maxBonusPercent: 7.5,
+    }
+  },
+  {
+    id: 'precision_gear',
+    name: 'Precision Gear',
+    description: 'An intricately designed gear for high-performance applications. Enhances global income.',
+    icon: Drill, // Using Drill as a placeholder, consider a more specific icon if available
+    tier: 3,
+    recipe: [{ componentId: 'advanced_gear', quantity: 4 }],
+    rawMaterialCost: 50,
+    productionTimeSeconds: 180, // Increased, e.g., 3 minutes
+    requiredAssemblerMark: 3,
+    effects: {
+      globalIncomeBoostPerComponentPercent: 0.007,
+      maxBonusPercent: 10,
+    }
+  },
+  {
+    id: 'alloy_gear',
+    name: 'Alloy Gear',
+    description: 'A gear made from advanced alloys for extreme durability and efficiency. Significantly boosts global income.',
+    icon: HardHat, // Using HardHat as a placeholder
+    tier: 4,
+    recipe: [{ componentId: 'precision_gear', quantity: 3 }],
+    rawMaterialCost: 120,
+    productionTimeSeconds: 900, // Increased, e.g., 15 minutes
+    requiredAssemblerMark: 4,
+    effects: {
+      globalIncomeBoostPerComponentPercent: 0.015,
+      maxBonusPercent: 12.5,
+    }
+  },
+  {
+    id: 'quantum_gear',
+    name: 'Quantum Gear',
+    description: 'A gear operating on quantum principles, for cutting-edge technology. Provides a substantial global income boost.',
+    icon: AtomIcon,
+    tier: 5,
+    recipe: [{ componentId: 'alloy_gear', quantity: 2 }],
+    rawMaterialCost: 300,
+    productionTimeSeconds: 3600, // Increased, e.g., 60 minutes
+    requiredAssemblerMark: 5,
+    effects: {
+      globalIncomeBoostPerComponentPercent: 0.030,
+      maxBonusPercent: 15,
+    }
+  },
+  {
+    id: 'industrial_juicer_parts',
+    name: 'Industrial Juicer Parts',
+    description: 'Components for high-efficiency juicers. Boosts Lemonade Stand income.',
+    icon: Citrus,
+    tier: 2,
+    recipe: [{ componentId: 'basic_gear', quantity: 3 }],
+    rawMaterialCost: 25,
+    productionTimeSeconds: 45, // Increased from 4
+    requiredAssemblerMark: 1,
+    effects: {
+      businessSpecificIncomeBoostPercent: { businessId: 'lemonade_stand', percent: 0.1 },
+      maxBonusPercent: 25,
+    }
+  },
+  {
+    id: 'miniature_ai_core',
+    name: 'Miniature AI Core',
+    description: 'A compact AI processing unit. Boosts Tech Startup income.',
+    icon: BrainCircuit,
+    tier: 3,
+    recipe: [{ componentId: 'advanced_gear', quantity: 2 }, { componentId: 'efficiency_coil', quantity: 3 }],
+    rawMaterialCost: 70,
+    productionTimeSeconds: 240, // Increased from 6
+    requiredAssemblerMark: 2,
+    effects: {
+      businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 0.12 },
+      maxBonusPercent: 30,
+    }
+  },
+  {
+    id: 'market_analysis_chip',
+    name: 'Market Analysis Chip',
+    description: 'Specialized chip for financial analysis. Boosts Global Corp (GC) stock dividend yield.',
+    icon: BarChart,
+    tier: 3,
+    recipe: [{ componentId: 'precision_gear', quantity: 1 }, { componentId: 'miniature_ai_core', quantity: 1 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 300, // Increased from 7
+    requiredAssemblerMark: 3,
+    effects: {
+      stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.0005 },
+      maxBonusPercent: 0.25
+    }
+  },
+  {
+    id: 'efficiency_coil',
+    name: 'Efficiency Coil',
+    description: 'A component that improves energy efficiency. Slightly boosts factory power output.',
+    icon: Zap,
+    tier: 2,
+    recipe: [{ componentId: 'basic_gear', quantity: 2 }],
+    rawMaterialCost: 15,
+    productionTimeSeconds: 30, // Increased from 3
+    requiredAssemblerMark: 1,
+    effects: {
+      factoryGlobalPowerOutputBoostPercent: 0.05,
+      maxBonusPercent: 10,
+    }
+  },
+  {
+    id: 'survey_drone_module',
+    name: 'Survey Drone Module',
+    description: 'Enhances drone capabilities for material collection. Slightly boosts factory material collection rate.',
+    icon: PackageSearch,
+    tier: 2,
+    recipe: [{ componentId: 'basic_gear', quantity: 2 }, { componentId: 'efficiency_coil', quantity: 1 }],
+    rawMaterialCost: 20,
+    productionTimeSeconds: 30, // Increased from 3
+    requiredAssemblerMark: 1,
+    effects: {
+      factoryGlobalMaterialCollectionBoostPercent: 0.05,
+      maxBonusPercent: 10,
     }
   }
 ];
@@ -247,4 +369,3 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
     requiredResearchId: 'unlock_nanite_harvester_swarm',
   },
 ];
-
