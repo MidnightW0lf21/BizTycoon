@@ -91,7 +91,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 1 Recipe Blueprints',
     description: 'Unlocks all Tier 1 factory component recipes.',
     icon: Scroll,
-    requiredTimesPrestiged: 5,
+    requiredTimesPrestiged: 5, // Keep original prestige req
     levels: [
       { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } }
     ]
@@ -101,7 +101,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 2 Advanced Schematics',
     description: 'Unlocks all Tier 2 factory component recipes.',
     icon: BookOpen,
-    requiredTimesPrestiged: 5,
+    requiredTimesPrestiged: 5, // Keep original prestige req
     levels: [
       { level: 1, costMoney: 500000, costPrestigePoints: 5, description: 'Learn to craft more complex components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id) } }
     ]
@@ -111,7 +111,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 3 Production Mastery',
     description: 'Unlocks all Tier 3 factory component recipes.',
     icon: FlaskConical,
-    requiredTimesPrestiged: 6,
+    requiredTimesPrestiged: 6, // Keep original prestige req
     levels: [
       { level: 1, costMoney: 2000000, costPrestigePoints: 10, description: 'Master the production of intricate parts.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id) } }
     ]
@@ -121,7 +121,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 4 Complex Assemblies',
     description: 'Unlocks all Tier 4 factory component recipes.',
     icon: Cpu,
-    requiredTimesPrestiged: 7,
+    requiredTimesPrestiged: 7, // Keep original prestige req
     levels: [
       { level: 1, costMoney: 8000000, costPrestigePoints: 20, description: 'Manufacture highly advanced technological components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id) } }
     ]
@@ -131,7 +131,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 5 Quantum Fabrication',
     description: 'Unlocks all Tier 5 factory component recipes, the pinnacle of manufacturing.',
     icon: AtomIcon,
-    requiredTimesPrestiged: 8,
+    requiredTimesPrestiged: 8, // Keep original prestige req
     levels: [
       { level: 1, costMoney: 25000000, costPrestigePoints: 40, description: 'Harness quantum principles for ultimate components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id) } }
     ]
