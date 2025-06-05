@@ -59,11 +59,11 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     id: 'unlock_mk1_motor_efficiency_research',
     name: 'Mk1 Motor Efficiency Study',
     description: 'Unlocks the "Efficient Motor" upgrade for Basic Assembler Mk1 machines, reducing their power consumption.',
-    icon: Zap, 
-    costRP: 10, 
-    costMoney: 25000, 
+    icon: Zap,
+    costRP: 10,
+    costMoney: 25000,
     dependencies: ['unlock_basic_assembler_mk1'],
-    effects: {} 
+    effects: {}
   },
   {
     id: 'unlock_mk2_circuitry_research',
@@ -134,7 +134,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 250,
     costMoney: 1200000,
-    dependencies: ['unlock_prod_line_3', 'unlock_basic_assembler_mk3'], 
+    dependencies: ['unlock_prod_line_3', 'unlock_basic_assembler_mk3'],
     effects: { unlocksProductionLineId: 'line_4' }
   },
   {
@@ -144,7 +144,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 500,
     costMoney: 3000000,
-    dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'], 
+    dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'],
     effects: { unlocksProductionLineId: 'line_5' }
   },
 
@@ -163,7 +163,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     id: 'unlock_drone_swarm_mk2',
     name: 'Advanced Drone Coordination',
     description: 'Unlocks the Heavy Drone Swarm Mk2 for superior material collection.',
-    icon: PackagePlus, 
+    icon: PackagePlus,
     costRP: 60,
     costMoney: 250000,
     dependencies: ['unlock_drone_swarm_mk1'],
@@ -215,7 +215,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     id: 'boost_drone_swarm_mk1',
     name: 'Drone Swarm Mk1 Efficiency',
     description: 'Boosts Drone Swarm Mk1 material collection rate by 50%.',
-    icon: PackageSearch, 
+    icon: PackageSearch,
     costRP: 40,
     costMoney: 100000,
     dependencies: ['unlock_drone_swarm_mk1'],
@@ -318,7 +318,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: TrendingUp,
     costRP: 150,
     costMoney: 450000,
-    dependencies: ['unlock_hydro_dam_small'], 
+    dependencies: ['unlock_hydro_dam_small'],
     effects: { unlocksFactoryPowerBuildingConfigIds: ['geothermal_plant_mk1'] }
   },
 
@@ -378,11 +378,11 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   {
     id: 'worker_stamina_1',
     name: 'Stamina Training I',
-    description: 'Increase max worker energy to 1 hour.',
+    description: 'Increase max worker energy to 1 hour (from 30 min).',
     icon: Users,
     costRP: 20,
     costMoney: 100000,
-    dependencies: ['unlock_basic_assembler_mk1'],
+    dependencies: ['unlock_basic_assembler_mk1'], // Base requirement to have workers be useful
     effects: { upgradesWorkerEnergyTier: true }
   },
   {
@@ -424,5 +424,56 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     costMoney: 5000000,
     dependencies: ['worker_stamina_4'],
     effects: { upgradesWorkerEnergyTier: true }
+  },
+
+  // Manual RP Generation Boosts
+  {
+    id: 'manual_rp_boost_1',
+    name: 'Research Focus I',
+    description: 'Increases manual RP generation by +1 (Total 2 RP per click).',
+    icon: FlaskConical,
+    costRP: 10,
+    costMoney: 20000,
+    effects: { increaseManualResearchBonus: 1 }
+  },
+  {
+    id: 'manual_rp_boost_2',
+    name: 'Research Focus II',
+    description: 'Increases manual RP generation by another +1 (Total 3 RP per click).',
+    icon: FlaskConical,
+    costRP: 150, // 10 * 15
+    costMoney: 300000, // 20000 * 15
+    dependencies: ['manual_rp_boost_1'],
+    effects: { increaseManualResearchBonus: 1 }
+  },
+  {
+    id: 'manual_rp_boost_3',
+    name: 'Research Focus III',
+    description: 'Increases manual RP generation by another +1 (Total 4 RP per click).',
+    icon: FlaskConical,
+    costRP: 2250, // 150 * 15
+    costMoney: 4500000, // 300000 * 15
+    dependencies: ['manual_rp_boost_2'],
+    effects: { increaseManualResearchBonus: 1 }
+  },
+  {
+    id: 'manual_rp_boost_4',
+    name: 'Research Focus IV',
+    description: 'Increases manual RP generation by another +1 (Total 5 RP per click).',
+    icon: FlaskConical,
+    costRP: 33750, // 2250 * 15
+    costMoney: 67500000, // 4500000 * 15
+    dependencies: ['manual_rp_boost_3'],
+    effects: { increaseManualResearchBonus: 1 }
+  },
+  {
+    id: 'manual_rp_boost_5',
+    name: 'Research Mastery',
+    description: 'Increases manual RP generation by another +1 (Total 6 RP per click).',
+    icon: FlaskConical,
+    costRP: 506250, // 33750 * 15
+    costMoney: 1012500000, // 67500000 * 15
+    dependencies: ['manual_rp_boost_4'],
+    effects: { increaseManualResearchBonus: 1 }
   },
 ];

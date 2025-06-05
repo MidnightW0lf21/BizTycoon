@@ -222,6 +222,7 @@ export interface ResearchItemEffects {
     powerOutputBoostPercent: number;
   };
   upgradesWorkerEnergyTier?: boolean;
+  increaseManualResearchBonus?: number;
 }
 
 export interface ResearchItemConfig {
@@ -261,6 +262,7 @@ export interface PlayerStats {
   factoryProductionProgress?: Record<string, number>;
   factoryWorkers: Worker[];
   currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
+  manualResearchBonus?: number;
 
   researchPoints: number;
   unlockedResearchIds: string[];

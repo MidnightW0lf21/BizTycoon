@@ -88,7 +88,7 @@ export default function MyFactoryPage() {
                             const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
                             return sum + (otherConfig?.powerConsumptionKw || 0);
                         }, 0));
-        
+
         if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
            let baseRate = config.materialsPerSecond;
            const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
@@ -305,6 +305,8 @@ export default function MyFactoryPage() {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
   };
+
+  const manualRPPointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStats.manualResearchBonus || 0);
 
 
   return (
@@ -643,13 +645,13 @@ export default function MyFactoryPage() {
                 )}
               </CardContent>
               <CardFooter className="pt-4">
-                <Button 
-                  onClick={hireWorker} 
+                <Button
+                  onClick={hireWorker}
                   disabled={playerStats.money < costForNextWorker || currentWorkerCount >= MAX_WORKERS}
                 >
-                  <UserPlus className="mr-2 h-4 w-4" /> 
-                  {currentWorkerCount >= MAX_WORKERS 
-                    ? "Max Workers Reached" 
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {currentWorkerCount >= MAX_WORKERS
+                    ? "Max Workers Reached"
                     : `Hire Worker ($${costForNextWorker.toLocaleString()})`}
                 </Button>
               </CardFooter>
@@ -678,7 +680,7 @@ export default function MyFactoryPage() {
                     <FlaskConical className="mr-2 h-5 w-5"/>
                     {secondsRemainingForResearchCooldown > 0
                       ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)`
-                      : `Manually Conduct Research (+${RESEARCH_MANUAL_GENERATION_AMOUNT} RP, $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()})`}
+                      : `Manually Conduct Research (+${manualRPPointsToGain} RP, $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()})`}
                   </Button>
                 </CardContent>
               </Card>

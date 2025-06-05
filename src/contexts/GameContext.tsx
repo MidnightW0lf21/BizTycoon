@@ -46,12 +46,12 @@ import {
   WORKER_HIRE_COST_BASE,
   WORKER_HIRE_COST_MULTIPLIER,
   MAX_WORKERS,
-  INITIAL_WORKER_MAX_ENERGY, 
+  INITIAL_WORKER_MAX_ENERGY,
   WORKER_ENERGY_RATE,
   WORKER_FIRST_NAMES,
   WORKER_LAST_NAMES,
-  WORKER_ENERGY_TIERS, 
-  INITIAL_WORKER_ENERGY_TIER 
+  WORKER_ENERGY_TIERS,
+  INITIAL_WORKER_ENERGY_TIER
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -141,6 +141,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     unlockedResearchIds: [...INITIAL_UNLOCKED_RESEARCH_IDS],
     lastManualResearchTimestamp: 0,
     currentWorkerEnergyTier: INITIAL_WORKER_ENERGY_TIER,
+    manualResearchBonus: 0,
   };
 };
 
@@ -366,6 +367,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -902,7 +904,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             replacedSlotIndex = replacementCandidate.slotIndex;
 
             newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
-            newMachineInstance.purchasedUpgradeIds = []; 
+            newMachineInstance.purchasedUpgradeIds = [];
 
 
             machineReplacedAnother = true;
@@ -1087,7 +1089,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         let updatedWorkers = [...(prev.factoryWorkers || [])];
                         if (workerIndex !== -1) {
                             if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
-                               updatedUpdatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
+                               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
                             } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
                                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                             }
@@ -1161,6 +1163,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
+    const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0);
 
     if (!playerStatsNow.factoryPurchased) {
       toastTitle = "Factory Not Owned";
@@ -1184,13 +1187,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setPlayerStats(prev => ({
           ...prev,
           money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
-          researchPoints: prev.researchPoints + RESEARCH_MANUAL_GENERATION_AMOUNT,
+          researchPoints: prev.researchPoints + pointsToGain,
           lastManualResearchTimestamp: now,
         }));
         manualResearchCooldownEndRef.current = now + RESEARCH_MANUAL_COOLDOWN_MS;
         setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
         toastTitle = "Research Conducted!";
-        toastDescription = `+${RESEARCH_MANUAL_GENERATION_AMOUNT} Research Point(s) gained.`;
+        toastDescription = `+${pointsToGain} Research Point(s) gained.`;
       }
     }
      if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1233,6 +1236,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newUnlockedResearchIds = [...(prev.unlockedResearchIds || []), researchId];
         let updatedProductionLines = [...(prev.factoryProductionLines || [])];
         let updatedCurrentWorkerEnergyTier = prev.currentWorkerEnergyTier;
+        let updatedManualResearchBonus = prev.manualResearchBonus || 0;
 
         if (researchConfig.effects.unlocksProductionLineId) {
           const lineToUnlockId = researchConfig.effects.unlocksProductionLineId;
@@ -1243,6 +1247,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (researchConfig.effects.upgradesWorkerEnergyTier) {
           updatedCurrentWorkerEnergyTier = Math.min(prev.currentWorkerEnergyTier + 1, WORKER_ENERGY_TIERS.length - 1);
         }
+        if (researchConfig.effects.increaseManualResearchBonus) {
+          updatedManualResearchBonus += researchConfig.effects.increaseManualResearchBonus;
+        }
 
 
         return {
@@ -1252,6 +1259,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           unlockedResearchIds: newUnlockedResearchIds,
           factoryProductionLines: updatedProductionLines,
           currentWorkerEnergyTier: updatedCurrentWorkerEnergyTier,
+          manualResearchBonus: updatedManualResearchBonus,
         };
       });
       toastTitle = "Research Complete!";
@@ -1264,6 +1272,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       if (researchConfig.effects.upgradesWorkerEnergyTier) {
         toastDescription += ` Max worker energy increased!`;
+      }
+      if (researchConfig.effects.increaseManualResearchBonus) {
+        toastDescription += ` Manual RP generation increased by ${researchConfig.effects.increaseManualResearchBonus}!`;
       }
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1330,9 +1341,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (workerToAssignIndex === -1) {
           toastVariant = "destructive";
           toastDescription = "Worker to assign not found.";
-          return prev; 
+          return prev;
         }
-        
+
         if (newWorkers[workerToAssignIndex].assignedMachineInstanceId && newWorkers[workerToAssignIndex].assignedMachineInstanceId !== machineInstanceId) {
         }
 
@@ -1348,7 +1359,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (workerId === null) {
         const previouslyAssignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId);
-         if (previouslyAssignedWorker) { 
+         if (previouslyAssignedWorker) {
             toastDescription = `${previouslyAssignedWorker.name} has been unassigned from ${targetMachineName} and is now idle.`;
         } else {
             toastDescription = `${targetMachineName} now has no worker assigned.`;
@@ -1436,31 +1447,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
       setPlayerStats(prev => ({
-          ...newInitialPlayerStats, 
+          ...newInitialPlayerStats,
           money: moneyAfterPrestige,
           prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
           timesPrestiged: prev.timesPrestiged + 1,
-          unlockedSkillIds: prev.unlockedSkillIds, 
-          hqUpgradeLevels: prev.hqUpgradeLevels, 
-          stockHoldings: retainedStockHoldings, 
+          unlockedSkillIds: prev.unlockedSkillIds,
+          hqUpgradeLevels: prev.hqUpgradeLevels,
+          stockHoldings: retainedStockHoldings,
 
           factoryPurchased,
-          factoryPowerUnitsGenerated: 0, 
-          factoryPowerConsumptionKw: 0, 
+          factoryPowerUnitsGenerated: 0,
+          factoryPowerConsumptionKw: 0,
           factoryRawMaterials,
           factoryMachines: newMachinesState,
           factoryProductionLines: newInitialPlayerStats.factoryProductionLines.map((line, index) => ({
             ...line,
-            isUnlocked: prev.factoryProductionLines[index]?.isUnlocked || false 
+            isUnlocked: prev.factoryProductionLines[index]?.isUnlocked || false
           })),
-          factoryPowerBuildings, 
+          factoryPowerBuildings,
           factoryProducedComponents,
-          factoryProductionProgress: {}, 
+          factoryProductionProgress: {},
           factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: currentDynamicMaxEnergy, assignedMachineInstanceId: null })),
-          researchPoints: 0, 
-          unlockedResearchIds: prev.unlockedResearchIds, 
+          researchPoints: 0,
+          unlockedResearchIds: prev.unlockedResearchIds,
           lastManualResearchTimestamp: 0,
-          currentWorkerEnergyTier: prev.currentWorkerEnergyTier, 
+          currentWorkerEnergyTier: prev.currentWorkerEnergyTier,
+          manualResearchBonus: prev.manualResearchBonus, // Persist manual research bonus
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
@@ -1547,6 +1559,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
             lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
             currentWorkerEnergyTier: typeof loadedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+            manualResearchBonus: typeof loadedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1795,7 +1808,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                       if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) >= currentMachinePowerConsumption) {
                           const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                           let currentProgress = newFactoryProductionProgress[progressKey] || 0;
-                          
+
                           let effectiveProductionTime = componentRecipe.productionTimeSeconds;
                           let totalSpeedMultiplier = 1;
                           (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
@@ -1805,8 +1818,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             }
                           });
                           effectiveProductionTime /= totalSpeedMultiplier;
-                          
-                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime)); 
+
+                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime));
 
                           if (currentProgress >= 1) {
                             let canCraftOneFull = true;
@@ -1855,7 +1868,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(gameTickIntervalId);
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]); 
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]);
 
   useEffect(() => {
     const pStats = playerStatsRef.current;
