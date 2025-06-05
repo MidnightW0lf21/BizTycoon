@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { MAX_WORKER_ENERGY } from "@/config/game-config";
 
@@ -169,24 +169,28 @@ export function RecipeSelectionDialog({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None (Unassign)</SelectItem>
-                      <SelectLabel>Available Workers</SelectLabel>
-                      {allWorkers.filter(w => w.assignedMachineInstanceId === null || w.assignedMachineInstanceId === assignedMachineInstanceId).map(worker => (
-                        <SelectItem key={worker.id} value={worker.id}>
-                          {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status})
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        <SelectLabel>Available Workers</SelectLabel>
+                        {allWorkers.filter(w => w.assignedMachineInstanceId === null || w.assignedMachineInstanceId === assignedMachineInstanceId).map(worker => (
+                          <SelectItem key={worker.id} value={worker.id}>
+                            {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status})
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                       {allWorkers.filter(w => w.assignedMachineInstanceId !== null && w.assignedMachineInstanceId !== assignedMachineInstanceId).length > 0 && (
-                         <SelectLabel className="text-muted-foreground italic">Assigned Elsewhere</SelectLabel>
+                        <SelectGroup>
+                           <SelectLabel className="text-muted-foreground italic">Assigned Elsewhere</SelectLabel>
+                           {allWorkers.filter(w => w.assignedMachineInstanceId !== null && w.assignedMachineInstanceId !== assignedMachineInstanceId).map(worker => {
+                             const assignedMachine = allPlayerMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
+                             const assignedMachineConfig = assignedMachine ? allMachineConfigs.find(mc => mc.id === assignedMachine.configId) : null;
+                             return (
+                                <SelectItem key={worker.id} value={worker.id}>
+                                    {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status}) (on {assignedMachineConfig?.name || 'another machine'})
+                                </SelectItem>
+                             );
+                           })}
+                        </SelectGroup>
                       )}
-                       {allWorkers.filter(w => w.assignedMachineInstanceId !== null && w.assignedMachineInstanceId !== assignedMachineInstanceId).map(worker => {
-                         const assignedMachine = allPlayerMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
-                         const assignedMachineConfig = assignedMachine ? allMachineConfigs.find(mc => mc.id === assignedMachine.configId) : null;
-                         return (
-                            <SelectItem key={worker.id} value={worker.id}>
-                                {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status}) (on {assignedMachineConfig?.name || 'another machine'})
-                            </SelectItem>
-                         );
-                       })}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
