@@ -136,7 +136,7 @@ export function ProductionLineDisplay({
             slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Progress: ${productionProgressPercent.toFixed(1)}%. ${workerTooltip}`;
           }
           
-          const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
+          const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
           const isPowered = netPower >= 0;
           const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
 
@@ -227,4 +227,3 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
-
