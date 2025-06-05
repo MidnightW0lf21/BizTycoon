@@ -127,7 +127,7 @@ export function RecipeSelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-4xl"> 
+      <DialogContent className="max-w-4xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto"> 
         <DialogHeader>
           <DialogTitle>Configure Slot {slotIndex + 1} ({machineConfig ? machineConfig.name : "Machine"})</DialogTitle>
           <DialogDescription>
