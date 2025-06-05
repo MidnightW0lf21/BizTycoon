@@ -4,9 +4,9 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -16,8 +16,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
-import type { FactoryMachine } from "@/types";
+import type { FactoryMachine, Worker } from "@/types";
 import { WORKER_HIRE_COST } from "@/config/data/workers";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
@@ -242,8 +246,24 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
   const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
-  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length; // Simplified idle: not working or resting
+  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length; 
   const totalWorkerCount = (playerStats.factoryWorkers || []).length;
+
+  const getWorkerStatusBadgeVariant = (status: Worker['status']) => {
+    switch (status) {
+      case 'working': return 'default';
+      case 'idle': return 'secondary';
+      case 'resting': return 'outline';
+      default: return 'secondary';
+    }
+  };
+
+  const formatEnergyTime = (energy: number) => {
+    const totalSeconds = energy; 
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  };
 
 
   return (
@@ -288,10 +308,11 @@ export default function MyFactoryPage() {
       </Card>
 
       <Tabs defaultValue="production" className="w-full flex-grow flex flex-col">
-        <TabsList className={`grid w-full ${researchTabAvailable ? 'grid-cols-5' : 'grid-cols-4'} mb-4`}>
+        <TabsList className={`grid w-full ${researchTabAvailable ? 'grid-cols-6' : 'grid-cols-5'} mb-4`}>
           <TabsTrigger value="power"><Zap className="mr-2 h-4 w-4"/>Power</TabsTrigger>
           <TabsTrigger value="materials"><Box className="mr-2 h-4 w-4"/>Materials</TabsTrigger>
           <TabsTrigger value="production"><Wrench className="mr-2 h-4 w-4"/>Production</TabsTrigger>
+          <TabsTrigger value="workers"><Users className="mr-2 h-4 w-4"/>Workers</TabsTrigger>
           {researchTabAvailable && <TabsTrigger value="research"><FlaskConical className="mr-2 h-4 w-4"/>Research</TabsTrigger>}
           <TabsTrigger value="inventory"><PackageCheck className="mr-2 h-4 w-4"/>Inventory</TabsTrigger>
         </TabsList>
@@ -407,6 +428,74 @@ export default function MyFactoryPage() {
                     onOpenRecipeDialog={handleOpenRecipeDialog}
                   />
                 ))}
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="workers" className="flex-grow">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Manage Workers</CardTitle>
+                <CardDescription>Monitor your workforce, their energy levels, and current assignments.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(playerStats.factoryWorkers || []).length === 0 ? (
+                  <p className="text-muted-foreground text-center py-6">No workers hired yet. Hire some to operate your machines!</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="w-[200px]">Energy</TableHead>
+                        <TableHead>Assignment</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(playerStats.factoryWorkers || []).map(worker => {
+                        const assignedMachine = worker.assignedMachineInstanceId
+                          ? (playerStats.factoryMachines || []).find(m => m.instanceId === worker.assignedMachineInstanceId)
+                          : null;
+                        const machineConfig = assignedMachine
+                          ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === assignedMachine.configId)
+                          : null;
+                        const assignmentText = machineConfig ? machineConfig.name : (worker.status === 'idle' ? 'Idle' : (worker.status === 'resting' ? 'Resting' : 'Unassigned'));
+                        const energyPercent = (worker.energy / MAX_WORKER_ENERGY) * 100;
+                        
+                        return (
+                          <TableRow key={worker.id}>
+                            <TableCell className="font-medium">{worker.name}</TableCell>
+                            <TableCell>
+                              <Badge variant={getWorkerStatusBadgeVariant(worker.status)} className="capitalize">
+                                {worker.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress 
+                                  value={energyPercent} 
+                                  className="h-2 w-24" 
+                                  indicatorClassName={cn(
+                                      worker.status === 'working' && energyPercent > 20 && 'bg-green-500',
+                                      worker.status === 'working' && energyPercent <= 20 && 'bg-orange-500',
+                                      worker.status === 'resting' && 'bg-blue-500',
+                                      worker.status === 'idle' && energyPercent === 100 && 'bg-slate-400',
+                                      worker.status === 'idle' && energyPercent < 100 && 'bg-yellow-500'
+                                  )}
+                                />
+                                <span className="text-xs text-muted-foreground">{formatEnergyTime(worker.energy)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{assignmentText}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                    {(playerStats.factoryWorkers || []).length > 5 && <TableCaption>A list of your current factory workers.</TableCaption>}
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </ScrollArea>
@@ -534,5 +623,4 @@ export default function MyFactoryPage() {
     </>
   );
 }
-
     
