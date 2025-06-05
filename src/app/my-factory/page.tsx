@@ -624,19 +624,24 @@ export default function MyFactoryPage() {
         <ScrollArea className="max-h-[60vh] pr-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             {(INITIAL_FACTORY_MACHINE_CONFIGS || []).map(config => {
-              const isLocked = !!config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId);
-              const researchName = isLocked ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name : undefined;
-              return (
-                <MachinePurchaseCard
-                  key={config.id}
-                  machineConfig={config}
-                  playerMoney={playerStats.money}
-                  onPurchase={purchaseFactoryMachine}
-                  isResearchLocked={isLocked}
-                  researchItemName={researchName}
-                />
-              );
-            })}
+              const isResearchRequired = !!config.requiredResearchId;
+              const isUnlockedByResearch = isResearchRequired ? (playerStats.unlockedResearchIds || []).includes(config.requiredResearchId) : true;
+              
+              if (!isResearchRequired || isUnlockedByResearch) {
+                 const researchName = isResearchRequired && !isUnlockedByResearch ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name : undefined;
+                return (
+                  <MachinePurchaseCard
+                    key={config.id}
+                    machineConfig={config}
+                    playerMoney={playerStats.money}
+                    onPurchase={purchaseFactoryMachine}
+                    isResearchLocked={isResearchRequired && !isUnlockedByResearch}
+                    researchItemName={researchName}
+                  />
+                );
+              }
+              return null; 
+            }).filter(Boolean)}
           </div>
         </ScrollArea>
         <DialogFooter>
@@ -647,5 +652,6 @@ export default function MyFactoryPage() {
     </>
   );
 }
+    
 
     
