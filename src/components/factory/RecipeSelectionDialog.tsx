@@ -273,7 +273,7 @@ export function RecipeSelectionDialog({
 
             <div className="md:col-span-1"> 
               <h3 className="text-lg font-semibold mb-2">Machine Upgrades</h3>
-              <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
+              <ScrollArea className="max-h-64 pr-4 border rounded-md p-2"> {/* Changed h-[50vh] to max-h-64 */}
                 <TooltipProvider delayDuration={100}>
                   {machineConfig.upgrades && machineConfig.upgrades.length > 0 ? (
                     <div className="space-y-3">
