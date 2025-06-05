@@ -1,17 +1,18 @@
 
 "use client";
 
-import type { FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, FactoryMachineUpgradeConfig } from "@/types";
+import type { FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, FactoryMachineUpgradeConfig, PlayerStats } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2 } from "lucide-react";
+import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2, PackageCheck, PackageX } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS } from "@/config/game-config";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useGame } from "@/contexts/GameContext"; // Import useGame to access playerStats
 
 
 interface RecipeSelectionDialogProps {
@@ -55,6 +56,8 @@ export function RecipeSelectionDialog({
   purchaseFactoryMachineUpgrade,
   currentDynamicMaxWorkerEnergy,
 }: RecipeSelectionDialogProps) {
+  const { playerStats } = useGame(); // Access playerStats here
+
   if (!isOpen || !assignedMachineInstanceId) return null;
 
   const machineInstance = allPlayerMachines.find(m => m.instanceId === assignedMachineInstanceId);
@@ -87,6 +90,17 @@ export function RecipeSelectionDialog({
     return `${hours}h ${minutes}m`;
   };
 
+  const isComponentCapped = (component: FactoryComponent): boolean => {
+    const ownedCount = playerStats.factoryProducedComponents?.[component.id] || 0;
+    if (component.effects?.globalIncomeBoostPerComponentPercent && component.effects.maxBonusPercent) {
+        const currentBonus = ownedCount * component.effects.globalIncomeBoostPerComponentPercent;
+        return currentBonus >= component.effects.maxBonusPercent;
+    }
+    // Add checks for other primary effect types here if needed
+    // For now, if no primary cappable effect is defined, assume not capped for UI purposes
+    return false;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-4xl"> 
@@ -111,19 +125,22 @@ export function RecipeSelectionDialog({
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
                 <div className="grid grid-cols-1 gap-3">
                   {allComponentConfigs.map((component) => {
-                    const canCraft = machineConfig.maxCraftableTier >= component.tier;
+                    const canCraftTier = machineConfig.maxCraftableTier >= component.tier;
                     const isCurrentlyCraftingThis = currentRecipeId === component.id;
                     const Icon = component.icon;
+                    const capped = isComponentCapped(component);
+                    const canSelect = canCraftTier && !capped;
 
                     return (
                       <Card
                         key={component.id}
                         className={cn(
-                          "cursor-pointer hover:shadow-md",
+                          "hover:shadow-md",
                           isCurrentlyCraftingThis ? "border-primary ring-2 ring-primary shadow-lg" : "border-border",
-                          !canCraft && "bg-muted/50 opacity-70 cursor-not-allowed"
+                          !canSelect && "bg-muted/50 opacity-70",
+                          canSelect && "cursor-pointer"
                         )}
-                        onClick={() => canCraft && handleSelectRecipe(component.id)}
+                        onClick={() => canSelect && handleSelectRecipe(component.id)}
                       >
                         <CardHeader className="pb-1 pt-3">
                           <div className="flex items-center justify-between">
@@ -131,7 +148,7 @@ export function RecipeSelectionDialog({
                               <Icon className="h-5 w-5 text-primary" />
                               {component.name}
                             </CardTitle>
-                            <Badge variant={isCurrentlyCraftingThis ? "default" : (canCraft ? "outline" : "secondary")} className={!canCraft && !isCurrentlyCraftingThis ? "bg-destructive text-destructive-foreground" : ""}>
+                            <Badge variant={isCurrentlyCraftingThis ? "default" : (canCraftTier ? (capped ? "destructive" : "outline") : "secondary")} className={!canCraftTier && !isCurrentlyCraftingThis ? "bg-destructive text-destructive-foreground" : ""}>
                               Tier {component.tier}
                             </Badge>
                           </div>
@@ -163,6 +180,20 @@ export function RecipeSelectionDialog({
                             <div className="p-2 pt-0 text-center">
                                 <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">Currently Crafting</Badge>
                             </div>
+                        )}
+                        {capped && !isCurrentlyCraftingThis && (
+                            <CardFooter className="p-2 pt-0 text-center">
+                                <Badge variant="destructive" className="w-full justify-center">
+                                  <PackageX className="mr-1 h-3 w-3"/> Max Bonus Reached
+                                </Badge>
+                            </CardFooter>
+                        )}
+                        {!canCraftTier && (
+                             <CardFooter className="p-2 pt-0 text-center">
+                                <Badge variant="secondary" className="w-full justify-center bg-destructive/80 text-destructive-foreground">
+                                  <LockKeyhole className="mr-1 h-3 w-3"/> Tier Too High
+                                </Badge>
+                            </CardFooter>
                         )}
                       </Card>
                     );

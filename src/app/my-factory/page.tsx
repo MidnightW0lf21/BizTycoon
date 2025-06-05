@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, InfoIcon, ListChecks as ListChecksIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -17,7 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
-import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType } from "@/types";
+import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType, FactoryComponent } from "@/types";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,17 @@ const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
 const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
 const FACTORY_INTRO_DISMISSED_KEY_V1 = 'bizTycoonFactoryIntroDismissed_v1';
+
+const getTierStyling = (tier: number): { border: string; background: string; text: string; } => {
+  switch (tier) {
+    case 1: return { border: "border-slate-400 dark:border-slate-600", background: "bg-slate-100/30 dark:bg-slate-800/20", text: "text-slate-700 dark:text-slate-300" };
+    case 2: return { border: "border-green-500", background: "bg-green-500/5 dark:bg-green-700/10", text: "text-green-700 dark:text-green-400" };
+    case 3: return { border: "border-blue-500", background: "bg-blue-500/5 dark:bg-blue-700/10", text: "text-blue-700 dark:text-blue-400" };
+    case 4: return { border: "border-purple-500", background: "bg-purple-500/5 dark:bg-purple-700/10", text: "text-purple-700 dark:text-purple-400" };
+    case 5: return { border: "border-amber-500", background: "bg-amber-500/5 dark:bg-amber-700/10", text: "text-amber-700 dark:text-amber-400" };
+    default: return { border: "border-gray-300 dark:border-gray-700", background: "bg-gray-100/30 dark:bg-gray-800/20", text: "text-gray-700 dark:text-gray-300"};
+  }
+};
 
 
 export default function MyFactoryPage() {
@@ -50,6 +61,8 @@ export default function MyFactoryPage() {
   } = useGame();
 
   const [isFactoryIntroVisible, setIsFactoryIntroVisible] = useState(true);
+  const [isBonusSummaryOpen, setIsBonusSummaryOpen] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -95,6 +108,20 @@ export default function MyFactoryPage() {
            if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
                baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
            }
+           // Check for global factory material collection boosts
+           let globalFactoryMaterialBoost = 0;
+           Object.entries(playerStats.factoryProducedComponents || {}).forEach(([componentId, count]) => {
+               const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+               if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent && count > 0) {
+                   const effectPerUnit = componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+                   const maxBonus = componentConfig.effects.maxBonusPercent ?? Infinity;
+                   globalFactoryMaterialBoost += Math.min(count * effectPerUnit, maxBonus);
+               }
+           });
+           if (globalFactoryMaterialBoost > 0) {
+               baseRate *= (1 + globalFactoryMaterialBoost / 100);
+           }
+
            totalMats += baseRate;
            powerUsedByCollectors += config.powerConsumptionKw;
         }
@@ -118,6 +145,19 @@ export default function MyFactoryPage() {
                 if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
                     baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
                 }
+                let globalFactoryMaterialBoost = 0;
+                 Object.entries(playerStats.factoryProducedComponents || {}).forEach(([componentId, count]) => {
+                     const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+                     if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent && count > 0) {
+                         const effectPerUnit = componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+                         const maxBonus = componentConfig.effects.maxBonusPercent ?? Infinity;
+                         globalFactoryMaterialBoost += Math.min(count * effectPerUnit, maxBonus);
+                     }
+                 });
+                 if (globalFactoryMaterialBoost > 0) {
+                     baseRate *= (1 + globalFactoryMaterialBoost / 100);
+                 }
+
                 actualTotalMats += baseRate;
                 tempPower -= config.powerConsumptionKw;
             }
@@ -133,7 +173,8 @@ export default function MyFactoryPage() {
       playerStats.factoryPowerConsumptionKw,
       netPower,
       playerStats.unlockedResearchIds,
-      researchItems
+      researchItems,
+      playerStats.factoryProducedComponents
   ]);
 
 
@@ -353,6 +394,61 @@ export default function MyFactoryPage() {
   const numManualRPBoostStagesCompleted = (playerStats.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
   const currentManualRPCostMoney = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numManualRPBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
 
+  const renderProducedComponent = (compConfig: FactoryComponent) => {
+    const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
+    if (count === 0 && !Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) return null;
+
+    const Icon = compConfig.icon;
+    const tierStyling = getTierStyling(compConfig.tier);
+    let currentBonusDisplay = "";
+    let maxBonusDisplay = "";
+
+    // For now, only displaying primary global income boost. This section would need to be more generic for other effects.
+    if (compConfig.effects?.globalIncomeBoostPerComponentPercent) {
+        const effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
+        const currentTotalEffect = count * effectPerUnit;
+        const maxBonus = compConfig.effects.maxBonusPercent ?? Infinity;
+        currentBonusDisplay = `+${Math.min(currentTotalEffect, maxBonus).toFixed(3)}% Global Inc.`;
+        maxBonusDisplay = `/ Max: +${maxBonus.toFixed(3)}%`;
+    } else if (compConfig.effects?.businessSpecificIncomeBoostPercent) {
+        const effect = compConfig.effects.businessSpecificIncomeBoostPercent;
+        const currentTotalEffect = count * effect.percent;
+        const maxBonus = compConfig.effects.maxBonusPercent ?? Infinity;
+        currentBonusDisplay = `+${Math.min(currentTotalEffect, maxBonus).toFixed(2)}% ${effect.businessName || effect.businessId} Inc.`;
+        maxBonusDisplay = `/ Max: +${maxBonus.toFixed(2)}%`;
+    } // Add more 'else if' for other primary effects if needed for card display
+
+    return (
+      <Card key={compConfig.id} className={cn("p-3 flex flex-col text-center shadow-md hover:shadow-lg", tierStyling.border, tierStyling.background)}>
+        <div className="flex items-center justify-between mb-1">
+          <Icon className={cn("h-7 w-7", tierStyling.text)} />
+          <Badge variant="outline" className={cn("text-xs px-1.5 py-0.5", tierStyling.border, tierStyling.text, getTierStyling(compConfig.tier).background.replace(/(\w+-)(\d+)\/(\d+)/, '$1$2/80'))}> {/* Darken bg for badge slightly */}
+            Tier {compConfig.tier}
+          </Badge>
+        </div>
+        <p className={cn("font-semibold text-sm", tierStyling.text)}>{compConfig.name}</p>
+        <p className={cn("text-xl font-bold", tierStyling.text, "my-0.5")}>{count.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+        <p className="text-xs text-muted-foreground flex-grow min-h-[30px]">{compConfig.description}</p>
+        {currentBonusDisplay && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn("mt-1.5 text-xs", tierStyling.text, "opacity-80")}>
+                <Lightbulb className="inline h-3 w-3 mr-0.5"/>
+                <span>{currentBonusDisplay} {maxBonusDisplay}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{compConfig.effects?.globalIncomeBoostPerComponentPercent ? `Each provides +${compConfig.effects.globalIncomeBoostPerComponentPercent.toFixed(4)}% global income.` : 
+                  compConfig.effects?.businessSpecificIncomeBoostPercent ? `Each provides +${compConfig.effects.businessSpecificIncomeBoostPercent.percent.toFixed(3)}% to ${compConfig.effects.businessSpecificIncomeBoostPercent.businessName || compConfig.effects.businessSpecificIncomeBoostPercent.businessId}` :
+                   'Provides a special bonus.'}</p>
+              <p>Current contribution: {currentBonusDisplay}</p>
+              <p>Max possible bonus from this component type: {compConfig.effects?.maxBonusPercent?.toFixed(2)}%</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </Card>
+    );
+  };
 
   return (
     <>
@@ -763,47 +859,21 @@ export default function MyFactoryPage() {
         <TooltipProvider>
           <ScrollArea className="h-[calc(100vh-380px)] pr-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Produced Components</CardTitle>
-                <CardDescription>Inventory of components manufactured by your factory. These persist through prestige and may provide bonuses.</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Produced Components Inventory</CardTitle>
+                  <CardDescription>Components manufactured by your factory. These persist through prestige and provide bonuses.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsBonusSummaryOpen(true)}>
+                  <ListChecksIcon className="mr-2 h-4 w-4"/> View Bonus Summary
+                </Button>
               </CardHeader>
               <CardContent>
                 {Object.keys(playerStats.factoryProducedComponents || {}).length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No components produced yet.</p>
+                  <p className="text-muted-foreground text-center py-4">No components produced yet. Start your production lines!</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {INITIAL_FACTORY_COMPONENTS_CONFIG.map(compConfig => {
-                      const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
-                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) {
-                        const Icon = compConfig.icon;
-                        const totalBonus = compConfig.effects?.globalIncomeBoostPerComponentPercent
-                                            ? count * compConfig.effects.globalIncomeBoostPerComponentPercent
-                                            : 0;
-                        return (
-                          <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
-                            <Icon className="h-10 w-10 text-primary mb-2" />
-                            <p className="font-semibold">{compConfig.name}</p>
-                            <p className="text-2xl font-bold text-accent">{count.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
-                            <p className="text-xs text-muted-foreground">{compConfig.description}</p>
-                            {compConfig.effects?.globalIncomeBoostPerComponentPercent && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="mt-2 text-xs text-green-500 flex items-center gap-1">
-                                    <Lightbulb className="h-3 w-3"/>
-                                    <span>Bonus: +{totalBonus.toFixed(3)}% Global Income</span>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Each {compConfig.name} provides +{compConfig.effects.globalIncomeBoostPerComponentPercent.toFixed(4)}% global income.</p>
-                                  <p>Total from {count.toLocaleString('en-US', {maximumFractionDigits: 0})} units: +{totalBonus.toFixed(3)}%</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                          </Card>
-                        );
-                      }
-                      return null;
-                    })}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {INITIAL_FACTORY_COMPONENTS_CONFIG.map(renderProducedComponent).filter(Boolean)}
                   </div>
                 )}
               </CardContent>
@@ -871,7 +941,27 @@ export default function MyFactoryPage() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={isBonusSummaryOpen} onOpenChange={setIsBonusSummaryOpen}>
+        <DialogContent className="max-w-lg">
+            <DialogHeader>
+                <DialogTitle>Factory Component Bonus Summary</DialogTitle>
+                <DialogDescription>
+                    Overview of all active bonuses from your produced factory components.
+                </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] pr-3 py-4">
+                <p className="text-muted-foreground text-sm">
+                    This dialog will list all active global income, business-specific, stock-specific, and factory-specific bonuses.
+                    (Implementation for detailed bonus listing is pending.)
+                </p>
+                {/* TODO: Implement detailed bonus listing here */}
+            </ScrollArea>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsBonusSummaryOpen(false)}>Close</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
     </>
   );
 }
-
