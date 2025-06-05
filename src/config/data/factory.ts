@@ -1,6 +1,6 @@
 
-import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp } from 'lucide-react';
+import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, FactoryMachineUpgradeConfig } from '@/types';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -120,7 +120,7 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     mark: 2,
     upgrades: [
       { id: 'mk2_high_speed_actuators', name: 'High-Speed Actuators', description: '+15% Production Speed', costMoney: 150000, effects: { productionSpeedMultiplier: 1.15 } },
-      { id: 'mk2_optimized_circuitry', name: 'Optimized Circuitry', description: '-15% Power Consumption', costMoney: 100000, costRP: 15, effects: { powerConsumptionModifier: 0.85 } }
+      { id: 'mk2_optimized_circuitry', name: 'Optimized Circuitry', description: '-15% Power Consumption', costMoney: 100000, costRP: 15, effects: { powerConsumptionModifier: 0.85 }, requiredResearchId: 'unlock_mk2_circuitry_research' }
     ]
   },
   {
@@ -134,6 +134,10 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     requiredResearchId: 'unlock_basic_assembler_mk3',
     familyId: 'basic_assembler',
     mark: 3,
+    upgrades: [
+      { id: 'mk3_reinforced_servos', name: 'Reinforced Servos', description: '+18% Production Speed', costMoney: 300000, effects: { productionSpeedMultiplier: 1.18 } },
+      { id: 'mk3_cryo_cooled_core', name: 'Cryo-Cooled Core', description: '-18% Power Consumption', costMoney: 200000, costRP: 30, effects: { powerConsumptionModifier: 0.82 }, requiredResearchId: 'unlock_mk3_cryo_core_research' }
+    ]
   },
   {
     id: 'basic_assembler_mk4',
@@ -146,6 +150,10 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     requiredResearchId: 'unlock_basic_assembler_mk4',
     familyId: 'basic_assembler',
     mark: 4,
+    upgrades: [
+      { id: 'mk4_quantum_drive_belts', name: 'Quantum Drive Belts', description: '+22% Production Speed', costMoney: 800000, effects: { productionSpeedMultiplier: 1.22 } },
+      { id: 'mk4_micro_fusion_cell', name: 'Micro Fusion Cell', description: '-22% Power Consumption', costMoney: 600000, costRP: 75, effects: { powerConsumptionModifier: 0.78 }, requiredResearchId: 'unlock_mk4_fusion_cell_research' }
+    ]
   },
   {
     id: 'basic_assembler_mk5',
@@ -158,6 +166,10 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     requiredResearchId: 'unlock_basic_assembler_mk5',
     familyId: 'basic_assembler',
     mark: 5,
+    upgrades: [
+      { id: 'mk5_temporal_gearbox', name: 'Temporal Gearbox', description: '+25% Production Speed', costMoney: 2000000, effects: { productionSpeedMultiplier: 1.25 } },
+      { id: 'mk5_zero_point_module', name: 'Zero-Point Module', description: '-25% Power Consumption', costMoney: 1500000, costRP: 150, effects: { powerConsumptionModifier: 0.75 }, requiredResearchId: 'unlock_mk5_zpm_research' }
+    ]
   }
 ];
 

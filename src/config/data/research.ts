@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   // Assembler Unlocks
@@ -65,6 +65,47 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_basic_assembler_mk1'],
     effects: {} 
   },
+  {
+    id: 'unlock_mk2_circuitry_research',
+    name: 'Mk2 Circuitry Efficiency',
+    description: 'Unlocks the "Optimized Circuitry" upgrade for Basic Assembler Mk2 machines.',
+    icon: Zap,
+    costRP: 20,
+    costMoney: 75000,
+    dependencies: ['unlock_basic_assembler_mk2'],
+    effects: {}
+  },
+  {
+    id: 'unlock_mk3_cryo_core_research',
+    name: 'Mk3 Cryo-Cooling Tech',
+    description: 'Unlocks the "Cryo-Cooled Core" upgrade for Basic Assembler Mk3 machines.',
+    icon: Zap,
+    costRP: 40,
+    costMoney: 150000,
+    dependencies: ['unlock_basic_assembler_mk3'],
+    effects: {}
+  },
+  {
+    id: 'unlock_mk4_fusion_cell_research',
+    name: 'Mk4 Micro Fusion Power',
+    description: 'Unlocks the "Micro Fusion Cell" upgrade for Basic Assembler Mk4 machines.',
+    icon: AtomIcon,
+    costRP: 100,
+    costMoney: 500000,
+    dependencies: ['unlock_basic_assembler_mk4'],
+    effects: {}
+  },
+  {
+    id: 'unlock_mk5_zpm_research',
+    name: 'Mk5 Zero-Point Energy',
+    description: 'Unlocks the "Zero-Point Module" upgrade for Basic Assembler Mk5 machines.',
+    icon: InfinityIcon,
+    costRP: 200,
+    costMoney: 1000000,
+    dependencies: ['unlock_basic_assembler_mk5'],
+    effects: {}
+  },
+
 
   // Production Line Unlocks
   {
