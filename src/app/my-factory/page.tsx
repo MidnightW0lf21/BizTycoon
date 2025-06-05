@@ -13,9 +13,11 @@ import { ProductionLineDisplay } from "@/components/factory/ProductionLineDispla
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
+import type { FactoryMachine } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
-const FACTORY_PURCHASE_COST = 1000000;
+// const FACTORY_PURCHASE_COST = 1000000; // Already in game-config
 const MATERIAL_COLLECTION_AMOUNT = 10;
 
 export default function MyFactoryPage() {
@@ -27,9 +29,17 @@ export default function MyFactoryPage() {
     purchaseFactoryMachine,
     calculateNextMachineCost,
     materialCollectionCooldownEnd,
+    setRecipeForProductionSlot, // Added from context
   } = useGame();
 
   const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
+  const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
+  const [currentDialogContext, setCurrentDialogContext] = useState<{
+    productionLineId: string;
+    slotIndex: number;
+    assignedMachineInstanceId: string | null;
+    currentRecipeId: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!playerStats.factoryPurchased) return;
@@ -47,7 +57,7 @@ export default function MyFactoryPage() {
     };
 
     if (materialCollectionCooldownEnd > Date.now()) {
-      updateCooldown(); // Initial update
+      updateCooldown(); 
       intervalId = setInterval(updateCooldown, 1000);
     } else {
       setSecondsRemainingForCooldown(0);
@@ -55,6 +65,25 @@ export default function MyFactoryPage() {
 
     return () => clearInterval(intervalId);
   }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
+
+  const handleOpenRecipeDialog = (productionLineId: string, slotIndex: number) => {
+    const line = playerStats.factoryProductionLines.find(l => l.id === productionLineId);
+    if (line && line.slots[slotIndex]) {
+      const slot = line.slots[slotIndex];
+      setCurrentDialogContext({
+        productionLineId,
+        slotIndex,
+        assignedMachineInstanceId: slot.machineInstanceId,
+        currentRecipeId: slot.targetComponentId,
+      });
+      setIsRecipeDialogOpen(true);
+    }
+  };
+
+  const handleCloseRecipeDialog = () => {
+    setIsRecipeDialogOpen(false);
+    setCurrentDialogContext(null);
+  };
 
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
@@ -78,6 +107,7 @@ export default function MyFactoryPage() {
   }
 
   if (!playerStats.factoryPurchased) {
+    const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000; // Using game-config value
     return (
       <Card className="w-full md:max-w-lg mx-auto">
         <CardHeader className="items-center">
@@ -91,7 +121,7 @@ export default function MyFactoryPage() {
         <CardContent className="text-center space-y-4">
           <div className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
             <DollarSign className="h-7 w-7" />
-            {FACTORY_PURCHASE_COST.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+            {FACTORY_PURCHASE_COST_FROM_CONFIG.toLocaleString('en-US', { maximumFractionDigits: 0 })}
           </div>
           <p className="text-sm text-muted-foreground">
             Your current balance: ${playerStats.money.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -101,7 +131,7 @@ export default function MyFactoryPage() {
           <Button 
             onClick={purchaseFactoryBuilding} 
             className="w-full"
-            disabled={playerStats.money < FACTORY_PURCHASE_COST}
+            disabled={playerStats.money < FACTORY_PURCHASE_COST_FROM_CONFIG}
           >
             <ShoppingCart className="mr-2 h-5 w-5" /> Purchase Factory Building
           </Button>
@@ -119,6 +149,7 @@ export default function MyFactoryPage() {
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
 
   return (
+    <>
     <div className="flex flex-col gap-6 h-full">
       <Card>
         <CardHeader>
@@ -225,7 +256,7 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Production Lines</CardTitle>
-                <CardDescription>Machines are auto-assigned to empty slots. Production starts if power and materials are sufficient.</CardDescription>
+                <CardDescription>Machines are auto-assigned to empty slots. Click a machine to set or change its recipe. Production starts if power, materials, and input components are sufficient.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {playerStats.factoryProductionLines.map((line, index) => (
@@ -234,6 +265,7 @@ export default function MyFactoryPage() {
                     productionLine={line}
                     allMachines={playerStats.factoryMachines} 
                     lineIndex={index}
+                    onOpenRecipeDialog={handleOpenRecipeDialog}
                   />
                 ))}
               </CardContent>
@@ -295,6 +327,21 @@ export default function MyFactoryPage() {
         </TabsContent>
       </Tabs>
     </div>
+    
+    {currentDialogContext && (
+      <RecipeSelectionDialog
+        isOpen={isRecipeDialogOpen}
+        onClose={handleCloseRecipeDialog}
+        productionLineId={currentDialogContext.productionLineId}
+        slotIndex={currentDialogContext.slotIndex}
+        assignedMachineInstanceId={currentDialogContext.assignedMachineInstanceId}
+        allMachineConfigs={INITIAL_FACTORY_MACHINE_CONFIGS}
+        allPlayerMachines={playerStats.factoryMachines}
+        allComponentConfigs={INITIAL_FACTORY_COMPONENTS_CONFIG}
+        setRecipe={setRecipeForProductionSlot}
+        currentRecipeId={currentDialogContext.currentRecipeId}
+      />
+    )}
+    </>
   );
 }
-
