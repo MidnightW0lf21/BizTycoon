@@ -441,7 +441,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     name: 'Research Focus II',
     description: 'Increases manual RP generation by another +1 (Total 3 RP per click).',
     icon: FlaskConical,
-    costRP: 150, // 10 * 15
+    costRP: 20, // 10 + 10
     costMoney: 300000, // 20000 * 15
     dependencies: ['manual_rp_boost_1'],
     effects: { increaseManualResearchBonus: 1 }
@@ -451,7 +451,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     name: 'Research Focus III',
     description: 'Increases manual RP generation by another +1 (Total 4 RP per click).',
     icon: FlaskConical,
-    costRP: 2250, // 150 * 15
+    costRP: 30, // 20 + 10
     costMoney: 4500000, // 300000 * 15
     dependencies: ['manual_rp_boost_2'],
     effects: { increaseManualResearchBonus: 1 }
@@ -461,7 +461,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     name: 'Research Focus IV',
     description: 'Increases manual RP generation by another +1 (Total 5 RP per click).',
     icon: FlaskConical,
-    costRP: 33750, // 2250 * 15
+    costRP: 40, // 30 + 10
     costMoney: 67500000, // 4500000 * 15
     dependencies: ['manual_rp_boost_3'],
     effects: { increaseManualResearchBonus: 1 }
@@ -471,7 +471,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     name: 'Research Mastery',
     description: 'Increases manual RP generation by another +1 (Total 6 RP per click).',
     icon: FlaskConical,
-    costRP: 506250, // 33750 * 15
+    costRP: 50, // 40 + 10
     costMoney: 1012500000, // 67500000 * 15
     dependencies: ['manual_rp_boost_4'],
     effects: { increaseManualResearchBonus: 1 }
