@@ -17,7 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
-import type { FactoryMachine, Worker } from "@/types";
+import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType } from "@/types";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -219,6 +219,49 @@ export default function MyFactoryPage() {
     setIsRecipeDialogOpen(false);
     setCurrentDialogContext(null);
   };
+
+  const sortedAndFilteredResearchItems = useMemo(() => {
+    const unpurchased = researchItems.filter(
+      (config) => !(playerStats.unlockedResearchIds || []).includes(config.id)
+    );
+
+    const canPurchase = (config: ResearchItemType): boolean => {
+      const dependenciesMet = config.dependencies
+        ? config.dependencies.every((depId) =>
+            (playerStats.unlockedResearchIds || []).includes(depId)
+          )
+        : true;
+      const affordableRP = playerStats.researchPoints >= config.costRP;
+      const affordableMoney = config.costMoney
+        ? playerStats.money >= config.costMoney
+        : true;
+      return dependenciesMet && affordableRP && affordableMoney;
+    };
+
+    // 0: Purchasable, 1: Cannot afford (deps met), 2: Dependencies not met
+    const getLockedStatus = (config: ResearchItemType): number => {
+      if (canPurchase(config)) return 0;
+
+      const dependenciesMet = config.dependencies
+        ? config.dependencies.every((depId) =>
+            (playerStats.unlockedResearchIds || []).includes(depId)
+          )
+        : true;
+      if (!dependenciesMet) return 2;
+
+      return 1; 
+    };
+
+    return unpurchased.sort((a, b) => {
+      const aStatus = getLockedStatus(a);
+      const bStatus = getLockedStatus(b);
+
+      if (aStatus !== bStatus) {
+        return aStatus - bStatus;
+      }
+      return a.costRP - b.costRP;
+    });
+  }, [researchItems, playerStats.unlockedResearchIds, playerStats.researchPoints, playerStats.money]);
 
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
@@ -689,19 +732,27 @@ export default function MyFactoryPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Available Research Projects</CardTitle>
-                  <CardDescription>Unlock new technologies, machines, components, and production lines.</CardDescription>
+                  <CardDescription>Unlock new technologies, machines, components, and production lines. Sorted by availability.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {(researchItems || []).map(config => (
-                    <ResearchItemCard
-                      key={config.id}
-                      researchConfig={config}
-                      playerResearchPoints={playerStats.researchPoints}
-                      playerMoney={playerStats.money}
-                      unlockedResearchIds={playerStats.unlockedResearchIds || []}
-                      onPurchase={purchaseResearch}
-                    />
-                  ))}
+                <CardContent>
+                {sortedAndFilteredResearchItems.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      No research projects currently available or all projects have been completed.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {sortedAndFilteredResearchItems.map(config => (
+                        <ResearchItemCard
+                          key={config.id}
+                          researchConfig={config}
+                          playerResearchPoints={playerStats.researchPoints}
+                          playerMoney={playerStats.money}
+                          unlockedResearchIds={playerStats.unlockedResearchIds || []}
+                          onPurchase={purchaseResearch}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </ScrollArea>
