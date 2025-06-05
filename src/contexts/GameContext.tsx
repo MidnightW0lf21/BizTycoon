@@ -492,7 +492,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               };
           }));
         setLastSavedTimestamp(loadedData.lastSaved || Date.now());
-        materialCollectionCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + MATERIAL_COLLECTION_COOLDOWN_MS : 0; // Not quite, but for init
+        materialCollectionCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + MATERIAL_COLLECTION_COOLDOWN_MS : 0; 
         manualResearchCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + RESEARCH_MANUAL_COOLDOWN_MS : 0;
         setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
         setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
@@ -504,6 +504,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -573,7 +574,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         achievedBusinessMilestones: newAchievedBusinessMilestonesForAutoBuy,
       }));
     }
-  }, [playerStats.money, playerStats.unlockedSkillIds, businesses]); // Auto-buy depends on money and skills
+  }, [playerStats.money, playerStats.unlockedSkillIds, businesses]); 
   
   const getBusinessIncome = useCallback((businessId: string): number => {
     const business = businessesRef.current.find(b => b.id === businessId);
@@ -638,7 +639,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryMaterialCollectors: Array.isArray(importedData.playerStats.factoryMaterialCollectors) ? importedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
         researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
-        lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+        lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(INITIAL_BUSINESSES.map(initialBiz => {
@@ -662,6 +663,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Import Error", description: `Failed to import save data. ${error instanceof Error ? error.message : 'Unknown error.'}`, variant: "destructive"});
       return false;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const wipeGameData = useCallback(() => {
@@ -679,6 +681,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMaterialCollectionCooldownEnd(0); 
     setManualResearchCooldownEnd(0);
     toastRef.current({ title: "Game Data Wiped", description: "All progress has been reset to default.", variant: "destructive"});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const _attemptAutoAssignSingleMachine = useCallback((machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
@@ -728,7 +731,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         return prev; 
     });
-  }, [_attemptAutoAssignSingleMachine]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_attemptAutoAssignSingleMachine, toastRef]);
   
   const purchaseBusinessUpgrade = useCallback((businessId: string, upgradeId: string, isAutoBuy: boolean = false): boolean => {
     const playerStatsNow = playerStatsRef.current;
@@ -791,13 +795,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${businessToUpdate.name}`, duration: 1500 });
     }
     return true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
     const playerStatsNow = playerStatsRef.current;
     const businessToUpdate = businessesRef.current.find(b => b.id === businessId);
 
-    if (!businessToUpdate) return;
+    if (!businessToUpdate) {
+      toastRef.current({ title: "Business Not Found", variant: "destructive"});
+      return;
+    }
 
     const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
     if (playerStatsNow.timesPrestiged < businessIndexInConfig) {
@@ -835,6 +843,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPlayerStats(prev => ({ ...prev, money: prev.money - totalCost, achievedBusinessMilestones: newAchievedMilestones, }));
     
     toastRef.current({ title: "Business Leveled Up!", description: `${businessToUpdate.name} is now level ${newLevelAfterUpgrade} (+${levelsPurchasable}).` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getDynamicMaxBusinessLevel]);
 
   const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
@@ -855,7 +864,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const initialStockData = INITIAL_STOCKS.find(is => is.id === stockId);
-    if (!initialStockData) return; 
+    if (!initialStockData) {
+      toastRef.current({ title: "Stock Config Error", variant: "destructive" });
+      return;
+    }
 
     const existingHolding = playerStatsNow.stockHoldings.find(h => h.stockId === stockId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
@@ -891,6 +903,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: stock.price }]
     }));
     toastRef.current({ title: "Stock Purchased!", description: `Bought ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sellStock = useCallback((stockId: string, sharesToSell: number) => {
@@ -925,6 +938,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         : prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares - sharesToSell } : h)
     }));
     toastRef.current({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const unlockSkillNode = useCallback((skillId: string) => {
@@ -953,6 +967,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
     }));
     toastRef.current({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const purchaseHQUpgrade = useCallback((upgradeId: string) => {
@@ -991,6 +1006,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       hqUpgradeLevels: { ...prev.hqUpgradeLevels, [upgradeId]: nextLevel },
     }));
     toastRef.current({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevel}.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   const purchaseFactoryBuilding = useCallback(() => {
@@ -1005,16 +1021,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setPlayerStats(prev => ({ ...prev, money: prev.money - FACTORY_PURCHASE_COST, factoryPurchased: true, }));
     toastRef.current({ title: "Factory Purchased!", description: "You can now start building your industrial empire!" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const purchaseFactoryPowerBuilding = useCallback((configId: string) => {
+    const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
     if (!config) {
       toastRef.current({ title: "Power Building Not Found", variant: "destructive"});
       return;
     }
 
-    const playerStatsNow = playerStatsRef.current;
     if (!playerStatsNow.factoryPurchased) {
       toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
       return;
@@ -1039,36 +1056,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money - costForNext, factoryPowerBuildings: updatedPowerBuildings, factoryPowerUnitsGenerated: newTotalPower, };
     });
     toastRef.current({ title: "Power Building Purchased!", description: `Built a new ${config.name}.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const manuallyCollectRawMaterials = useCallback(() => {
+    const playerStatsNow = playerStatsRef.current;
+    if (!playerStatsNow.factoryPurchased) {
+     toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+     return;
+    }
     const now = Date.now();
     if (now < materialCollectionCooldownEndRef.current) {
         const timeLeft = Math.ceil((materialCollectionCooldownEndRef.current - now) / 1000);
         toastRef.current({ title: "On Cooldown", description: `Please wait ${timeLeft}s before collecting again.`, variant: "default"});
         return;
     }
-
-    const playerStatsNow = playerStatsRef.current;
-    if (!playerStatsNow.factoryPurchased) {
-     toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-     return;
-    }
-
+    
+    setPlayerStats(prev => ({ ...prev, factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT }));
     materialCollectionCooldownEndRef.current = now + MATERIAL_COLLECTION_COOLDOWN_MS;
     setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
-    setPlayerStats(prev => ({ ...prev, factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT }));
     toastRef.current({ title: "Materials Collected!", description: `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const purchaseFactoryMachine = useCallback((configId: string) => {
+    const playerStatsNow = playerStatsRef.current;
     const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
     if (!machineConfig) { 
       toastRef.current({ title: "Machine Type Not Found", variant: "destructive"}); 
       return; 
     }
 
-    const playerStatsNow = playerStatsRef.current;
     if (!playerStatsNow.factoryPurchased) { 
       toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" }); 
       return; 
@@ -1086,8 +1104,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     let assignmentMessage = "";
-    let finalProductionLines: FactoryProductionLine[] = [];
-    let machineAssignedSuccessfully = false;
+    let finalProductionLines: FactoryProductionLine[] = []; // Will be set inside setPlayerStats if needed
 
     setPlayerStats(prev => {
       const newMachineInstanceId = `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1101,15 +1118,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           updatedProductionLinesForThisUpdate = assignResult.updatedProductionLines;
           const line = updatedProductionLinesForThisUpdate.find(l => l.id === assignResult.assignedLineId);
           assignmentMessage = ` and auto-assigned to ${line?.name || 'a line'}, Slot ${assignResult.assignedSlotIndex + 1}.`;
-          machineAssignedSuccessfully = true;
       } else {
           assignmentMessage = ". Production lines are full.";
       }
-      finalProductionLines = updatedProductionLinesForThisUpdate;
+      finalProductionLines = updatedProductionLinesForThisUpdate; // Capture for toast
       return { ...prev, money: prev.money - cost, factoryMachines: updatedMachines, factoryProductionLines: updatedProductionLinesForThisUpdate, };
     });
     toastRef.current({ title: "Machine Built!", description: `A new ${machineConfig.name} is ready${assignmentMessage}` });
-  }, [_attemptAutoAssignSingleMachine]);
+    // _attemptAutoAssignWaitingMachines(); // This will be called implicitly by the useEffect that watches factoryMachines
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
     setPlayerStats(prev => {
@@ -1129,9 +1147,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], slots: newSlots };
         return { ...prev, factoryMachines: newFactoryMachines, factoryProductionLines: newFactoryProductionLines, };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    toastRef.current({ title: "Machine Unassigned", description: "Machine removed from slot. It may be auto-assigned elsewhere if slots are free.", duration: 2000});
     setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
-  }, [_attemptAutoAssignWaitingMachines]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_attemptAutoAssignSingleMachine, toastRef]); 
 
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     const playerStatsNow = playerStatsRef.current;
@@ -1191,16 +1210,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       toastRef.current({ title: "Recipe Cleared", description: `${machineConfig.name} in ${productionLine.name} (Slot ${slotIndex + 1}) is now idle.` });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
+    const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
     if (!config) { 
       toastRef.current({ title: "Material Collector Not Found", variant: "destructive"}); 
       return; 
     }
-
-    const playerStatsNow = playerStatsRef.current;
+    
     if (!playerStatsNow.factoryPurchased) { 
       toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" }); 
       return; 
@@ -1224,16 +1244,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money - costForNext, factoryMaterialCollectors: updatedCollectors, };
     });
     toastRef.current({ title: "Material Collector Deployed!", description: `A new ${config.name} is now active.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const manuallyGenerateResearchPoints = useCallback(() => {
-    const now = Date.now();
-    if (now < manualResearchCooldownEndRef.current) {
-        const timeLeft = Math.ceil((manualResearchCooldownEndRef.current - now) / 1000);
-        toastRef.current({ title: "On Cooldown", description: `Please wait ${timeLeft}s before conducting research again.`, variant: "default"});
-        return;
-    }
-
     const playerStatsNow = playerStatsRef.current;
     if (!playerStatsNow.factoryPurchased) { 
       toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" }); 
@@ -1247,26 +1261,33 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Not Enough Money", description: `Need $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()} to conduct research.`, variant: "destructive"});
       return;
     }
+    const now = Date.now();
+    if (now < manualResearchCooldownEndRef.current) {
+        const timeLeft = Math.ceil((manualResearchCooldownEndRef.current - now) / 1000);
+        toastRef.current({ title: "On Cooldown", description: `Please wait ${timeLeft}s before conducting research again.`, variant: "default"});
+        return;
+    }
     
-    manualResearchCooldownEndRef.current = now + RESEARCH_MANUAL_COOLDOWN_MS;
-    setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
     setPlayerStats(prev => ({
       ...prev,
       money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
       researchPoints: prev.researchPoints + RESEARCH_MANUAL_GENERATION_AMOUNT,
       lastManualResearchTimestamp: now,
     }));
+    manualResearchCooldownEndRef.current = now + RESEARCH_MANUAL_COOLDOWN_MS;
+    setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
     toastRef.current({ title: "Research Conducted!", description: `+${RESEARCH_MANUAL_GENERATION_AMOUNT} Research Point(s) gained.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const purchaseResearch = useCallback((researchId: string) => {
+    const playerStatsNow = playerStatsRef.current;
     const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
     if (!researchConfig) { 
       toastRef.current({ title: "Research Not Found", variant: "destructive" }); 
       return; 
     }
-
-    const playerStatsNow = playerStatsRef.current;
+    
     if (!playerStatsNow.factoryPurchased) { 
       toastRef.current({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" }); 
       return; 
@@ -1299,6 +1320,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       unlockedResearchIds: [...prev.unlockedResearchIds, researchId],
     }));
     toastRef.current({ title: "Research Complete!", description: `${researchConfig.name} unlocked.` });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const performPrestige = useCallback(() => {
@@ -1370,15 +1392,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryProductionLines: initialProdLines, 
         factoryPowerBuildings, 
         factoryProducedComponents, 
-        factoryMaterialCollectors,
-        researchPoints: 0, // Reset research points
-        unlockedResearchIds: [], // Reset unlocked research
+        researchPoints: 0, 
+        unlockedResearchIds: [], 
         lastManualResearchTimestamp: 0, 
     }));
     
     toastRef.current({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setLastMarketTrends = useCallback((trends: string) => { setLastMarketTrendsInternal(trends); }, []);
