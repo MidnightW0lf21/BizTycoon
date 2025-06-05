@@ -32,14 +32,14 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex }
         <CardDescription className="text-xs">Machines are auto-assigned to empty slots in this line.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-3">
-        {productionLine.machineInstanceIds.map((machineInstanceId, slotIndex) => {
-          const machineConfig = getMachineDetails(machineInstanceId);
+        {productionLine.slots.map((slot, slotIndex) => {
+          const machineConfig = getMachineDetails(slot.machineInstanceId);
           return (
             <div
               key={slotIndex}
               className="aspect-square border border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 transition-colors"
             >
-              {machineInstanceId && machineConfig ? (
+              {slot.machineInstanceId && machineConfig ? (
                 <>
                   <machineConfig.icon className="h-5 w-5 sm:h-6 sm:w-6 mb-1 text-primary" />
                   <p className="text-[10px] sm:text-xs font-medium truncate w-full" title={machineConfig.name}>{machineConfig.name}</p>
