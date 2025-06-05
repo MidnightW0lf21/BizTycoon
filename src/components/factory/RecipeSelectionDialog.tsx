@@ -1,16 +1,18 @@
 
 "use client";
 
-import type { FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker } from "@/types";
+import type { FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, FactoryMachineUpgradeConfig } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus } from "lucide-react";
+import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2 } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { MAX_WORKER_ENERGY } from "@/config/game-config";
+import { MAX_WORKER_ENERGY, INITIAL_RESEARCH_ITEMS_CONFIG } from "@/config/game-config";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 interface RecipeSelectionDialogProps {
   isOpen: boolean;
@@ -19,13 +21,17 @@ interface RecipeSelectionDialogProps {
   slotIndex: number;
   assignedMachineInstanceId: string | null;
   allMachineConfigs: FactoryMachineConfig[];
-  allPlayerMachines: FactoryMachine[];
+  allPlayerMachines: FactoryMachine[]; // Need full machine instances for purchasedUpgradeIds
   allComponentConfigs: FactoryComponent[];
   setRecipe: (productionLineId: string, slotIndex: number, componentId: string | null) => void;
   currentRecipeId: string | null;
   allWorkers: Worker[];
   assignWorkerToMachine: (workerId: string | null, machineInstanceId: string) => void;
   currentAssignedWorkerId: string | null;
+  playerMoney: number;
+  playerResearchPoints: number;
+  unlockedResearchIds: string[];
+  purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
 }
 
 export function RecipeSelectionDialog({
@@ -42,20 +48,22 @@ export function RecipeSelectionDialog({
   allWorkers,
   assignWorkerToMachine,
   currentAssignedWorkerId,
+  playerMoney,
+  playerResearchPoints,
+  unlockedResearchIds,
+  purchaseFactoryMachineUpgrade
 }: RecipeSelectionDialogProps) {
-  if (!isOpen || !assignedMachineInstanceId) return null; // Dialog shouldn't open without a machine
+  if (!isOpen || !assignedMachineInstanceId) return null;
 
-  const assignedMachine = allPlayerMachines.find(m => m.instanceId === assignedMachineInstanceId);
-  const machineConfig = assignedMachine ? allMachineConfigs.find(mc => mc.id === assignedMachine.configId) : null;
+  const machineInstance = allPlayerMachines.find(m => m.instanceId === assignedMachineInstanceId);
+  const machineConfig = machineInstance ? allMachineConfigs.find(mc => mc.id === machineInstance.configId) : null;
 
   const handleSelectRecipe = (componentId: string) => {
     setRecipe(productionLineId, slotIndex, componentId);
-    // Keep dialog open if worker assignment is also part of this dialog
   };
 
   const handleClearRecipe = () => {
     setRecipe(productionLineId, slotIndex, null);
-    // Keep dialog open
   };
 
   const handleWorkerAssignment = (workerId: string | null) => {
@@ -63,22 +71,27 @@ export function RecipeSelectionDialog({
       assignWorkerToMachine(workerId, assignedMachineInstanceId);
     }
   };
+  
+  const handlePurchaseUpgrade = (upgradeId: string) => {
+    if (machineInstance) {
+      purchaseFactoryMachineUpgrade(machineInstance.instanceId, upgradeId);
+    }
+  };
 
   const formatEnergyTime = (energy: number) => {
-    const totalSeconds = energy; // Assuming WORKER_ENERGY_RATE is 1 per second
+    const totalSeconds = energy;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
   };
 
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-3xl"> {/* Increased width */}
+      <DialogContent className="max-w-4xl"> {/* Increased width for upgrades */}
         <DialogHeader>
           <DialogTitle>Configure Slot {slotIndex + 1} ({machineConfig ? machineConfig.name : "Machine"})</DialogTitle>
           <DialogDescription>
-            Select a component for this machine to produce and assign a worker.
+            Select a component for this machine to produce, assign a worker, and purchase machine upgrades.
           </DialogDescription>
         </DialogHeader>
 
@@ -89,9 +102,9 @@ export function RecipeSelectionDialog({
           </div>
         )}
 
-        {machineConfig && assignedMachineInstanceId && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
+        {machineConfig && machineInstance && (
+          <div className="grid md:grid-cols-3 gap-6"> {/* Changed to 3 columns */}
+            <div className="md:col-span-1"> {/* Recipe Selection takes 1 column */}
               <h3 className="text-lg font-semibold mb-2">Select Recipe</h3>
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
                 <div className="grid grid-cols-1 gap-3">
@@ -143,7 +156,6 @@ export function RecipeSelectionDialog({
                               </ul>
                             </div>
                           )}
-                          
                         </CardContent>
                          {isCurrentlyCraftingThis && (
                             <div className="p-2 pt-0 text-center">
@@ -157,7 +169,7 @@ export function RecipeSelectionDialog({
               </ScrollArea>
             </div>
             
-            <div className="space-y-4">
+            <div className="md:col-span-1 space-y-4"> {/* Worker Assignment takes 1 column */}
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><UserCog className="h-5 w-5"/>Assign Worker</h3>
                  <Select
@@ -181,11 +193,11 @@ export function RecipeSelectionDialog({
                         <SelectGroup>
                            <SelectLabel className="text-muted-foreground italic">Assigned Elsewhere</SelectLabel>
                            {allWorkers.filter(w => w.assignedMachineInstanceId !== null && w.assignedMachineInstanceId !== assignedMachineInstanceId).map(worker => {
-                             const assignedMachine = allPlayerMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
-                             const assignedMachineConfig = assignedMachine ? allMachineConfigs.find(mc => mc.id === assignedMachine.configId) : null;
+                             const otherAssignedMachine = allPlayerMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
+                             const otherMachineConfig = otherAssignedMachine ? allMachineConfigs.find(mc => mc.id === otherAssignedMachine.configId) : null;
                              return (
                                 <SelectItem key={worker.id} value={worker.id}>
-                                    {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status}) (on {assignedMachineConfig?.name || 'another machine'})
+                                    {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status}) (on {otherMachineConfig?.name || 'another machine'})
                                 </SelectItem>
                              );
                            })}
@@ -201,11 +213,92 @@ export function RecipeSelectionDialog({
               <div>
                  <h3 className="text-lg font-semibold mb-2">Actions</h3>
                  <Button variant="outline" onClick={handleClearRecipe} disabled={currentRecipeId === null} className="w-full">
-                    <XCircle className="mr-2 h-4 w-4" /> Clear Recipe (Set Machine to Idle)
+                    <XCircle className="mr-2 h-4 w-4" /> Clear Recipe (Set Idle)
                   </Button>
               </div>
             </div>
 
+            <div className="md:col-span-1"> {/* Machine Upgrades take 1 column */}
+              <h3 className="text-lg font-semibold mb-2">Machine Upgrades</h3>
+              <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
+                <TooltipProvider delayDuration={100}>
+                  {machineConfig.upgrades && machineConfig.upgrades.length > 0 ? (
+                    <div className="space-y-3">
+                      {machineConfig.upgrades.map(upgrade => {
+                        const isPurchased = (machineInstance.purchasedUpgradeIds || []).includes(upgrade.id);
+                        const researchRequiredName = upgrade.requiredResearchId ? INITIAL_RESEARCH_ITEMS_CONFIG.find(r => r.id === upgrade.requiredResearchId)?.name : null;
+                        const researchMet = !upgrade.requiredResearchId || (unlockedResearchIds || []).includes(upgrade.requiredResearchId);
+                        const canAffordMoney = playerMoney >= upgrade.costMoney;
+                        const canAffordRP = !upgrade.costRP || playerResearchPoints >= upgrade.costRP;
+                        const canPurchase = !isPurchased && researchMet && canAffordMoney && canAffordRP;
+                        
+                        let tooltipMessage = "";
+                        if (isPurchased) tooltipMessage = "Upgrade already owned for this machine.";
+                        else if (!researchMet) tooltipMessage = `Requires "${researchRequiredName || upgrade.requiredResearchId}" research.`;
+                        else if (!canAffordMoney) tooltipMessage = `Needs $${upgrade.costMoney.toLocaleString()}.`;
+                        else if (!canAffordRP && upgrade.costRP) tooltipMessage = `Needs ${upgrade.costRP.toLocaleString()} RP.`;
+                        else tooltipMessage = `Purchase ${upgrade.name}.`;
+
+
+                        return (
+                          <Card key={upgrade.id} className={cn("shadow-sm", isPurchased && "bg-primary/10 border-primary")}>
+                            <CardHeader className="pb-1 pt-2">
+                              <CardTitle className="text-sm flex items-center justify-between">
+                                {upgrade.name}
+                                {isPurchased && <Badge variant="secondary" className="text-xs"><CheckCircle2 className="h-3 w-3 mr-1"/>Owned</Badge>}
+                              </CardTitle>
+                              <CardDescription className="text-xs">{upgrade.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="text-xs pt-1 pb-2 space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Cost:</span>
+                                <div className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3 text-green-500" /> {upgrade.costMoney.toLocaleString()}
+                                  {upgrade.costRP && (
+                                    <>
+                                      <span className="text-muted-foreground mx-0.5">+</span>
+                                      <FlaskConical className="h-3 w-3 text-purple-400" /> {upgrade.costRP.toLocaleString()} RP
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              {upgrade.requiredResearchId && (
+                                <div className={cn("text-xs", researchMet ? "text-green-600" : "text-amber-600")}>
+                                  {researchMet ? <CheckCircle2 className="h-3 w-3 inline mr-1"/> : <LockKeyhole className="h-3 w-3 inline mr-1"/>}
+                                  Research: {researchRequiredName || upgrade.requiredResearchId}
+                                </div>
+                              )}
+                            </CardContent>
+                            {!isPurchased && (
+                              <CardFooter className="pt-0 pb-2">
+                                 <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="w-full">
+                                        <Button
+                                          size="sm"
+                                          variant={canPurchase ? "default" : "outline"}
+                                          className="w-full h-8 text-xs"
+                                          onClick={() => handlePurchaseUpgrade(upgrade.id)}
+                                          disabled={!canPurchase}
+                                        >
+                                          <Sparkles className="mr-1.5 h-3 w-3" /> Purchase Upgrade
+                                        </Button>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{tooltipMessage}</p></TooltipContent>
+                                  </Tooltip>
+                              </CardFooter>
+                            )}
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No upgrades available for this machine.</p>
+                  )}
+                </TooltipProvider>
+              </ScrollArea>
+            </div>
           </div>
         )}
         <DialogFooter className="mt-6">
@@ -215,5 +308,3 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
-
-    

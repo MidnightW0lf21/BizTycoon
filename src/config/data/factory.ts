@@ -23,7 +23,6 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
     costMultiplier: 1.25,
     powerOutputKw: 50,
     requiredResearchId: 'unlock_solar_mk2',
-    // No maxInstances means unlimited
   },
   {
     id: 'hydro_dam_small',
@@ -50,7 +49,7 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
   {
     id: 'geothermal_plant_mk1',
     name: 'Geothermal Plant Mk1',
-    icon: TrendingUp, // Placeholder for geothermal heat
+    icon: TrendingUp,
     description: 'Taps into subterranean heat for consistent and powerful energy.',
     baseCost: 500000,
     costMultiplier: 1.4,
@@ -89,7 +88,6 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
       globalIncomeBoostPerComponentPercent: 0.005,
     }
   }
-  // TODO: Add Tier 3, 4, 5 components later
 ];
 
 export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
@@ -104,6 +102,10 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     requiredResearchId: 'unlock_basic_assembler_mk1',
     familyId: 'basic_assembler',
     mark: 1,
+    upgrades: [
+      { id: 'mk1_speed_gearing', name: 'Improved Gearing', description: '+10% Production Speed', costMoney: 50000, effects: { productionSpeedMultiplier: 1.1 } },
+      { id: 'mk1_power_efficiency', name: 'Efficient Motor', description: '-10% Power Consumption', costMoney: 30000, costRP: 5, effects: { powerConsumptionModifier: 0.9 }, requiredResearchId: 'unlock_mk1_motor_efficiency_research' }
+    ]
   },
   {
     id: 'basic_assembler_mk2',
@@ -116,6 +118,10 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     requiredResearchId: 'unlock_basic_assembler_mk2',
     familyId: 'basic_assembler',
     mark: 2,
+    upgrades: [
+      { id: 'mk2_high_speed_actuators', name: 'High-Speed Actuators', description: '+15% Production Speed', costMoney: 150000, effects: { productionSpeedMultiplier: 1.15 } },
+      { id: 'mk2_optimized_circuitry', name: 'Optimized Circuitry', description: '-15% Power Consumption', costMoney: 100000, costRP: 15, effects: { powerConsumptionModifier: 0.85 } }
+    ]
   },
   {
     id: 'basic_assembler_mk3',

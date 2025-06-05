@@ -54,6 +54,18 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk5'] }
   },
 
+  // Assembler Specific Upgrade Unlocks
+  {
+    id: 'unlock_mk1_motor_efficiency_research',
+    name: 'Mk1 Motor Efficiency Study',
+    description: 'Unlocks the "Efficient Motor" upgrade for Basic Assembler Mk1 machines, reducing their power consumption.',
+    icon: Zap, 
+    costRP: 10, 
+    costMoney: 25000, 
+    dependencies: ['unlock_basic_assembler_mk1'],
+    effects: {} 
+  },
+
   // Production Line Unlocks
   {
     id: 'unlock_prod_line_2',
@@ -247,7 +259,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: Waves,
     costRP: 80,
     costMoney: 220000,
-    dependencies: ['unlock_solar_mk1'], // Example dependency
+    dependencies: ['unlock_solar_mk1'],
     effects: { unlocksFactoryPowerBuildingConfigIds: ['hydro_dam_small'] }
   },
   {
@@ -266,7 +278,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: TrendingUp,
     costRP: 150,
     costMoney: 450000,
-    dependencies: ['unlock_hydro_dam_small'], // Example dependency
+    dependencies: ['unlock_hydro_dam_small'], 
     effects: { unlocksFactoryPowerBuildingConfigIds: ['geothermal_plant_mk1'] }
   },
 

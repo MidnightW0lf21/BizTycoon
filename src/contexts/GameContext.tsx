@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -99,6 +99,7 @@ interface GameContextType {
   hireWorker: () => void;
   assignWorkerToMachine: (workerId: string | null, machineInstanceId: string) => void;
   unlockProductionLine: (lineId: string) => void;
+  purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -356,7 +357,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
-            const savedBusinessState = loadedData.businesses.find(b => b.id === initialBiz.id);
+            const savedBusinessState = importedData.businesses.find(b => b.id === initialBiz.id);
             return {
                 ...initialBiz, level: savedBusinessState ? savedBusinessState.level : 0,
                 managerOwned: savedBusinessState ? savedBusinessState.managerOwned : false,
@@ -367,7 +368,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 icon: initialBiz.icon,
               };
           }));
-      setLastSavedTimestamp(loadedData.lastSaved || Date.now());
+      setLastSavedTimestamp(importedData.lastSaved || Date.now());
       materialCollectionCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + MATERIAL_COLLECTION_COOLDOWN_MS : 0;
       manualResearchCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + RESEARCH_MANUAL_COOLDOWN_MS : 0;
       setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
@@ -852,6 +853,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             configId: newMachineConfig.id,
             assignedProductionLineId: null,
+            purchasedUpgradeIds: [], // Initialize with no upgrades
         };
 
         let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
@@ -888,6 +890,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             replacedSlotIndex = replacementCandidate.slotIndex;
 
             newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
+             // Preserve purchased upgrades if the new machine is of the same configId or familyId (e.g. Mk1 -> Mk1 is not possible, but if it was, keep upgrades)
+            // For Mark upgrades, we assume upgrades are specific to the Mark, so they are NOT carried over.
+            // If upgrades were family-based, we might carry them. For now, new machine starts fresh.
+            newMachineInstance.purchasedUpgradeIds = []; 
+
+
             machineReplacedAnother = true;
 
             setPlayerStats(prev => {
@@ -935,6 +943,67 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
     }
   }, []);
+
+  const purchaseFactoryMachineUpgrade = useCallback((machineInstanceId: string, upgradeId: string) => {
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+
+    const playerStatsNow = playerStatsRef.current;
+    const machineInstance = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === machineInstanceId);
+
+    if (!machineInstance) {
+        toastTitle = "Machine Instance Not Found";
+        toastVariant = "destructive";
+    } else {
+        const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId);
+        if (!machineConfig || !machineConfig.upgrades) {
+            toastTitle = "Machine Config or Upgrades Not Found";
+            toastVariant = "destructive";
+        } else {
+            const upgradeConfig = machineConfig.upgrades.find(upg => upg.id === upgradeId);
+            if (!upgradeConfig) {
+                toastTitle = "Machine Upgrade Not Found";
+                toastVariant = "destructive";
+            } else if ((machineInstance.purchasedUpgradeIds || []).includes(upgradeId)) {
+                toastTitle = "Upgrade Already Purchased";
+                toastDescription = `This machine already has the ${upgradeConfig.name} upgrade.`;
+            } else if (upgradeConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(upgradeConfig.requiredResearchId)) {
+                const researchItem = researchItemsRef.current.find(r => r.id === upgradeConfig.requiredResearchId);
+                toastTitle = "Research Required";
+                toastDescription = `Purchasing ${upgradeConfig.name} requires '${researchItem?.name || upgradeConfig.requiredResearchId}' research.`;
+                toastVariant = "destructive";
+            } else if (playerStatsNow.money < upgradeConfig.costMoney) {
+                toastTitle = "Not Enough Money";
+                toastDescription = `Need $${upgradeConfig.costMoney.toLocaleString()} for ${upgradeConfig.name}.`;
+                toastVariant = "destructive";
+            } else if (upgradeConfig.costRP && playerStatsNow.researchPoints < upgradeConfig.costRP) {
+                toastTitle = "Not Enough Research Points";
+                toastDescription = `Need ${upgradeConfig.costRP} RP for ${upgradeConfig.name}.`;
+                toastVariant = "destructive";
+            } else {
+                setPlayerStats(prev => {
+                    const updatedMachines = (prev.factoryMachines || []).map(m => {
+                        if (m.instanceId === machineInstanceId) {
+                            return { ...m, purchasedUpgradeIds: [...(m.purchasedUpgradeIds || []), upgradeId] };
+                        }
+                        return m;
+                    });
+                    return {
+                        ...prev,
+                        money: prev.money - upgradeConfig.costMoney,
+                        researchPoints: upgradeConfig.costRP ? prev.researchPoints - upgradeConfig.costRP : prev.researchPoints,
+                        factoryMachines: updatedMachines,
+                    };
+                });
+                toastTitle = "Machine Upgrade Purchased!";
+                toastDescription = `${upgradeConfig.name} applied to ${machineConfig.name}.`;
+            }
+        }
+    }
+    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+  }, []);
+
 
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     let toastTitle = "";
@@ -1229,7 +1298,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       let newWorkers = [...(prev.factoryWorkers || [])];
       const targetMachineSlot = (prev.factoryProductionLines || []).flatMap(line => line.slots).find(s => s.machineInstanceId === machineInstanceId);
 
-      // Unassign current worker from the target machine if a different worker is being assigned, or if unassigning
       const currentWorkerOnTargetMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
       if (currentWorkerOnTargetMachineIndex !== -1) {
         if (workerId === null || newWorkers[currentWorkerOnTargetMachineIndex].id !== workerId) {
@@ -1237,19 +1305,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
 
-      // Assign the new worker (if any)
       if (workerId) {
         const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
         if (workerToAssignIndex === -1) {
           toastVariant = "destructive";
           toastDescription = "Worker to assign not found.";
-          return prev; // Worker not found, abort
+          return prev; 
         }
         
-        // Unassign the worker from their previous machine if they were assigned elsewhere
         if (newWorkers[workerToAssignIndex].assignedMachineInstanceId && newWorkers[workerToAssignIndex].assignedMachineInstanceId !== machineInstanceId) {
-          // This worker was on another machine, that machine effectively loses its worker.
-          // No specific handling needed for the old machine here, as it's implicitly unassigned.
         }
 
         newWorkers[workerToAssignIndex] = {
@@ -1359,7 +1423,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           stockHoldings: retainedStockHoldings, 
 
           factoryPurchased,
-          factoryPowerUnitsGenerated: 0, // Will be recalculated based on retained buildings next tick
+          factoryPowerUnitsGenerated: 0, 
           factoryPowerConsumptionKw: 0, 
           factoryRawMaterials,
           factoryMachines: newMachinesState,
@@ -1367,7 +1431,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...line,
             isUnlocked: prev.factoryProductionLines[index]?.isUnlocked || false 
           })),
-          factoryPowerBuildings, // Retain power buildings
+          factoryPowerBuildings, 
           factoryProducedComponents,
           factoryProductionProgress: {}, 
           factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: MAX_WORKER_ENERGY, assignedMachineInstanceId: null })),
@@ -1585,11 +1649,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if(!line.isUnlocked) return;
             (line.slots || []).forEach(slot => {
               if (slot.machineInstanceId && slot.targetComponentId) {
-                const machine = (prev.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                const machineInstance = (prev.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
                 const worker = updatedWorkers.find(w => w.assignedMachineInstanceId === slot.machineInstanceId);
-                if (machine && worker && worker.status === 'working' && worker.energy > 0) {
-                  const machineConfig = currentFactoryMachineConfigs.find(mc => mc.id === machine.configId);
-                  if (machineConfig) { tempPowerConsumption += machineConfig.powerConsumptionKw; }
+                if (machineInstance && worker && worker.status === 'working' && worker.energy > 0) {
+                  const machineConfig = currentFactoryMachineConfigs.find(mc => mc.id === machineInstance.configId);
+                  if (machineConfig) {
+                    let currentMachinePowerConsumption = machineConfig.powerConsumptionKw;
+                    (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                        const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
+                        if (upgradeDef?.effects.powerConsumptionModifier) {
+                            currentMachinePowerConsumption *= upgradeDef.effects.powerConsumptionModifier;
+                        }
+                    });
+                    tempPowerConsumption += currentMachinePowerConsumption;
+                  }
                 }
               }
             });
@@ -1639,10 +1712,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
               if (machine && slotWithMachine && slotWithMachine.targetComponentId && netPower >=0 ) {
                 const machineConfigForPower = currentFactoryMachineConfigs.find(mc => mc.id === machine.configId);
-                if (machineConfigForPower && newFactoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + machineConfigForPower.powerConsumptionKw >= machineConfigForPower.powerConsumptionKw) {
-                   const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
-                    if (newEnergy === 0) { return { ...worker, energy: newEnergy, status: 'resting' }; }
-                    return { ...worker, energy: newEnergy };
+                if (machineConfigForPower) {
+                    let currentMachinePowerConsumption = machineConfigForPower.powerConsumptionKw;
+                     (machine.purchasedUpgradeIds || []).forEach(upgradeId => {
+                        const upgradeDef = machineConfigForPower.upgrades?.find(u => u.id === upgradeId);
+                        if (upgradeDef?.effects.powerConsumptionModifier) {
+                            currentMachinePowerConsumption *= upgradeDef.effects.powerConsumptionModifier;
+                        }
+                    });
+
+                    if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) >= currentMachinePowerConsumption) {
+                       const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
+                        if (newEnergy === 0) { return { ...worker, energy: newEnergy, status: 'resting' }; }
+                        return { ...worker, energy: newEnergy };
+                    }
                 }
               }
             } else if (worker.status === 'resting') {
@@ -1662,17 +1745,33 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 if (slot.machineInstanceId && slot.targetComponentId) {
                   const worker = updatedWorkers.find(w => w.assignedMachineInstanceId === slot.machineInstanceId);
                   if (worker && worker.status === 'working' && worker.energy > 0) {
-                    const machine = (prev.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
-                    const machineConfig = machine ? currentFactoryMachineConfigs.find(mc => mc.id === machine.configId) : null;
+                    const machineInstance = (prev.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                    const machineConfig = machineInstance ? currentFactoryMachineConfigs.find(mc => mc.id === machineInstance.configId) : null;
                     const componentRecipe = currentFactoryComponentsConfig.find(cc => cc.id === slot.targetComponentId);
 
-                    if (machine && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
-                      const powerNeededForThisMachine = machineConfig.powerConsumptionKw;
-                      const powerAvailableForThisMachineType = newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerNeededForThisMachine);
-                      if (powerAvailableForThisMachineType >= powerNeededForThisMachine) {
+                    if (machineInstance && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
+                      let currentMachinePowerConsumption = machineConfig.powerConsumptionKw;
+                       (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                            const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
+                            if (upgradeDef?.effects.powerConsumptionModifier) {
+                                currentMachinePowerConsumption *= upgradeDef.effects.powerConsumptionModifier;
+                            }
+                        });
+                      if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) >= currentMachinePowerConsumption) {
                           const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                           let currentProgress = newFactoryProductionProgress[progressKey] || 0;
-                          currentProgress += (1 / componentRecipe.productionTimeSeconds);
+                          
+                          let effectiveProductionTime = componentRecipe.productionTimeSeconds;
+                          let totalSpeedMultiplier = 1;
+                          (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                            const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
+                            if(upgradeDef?.effects.productionSpeedMultiplier) {
+                                totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                            }
+                          });
+                          effectiveProductionTime /= totalSpeedMultiplier;
+                          
+                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime)); // Prevent division by zero or too small numbers
 
                           if (currentProgress >= 1) {
                             let canCraftOneFull = true;
@@ -1689,7 +1788,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                               }
                               newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
                             } else {
-                               currentProgress = Math.max(0, currentProgress - (1 / componentRecipe.productionTimeSeconds));
+                               currentProgress = Math.max(0, currentProgress - (1 / Math.max(0.1, effectiveProductionTime)));
                             }
                           }
                           newFactoryProductionProgress[progressKey] = currentProgress;
@@ -1803,7 +1902,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manualSaveGame, exportGameState, importGameState, wipeGameData,
       purchaseFactoryBuilding, purchaseFactoryPowerBuilding, manuallyCollectRawMaterials, purchaseFactoryMachine,
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
-      hireWorker, assignWorkerToMachine, unlockProductionLine,
+      hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade
     }}>
       {children}
     </GameContext.Provider>
