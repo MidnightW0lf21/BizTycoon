@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils";
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
 const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
+const FACTORY_INTRO_DISMISSED_KEY_V1 = 'bizTycoonFactoryIntroDismissed_v1';
+
 
 export default function MyFactoryPage() {
   const {
@@ -47,6 +49,25 @@ export default function MyFactoryPage() {
     unlockProductionLine,
   } = useGame();
 
+  const [isFactoryIntroVisible, setIsFactoryIntroVisible] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const dismissed = localStorage.getItem(FACTORY_INTRO_DISMISSED_KEY_V1);
+      if (dismissed === 'true') {
+        setIsFactoryIntroVisible(false);
+      }
+    }
+  }, []);
+
+  const handleDismissFactoryIntro = () => {
+    setIsFactoryIntroVisible(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(FACTORY_INTRO_DISMISSED_KEY_V1, 'true');
+    }
+  };
+
+
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
 
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
@@ -60,7 +81,7 @@ export default function MyFactoryPage() {
       const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
       if (config) {
         const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw -
-            (collectors.filter(c => c.instanceId !== collector.instanceId)
+            (collectors.filter(c => c.id !== collector.instanceId)
                         .reduce((sum, otherCollector) => {
                             const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
                             return sum + (otherConfig?.powerConsumptionKw || 0);
@@ -285,38 +306,84 @@ export default function MyFactoryPage() {
   return (
     <>
     <div className="flex flex-col gap-6 h-full">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      {isFactoryIntroVisible && (
+        <Card className="w-full relative">
+          <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2">
               <Factory className="h-7 w-7 text-primary" /> Your Industrial Complex
             </CardTitle>
-            <div className="flex gap-4 text-sm flex-wrap justify-end items-center">
-              <span className="flex items-center gap-1 font-medium text-yellow-400">
-                <Zap className="h-4 w-4" /> Power Gen: {playerStats.factoryPowerUnitsGenerated.toLocaleString()} kW
-              </span>
-              <span className="flex items-center gap-1 font-medium text-red-400">
-                <Zap className="h-4 w-4" /> Power Cons: {playerStats.factoryPowerConsumptionKw.toLocaleString()} kW
-              </span>
-              <span className={`flex items-center gap-1 font-bold ${netPower >= 0 ? 'text-green-500' : 'text-destructive'}`}>
-                <Zap className="h-4 w-4" /> Net Power: {netPower.toLocaleString()} kW
-              </span>
-              <span className="flex items-center gap-1 font-medium text-orange-400">
-                <Box className="h-4 w-4" /> Materials: {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} units
-              </span>
-               {researchTabAvailable && (
-                <span className="flex items-center gap-1 font-medium text-purple-400">
-                  <FlaskConical className="h-4 w-4" /> RP: {playerStats.researchPoints.toLocaleString()}
-                </span>
-              )}
-              <span className="flex items-center gap-1 font-medium text-blue-400">
-                <UserPlus className="h-4 w-4" /> Workers: {idleWorkerCount} Idle / {totalWorkerCount} Total
-              </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 h-7 w-7"
+              onClick={handleDismissFactoryIntro}
+            >
+              <XIcon className="h-4 w-4" />
+              <span className="sr-only">Dismiss</span>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Manage power, materials, and production lines to create valuable components. Hire workers to operate machines. Unlock new technologies via Research.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2"><Zap className="h-5 w-5 text-primary"/>Power Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Generation:</span>
+              <span className="font-semibold text-yellow-400">{playerStats.factoryPowerUnitsGenerated.toLocaleString()} kW</span>
             </div>
-          </div>
-          <CardDescription>Manage power, materials, and production lines to create valuable components. Hire workers to operate machines. Unlock new technologies via Research.</CardDescription>
-        </CardHeader>
-      </Card>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Consumption:</span>
+              <span className="font-semibold text-red-400">{playerStats.factoryPowerConsumptionKw.toLocaleString()} kW</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Net Power:</span>
+              <span className={`font-bold ${netPower >= 0 ? 'text-green-500' : 'text-destructive'}`}>{netPower.toLocaleString()} kW</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2"><Box className="h-5 w-5 text-primary"/>Materials</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-orange-400">{playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+            <p className="text-xs text-muted-foreground">Raw Units</p>
+          </CardContent>
+        </Card>
+
+        {researchTabAvailable && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2"><FlaskConical className="h-5 w-5 text-primary"/>Research</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-purple-400">{playerStats.researchPoints.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Research Points (RP)</p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary"/>Workers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-400">{idleWorkerCount} / {totalWorkerCount}</p>
+            <p className="text-xs text-muted-foreground">Idle / Total</p>
+          </CardContent>
+        </Card>
+      </div>
+
 
       <Tabs defaultValue="production" className="w-full flex-grow flex flex-col">
         <TabsList className={`grid w-full ${researchTabAvailable ? 'grid-cols-6' : 'grid-cols-5'} mb-4`}>
@@ -329,7 +396,7 @@ export default function MyFactoryPage() {
         </TabsList>
 
         <TabsContent value="power" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
             <Card>
               <CardHeader>
                 <CardTitle>Power Generation</CardTitle>
@@ -387,7 +454,7 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="materials" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
             <Card>
               <CardHeader>
                 <CardTitle>Raw Material Acquisition</CardTitle>
@@ -471,7 +538,7 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="production" className="flex-grow flex flex-col">
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -505,7 +572,7 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="workers" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
             <Card>
               <CardHeader>
                 <CardTitle>Manage Workers</CardTitle>
@@ -579,7 +646,7 @@ export default function MyFactoryPage() {
 
         {researchTabAvailable && (
           <TabsContent value="research" className="flex-grow">
-            <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
+            <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
               <Card>
                 <CardHeader>
                   <CardTitle>Research & Development</CardTitle>
@@ -626,7 +693,7 @@ export default function MyFactoryPage() {
 
         <TabsContent value="inventory" className="flex-grow">
         <TooltipProvider>
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
             <Card>
               <CardHeader>
                 <CardTitle>Produced Components</CardTitle>
