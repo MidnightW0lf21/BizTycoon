@@ -91,7 +91,7 @@ const globalHQUgrades: HQUpgrade[] = [
     name: 'Tier 1 Recipe Blueprints',
     description: 'Unlocks all Tier 1 factory component recipes.',
     icon: Scroll,
-    requiredTimesPrestiged: 5, // Assuming factory unlocks at prestige 5
+    requiredTimesPrestiged: 5,
     levels: [
       { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } }
     ]
@@ -179,4 +179,6 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   ...businessRetentionUpgrades,
   ...stockRetentionUpgrades
 ];
+    
+
     
