@@ -16,15 +16,15 @@ interface ResearchItemCardProps {
   playerResearchPoints: number;
   playerMoney: number;
   unlockedResearchIds: string[];
-  onPurchase: (researchId: string) => void; // Changed prop
+  onPurchase: (researchId: string) => void;
 }
 
-const ResearchItemCard = React.memo(function ResearchItemCard({ // Wrapped with React.memo
+const ResearchItemCard = React.memo(function ResearchItemCard({
   researchConfig,
   playerResearchPoints,
   playerMoney,
   unlockedResearchIds,
-  onPurchase, // Changed prop
+  onPurchase,
 }: ResearchItemCardProps) {
   const Icon = researchConfig.icon || FlaskConical;
   const isUnlocked = unlockedResearchIds.includes(researchConfig.id);
@@ -130,7 +130,7 @@ const ResearchItemCard = React.memo(function ResearchItemCard({ // Wrapped with 
             <TooltipTrigger asChild>
               <div className="w-full">
                 <Button
-                  onClick={() => onPurchase(researchConfig.id)} // Call with researchId
+                  onClick={() => onPurchase(researchConfig.id)}
                   disabled={!canUnlock || isTrulyLocked} 
                   className="w-full"
                   variant={canUnlock ? "default" : "outline"}
@@ -155,3 +155,5 @@ const ResearchItemCard = React.memo(function ResearchItemCard({ // Wrapped with 
 });
 
 export { ResearchItemCard };
+
+    

@@ -4,23 +4,22 @@
 import type { FactoryMachineConfig } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Zap, ShoppingCart, Info, Box } from "lucide-react";
+import { DollarSign, Zap, ShoppingCart, Info, Box, LockKeyhole } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import React from "react"; // Import React
+import React from "react";
 
 interface MachinePurchaseCardProps {
   machineConfig: FactoryMachineConfig;
   playerMoney: number;
-  onPurchase: (configId: string) => void; // Changed prop
+  onPurchase: (configId: string) => void;
   isResearchLocked: boolean;
   researchItemName?: string;
 }
 
-// Wrap MachinePurchaseCard with React.memo
 const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
   machineConfig,
   playerMoney,
-  onPurchase, // Changed prop
+  onPurchase,
   isResearchLocked,
   researchItemName,
 }: MachinePurchaseCardProps) {
@@ -30,17 +29,19 @@ const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
   const canPurchase = !isResearchLocked && canAfford;
 
   const handlePurchase = () => {
-    if (!isResearchLocked) {
-      onPurchase(machineConfig.id); // Call with configId
+    if (canPurchase) { // Check canPurchase here to ensure it's not research locked
+      onPurchase(machineConfig.id);
     }
   };
 
   let buttonText = "Build Machine";
   let buttonTooltipContent = `Build a ${machineConfig.name}.`;
+  let ButtonIcon = ShoppingCart;
 
   if (isResearchLocked) {
     buttonText = "Research Required";
     buttonTooltipContent = researchItemName ? `Requires "${researchItemName}" research.` : "Research required to unlock.";
+    ButtonIcon = LockKeyhole;
   } else if (!canAfford) {
     buttonText = "Cannot Afford";
     buttonTooltipContent = `Requires $${displayCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
@@ -82,7 +83,9 @@ const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
             </div>
           </div>
            {isResearchLocked && researchItemName && (
-            <p className="text-xs text-amber-600">Requires: "{researchItemName}" research.</p>
+            <p className="text-xs text-amber-600 flex items-center gap-1">
+              <LockKeyhole className="h-3 w-3"/> Requires: "{researchItemName}" research.
+            </p>
           )}
         </CardContent>
         <CardFooter className="pt-2">
@@ -91,11 +94,11 @@ const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
               <div className="w-full">
                 <Button
                   onClick={handlePurchase}
-                  disabled={!canPurchase || isResearchLocked}
+                  disabled={!canPurchase}
                   className="w-full"
-                  variant={canPurchase && !isResearchLocked ? "default" : "outline"}
+                  variant={canPurchase ? "default" : "outline"}
                 >
-                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  <ButtonIcon className="mr-2 h-4 w-4" />
                   {buttonText}
                 </Button>
               </div>
@@ -111,3 +114,5 @@ const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
 });
 
 export { MachinePurchaseCard };
+
+    

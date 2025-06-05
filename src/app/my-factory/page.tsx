@@ -4,13 +4,13 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical } from "lucide-react"; // Added FlaskConical
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB } from "@/config/game-config"; // Added INITIAL_RESEARCH_ITEMS_CONFIG and REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
-import { ResearchItemCard } from "@/components/factory/ResearchItemCard"; // New import
+import { ResearchItemCard } from "@/components/factory/ResearchItemCard";
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useMemo } from "react";
@@ -19,8 +19,8 @@ import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialo
 import type { FactoryMachine } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
-const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
-const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
+const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000; // Matches game-config
+const MATERIAL_COLLECTION_AMOUNT_CONST = 10; // Matches game-config
 
 export default function MyFactoryPage() {
   const { 
@@ -32,10 +32,10 @@ export default function MyFactoryPage() {
     materialCollectionCooldownEnd,
     setRecipeForProductionSlot,
     purchaseFactoryMaterialCollector,
-    manuallyGenerateResearchPoints, // New from context
-    purchaseResearch, // New from context
-    researchItems, // New from context
-    manualResearchCooldownEnd, // New from context
+    manuallyGenerateResearchPoints,
+    purchaseResearch,
+    researchItems,
+    manualResearchCooldownEnd,
   } = useGame();
 
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
@@ -50,7 +50,6 @@ export default function MyFactoryPage() {
     collectors.forEach(collector => {
       const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
       if (config) {
-        
         const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw - 
             (collectors.filter(c => c.instanceId !== collector.instanceId)
                         .reduce((sum, otherCollector) => {
@@ -95,7 +94,7 @@ export default function MyFactoryPage() {
 
 
   const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
-  const [secondsRemainingForResearchCooldown, setSecondsRemainingForResearchCooldown] = useState(0); // New state for research cooldown
+  const [secondsRemainingForResearchCooldown, setSecondsRemainingForResearchCooldown] = useState(0);
   const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
   const [currentDialogContext, setCurrentDialogContext] = useState<{
     productionLineId: string;
@@ -123,7 +122,6 @@ export default function MyFactoryPage() {
     return () => clearInterval(intervalId);
   }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
 
-  // New useEffect for research cooldown
   useEffect(() => {
     if (!playerStats.factoryPurchased || playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) return;
     let intervalId: NodeJS.Timeout;
@@ -225,9 +223,7 @@ export default function MyFactoryPage() {
     return acc;
   }, {} as Record<string, number>);
 
-
   const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
-
 
   return (
     <>
@@ -285,7 +281,7 @@ export default function MyFactoryPage() {
                     powerBuildingConfig={config}
                     numOwned={ownedPowerBuildingCounts[config.id] || 0}
                     currentMoney={playerStats.money}
-                    onPurchase={() => purchaseFactoryPowerBuilding(config.id)}
+                    onPurchase={purchaseFactoryPowerBuilding}
                   />
                 ))}
               </CardContent>
@@ -333,7 +329,7 @@ export default function MyFactoryPage() {
                     collectorConfig={config}
                     numOwned={ownedMaterialCollectorCounts[config.id] || 0}
                     currentMoney={playerStats.money}
-                    onPurchase={() => purchaseFactoryMaterialCollector(config.id)}
+                    onPurchase={purchaseFactoryMaterialCollector}
                   />
                 ))}
               </CardContent>
@@ -505,3 +501,5 @@ export default function MyFactoryPage() {
     </>
   );
 }
+
+    
