@@ -325,12 +325,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             newWorkers[idleWorkerIndex] = {
                 ...newWorkers[idleWorkerIndex],
                 assignedMachineInstanceId: machine.instanceId,
-                // Status remains idle until recipe is set
             };
             workerAssignedThisCall = true;
             const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
             assignmentDetails = { workerName: newWorkers[idleWorkerIndex].name, machineName: machineConfig?.name || 'a machine' };
-            break; // Assign one worker per call to this function to avoid rapid toasts / state updates
+
+            const lineWithMachine = (playerStatsNow.factoryProductionLines || []).find(l => l.slots.some(s => s.machineInstanceId === machine.instanceId));
+            const slotWithMachine = lineWithMachine?.slots.find(s => s.machineInstanceId === machine.instanceId);
+            if (slotWithMachine?.targetComponentId && newWorkers[idleWorkerIndex].energy > 0) {
+                 newWorkers[idleWorkerIndex].status = 'working';
+                 if(assignmentDetails) assignmentDetails.machineName += ` (now working on ${INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === slotWithMachine.targetComponentId)?.name || 'recipe'})`;
+            } else {
+                 newWorkers[idleWorkerIndex].status = 'idle';
+                 if(assignmentDetails) assignmentDetails.machineName += ` (now idle)`;
+            }
+            break; 
         } else {
             break;
         }
@@ -339,10 +348,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (workerAssignedThisCall) {
         setPlayerStats(prev => ({ ...prev, factoryWorkers: newWorkers }));
         if (assignmentDetails) {
-             toastRef.current({ title: "Worker Auto-Assigned", description: `${assignmentDetails.workerName} assigned to ${assignmentDetails.machineName}. Set a recipe to start work.`, duration: 2500 });
+             toastRef.current({ title: "Worker Auto-Assigned", description: `${assignmentDetails.workerName} assigned to ${assignmentDetails.machineName}.`, duration: 2500 });
         }
     }
   }, []);
+
 
   const _attemptAutoAssignWaitingMachines = useCallback(() => {
     const playerStatsNow = playerStatsRef.current;
@@ -369,8 +379,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setPlayerStats(prev => ({ ...prev, factoryMachines: newMachines, factoryProductionLines: newProductionLines }));
         const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === assignmentDetails!.machineConfigId);
         toastRef.current({ title: "Machine Auto-Assigned to Line", description: `${machineConfig?.name || 'Machine'} placed in ${assignmentDetails!.lineName}, Slot ${assignmentDetails!.slotIndex + 1}.`, duration: 2000 });
-        // Attempt to assign a worker to this newly placed machine
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
         setTimeout(() => _tryAssignIdleWorkersToMachines(), 0);
     }
   }, [_attemptAutoAssignSingleMachine, _tryAssignIdleWorkersToMachines]);
@@ -448,7 +457,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
       }));
       setLastSavedTimestamp(importedData.lastSaved || Date.now());
-      setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
       materialCollectionCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + MATERIAL_COLLECTION_COOLDOWN_MS : 0;
       manualResearchCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + RESEARCH_MANUAL_COOLDOWN_MS : 0;
       setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
@@ -928,7 +936,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
         toastTitle = "Machine Built!";
         toastDescription = `A new ${machineConfig.name} is ready. It will be auto-assigned. An idle worker will be assigned if available.`;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
         setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
       }
     }
@@ -972,7 +980,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     if(success) {
       toastRef.current({ title: "Machine Unassigned", description: `${unassignedMachineName} removed from slot. Associated worker unassigned and set to idle.`, duration: 2000});
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
     }
   }, [_attemptAutoAssignWaitingMachines]);
@@ -1191,6 +1199,107 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
+  const assignWorkerToMachine = useCallback((workerId: string | null, machineInstanceId: string) => {
+    let toastTitle = "Worker Assignment Updated";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+
+    // Capture details for toast before state update, as playerStatsRef might not be fresh enough immediately after setPlayerStats
+    const workerBeingAssignedOrUnassignedPrevState = playerStatsRef.current.factoryWorkers.find(w => workerId ? w.id === workerId : w.assignedMachineInstanceId === machineInstanceId);
+    const targetMachinePrevState = playerStatsRef.current.factoryMachines.find(m => m.instanceId === machineInstanceId);
+    const targetMachineConfig = targetMachinePrevState ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === targetMachinePrevState.configId) : null;
+    const targetMachineName = targetMachineConfig?.name || 'the machine';
+
+    setPlayerStats(prev => {
+      let newWorkers = [...(prev.factoryWorkers || [])];
+      let madeChange = false;
+
+      if (workerId === null) { // Explicitly unassign worker from this machine
+        const currentWorkerOnMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
+        if (currentWorkerOnMachineIndex !== -1) {
+          newWorkers[currentWorkerOnMachineIndex] = {
+            ...newWorkers[currentWorkerOnMachineIndex],
+            assignedMachineInstanceId: null,
+            status: 'idle'
+          };
+          madeChange = true;
+        }
+      } else { // Assigning a specific worker (workerId is not null)
+        const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
+        if (workerToAssignIndex === -1) { // Should not happen if UI sends valid workerId
+          toastVariant = "destructive"; // Prepare for error toast
+          return prev; // No change
+        }
+
+        let workerToAssign = { ...newWorkers[workerToAssignIndex] }; // Make a mutable copy
+
+        // 1. Unassign the chosen worker from their current machine, if it's different
+        if (workerToAssign.assignedMachineInstanceId && workerToAssign.assignedMachineInstanceId !== machineInstanceId) {
+          workerToAssign.assignedMachineInstanceId = null;
+          workerToAssign.status = 'idle';
+          madeChange = true;
+        }
+
+        // 2. Unassign any worker currently on the target machine (if it's not the one we're assigning)
+        const currentWorkerOnTargetMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
+        if (currentWorkerOnTargetMachineIndex !== -1 && newWorkers[currentWorkerOnTargetMachineIndex].id !== workerId) {
+          newWorkers[currentWorkerOnTargetMachineIndex] = {
+            ...newWorkers[currentWorkerOnTargetMachineIndex],
+            assignedMachineInstanceId: null,
+            status: 'idle'
+          };
+          madeChange = true;
+        }
+        
+        // 3. Assign the chosen worker to the target machine
+        const productionLine = (prev.factoryProductionLines || []).find(pl => pl.slots.some(s => s.machineInstanceId === machineInstanceId));
+        const slot = productionLine?.slots.find(s => s.machineInstanceId === machineInstanceId);
+        
+        workerToAssign.assignedMachineInstanceId = machineInstanceId;
+        workerToAssign.status = (slot?.targetComponentId && workerToAssign.energy > 0) ? 'working' : 'idle';
+        newWorkers[workerToAssignIndex] = workerToAssign; // Put the (potentially modified) worker back
+        madeChange = true;
+      }
+      
+      if (madeChange) {
+        return { ...prev, factoryWorkers: newWorkers };
+      }
+      return prev; // No effective changes made to worker assignments
+    });
+
+    // Construct toast message based on the intended action and initial state
+    if (workerId === null) { // Unassignment action
+        if (workerBeingAssignedOrUnassignedPrevState && workerBeingAssignedOrUnassignedPrevState.assignedMachineInstanceId === machineInstanceId) {
+            toastDescription = `${workerBeingAssignedOrUnassignedPrevState.name} has been unassigned from ${targetMachineName} and is now idle.`;
+        } else {
+            toastDescription = `${targetMachineName} had no worker assigned, or the worker was already unassigned.`;
+        }
+    } else { // Assignment action
+        const assignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.id === workerId); // Get updated state
+        if (assignedWorker) {
+            toastDescription = `${assignedWorker.name} assigned to ${targetMachineName}.`;
+            if (assignedWorker.status === 'working') {
+                toastDescription += ` Status: working.`;
+            } else {
+                const productionLine = playerStatsRef.current.factoryProductionLines.find(pl => pl.slots.some(s => s.machineInstanceId === machineInstanceId));
+                const slot = productionLine?.slots.find(s => s.machineInstanceId === machineInstanceId);
+                if (!slot?.targetComponentId) toastDescription += ` Status: idle (machine needs a recipe).`;
+                else if (assignedWorker.energy <= 0) toastDescription += ` Status: idle (worker needs energy).`;
+                else toastDescription += ` Status: idle.`;
+            }
+        } else {
+            toastDescription = "Worker assignment could not be confirmed."; // Fallback
+            toastVariant = "destructive";
+        }
+    }
+    
+    if (toastDescription || toastVariant === "destructive") {
+      toastRef.current({ title: toastTitle, description: toastDescription || "An unknown error occurred.", variant: toastVariant, duration: 2500 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setTimeout(() => _tryAssignIdleWorkersToMachines(), 50); 
+  }, [_tryAssignIdleWorkersToMachines]);
+
   const performPrestige = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
@@ -1266,7 +1375,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProductionLines: initialProdLines,
           factoryPowerBuildings,
           factoryProducedComponents,
-          factoryMaterialCollectors,
           factoryProductionProgress: {},
           factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: MAX_WORKER_ENERGY, assignedMachineInstanceId: null })),
           researchPoints: 0,
@@ -1275,7 +1383,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1306,88 +1414,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           energy: MAX_WORKER_ENERGY,
           status: 'idle',
         };
+        toastTitle = "Worker Hired!";
+        toastDescription = `${newWorker.name} has been hired.`;
         return {
           ...prev,
           money: prev.money - WORKER_HIRE_COST,
           factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
         };
       });
-      toastTitle = "Worker Hired!";
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      
       setTimeout(() => _tryAssignIdleWorkersToMachines(), 0);
     }
-    if (toastTitle) {
-      if (!toastDescription && toastVariant === "default") {
-         // Let _tryAssignIdleWorkersToMachines handle success toast if worker gets assigned
-      } else {
+    if (toastTitle && toastVariant === "destructive") { // Only show error toasts here, success is handled by setPlayerStats or auto-assign
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-      }
+    } else if (toastTitle) {
+        toastRef.current({ title: toastTitle, description: toastDescription }); // Show Hire Success
     }
   }, [_tryAssignIdleWorkersToMachines]);
-
-
-  const assignWorkerToMachine = useCallback((workerId: string | null, machineInstanceId: string) => {
-    let toastMessageToShow = "";
-    setPlayerStats(prev => {
-        let newWorkers = [...(prev.factoryWorkers || [])];
-        const targetMachine = (prev.factoryMachines || []).find(m => m.instanceId === machineInstanceId);
-        const machineConfig = targetMachine ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === targetMachine.configId) : null;
-        let finalToastMessage = "";
-
-        // 1. Unassign the chosen worker from any previous machine if they are being reassigned
-        if (workerId) {
-            const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
-            if (workerToAssignIndex !== -1) {
-                const workerToAssign = newWorkers[workerToAssignIndex];
-                if (workerToAssign.assignedMachineInstanceId && workerToAssign.assignedMachineInstanceId !== machineInstanceId) {
-                    const oldMachineId = workerToAssign.assignedMachineInstanceId;
-                    const oldMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === (prev.factoryMachines.find(m => m.instanceId === oldMachineId)?.configId));
-                    finalToastMessage += `${workerToAssign.name} unassigned from ${oldMachineConfig?.name || 'previous machine'}. `;
-                    newWorkers[workerToAssignIndex] = {...workerToAssign, assignedMachineInstanceId: null, status: 'idle'};
-                }
-            }
-        }
-
-        // 2. Unassign any worker currently on the target machine
-        const currentWorkerOnMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
-        if (currentWorkerOnMachineIndex !== -1) {
-            // Only unassign if it's a different worker being assigned, or if we're unassigning (workerId is null)
-            if (newWorkers[currentWorkerOnMachineIndex].id !== workerId || workerId === null) {
-                finalToastMessage += `${newWorkers[currentWorkerOnMachineIndex].name} unassigned from ${machineConfig?.name || 'machine'}. `;
-                newWorkers[currentWorkerOnMachineIndex] = {...newWorkers[currentWorkerOnMachineIndex], assignedMachineInstanceId: null, status: 'idle'};
-            }
-        }
-        
-        // 3. Assign the new worker to the target machine (if a workerId is provided)
-        if (workerId) {
-            const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
-            if (workerToAssignIndex !== -1) {
-                newWorkers[workerToAssignIndex].assignedMachineInstanceId = machineInstanceId;
-                const productionLine = (prev.factoryProductionLines || []).find(pl => pl.slots.some(s => s.machineInstanceId === machineInstanceId));
-                const slot = productionLine?.slots.find(s => s.machineInstanceId === machineInstanceId);
-                if (slot?.targetComponentId && newWorkers[workerToAssignIndex].energy > 0) {
-                    newWorkers[workerToAssignIndex].status = 'working';
-                } else {
-                    newWorkers[workerToAssignIndex].status = 'idle';
-                }
-                finalToastMessage += `${newWorkers[workerToAssignIndex].name} assigned to ${machineConfig?.name || 'machine'}.`;
-            }
-        } else { // workerId is null, meaning explicitly unassign
-             if (currentWorkerOnMachineIndex !== -1 && newWorkers[currentWorkerOnMachineIndex].assignedMachineInstanceId === machineInstanceId) {
-                // This case should be handled by step 2 already if a different worker was not selected
-             } else if (!finalToastMessage.includes("unassigned")) { // Only add if not already mentioned
-                finalToastMessage += `${machineConfig?.name || 'Machine'} now has no worker.`;
-             }
-        }
-        
-        toastMessageToShow = finalToastMessage.trim();
-        return { ...prev, factoryWorkers: newWorkers };
-    });
-
-    if (toastMessageToShow) {
-        toastRef.current({ title: "Worker Assignment Updated", description: toastMessageToShow, duration: 2500 });
-    }
-  }, []);
 
 
   const setLastMarketTrends = useCallback((trends: string) => { setLastMarketTrendsInternal(trends); }, []);
@@ -1420,7 +1463,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryWorkers: Array.isArray(loadedData.playerStats.factoryWorkers) ? loadedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
             researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
             unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
-            lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+            lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1637,7 +1680,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                               }
                               newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
                             } else {
-                               currentProgress -= (1 / componentRecipe.productionTimeSeconds); // Rollback progress if couldn't craft
+                               currentProgress = Math.max(0, currentProgress - (1 / componentRecipe.productionTimeSeconds)); // Rollback progress if couldn't craft
                             }
                           }
                           newFactoryProductionProgress[progressKey] = currentProgress;
@@ -1772,5 +1815,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
