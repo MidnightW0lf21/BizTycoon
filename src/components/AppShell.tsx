@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
@@ -200,13 +200,11 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { playerStats, businesses, performPrestige } = useGame();
-  const [currentMoney, setCurrentMoney] = useState(playerStats.money);
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
   const pathname = usePathname();
   const { toast } = useToast();
 
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
-  const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const [mounted, setMounted] = useState(false);
@@ -214,21 +212,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-
-  useEffect(() => {
-    setCurrentMoney(playerStats.money);
-
+  const newlyGainedPoints = useMemo(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
-    const calculateNewlyGainedPointsLocal = () => {
-      const moneyRequiredForPrestige = 100000;
-      if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) return 0;
-
-      const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
-      return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
-    };
-    setNewlyGainedPoints(calculateNewlyGainedPointsLocal());
-
+    const moneyRequiredForPrestige = 100000;
+    if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
+      return 0;
+    }
+    const totalPotentialPointsPlayerWouldHave = calculateDiminishingPrestigePoints(currentTotalLevels);
+    return Math.max(0, totalPotentialPointsPlayerWouldHave - playerStats.prestigePoints);
   }, [playerStats.money, playerStats.prestigePoints, playerStats.timesPrestiged, businesses]);
+
 
   useEffect(() => {
     const activeItem = navItems.find(item => {
@@ -348,7 +341,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Banknote className="h-5 w-5" />
-              <span>{currentMoney.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+              <span>{playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">
@@ -400,6 +393,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     
 
+
+    
 
     
 
