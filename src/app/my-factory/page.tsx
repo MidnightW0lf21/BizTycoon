@@ -4,12 +4,13 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical } from "lucide-react"; // Added FlaskConical
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB } from "@/config/game-config"; // Added INITIAL_RESEARCH_ITEMS_CONFIG and REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
+import { ResearchItemCard } from "@/components/factory/ResearchItemCard"; // New import
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useMemo } from "react";
@@ -28,13 +29,17 @@ export default function MyFactoryPage() {
     purchaseFactoryPowerBuilding,
     manuallyCollectRawMaterials,
     purchaseFactoryMachine,
-    // calculateNextMachineCost, // This function is being phased out
     materialCollectionCooldownEnd,
     setRecipeForProductionSlot,
     purchaseFactoryMaterialCollector,
+    manuallyGenerateResearchPoints, // New from context
+    purchaseResearch, // New from context
+    researchItems, // New from context
+    manualResearchCooldownEnd, // New from context
   } = useGame();
 
   const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
+  const [secondsRemainingForResearchCooldown, setSecondsRemainingForResearchCooldown] = useState(0); // New state for research cooldown
   const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
   const [currentDialogContext, setCurrentDialogContext] = useState<{
     productionLineId: string;
@@ -47,47 +52,41 @@ export default function MyFactoryPage() {
     if (!playerStats.factoryPurchased) return;
 
     let intervalId: NodeJS.Timeout;
-
     const updateCooldown = () => {
       const now = Date.now();
       const remaining = Math.max(0, Math.ceil((materialCollectionCooldownEnd - now) / 1000));
       setSecondsRemainingForCooldown(remaining);
-
-      if (remaining === 0) {
-        clearInterval(intervalId);
-      }
+      if (remaining === 0) clearInterval(intervalId);
     };
-
     if (materialCollectionCooldownEnd > Date.now()) {
       updateCooldown(); 
       intervalId = setInterval(updateCooldown, 1000);
     } else {
       setSecondsRemainingForCooldown(0);
     }
-
     return () => clearInterval(intervalId);
   }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
 
-  const handleOpenRecipeDialog = (productionLineId: string, slotIndex: number) => {
-    const line = playerStats.factoryProductionLines.find(l => l.id === productionLineId);
-    if (line && line.slots[slotIndex]) {
-      const slot = line.slots[slotIndex];
-      setCurrentDialogContext({
-        productionLineId,
-        slotIndex,
-        assignedMachineInstanceId: slot.machineInstanceId,
-        currentRecipeId: slot.targetComponentId,
-      });
-      setIsRecipeDialogOpen(true);
+  // New useEffect for research cooldown
+  useEffect(() => {
+    if (!playerStats.factoryPurchased || playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) return;
+    let intervalId: NodeJS.Timeout;
+    const updateResearchCooldown = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((manualResearchCooldownEnd - now) / 1000));
+      setSecondsRemainingForResearchCooldown(remaining);
+      if (remaining === 0) clearInterval(intervalId);
+    };
+    if (manualResearchCooldownEnd > Date.now()) {
+      updateResearchCooldown();
+      intervalId = setInterval(updateResearchCooldown, 1000);
+    } else {
+      setSecondsRemainingForResearchCooldown(0);
     }
-  };
+    return () => clearInterval(intervalId);
+  }, [manualResearchCooldownEnd, playerStats.factoryPurchased, playerStats.timesPrestiged]);
 
-  const handleCloseRecipeDialog = () => {
-    setIsRecipeDialogOpen(false);
-    setCurrentDialogContext(null);
-  };
 
-  // Moved netPower calculation and useMemo for totalAutomatedMaterialsPerSecond before conditional returns
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
 
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
@@ -142,6 +141,26 @@ export default function MyFactoryPage() {
       playerStats.factoryPowerConsumptionKw, 
       netPower
   ]);
+
+
+  const handleOpenRecipeDialog = (productionLineId: string, slotIndex: number) => {
+    const line = playerStats.factoryProductionLines.find(l => l.id === productionLineId);
+    if (line && line.slots[slotIndex]) {
+      const slot = line.slots[slotIndex];
+      setCurrentDialogContext({
+        productionLineId,
+        slotIndex,
+        assignedMachineInstanceId: slot.machineInstanceId,
+        currentRecipeId: slot.targetComponentId,
+      });
+      setIsRecipeDialogOpen(true);
+    }
+  };
+
+  const handleCloseRecipeDialog = () => {
+    setIsRecipeDialogOpen(false);
+    setCurrentDialogContext(null);
+  };
 
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
@@ -208,6 +227,9 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
 
+  const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
+
+
   return (
     <>
     <div className="flex flex-col gap-6 h-full">
@@ -230,17 +252,23 @@ export default function MyFactoryPage() {
               <span className="flex items-center gap-1 font-medium text-orange-400">
                 <Box className="h-4 w-4" /> Materials: {playerStats.factoryRawMaterials.toLocaleString()} units
               </span>
+               {researchTabAvailable && (
+                <span className="flex items-center gap-1 font-medium text-purple-400">
+                  <FlaskConical className="h-4 w-4" /> RP: {playerStats.researchPoints.toLocaleString()}
+                </span>
+              )}
             </div>
           </div>
-          <CardDescription>Manage power, materials, and production lines to create valuable components.</CardDescription>
+          <CardDescription>Manage power, materials, and production lines to create valuable components. Unlock new technologies via Research.</CardDescription>
         </CardHeader>
       </Card>
 
       <Tabs defaultValue="production" className="w-full flex-grow flex flex-col">
-        <TabsList className="grid w-full grid-cols-4 mb-4">
+        <TabsList className={`grid w-full ${researchTabAvailable ? 'grid-cols-5' : 'grid-cols-4'} mb-4`}>
           <TabsTrigger value="power"><Zap className="mr-2 h-4 w-4"/>Power</TabsTrigger>
           <TabsTrigger value="materials"><Box className="mr-2 h-4 w-4"/>Materials</TabsTrigger>
           <TabsTrigger value="production"><Wrench className="mr-2 h-4 w-4"/>Production</TabsTrigger>
+          {researchTabAvailable && <TabsTrigger value="research"><FlaskConical className="mr-2 h-4 w-4"/>Research</TabsTrigger>}
           <TabsTrigger value="inventory"><PackageCheck className="mr-2 h-4 w-4"/>Inventory</TabsTrigger>
         </TabsList>
 
@@ -319,17 +347,23 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Build Assemblers</CardTitle>
-                <CardDescription>Construct assemblers to place in your production lines. Assemblers are auto-assigned. Each Mark can craft up to its corresponding Tier.</CardDescription>
+                <CardDescription>Construct assemblers to place in your production lines. Assemblers are auto-assigned. Each Mark can craft up to its corresponding Tier. Some assemblers require research.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => (
-                  <MachinePurchaseCard
-                    key={config.id}
-                    machineConfig={config}
-                    playerMoney={playerStats.money}
-                    onPurchase={() => purchaseFactoryMachine(config.id)}
-                  />
-                ))}
+                {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => {
+                  const isLocked = config.requiredResearchId && !playerStats.unlockedResearchIds.includes(config.requiredResearchId);
+                  const researchName = isLocked ? researchItems.find(r => r.id === config.requiredResearchId)?.name : undefined;
+                  return (
+                    <MachinePurchaseCard
+                      key={config.id}
+                      machineConfig={config}
+                      playerMoney={playerStats.money}
+                      onPurchase={() => purchaseFactoryMachine(config.id)}
+                      isResearchLocked={isLocked}
+                      researchItemName={researchName}
+                    />
+                  );
+                })}
               </CardContent>
             </Card>
             
@@ -352,6 +386,53 @@ export default function MyFactoryPage() {
             </Card>
           </ScrollArea>
         </TabsContent>
+        
+        {researchTabAvailable && (
+          <TabsContent value="research" className="flex-grow">
+            <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Research & Development</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg">
+                      Current Research Points: <strong className="text-primary">{playerStats.researchPoints.toLocaleString()} RP</strong>
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={manuallyGenerateResearchPoints} 
+                    size="lg"
+                    disabled={secondsRemainingForResearchCooldown > 0}
+                  >
+                    <FlaskConical className="mr-2 h-5 w-5"/>
+                    {secondsRemainingForResearchCooldown > 0 
+                      ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)` 
+                      : `Manually Conduct Research (+1 RP, $${(10000).toLocaleString()})`}
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Research Projects</CardTitle>
+                  <CardDescription>Unlock new technologies, machines, and components.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {researchItems.map(config => (
+                    <ResearchItemCard
+                      key={config.id}
+                      researchConfig={config}
+                      playerResearchPoints={playerStats.researchPoints}
+                      playerMoney={playerStats.money}
+                      unlockedResearchIds={playerStats.unlockedResearchIds}
+                      onPurchase={() => purchaseResearch(config.id)}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            </ScrollArea>
+          </TabsContent>
+        )}
 
         <TabsContent value="inventory" className="flex-grow">
         <TooltipProvider>
@@ -425,4 +506,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-

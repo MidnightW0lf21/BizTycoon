@@ -4,29 +4,48 @@
 import type { FactoryMachineConfig } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Zap, ShoppingCart, Info, Box } from "lucide-react"; // Added Box
+import { DollarSign, Zap, ShoppingCart, Info, Box } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import React from "react"; // Import React
 
 interface MachinePurchaseCardProps {
   machineConfig: FactoryMachineConfig;
-  // nextMachineCost prop removed
   playerMoney: number;
   onPurchase: (configId: string) => void;
+  isResearchLocked: boolean;
+  researchItemName?: string;
 }
 
-export function MachinePurchaseCard({
+// Wrap MachinePurchaseCard with React.memo
+const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
   machineConfig,
-  // nextMachineCost prop removed
   playerMoney,
   onPurchase,
+  isResearchLocked,
+  researchItemName,
 }: MachinePurchaseCardProps) {
   const Icon = machineConfig.icon;
-  const displayCost = machineConfig.baseCost; // Use baseCost directly
+  const displayCost = machineConfig.baseCost;
   const canAfford = playerMoney >= displayCost;
+  const canPurchase = !isResearchLocked && canAfford;
 
   const handlePurchase = () => {
-    onPurchase(machineConfig.id);
+    if (!isResearchLocked) {
+      onPurchase(machineConfig.id);
+    }
   };
+
+  let buttonText = "Build Machine";
+  let buttonTooltipContent = `Build a ${machineConfig.name}.`;
+
+  if (isResearchLocked) {
+    buttonText = "Research Required";
+    buttonTooltipContent = researchItemName ? `Requires "${researchItemName}" research.` : "Research required to unlock.";
+  } else if (!canAfford) {
+    buttonText = "Cannot Afford";
+    buttonTooltipContent = `Requires $${displayCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  }
+
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -62,6 +81,9 @@ export function MachinePurchaseCard({
               </span>
             </div>
           </div>
+           {isResearchLocked && researchItemName && (
+            <p className="text-xs text-amber-600">Requires: "{researchItemName}" research.</p>
+          )}
         </CardContent>
         <CardFooter className="pt-2">
           <Tooltip>
@@ -69,29 +91,23 @@ export function MachinePurchaseCard({
               <div className="w-full">
                 <Button
                   onClick={handlePurchase}
-                  disabled={!canAfford}
+                  disabled={!canPurchase || isResearchLocked}
                   className="w-full"
-                  variant={canAfford ? "default" : "outline"}
+                  variant={canPurchase && !isResearchLocked ? "default" : "outline"}
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
-                  {canAfford ? "Build Machine" : "Cannot Afford"}
+                  {buttonText}
                 </Button>
               </div>
             </TooltipTrigger>
-            {!canAfford && (
-              <TooltipContent>
-                <p>Requires ${displayCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
-              </TooltipContent>
-            )}
-             {canAfford && (
-              <TooltipContent>
-                <p>Build a {machineConfig.name}.</p>
-              </TooltipContent>
-            )}
+            <TooltipContent>
+              <p>{buttonTooltipContent}</p>
+            </TooltipContent>
           </Tooltip>
         </CardFooter>
       </Card>
     </TooltipProvider>
   );
-}
+});
 
+export { MachinePurchaseCard };

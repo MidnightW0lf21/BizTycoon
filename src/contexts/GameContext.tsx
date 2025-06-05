@@ -56,7 +56,7 @@ interface GameContextType {
   lastRiskTolerance: "low" | "medium" | "high";
   setLastRiskTolerance: (tolerance: "low" | "medium" | "high") => void;
   materialCollectionCooldownEnd: number;
-  manualResearchCooldownEnd: number; // New for research cooldown display
+  manualResearchCooldownEnd: number;
   upgradeBusiness: (businessId: string, levelsToBuy?: number) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string, isAutoBuy?: boolean) => boolean;
   purchaseHQUpgrade: (upgradeId: string) => void;
@@ -145,13 +145,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [manualResearchCooldownEnd, setManualResearchCooldownEnd] = useState<number>(0);
 
 
-  const setLastMarketTrends = (trends: string) => {
+  const setLastMarketTrends = useCallback((trends: string) => {
     setLastMarketTrendsInternal(trends);
-  };
+  }, []);
 
-  const setLastRiskTolerance = (tolerance: "low" | "medium" | "high") => {
+  const setLastRiskTolerance = useCallback((tolerance: "low" | "medium" | "high") => {
     setLastRiskToleranceInternal(tolerance);
-  };
+  }, []);
 
   useEffect(() => {
     const stockUpdateInterval = setInterval(() => {
@@ -205,15 +205,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [playerStats, businesses, toast]);
 
-  const manualSaveGame = () => {
+  const manualSaveGame = useCallback(() => {
     saveStateToLocalStorage();
     toast({
       title: "Game Saved!",
       description: "Your progress has been saved.",
     });
-  };
+  }, [saveStateToLocalStorage, toast]);
 
-  const exportGameState = (): string => {
+  const exportGameState = useCallback((): string => {
     const currentTimestamp = Date.now();
      const saveData: SaveData = {
         playerStats,
@@ -221,9 +221,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         lastSaved: currentTimestamp,
       };
     return JSON.stringify(saveData, null, 2);
-  };
+  }, [playerStats, businesses]);
 
-  const importGameState = (jsonString: string): boolean => {
+  const importGameState = useCallback((jsonString: string): boolean => {
     try {
       const importedData: SaveData = JSON.parse(jsonString);
       if (!importedData.playerStats || !importedData.businesses) {
@@ -286,9 +286,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       return false;
     }
-  };
+  }, [toast]);
 
-  const wipeGameData = () => {
+  const wipeGameData = useCallback(() => {
     setPlayerStats(getInitialPlayerStats());
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz,
@@ -307,7 +307,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       description: "All progress has been reset to default.",
       variant: "destructive",
     });
-  };
+  }, [toast]);
 
 
   useEffect(() => {
@@ -429,7 +429,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [businesses, playerStats.money, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, getDynamicMaxBusinessLevel]);
 
 
-  useEffect(() => { // Game Loop
+  useEffect(() => {
     setPlayerStats(prev => {
         const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
         let dividendIncome = 0;
@@ -573,7 +573,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryProducedComponents: newFactoryProducedComponents,
         };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
       businesses, 
       playerStats.stockHoldings, 
@@ -582,15 +582,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       playerStats.hqUpgradeLevels, 
       hqUpgradesState, 
       unlockedStocks,
-      playerStats.factoryProducedComponents, // Explicitly list this key dependency of getBusinessIncome
       playerStats.factoryPurchased,
       playerStats.factoryPowerUnitsGenerated,
-      // playerStats.factoryPowerConsumptionKw, // This is calculated within the effect, avoid self-dependency
       playerStats.factoryRawMaterials,
       playerStats.factoryMachines,
       playerStats.factoryProductionLines,
       playerStats.factoryPowerBuildings,
-      playerStats.factoryMaterialCollectors
+      playerStats.factoryMaterialCollectors,
+      playerStats.factoryProducedComponents, 
   ]);
 
 
@@ -739,7 +738,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [businesses, playerStats.money, playerStats.timesPrestiged, playerStats.unlockedSkillIds, skillTreeState, playerStats.achievedBusinessMilestones, toast]);
 
 
-  const upgradeBusiness = (businessId: string, levelsToAttempt: number = 1) => {
+  const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
     const businessToUpdate = businesses.find(b => b.id === businessId);
     if (!businessToUpdate) return;
 
@@ -798,10 +797,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       )
     );
     toast({ title: "Business Leveled Up!", description: `${businessToUpdate.name} is now level ${newLevelAfterUpgrade} (+${levelsPurchasable}).` });
-  };
+  }, [businesses, playerStats.money, playerStats.timesPrestiged, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, getDynamicMaxBusinessLevel, toast]);
 
 
-  const buyStock = (stockId: string, sharesToBuyInput: number) => {
+  const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
     if (playerStats.timesPrestiged < 8) {
         toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
@@ -848,9 +847,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money - cost, stockHoldings: newHoldings };
     });
     toast({ title: "Stock Purchased!", description: `Bought ${sharesToBuy.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
-  };
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.stockHoldings, unlockedStocks, toast]);
 
-  const sellStock = (stockId: string, sharesToSell: number) => {
+  const sellStock = useCallback((stockId: string, sharesToSell: number) => {
      if (playerStats.timesPrestiged < 8) {
         toast({ title: "Stocks Locked", description: "You need to prestige at least 8 times to access the stock market.", variant: "destructive" });
         return;
@@ -877,7 +876,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, money: prev.money + earnings, stockHoldings: newHoldings };
     });
     toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName}.` });
-  };
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.stockHoldings, unlockedStocks, toast]);
 
   const performPrestige = useCallback(() => {
     const moneyRequiredForFirstPrestige = 100000;
@@ -979,132 +978,128 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     })));
     
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
-    _attemptAutoAssignWaitingMachines();
+    _attemptAutoAssignWaitingMachines(); // This needs to be stable or defined inside.
 
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
-  }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
+  }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]); // _attemptAutoAssignWaitingMachines added implicitly via call
 
-  const unlockSkillNode = (skillId: string) => {
+  const unlockSkillNode = useCallback((skillId: string) => {
     const skill = skillTreeState.find(s => s.id === skillId);
     if (!skill) {
       toast({ title: "Skill Not Found", variant: "destructive" });
       return;
     }
-    if (playerStats.unlockedSkillIds.includes(skillId)) {
-      toast({ title: "Skill Already Unlocked", variant: "default" });
-      return;
-    }
+    setPlayerStats(prev => {
+      if (prev.unlockedSkillIds.includes(skillId)) {
+        toast({ title: "Skill Already Unlocked", variant: "default" });
+        return prev;
+      }
+      if (prev.prestigePoints < skill.cost) {
+          toast({ title: "Not Enough Prestige Points", description: `Need ${skill.cost} PP. You have ${prev.prestigePoints}.`, variant: "destructive" });
+          return prev;
+      }
+      if (skill.dependencies && skill.dependencies.some(depId => !prev.unlockedSkillIds.includes(depId))) {
+          toast({ title: "Dependencies Not Met", description: "Unlock prerequisite skills first.", variant: "destructive" });
+          return prev;
+      }
+      toast({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
+      return {
+        ...prev,
+        prestigePoints: prev.prestigePoints - skill.cost,
+        unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
+      };
+    });
+  }, [skillTreeState, toast]);
 
-    if (playerStats.prestigePoints < skill.cost) {
-        toast({ title: "Not Enough Prestige Points", description: `Need ${skill.cost} PP. You have ${playerStats.prestigePoints}.`, variant: "destructive" });
-        return;
-    }
-    if (skill.dependencies && skill.dependencies.some(depId => !playerStats.unlockedSkillIds.includes(depId))) {
-        toast({ title: "Dependencies Not Met", description: "Unlock prerequisite skills first.", variant: "destructive" });
-        return;
-    }
-
-    setPlayerStats(prev => ({
-      ...prev,
-      prestigePoints: prev.prestigePoints - skill.cost,
-      unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
-    }));
-
-    toast({ title: "Skill Unlocked!", description: `${skill.name} is now active.` });
-  };
-
-  const purchaseHQUpgrade = (upgradeId: string) => {
+  const purchaseHQUpgrade = useCallback((upgradeId: string) => {
     const upgradeConfig = hqUpgradesState.find(u => u.id === upgradeId);
     if (!upgradeConfig) {
       toast({ title: "HQ Upgrade Not Found", variant: "destructive" });
       return;
     }
+    setPlayerStats(prev => {
+      const currentLevel = prev.hqUpgradeLevels[upgradeId] || 0;
+      const nextLevel = currentLevel + 1;
+      const nextLevelData = upgradeConfig.levels.find(l => l.level === nextLevel);
 
-    const currentLevel = playerStats.hqUpgradeLevels[upgradeId] || 0;
-    const nextLevel = currentLevel + 1;
-    const nextLevelData = upgradeConfig.levels.find(l => l.level === nextLevel);
+      if (!nextLevelData) {
+        toast({ title: "Max Level Reached", description: `${upgradeConfig.name} is already at its maximum level.`, variant: "default" });
+        return prev;
+      }
+      if (upgradeConfig.requiredTimesPrestiged && prev.timesPrestiged < upgradeConfig.requiredTimesPrestiged) {
+        toast({ title: "Prestige Requirement Not Met", description: `This HQ upgrade requires ${upgradeConfig.requiredTimesPrestiged} prestige(s).`, variant: "destructive"});
+        return prev;
+      }
+      if (prev.money < nextLevelData.costMoney) {
+        toast({ title: "Not Enough Money", description: `Need $${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`, variant: "destructive"});
+        return prev;
+      }
+      if (nextLevelData.costPrestigePoints && prev.prestigePoints < nextLevelData.costPrestigePoints) {
+        toast({ title: "Not Enough Prestige Points", description: `Need ${nextLevelData.costPrestigePoints} PP.`, variant: "destructive"});
+        return prev;
+      }
+      toast({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevel}.` });
+      return {
+        ...prev,
+        money: prev.money - nextLevelData.costMoney,
+        prestigePoints: nextLevelData.costPrestigePoints ? prev.prestigePoints - nextLevelData.costPrestigePoints : prev.prestigePoints,
+        hqUpgradeLevels: {
+          ...prev.hqUpgradeLevels,
+          [upgradeId]: nextLevel,
+        },
+      };
+    });
+  }, [hqUpgradesState, toast]);
 
-    if (!nextLevelData) {
-      toast({ title: "Max Level Reached", description: `${upgradeConfig.name} is already at its maximum level.`, variant: "default" });
-      return;
-    }
-    
-    if (upgradeConfig.requiredTimesPrestiged && playerStats.timesPrestiged < upgradeConfig.requiredTimesPrestiged) {
-      toast({ title: "Prestige Requirement Not Met", description: `This HQ upgrade requires ${upgradeConfig.requiredTimesPrestiged} prestige(s).`, variant: "destructive"});
-      return;
-    }
+  const purchaseFactoryBuilding = useCallback(() => {
+    setPlayerStats(prev => {
+      if (prev.factoryPurchased) {
+        toast({ title: "Factory Already Owned", description: "You have already purchased the factory building.", variant: "default" });
+        return prev;
+      }
+      if (prev.money < FACTORY_PURCHASE_COST) {
+        toast({ title: "Not Enough Money", description: `You need $${FACTORY_PURCHASE_COST.toLocaleString()} to purchase the factory.`, variant: "destructive" });
+        return prev;
+      }
+      toast({ title: "Factory Purchased!", description: "You can now start building your industrial empire!" });
+      return {
+        ...prev,
+        money: prev.money - FACTORY_PURCHASE_COST,
+        factoryPurchased: true,
+      };
+    });
+  }, [toast]);
 
-    if (playerStats.money < nextLevelData.costMoney) {
-      toast({ title: "Not Enough Money", description: `Need $${Number(nextLevelData.costMoney).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`, variant: "destructive"});
-      return;
-    }
-    if (nextLevelData.costPrestigePoints && playerStats.prestigePoints < nextLevelData.costPrestigePoints) {
-      toast({ title: "Not Enough Prestige Points", description: `Need ${nextLevelData.costPrestigePoints} PP.`, variant: "destructive"});
-      return;
-    }
-
-    setPlayerStats(prev => ({
-      ...prev,
-      money: prev.money - nextLevelData.costMoney,
-      prestigePoints: nextLevelData.costPrestigePoints ? prev.prestigePoints - nextLevelData.costPrestigePoints : prev.prestigePoints,
-      hqUpgradeLevels: {
-        ...prev.hqUpgradeLevels,
-        [upgradeId]: nextLevel,
-      },
-    }));
-    toast({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevel}.` });
-  };
-
-  const purchaseFactoryBuilding = () => {
-    if (playerStats.factoryPurchased) {
-      toast({ title: "Factory Already Owned", description: "You have already purchased the factory building.", variant: "default" });
-      return;
-    }
-    if (playerStats.money < FACTORY_PURCHASE_COST) {
-      toast({ title: "Not Enough Money", description: `You need $${FACTORY_PURCHASE_COST.toLocaleString()} to purchase the factory.`, variant: "destructive" });
-      return;
-    }
-    setPlayerStats(prev => ({
-      ...prev,
-      money: prev.money - FACTORY_PURCHASE_COST,
-      factoryPurchased: true,
-    }));
-    toast({ title: "Factory Purchased!", description: "You can now start building your industrial empire!" });
-  };
-
-  const purchaseFactoryPowerBuilding = (configId: string) => {
-    if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
-    }
+  const purchaseFactoryPowerBuilding = useCallback((configId: string) => {
     const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
     if (!config) {
       toast({ title: "Power Building Not Found", variant: "destructive"});
       return;
     }
-
-    const numOwned = playerStats.factoryPowerBuildings.filter(pb => pb.configId === configId).length;
-    if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
-      toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
-      return;
-    }
-
-    const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.1, numOwned);
-    if (playerStats.money < costForNext) {
-      toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
-      return;
-    }
-
-    const newBuilding: FactoryPowerBuilding = {
-      instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      configId: config.id,
-      level: 1,
-      currentOutputKw: config.powerOutputKw,
-    };
-
     setPlayerStats(prev => {
+      if (!prev.factoryPurchased) {
+        toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+        return prev;
+      }
+      const numOwned = prev.factoryPowerBuildings.filter(pb => pb.configId === configId).length;
+      if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
+        toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
+        return prev;
+      }
+      const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.1, numOwned);
+      if (prev.money < costForNext) {
+        toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
+        return prev;
+      }
+      const newBuilding: FactoryPowerBuilding = {
+        instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        configId: config.id,
+        level: 1,
+        currentOutputKw: config.powerOutputKw,
+      };
       const updatedPowerBuildings = [...prev.factoryPowerBuildings, newBuilding];
       const newTotalPower = updatedPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
+      toast({ title: "Power Building Purchased!", description: `Built a new ${config.name}.` });
       return {
         ...prev,
         money: prev.money - costForNext,
@@ -1112,31 +1107,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryPowerUnitsGenerated: newTotalPower,
       };
     });
-    toast({ title: "Power Building Purchased!", description: `Built a new ${config.name}.` });
-  };
+  }, [toast]);
 
-  const manuallyCollectRawMaterials = () => {
-    if (!playerStats.factoryPurchased) {
-     toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-     return;
-    }
+  const manuallyCollectRawMaterials = useCallback(() => {
     const now = Date.now();
     if (now < materialCollectionCooldownEnd) {
         const timeLeft = Math.ceil((materialCollectionCooldownEnd - now) / 1000);
         toast({ title: "On Cooldown", description: `Please wait ${timeLeft}s before collecting again.`, variant: "default"});
         return;
     }
+    setPlayerStats(prev => {
+      if (!prev.factoryPurchased) {
+       toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+       return prev;
+      }
+      setMaterialCollectionCooldownEnd(now + MATERIAL_COLLECTION_COOLDOWN_MS);
+      toast({ title: "Materials Collected!", description: `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.` });
+      return {
+        ...prev,
+        factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT,
+      };
+    });
+  }, [materialCollectionCooldownEnd, toast]);
 
-    setPlayerStats(prev => ({
-      ...prev,
-      factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT,
-    }));
-    setMaterialCollectionCooldownEnd(now + MATERIAL_COLLECTION_COOLDOWN_MS);
-    toast({ title: "Materials Collected!", description: `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.` });
-  };
 
-
-  const _attemptAutoAssignSingleMachine = (machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
+  const _attemptAutoAssignSingleMachine = useCallback((machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
     let assignedLineId: string | null = null;
     let assignedSlotIndex: number | null = null;
     
@@ -1154,7 +1149,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return line;
     });
     return { updatedProductionLines, assignedLineId, assignedSlotIndex };
-  };
+  }, []);
 
   const _attemptAutoAssignWaitingMachines = useCallback(() => {
     setPlayerStats(prev => {
@@ -1181,66 +1176,63 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         return prev; 
     });
-  }, [toast]);
+  }, [toast, _attemptAutoAssignSingleMachine]);
 
 
-  const purchaseFactoryMachine = (configId: string) => {
-    if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
-    }
+  const purchaseFactoryMachine = useCallback((configId: string) => {
     const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
     if (!machineConfig) {
       toast({ title: "Machine Type Not Found", variant: "destructive"});
       return;
     }
 
-    if (machineConfig.requiredResearchId && !playerStats.unlockedResearchIds.includes(machineConfig.requiredResearchId)) {
-      const researchItem = researchItemsState.find(r => r.id === machineConfig.requiredResearchId);
-      toast({ title: "Research Required", description: `Purchase of ${machineConfig.name} requires '${researchItem?.name || machineConfig.requiredResearchId}' research.`, variant: "destructive"});
-      return;
-    }
-
-    const cost = machineConfig.baseCost; 
-
-    if (playerStats.money < cost) {
-      toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build a ${machineConfig.name}.`, variant: "destructive"});
-      return;
-    }
-
-    const newMachineInstanceId = `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    
     setPlayerStats(prev => {
-        const newMachine: FactoryMachine = {
-            instanceId: newMachineInstanceId,
-            configId: machineConfig.id,
-            assignedProductionLineId: null,
-        };
-        
-        let updatedMachines = [...prev.factoryMachines, newMachine];
-        let updatedProductionLines = [...prev.factoryProductionLines];
-        let assignmentMessage = "";
+      if (!prev.factoryPurchased) {
+        toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+        return prev;
+      }
+      if (machineConfig.requiredResearchId && !prev.unlockedResearchIds.includes(machineConfig.requiredResearchId)) {
+        const researchItem = researchItemsState.find(r => r.id === machineConfig.requiredResearchId);
+        toast({ title: "Research Required", description: `Purchase of ${machineConfig.name} requires '${researchItem?.name || machineConfig.requiredResearchId}' research.`, variant: "destructive"});
+        return prev;
+      }
+      const cost = machineConfig.baseCost; 
+      if (prev.money < cost) {
+        toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build a ${machineConfig.name}.`, variant: "destructive"});
+        return prev;
+      }
 
-        const assignResult = _attemptAutoAssignSingleMachine(newMachineInstanceId, updatedProductionLines);
-        if (assignResult.assignedLineId !== null && assignResult.assignedSlotIndex !== null) {
-            updatedMachines = updatedMachines.map(m => m.instanceId === newMachineInstanceId ? { ...m, assignedProductionLineId: assignResult.assignedLineId } : m);
-            updatedProductionLines = assignResult.updatedProductionLines;
-            const line = updatedProductionLines.find(l => l.id === assignResult.assignedLineId);
-            assignmentMessage = ` and auto-assigned to ${line?.name || 'a line'}, Slot ${assignResult.assignedSlotIndex + 1}.`;
-        } else {
-            assignmentMessage = ". Production lines are full.";
-        }
-        
-        toast({ title: "Machine Built!", description: `A new ${machineConfig.name} is ready${assignmentMessage}` });
+      const newMachineInstanceId = `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const newMachine: FactoryMachine = {
+          instanceId: newMachineInstanceId,
+          configId: machineConfig.id,
+          assignedProductionLineId: null,
+      };
+      
+      let updatedMachines = [...prev.factoryMachines, newMachine];
+      let updatedProductionLines = [...prev.factoryProductionLines];
+      let assignmentMessage = "";
 
-        return {
-            ...prev,
-            money: prev.money - cost,
-            factoryMachines: updatedMachines,
-            factoryProductionLines: updatedProductionLines,
-        };
+      const assignResult = _attemptAutoAssignSingleMachine(newMachineInstanceId, updatedProductionLines);
+      if (assignResult.assignedLineId !== null && assignResult.assignedSlotIndex !== null) {
+          updatedMachines = updatedMachines.map(m => m.instanceId === newMachineInstanceId ? { ...m, assignedProductionLineId: assignResult.assignedLineId } : m);
+          updatedProductionLines = assignResult.updatedProductionLines;
+          const line = updatedProductionLines.find(l => l.id === assignResult.assignedLineId);
+          assignmentMessage = ` and auto-assigned to ${line?.name || 'a line'}, Slot ${assignResult.assignedSlotIndex + 1}.`;
+      } else {
+          assignmentMessage = ". Production lines are full.";
+      }
+      
+      toast({ title: "Machine Built!", description: `A new ${machineConfig.name} is ready${assignmentMessage}` });
+
+      return {
+          ...prev,
+          money: prev.money - cost,
+          factoryMachines: updatedMachines,
+          factoryProductionLines: updatedProductionLines,
+      };
     });
-  };
+  }, [researchItemsState, toast, _attemptAutoAssignSingleMachine]);
 
   const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
       setPlayerStats(prev => {
@@ -1273,7 +1265,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
   }, [_attemptAutoAssignWaitingMachines]);
 
-  const setRecipeForProductionSlot = (productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
+  const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     setPlayerStats(prev => {
       const lineIndex = prev.factoryProductionLines.findIndex(line => line.id === productionLineId);
       if (lineIndex === -1) {
@@ -1331,117 +1323,115 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return { ...prev, factoryProductionLines: updatedProductionLines };
     });
-  };
+  }, [toast]);
 
-  const purchaseFactoryMaterialCollector = (configId: string) => {
-    if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
-    }
+  const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
     const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
     if (!config) {
       toast({ title: "Material Collector Not Found", variant: "destructive"});
       return;
     }
-
-    const numOwned = (playerStats.factoryMaterialCollectors || []).filter(mc => mc.configId === configId).length;
-    if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
-      toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
-      return;
-    }
-
-    const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.15, numOwned);
-    if (playerStats.money < costForNext) {
-      toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
-      return;
-    }
-
-    const newCollector: FactoryMaterialCollector = {
-      instanceId: `${configId}_collector_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      configId: config.id,
-      currentMaterialsPerSecond: config.materialsPerSecond,
-    };
-
     setPlayerStats(prev => {
+      if (!prev.factoryPurchased) {
+        toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+        return prev;
+      }
+      const numOwned = (prev.factoryMaterialCollectors || []).filter(mc => mc.configId === configId).length;
+      if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
+        toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
+        return prev;
+      }
+      const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.15, numOwned);
+      if (prev.money < costForNext) {
+        toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
+        return prev;
+      }
+      const newCollector: FactoryMaterialCollector = {
+        instanceId: `${configId}_collector_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        configId: config.id,
+        currentMaterialsPerSecond: config.materialsPerSecond,
+      };
       const updatedCollectors = [...(prev.factoryMaterialCollectors || []), newCollector];
+      toast({ title: "Material Collector Deployed!", description: `A new ${config.name} is now active.` });
       return {
         ...prev,
         money: prev.money - costForNext,
         factoryMaterialCollectors: updatedCollectors,
       };
     });
-    toast({ title: "Material Collector Deployed!", description: `A new ${config.name} is now active.` });
-  };
+  }, [toast]);
 
-  const manuallyGenerateResearchPoints = () => {
-    if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
-    }
-    if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
-      toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
-      return;
-    }
+  const manuallyGenerateResearchPoints = useCallback(() => {
     const now = Date.now();
     if (now < manualResearchCooldownEnd) {
         const timeLeft = Math.ceil((manualResearchCooldownEnd - now) / 1000);
         toast({ title: "On Cooldown", description: `Please wait ${timeLeft}s before conducting research again.`, variant: "default"});
         return;
     }
-    if (playerStats.money < RESEARCH_MANUAL_GENERATION_COST_MONEY) {
-      toast({ title: "Not Enough Money", description: `Need $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()} to conduct research.`, variant: "destructive"});
-      return;
-    }
-    setPlayerStats(prev => ({
-      ...prev,
-      money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
-      researchPoints: prev.researchPoints + RESEARCH_MANUAL_GENERATION_AMOUNT,
-      lastManualResearchTimestamp: now,
-    }));
-    setManualResearchCooldownEnd(now + RESEARCH_MANUAL_COOLDOWN_MS);
-    toast({ title: "Research Conducted!", description: `+${RESEARCH_MANUAL_GENERATION_AMOUNT} Research Point(s) gained.` });
-  };
+    setPlayerStats(prev => {
+      if (!prev.factoryPurchased) {
+        toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+        return prev;
+      }
+      if (prev.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
+        toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
+        return prev;
+      }
+      if (prev.money < RESEARCH_MANUAL_GENERATION_COST_MONEY) {
+        toast({ title: "Not Enough Money", description: `Need $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()} to conduct research.`, variant: "destructive"});
+        return prev;
+      }
+      setManualResearchCooldownEnd(now + RESEARCH_MANUAL_COOLDOWN_MS);
+      toast({ title: "Research Conducted!", description: `+${RESEARCH_MANUAL_GENERATION_AMOUNT} Research Point(s) gained.` });
+      return {
+        ...prev,
+        money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
+        researchPoints: prev.researchPoints + RESEARCH_MANUAL_GENERATION_AMOUNT,
+        lastManualResearchTimestamp: now,
+      };
+    });
+  }, [manualResearchCooldownEnd, toast]);
 
-  const purchaseResearch = (researchId: string) => {
-    if (!playerStats.factoryPurchased) {
-      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
-      return;
-    }
-     if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
-      toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
-      return;
-    }
-
+  const purchaseResearch = useCallback((researchId: string) => {
     const researchConfig = researchItemsState.find(r => r.id === researchId);
     if (!researchConfig) {
       toast({ title: "Research Not Found", variant: "destructive" });
       return;
     }
-    if (playerStats.unlockedResearchIds.includes(researchId)) {
-      toast({ title: "Research Already Unlocked", variant: "default" });
-      return;
-    }
-    if (researchConfig.dependencies && researchConfig.dependencies.some(depId => !playerStats.unlockedResearchIds.includes(depId))) {
-      toast({ title: "Dependencies Not Met", description: "Unlock prerequisite research first.", variant: "destructive" });
-      return;
-    }
-    if (playerStats.researchPoints < researchConfig.costRP) {
-      toast({ title: "Not Enough Research Points", description: `Need ${researchConfig.costRP} RP.`, variant: "destructive" });
-      return;
-    }
-    if (researchConfig.costMoney && playerStats.money < researchConfig.costMoney) {
-      toast({ title: "Not Enough Money", description: `Need $${researchConfig.costMoney.toLocaleString()}.`, variant: "destructive" });
-      return;
-    }
-
-    setPlayerStats(prev => ({
-      ...prev,
-      researchPoints: prev.researchPoints - researchConfig.costRP,
-      money: researchConfig.costMoney ? prev.money - researchConfig.costMoney : prev.money,
-      unlockedResearchIds: [...prev.unlockedResearchIds, researchId],
-    }));
-    toast({ title: "Research Complete!", description: `${researchConfig.name} unlocked.` });
-  };
+    setPlayerStats(prev => {
+      if (!prev.factoryPurchased) {
+        toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+        return prev;
+      }
+       if (prev.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
+        toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
+        return prev;
+      }
+      if (prev.unlockedResearchIds.includes(researchId)) {
+        toast({ title: "Research Already Unlocked", variant: "default" });
+        return prev;
+      }
+      if (researchConfig.dependencies && researchConfig.dependencies.some(depId => !prev.unlockedResearchIds.includes(depId))) {
+        toast({ title: "Dependencies Not Met", description: "Unlock prerequisite research first.", variant: "destructive" });
+        return prev;
+      }
+      if (prev.researchPoints < researchConfig.costRP) {
+        toast({ title: "Not Enough Research Points", description: `Need ${researchConfig.costRP} RP.`, variant: "destructive" });
+        return prev;
+      }
+      if (researchConfig.costMoney && prev.money < researchConfig.costMoney) {
+        toast({ title: "Not Enough Money", description: `Need $${researchConfig.costMoney.toLocaleString()}.`, variant: "destructive" });
+        return prev;
+      }
+      toast({ title: "Research Complete!", description: `${researchConfig.name} unlocked.` });
+      return {
+        ...prev,
+        researchPoints: prev.researchPoints - researchConfig.costRP,
+        money: researchConfig.costMoney ? prev.money - researchConfig.costMoney : prev.money,
+        unlockedResearchIds: [...prev.unlockedResearchIds, researchId],
+      };
+    });
+  }, [researchItemsState, toast]);
 
 
   return (
@@ -1496,4 +1486,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
