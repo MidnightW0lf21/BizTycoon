@@ -139,7 +139,7 @@ export function ProductionLineDisplay({
                       timerDisplay = canCraftNext ? "Ready" : "Inputs Blocked";
                   }
               } else if (componentConfig) { 
-                  timerDisplay = `Recipe Set (${componentConfig.productionTimeSeconds.toFixed(0)}s)`;
+                   timerDisplay = `Recipe Set (${componentConfig.productionTimeSeconds.toFixed(0)}s)`;
               } else {
                   timerDisplay = "Configuring..."; 
               }
@@ -202,8 +202,8 @@ export function ProductionLineDisplay({
                       <div className="absolute top-0.5 left-0.5 right-0.5 flex items-center justify-between px-0.5 z-10">
                         {worker && (
                           <div className="flex items-center gap-0.5">
-                             <User className={cn("h-2.5 w-2.5", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
-                             <Progress value={workerEnergyPercent} className="h-1 w-6 @[8rem]:w-8 bg-muted-foreground/20"
+                             <User className={cn("h-2.5 w-2.5 @[4.5rem]:h-3 @[4.5rem]:w-3", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
+                             <Progress value={workerEnergyPercent} className="h-1 w-6 @[4.5rem]:w-8 @[6rem]:w-10 bg-muted-foreground/20"
                                 indicatorClassName={cn(
                                     worker.status === 'working' && workerEnergyPercent > 20 && 'bg-green-500',
                                     worker.status === 'working' && workerEnergyPercent <= 20 && 'bg-orange-500',
@@ -215,69 +215,69 @@ export function ProductionLineDisplay({
                           </div>
                         )}
                         {machineIsActiveAndNeedsPower && netPower < 0 && (
-                           <NoPowerIcon className="h-3 w-3 text-destructive" />
+                           <NoPowerIcon className="h-3 w-3 @[4.5rem]:h-3.5 @[4.5rem]:w-3.5 text-destructive" />
                         )}
                       </div>
 
                       {/* Central content - scales with container */}
-                      <div className="flex flex-col items-center justify-center flex-grow w-full px-0.5 pt-3 pb-4 @[6rem]:pt-4 @[6rem]:pb-5 @[8rem]:pt-5 @[8rem]:pb-6">
+                      <div className="flex flex-col items-center justify-around flex-grow w-full px-1 pt-4 pb-4">
                         <MachineIcon className={cn(
-                            "mb-0 @[6rem]:mb-0.5", 
+                            "mb-0.5 @[6rem]:mb-1", 
                             componentConfig ? "text-green-500" : "text-primary",
-                            "h-4 w-4 @[6rem]:h-5 @[6rem]:w-5 @[8rem]:h-6 @[8rem]:w-6 @[10rem]:h-7 @[10rem]:w-7 @[12rem]:h-8 @[12rem]:w-8"
+                            "h-5 w-5 @[4.5rem]:h-6 @[4.5rem]:w-6 @[6rem]:h-7 @[6rem]:w-7 @[8rem]:h-8 @[8rem]:w-8"
                           )} />
                         <p className={cn(
-                            "font-medium text-center leading-tight w-full break-words",
-                            "text-[8px] @[6rem]:text-[9px] @[8rem]:text-[10px] @[10rem]:text-xs @[12rem]:text-sm"
-                          )} title={machineConfig.name}>
+                            "font-semibold text-center leading-tight w-full break-words",
+                            "text-[10px] @[4.5rem]:text-xs @[6rem]:text-sm @[8rem]:text-base"
+                          )} title={displayName}>
                           {displayName}
                         </p>
                         {componentConfig ? (
-                          <div className="flex items-center justify-center gap-0.5 @[6rem]:gap-1">
+                          <div className="flex flex-col items-center justify-center gap-0 @[6rem]:gap-0.5 text-center">
                             <ComponentIcon className={cn(
                                 "text-muted-foreground",
-                                "h-3 w-3 @[6rem]:h-3 @[6rem]:w-3 @[8rem]:h-3.5 @[8rem]:w-3.5 @[10rem]:h-4 @[10rem]:w-4 @[12rem]:h-5 @[12rem]:w-5"
+                                "h-4 w-4 @[4.5rem]:h-4 @[4.5rem]:w-4 @[6rem]:h-5 @[6rem]:w-5 @[8rem]:h-6 @[8rem]:w-6"
                               )}/>
                             <p className={cn(
                                 "text-muted-foreground text-center leading-tight w-full break-words",
-                                "text-[7px] @[6rem]:text-[8px] @[8rem]:text-[9px] @[10rem]:text-[10px] @[12rem]:text-xs"
+                                "text-[9px] @[4.5rem]:text-[10px] @[6rem]:text-xs @[8rem]:text-sm"
                                )} title={componentConfig.name}>
                               {componentConfig.name}
                             </p>
                           </div>
                         ) : (
                            <div className="flex items-center justify-center gap-0.5 text-amber-600">
-                             <Cog className="h-2.5 w-2.5 @[8rem]:h-3 @[8rem]:w-3 @[10rem]:h-3.5 @[10rem]:w-3.5" />
-                             <p className="leading-tight text-[8px] @[6rem]:text-[9px] @[8rem]:text-[10px] @[10rem]:text-xs">Set Recipe</p>
+                             <Cog className="h-3 w-3 @[4.5rem]:h-3.5 @[4.5rem]:w-3.5 @[6rem]:h-4 @[6rem]:w-4" />
+                             <p className="leading-tight text-[10px] @[4.5rem]:text-xs @[6rem]:text-sm">Set Recipe</p>
                            </div>
                         )}
                       </div>
                       
                       {/* Bottom timer/status - scales slightly */}
-                       <div className="absolute bottom-0.5 left-0 right-0 px-0.5 text-center">
+                       <div className="absolute bottom-1 left-0 right-0 px-1 text-center">
                          {(timerDisplay && timerDisplay !== "Empty Slot" && timerDisplay !== "Set Recipe" && timerDisplay !== "Configuring...") && (
                            <div className={cn(
                                "flex items-center justify-center text-muted-foreground leading-tight gap-0.5",
-                               "text-[7px] @[6rem]:text-[8px] @[8rem]:text-[9px] @[10rem]:text-[10px] @[12rem]:text-xs"
+                               "text-[9px] @[4.5rem]:text-[10px] @[6rem]:text-xs @[8rem]:text-sm"
                              )}>
-                             <Timer className="h-2 w-2 @[8rem]:h-2.5 @[8rem]:w-2.5 @[10rem]:h-3 @[10rem]:w-3" />
+                             <Timer className="h-2.5 w-2.5 @[4.5rem]:h-3 @[4.5rem]:w-3 @[6rem]:h-3.5 @[6rem]:w-3.5" />
                              {timerDisplay}
                            </div>
                          )}
                          {!worker && machineConfig && (
                              <div className={cn(
-                                "text-destructive",
-                                "text-[7px] @[6rem]:text-[8px] @[8rem]:text-[9px] @[10rem]:text-[10px] @[12rem]:text-xs"
+                                "text-destructive font-medium",
+                                "text-[9px] @[4.5rem]:text-[10px] @[6rem]:text-xs @[8rem]:text-sm"
                                 )}>
-                                <User className="inline h-2 w-2 @[8rem]:h-2.5 @[8rem]:w-2.5 @[10rem]:h-3 @[10rem]:w-3 mr-0.5" /> Need Worker
+                                <User className="inline h-2.5 w-2.5 @[4.5rem]:h-3 @[4.5rem]:w-3 @[6rem]:h-3.5 @[6rem]:w-3.5 mr-0.5" /> Need Worker
                              </div>
                          )}
                        </div>
                     </>
                   ) : (
                     <>
-                      <Loader2 className="h-5 w-5 @[8rem]:h-6 @[8rem]:w-6 @[10rem]:h-8 @[10rem]:w-8 mb-1 text-muted-foreground/50 animate-pulse" />
-                      <p className="text-[9px] @[8rem]:text-[10px] @[10rem]:text-xs text-muted-foreground/70">Empty Slot</p>
+                      <Loader2 className="h-6 w-6 @[6rem]:h-8 @[6rem]:w-8 @[8rem]:h-10 @[8rem]:w-10 mb-1 text-muted-foreground/50 animate-pulse" />
+                      <p className="text-[10px] @[6rem]:text-xs @[8rem]:text-sm text-muted-foreground/70">Empty Slot</p>
                     </>
                   )}
                 </Button>
