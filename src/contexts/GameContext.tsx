@@ -1225,31 +1225,41 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return line;
         });
-
-        let updatedProgress = { ...(prev.factoryProductionProgress || {}) };
+        
+        let newFactoryProductionProgress = { ...(prev.factoryProductionProgress || {}) };
         const oldTargetComponentIdInSlot = prev.factoryProductionLines[lineIndex].slots[slotIndex].targetComponentId;
-
+        
         if (oldTargetComponentIdInSlot && oldTargetComponentIdInSlot !== targetComponentId) {
             const oldProgressKey = `${productionLine.id}-${slotIndex}-${oldTargetComponentIdInSlot}`;
-            if (updatedProgress[oldProgressKey]) {
-                delete updatedProgress[oldProgressKey];
+            if (newFactoryProductionProgress[oldProgressKey]) {
+                const tempProgress = {...newFactoryProductionProgress}; // Clone before delete
+                delete tempProgress[oldProgressKey];
+                newFactoryProductionProgress = tempProgress; // Assign new object after deletion
             }
         }
 
-        if (targetComponentId && componentRecipe) {
+        if (targetComponentId && componentRecipe && machineConfig && machineInstance) {
             let effectiveProductionTime = componentRecipe.productionTimeSeconds;
-            if (machineInstance && machineConfig?.upgrades) {
+            if (machineInstance.purchasedUpgradeIds && machineConfig.upgrades) {
                 let totalSpeedMultiplier = 1;
-                (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
-                    const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
-                    if (upgradeDef?.effects.productionSpeedMultiplier) totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                machineInstance.purchasedUpgradeIds.forEach(upgradeId => {
+                    const upgradeDef = machineConfig.upgrades!.find(u => u.id === upgradeId);
+                    if (upgradeDef?.effects?.productionSpeedMultiplier) {
+                        totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                    }
                 });
                 effectiveProductionTime /= totalSpeedMultiplier;
-                effectiveProductionTime = Math.max(1, effectiveProductionTime);
             }
-            const newProgressKey = `${productionLine.id}-${slotIndex}-${targetComponentId}`;
-            updatedProgress[newProgressKey] = { remainingSeconds: 0, totalSeconds: effectiveProductionTime };
+            effectiveProductionTime = Math.max(1, Math.floor(effectiveProductionTime));
             
+            const newProgressKey = `${productionLine.id}-${slotIndex}-${targetComponentId}`;
+            newFactoryProductionProgress = {
+                ...newFactoryProductionProgress,
+                [newProgressKey]: { // Create a new object for the specific entry
+                    remainingSeconds: 0, // Ready to start
+                    totalSeconds: effectiveProductionTime
+                }
+            };
             toastTitle = "Recipe Set!";
             toastDescription = `${machineNameForToast} in ${productionLineNameForToast} (Slot ${slotIndex + 1}) will now produce ${componentRecipe.name}.`;
         } else {
@@ -1262,14 +1272,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (workerIndex !== -1) {
             if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
-               toastDescription += " Worker set to 'working'.";
             } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
-               toastDescription += " Worker set to 'idle'.";
             }
         }
 
-        return { ...prev, factoryProductionLines: updatedProductionLines, factoryProductionProgress: updatedProgress, factoryWorkers: updatedWorkers };
+        return { ...prev, factoryProductionLines: updatedProductionLines, factoryProductionProgress: newFactoryProductionProgress, factoryWorkers: updatedWorkers };
     });
 
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1801,7 +1809,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newMoney = prev.money;
         let newFactoryRawMaterials = prev.factoryRawMaterials;
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
-        let newFactoryProductionProgress = { ...(prev.factoryProductionProgress || {}) };
+        let newFactoryProductionProgressForThisTick = { ...(prev.factoryProductionProgress || {}) };
         let updatedWorkers = [...(prev.factoryWorkers || [])];
         
         let basePowerGenerated = 0;
@@ -1939,7 +1947,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return worker;
           });
           
-          const tempNewFactoryProductionProgress = { ...newFactoryProductionProgress };
+          let tempNewFactoryProductionProgress = { ...newFactoryProductionProgressForThisTick };
 
           (prev.factoryProductionLines || []).forEach((line) => {
             if (!line.isUnlocked) return;
@@ -1974,12 +1982,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             if (componentRecipe.effects.globalIncomeBoostPerComponentPercent) {
                                 currentBonusContribution = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
                                 maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
-                            } // Simplified for brevity
+                            } 
                             if (currentBonusContribution >= maxBonusCap) isBonusCapped = true;
                         }
 
                         const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
-                        let currentSlotProgress = tempNewFactoryProductionProgress[progressKey] || { remainingSeconds: 0, totalSeconds: componentRecipe.productionTimeSeconds };
+                        const currentSlotProgress = tempNewFactoryProductionProgress[progressKey] || { remainingSeconds: 0, totalSeconds: 0 };
                         
                         let canCraftOneFullInitially = true; 
                         if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canCraftOneFullInitially = false;
@@ -1989,7 +1997,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                         const machineIsPoweredAndWorkerCanWork = powerAvailableForFactoryOperations >= currentMachinePowerDemand && workerCanWork && !isBonusCapped;
 
-                        if (currentSlotProgress.remainingSeconds <= 0) { // Item complete or slot ready
+                        if (currentSlotProgress.remainingSeconds <= 0) { 
                             if (canCraftOneFullInitially && machineIsPoweredAndWorkerCanWork) {
                                 newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
                                 componentRecipe.recipe.forEach(input => {
@@ -2007,29 +2015,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 }
                                 effectiveProductionTime = Math.max(1, Math.floor(effectiveProductionTime));
                                 
-                                tempNewFactoryProductionProgress[progressKey] = { // Assign new object
-                                    remainingSeconds: effectiveProductionTime -1,
-                                    totalSeconds: effectiveProductionTime
+                                tempNewFactoryProductionProgress = {
+                                    ...tempNewFactoryProductionProgress,
+                                    [progressKey]: {
+                                        remainingSeconds: effectiveProductionTime -1,
+                                        totalSeconds: effectiveProductionTime
+                                    }
                                 };
                                 powerAvailableForFactoryOperations -= currentMachinePowerDemand;
                                 actualPowerConsumedThisTick += currentMachinePowerDemand;
-                            } else { // Cannot start new item
+                            } else { 
                                 if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
                                     updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                                 }
-                                // If it was idle or just completed, and can't start next, ensure totalSeconds reflects the recipe time if not already set
-                                if (componentRecipe && (!tempNewFactoryProductionProgress[progressKey] || tempNewFactoryProductionProgress[progressKey].totalSeconds === 0)) {
-                                    tempNewFactoryProductionProgress[progressKey] = {
-                                        remainingSeconds: 0,
-                                        totalSeconds: componentRecipe.productionTimeSeconds // Base time
+                                if (componentRecipe && (!tempNewFactoryProductionProgress[progressKey] || tempNewFactoryProductionProgress[progressKey]?.totalSeconds === 0) ) {
+                                    tempNewFactoryProductionProgress = {
+                                        ...tempNewFactoryProductionProgress,
+                                        [progressKey]: {
+                                            remainingSeconds: 0,
+                                            totalSeconds: componentRecipe.productionTimeSeconds 
+                                        }
                                     };
                                 }
                             }
-                        } else { // Item in progress
+                        } else { 
                             if (machineIsPoweredAndWorkerCanWork) {
-                                tempNewFactoryProductionProgress[progressKey] = { // Assign new object
-                                    ...currentSlotProgress,
-                                    remainingSeconds: currentSlotProgress.remainingSeconds - 1
+                                tempNewFactoryProductionProgress = {
+                                    ...tempNewFactoryProductionProgress,
+                                    [progressKey]: { 
+                                        ...currentSlotProgress,
+                                        remainingSeconds: currentSlotProgress.remainingSeconds - 1
+                                    }
                                 };
                                 powerAvailableForFactoryOperations -= currentMachinePowerDemand;
                                 actualPowerConsumedThisTick += currentMachinePowerDemand;
@@ -2037,26 +2053,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 if (tempNewFactoryProductionProgress[progressKey].remainingSeconds <= 0) {
                                     newFactoryProducedComponents[slot.targetComponentId!] = (newFactoryProducedComponents[slot.targetComponentId!] || 0) + 1;
                                 }
-                            } else { // Was working, but now no power/worker or bonus capped
+                            } else { 
                                 if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
                                     updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                                 }
-                                tempNewFactoryProductionProgress[progressKey] = { ...currentSlotProgress }; // Keep current progress, ensure new ref
+                                tempNewFactoryProductionProgress = {
+                                    ...tempNewFactoryProductionProgress,
+                                    [progressKey]: { ...currentSlotProgress }
+                                };
                             }
                         }
-                    } else { // Machine/recipe issue or worker cannot work
+                    } else { 
                         if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
                            updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                         }
                     }
-                } else if (workerIndex !== -1 && slot.targetComponentId && updatedWorkers[workerIndex].status === 'working' && updatedWorkers[workerIndex].energy <= 0) { // Worker ran out of energy mid-task
+                } else if (workerIndex !== -1 && slot.targetComponentId && updatedWorkers[workerIndex].status === 'working' && updatedWorkers[workerIndex].energy <= 0) { 
                      updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'resting' };
-                } else if (workerIndex !== -1 && !slot.targetComponentId && updatedWorkers[workerIndex].status === 'working') { // Recipe cleared while working
+                } else if (workerIndex !== -1 && !slot.targetComponentId && updatedWorkers[workerIndex].status === 'working') { 
                     updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                 }
             });
           });
-           newFactoryProductionProgress = tempNewFactoryProductionProgress;
+           newFactoryProductionProgressForThisTick = tempNewFactoryProductionProgress;
         }
 
 
@@ -2073,7 +2092,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProducedComponents: Object.fromEntries(
             Object.entries(newFactoryProducedComponents).map(([key, value]) => [key, Math.floor(Math.max(0, value as number))])
           ),
-          factoryProductionProgress: newFactoryProductionProgress,
+          factoryProductionProgress: newFactoryProductionProgressForThisTick,
           factoryWorkers: updatedWorkers,
         };
       });
