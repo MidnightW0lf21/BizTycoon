@@ -20,7 +20,7 @@ interface ProductionLineDisplayProps {
   playerMoney: number;
   researchRequiredName?: string | null;
   currentDynamicMaxWorkerEnergy: number;
-  playerStats: PlayerStats;
+  playerStats: PlayerStats; // Added playerStats here
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -40,7 +40,7 @@ export function ProductionLineDisplay({
   playerMoney,
   researchRequiredName,
   currentDynamicMaxWorkerEnergy,
-  playerStats,
+  playerStats, // Use playerStats from props
 }: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
@@ -116,6 +116,14 @@ export function ProductionLineDisplay({
           const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
           const currentProductionProgressValue = progressKey && playerStats?.factoryProductionProgress ? (playerStats.factoryProductionProgress[progressKey] || 0) : 0;
           const productionProgressPercent = Math.min(100, currentProductionProgressValue * 100);
+          
+          // If there's any progress, but it's less than 1%, show it as 1% for visibility.
+          // Only apply this visual bump if the worker is actively working or supposed to be.
+          let displayProgressValue = productionProgressPercent;
+          if (worker && worker.status === 'working' && productionProgressPercent > 0 && productionProgressPercent < 1) {
+            displayProgressValue = 1;
+          }
+
 
           let displayName = machineConfig?.name || "Machine";
           if (machineConfig?.familyId === 'basic_assembler' && machineConfig.mark) {
@@ -137,7 +145,7 @@ export function ProductionLineDisplay({
           }
           
           const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
-          const isPowered = netPower >= 0; // Overall factory power status
+          const isPowered = netPower >= 0; 
           const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
 
 
@@ -198,7 +206,7 @@ export function ProductionLineDisplay({
                            </div>
                         )}
                         {componentConfig && slot.machineInstanceId && (
-                          <Progress value={productionProgressPercent} className="h-1 w-3/4 mt-0.5" />
+                          <Progress value={displayProgressValue} className="h-2 w-3/4 mt-0.5" />
                         )}
                          {!worker && machineConfig && (
                              <div className="absolute bottom-0.5 text-xs text-destructive text-[8px] sm:text-[9px]">
@@ -227,5 +235,3 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
-
-    

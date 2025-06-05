@@ -30,7 +30,7 @@ import {
   MATERIAL_COLLECTION_COOLDOWN_MS,
   INITIAL_RESEARCH_POINTS,
   INITIAL_UNLOCKED_RESEARCH_IDS,
-  RESEARCH_MANUAL_GENERATION_AMOUNT,
+  RESEARCH_MANUAL_GENERATION_AMOUNT, // Base RP per click
   RESEARCH_MANUAL_GENERATION_COST_MONEY, // Base cost
   MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, // Added this
   RESEARCH_MANUAL_COOLDOWN_MS,
@@ -967,21 +967,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
 
     if (!newMachineConfig) {
-      toastTitle = "Machine Type Not Found";
-      toastVariant = "destructive";
+        toastTitle = "Machine Type Not Found";
+        toastVariant = "destructive";
     } else if (!playerStatsNow.factoryPurchased) {
-      toastTitle = "Factory Not Owned";
-      toastDescription = "Purchase the factory building first.";
-      toastVariant = "destructive";
+        toastTitle = "Factory Not Owned";
+        toastDescription = "Purchase the factory building first.";
+        toastVariant = "destructive";
     } else if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
-      const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
-      toastTitle = "Research Required";
-      toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
-      toastVariant = "destructive";
+        const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
+        toastTitle = "Research Required";
+        toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
+        toastVariant = "destructive";
     } else if (playerStatsNow.money < newMachineConfig.baseCost) {
-      toastTitle = "Not Enough Money";
-      toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
-      toastVariant = "destructive";
+        toastTitle = "Not Enough Money";
+        toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
+        toastVariant = "destructive";
     } else {
         let canPlaceInEmptySlot = false;
         (playerStatsNow.factoryProductionLines || []).forEach(line => {
@@ -991,31 +991,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         let canReplaceExistingMachine = false;
+        let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
         if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
+            const candidates = [];
             for (const line of (playerStatsNow.factoryProductionLines || [])) {
-                if (line.isUnlocked) {
-                    for (const slot of line.slots) {
-                        if (slot.machineInstanceId) {
-                            const existingMachine = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
-                            if (existingMachine) {
-                                const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
-                                if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
-                                    canReplaceExistingMachine = true;
-                                    break;
-                                }
+                if (!line.isUnlocked) continue;
+                for (let slotIdx = 0; slotIdx < line.slots.length; slotIdx++) {
+                    const slot = line.slots[slotIdx];
+                    if (slot.machineInstanceId) {
+                        const existingMachine = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                        if (existingMachine) {
+                            const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
+                            if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
+                                candidates.push({ lineId: line.id, slotIndex: slotIdx, machineInstanceIdToReplace: slot.machineInstanceId, markOfMachineToReplace: existingMachineConfig.mark });
                             }
                         }
                     }
                 }
-                if (canReplaceExistingMachine) break;
+            }
+            if (candidates.length > 0) {
+                candidates.sort((a, b) => a.markOfMachineToReplace - b.markOfMachineToReplace); // Prioritize replacing the lowest mark
+                replacementCandidate = candidates[0];
+                canReplaceExistingMachine = true;
             }
         }
+
         if (!canPlaceInEmptySlot && !canReplaceExistingMachine) {
             toastTitle = "Cannot Build Machine";
             toastDescription = "No empty slots available and no suitable machines to upgrade/replace.";
             toastVariant = "destructive";
         } else {
-             setPlayerStats(prev => {
+            setPlayerStats(prev => {
                 const newMachineInstance: FactoryMachine = {
                     instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
                     configId: newMachineConfig.id,
@@ -1034,29 +1040,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 let assignedLineNameForToast: string | undefined;
                 let assignedSlotIndexForToast: number | undefined;
 
-                let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
-                if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
-                    const candidates = [];
-                    for (const line of updatedProductionLines) {
-                        if (!line.isUnlocked) continue;
-                        for (let slotIdx = 0; slotIdx < line.slots.length; slotIdx++) {
-                            const slot = line.slots[slotIdx];
-                            if (slot.machineInstanceId) {
-                                const existingMachine = updatedMachines.find(m => m.instanceId === slot.machineInstanceId);
-                                if (existingMachine) {
-                                    const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
-                                    if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
-                                        candidates.push({ lineId: line.id, slotIndex: slotIdx, machineInstanceIdToReplace: slot.machineInstanceId, markOfMachineToReplace: existingMachineConfig.mark });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (candidates.length > 0) {
-                        candidates.sort((a, b) => a.markOfMachineToReplace - b.markOfMachineToReplace);
-                        replacementCandidate = candidates[0];
-                    }
-                }
 
                 if (replacementCandidate) {
                     const machineToRemoveId = replacementCandidate.machineInstanceIdToReplace;
@@ -1081,8 +1064,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: newMachineInstance.instanceId };
                     }
                     machineReplacedAnother = true;
-                } else {
-                    updatedMachines.push(newMachineInstance); 
+                } else if (canPlaceInEmptySlot) {
+                    updatedMachines.push(newMachineInstance);
                     for (let lineIdx = 0; lineIdx < updatedProductionLines.length; lineIdx++) {
                         const line = updatedProductionLines[lineIdx];
                         if (line.isUnlocked) {
@@ -1112,32 +1095,36 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 if (machineReplacedAnother) {
                     finalToastTitle = "Machine Upgraded!";
-                    finalToastDescription = `${oldMachineNameForToast} in ${replacedLineNameForToast}, Slot ${replacedSlotIndexForToast! + 1} was replaced by ${newMachineConfig.name}.`;
+                    finalToastDescription = `${oldMachineNameForToast || 'Old machine'} in ${replacedLineNameForToast || 'a line'}, Slot ${replacedSlotIndexForToast !== undefined ? replacedSlotIndexForToast + 1 : '?'} was replaced by ${newMachineConfig.name}.`;
                 } else if (assignedToEmptySlot) {
                     finalToastTitle = "Machine Built & Assigned!";
-                    finalToastDescription = `${newMachineConfig.name} built and placed in ${assignedLineNameForToast}, Slot ${assignedSlotIndexForToast! + 1}.`;
-                } else {
+                    finalToastDescription = `${newMachineConfig.name} built and placed in ${assignedLineNameForToast || 'a line'}, Slot ${assignedSlotIndexForToast !== undefined ? assignedSlotIndexForToast + 1 : '?'} .`;
+                } else { // Should not happen if the pre-checks are correct, but as a fallback
+                    updatedMachines.push(newMachineInstance);
                     finalToastTitle = "Machine Built!"; 
                     finalToastDescription = `${newMachineConfig.name} is ready and unassigned.`;
                 }
-                 setTimeout(() => {
+                
+                setTimeout(() => { // Delay toast slightly to allow state to propagate for other UI elements if needed
                     if (finalToastTitle) {
                         toastRef.current({ title: finalToastTitle, description: finalToastDescription, variant: finalToastVariant });
                     }
                 }, 0);
 
+
                 return {
                     ...prev,
                     money: prev.money - newMachineConfig.baseCost,
-                    factoryMachines: updatedMachines.map(m => m.instanceId === newMachineInstance.instanceId ? newMachineInstance : m),
+                    factoryMachines: updatedMachines, // newMachineInstance is already in updatedMachines
                     factoryProductionLines: updatedProductionLines,
                     factoryWorkers: updatedWorkers,
                 };
             });
         }
     }
-    if(toastTitle && toastVariant === "destructive") { 
-       toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+
+    if (toastTitle && toastVariant === "destructive") {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
     }
   }, []);
 
@@ -1392,7 +1379,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseResearch = useCallback((researchId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
 
@@ -1987,11 +1974,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                       }
                   });
 
-                  if (powerAvailableForFactoryOperations < currentMachinePowerDemand) {
-                    if(workerIndex !== -1) updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' }; 
-                    return; 
+                  let canCraftOneFullInitially = true;
+                  if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canCraftOneFullInitially = false;
+                  for (const input of componentRecipe.recipe) {
+                      if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFullInitially = false; break; }
                   }
-                  
+
                   let isBonusCapped = false;
                   const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
                   if (componentRecipe.effects) {
@@ -2016,11 +2004,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                       if (currentBonusContribution >= maxBonusCap) isBonusCapped = true;
                   }
 
-                  if (isBonusCapped) {
-                    if (workerIndex !== -1) updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
-                    newFactoryProductionProgress[`${line.id}-${slotIndex}-${slot.targetComponentId}`] = 0;
-                    return;
+                  if (isBonusCapped || !canCraftOneFullInitially || powerAvailableForFactoryOperations < currentMachinePowerDemand) {
+                    if(workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' }; 
+                    if(isBonusCapped || !canCraftOneFullInitially) newFactoryProductionProgress[`${line.id}-${slotIndex}-${slot.targetComponentId}`] = 0; // Reset progress if capped or no inputs
+                    return; 
                   }
+                  
+                  powerAvailableForFactoryOperations -= currentMachinePowerDemand; 
+                  actualPowerConsumedThisTick += currentMachinePowerDemand;
 
                   const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                   let currentProgress = newFactoryProductionProgress[progressKey] || 0;
@@ -2034,25 +2025,26 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   currentProgress += (1 / Math.max(0.1, effectiveProductionTime));
                   
                   if (currentProgress >= 1) {
-                    let canCraftOneFull = true;
-                    if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canCraftOneFull = false;
+                    // Resource check already done by canCraftOneFullInitially, but double check for safety against race conditions (though unlikely in single-thread JS)
+                    let canStillCraft = true;
+                    if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canStillCraft = false;
                     for (const input of componentRecipe.recipe) {
-                      if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFull = false; break; }
+                        if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canStillCraft = false; break; }
                     }
-                    if (canCraftOneFull) {
-                      currentProgress -= 1.0; 
-                      newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
-                      for (const input of componentRecipe.recipe) newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
-                      newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
-                      powerAvailableForFactoryOperations -= currentMachinePowerDemand; 
-                      actualPowerConsumedThisTick += currentMachinePowerDemand;
+
+                    if (canStillCraft) {
+                        currentProgress -= 1.0; 
+                        newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
+                        for (const input of componentRecipe.recipe) newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
+                        newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
                     } else {
+                        // Can't complete, worker should go idle, progress remains > 1 to show it's waiting
                        if (workerIndex !== -1) updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                     }
                   }
                   newFactoryProductionProgress[progressKey] = currentProgress;
                 } else { 
-                  if (workerIndex !== -1) updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                  if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                 }
               } else if (workerIndex !== -1 && slot.targetComponentId && updatedWorkers[workerIndex].status === 'working' && updatedWorkers[workerIndex].energy <= 0) {
                 updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'resting' };
@@ -2195,5 +2187,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
