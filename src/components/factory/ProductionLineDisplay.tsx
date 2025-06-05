@@ -182,8 +182,8 @@ export function ProductionLineDisplay({
                 <Button
                   variant="outline"
                   className={cn(
-                    "@container", 
-                    "aspect-square border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center p-0.5 text-center bg-muted/20 transition-colors h-auto w-full relative overflow-hidden",
+                    "@container aspect-square", 
+                    "border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center p-0.5 text-center bg-muted/20 transition-colors h-auto w-full relative overflow-hidden",
                     "hover:bg-accent hover:text-accent-foreground focus:ring-accent",
                     slot.machineInstanceId && !componentConfig && "border-primary ring-1 ring-primary",
                     componentConfig && "border-green-500 ring-1 ring-green-500",
@@ -202,7 +202,7 @@ export function ProductionLineDisplay({
                       <div className="absolute top-0.5 left-0.5 right-0.5 flex items-center justify-between px-0.5 z-10">
                         {worker && (
                           <div className="flex items-center gap-1 w-full">
-                             <User className={cn("h-3 @[6rem]:h-3.5 shrink-0", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
+                             <User className={cn("h-3 @[6rem]:h-3.5 @[8rem]:h-4 @[10rem]:h-5 shrink-0", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
                              <Progress value={workerEnergyPercent} className="h-1.5 flex-1 bg-muted-foreground/20"
                                 indicatorClassName={cn(
                                     worker.status === 'working' && workerEnergyPercent > 20 && 'bg-green-500',
@@ -215,7 +215,7 @@ export function ProductionLineDisplay({
                           </div>
                         )}
                         {machineIsActiveAndNeedsPower && netPower < 0 && (
-                           <NoPowerIcon className="h-3 @[6rem]:h-3.5 text-destructive shrink-0 ml-auto" />
+                           <NoPowerIcon className="h-3 @[6rem]:h-3.5 @[8rem]:h-4 @[10rem]:h-5 text-destructive shrink-0 ml-auto" />
                         )}
                       </div>
 
@@ -224,11 +224,11 @@ export function ProductionLineDisplay({
                         <MachineIcon className={cn(
                             "mb-0.5 @[6rem]:mb-1", 
                             componentConfig ? "text-green-500" : "text-primary",
-                            "h-6 w-6 @[6rem]:h-7 @[6rem]:w-7 @[8rem]:h-8 @[8rem]:w-8 @[10rem]:h-9 @[10rem]:w-9"
+                            "h-6 w-6 @[6rem]:h-8 @[6rem]:w-8 @[8rem]:h-10 @[8rem]:w-10 @[10rem]:h-12 @[10rem]:w-12 @[12rem]:h-14 @[12rem]:w-14 @[15rem]:h-16 @[15rem]:w-16"
                           )} />
                         <p className={cn(
                             "font-semibold text-center leading-tight w-full break-words",
-                            "text-sm @[6rem]:text-base @[8rem]:text-lg @[10rem]:text-xl"
+                            "text-sm @[6rem]:text-lg @[8rem]:text-xl @[10rem]:text-2xl @[12rem]:text-3xl @[15rem]:text-4xl"
                           )} title={displayName}>
                           {displayName}
                         </p>
@@ -236,19 +236,22 @@ export function ProductionLineDisplay({
                           <div className="flex flex-col items-center justify-center gap-0 @[6rem]:gap-0.5 text-center">
                             <ComponentIcon className={cn(
                                 "text-muted-foreground",
-                                "h-5 w-5 @[6rem]:h-6 @[6rem]:w-6 @[8rem]:h-7 @[8rem]:w-7 @[10rem]:h-8 @[10rem]:w-8"
+                                "h-5 w-5 @[6rem]:h-7 @[6rem]:w-7 @[8rem]:h-9 @[8rem]:w-9 @[10rem]:h-10 @[10rem]:w-10 @[12rem]:h-11 @[12rem]:w-11 @[15rem]:h-12 @[15rem]:w-12"
                               )}/>
                             <p className={cn(
                                 "text-muted-foreground text-center leading-tight w-full break-words",
-                                "text-sm @[6rem]:text-base @[8rem]:text-lg @[10rem]:text-xl"
+                                "text-sm @[6rem]:text-lg @[8rem]:text-xl @[10rem]:text-2xl @[12rem]:text-3xl @[15rem]:text-4xl"
                                )} title={componentConfig.name}>
                               {componentConfig.name}
                             </p>
                           </div>
                         ) : (
-                           <div className="flex items-center justify-center gap-0.5 text-amber-600">
-                             <Cog className="h-4 @[6rem]:h-5 @[8rem]:h-6" />
-                             <p className="leading-tight text-sm @[6rem]:text-base @[8rem]:text-lg">Set Recipe</p>
+                           <div className={cn(
+                               "flex items-center justify-center gap-0.5 text-amber-600",
+                               "text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-xl @[15rem]:text-2xl"
+                            )}>
+                             <Cog className="h-4 @[6rem]:h-5 @[8rem]:h-6 @[10rem]:h-7 @[12rem]:h-8 @[15rem]:h-9" />
+                             <p className="leading-tight">Set Recipe</p>
                            </div>
                         )}
                       </div>
@@ -258,26 +261,26 @@ export function ProductionLineDisplay({
                          {(timerDisplay && timerDisplay !== "Empty Slot" && timerDisplay !== "Set Recipe" && timerDisplay !== "Configuring...") && (
                            <div className={cn(
                                "flex items-center justify-center text-muted-foreground leading-tight gap-0.5",
-                               "text-xs @[6rem]:text-sm @[8rem]:text-base"
+                               "text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-xl @[15rem]:text-2xl"
                              )}>
-                             <Timer className="h-3 @[6rem]:h-3.5 @[8rem]:h-4" />
+                             <Timer className="h-3 @[6rem]:h-3.5 @[8rem]:h-4 @[10rem]:h-5 @[12rem]:h-6 @[15rem]:h-7" />
                              {timerDisplay}
                            </div>
                          )}
                          {!worker && machineConfig && (
                              <div className={cn(
                                 "text-destructive font-medium",
-                                "text-xs @[6rem]:text-sm @[8rem]:text-base"
+                                "text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-xl @[15rem]:text-2xl"
                                 )}>
-                                <User className="inline h-3 @[6rem]:h-3.5 @[8rem]:h-4 mr-0.5" /> Need Worker
+                                <User className="inline h-3 @[6rem]:h-3.5 @[8rem]:h-4 @[10rem]:h-5 @[12rem]:h-6 @[15rem]:h-7 mr-0.5" /> Need Worker
                              </div>
                          )}
                        </div>
                     </>
                   ) : (
                     <>
-                      <Loader2 className="h-8 @[6rem]:h-10 @[8rem]:h-12 mb-1 text-muted-foreground/50 animate-pulse" />
-                      <p className="text-xs @[6rem]:text-sm @[8rem]:text-base text-muted-foreground/70">Empty Slot</p>
+                      <Loader2 className="h-8 @[6rem]:h-10 @[8rem]:h-12 @[10rem]:h-14 @[12rem]:h-16 @[15rem]:h-20 mb-1 text-muted-foreground/50 animate-pulse" />
+                      <p className="text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-xl @[15rem]:text-2xl text-muted-foreground/70">Empty Slot</p>
                     </>
                   )}
                 </Button>
