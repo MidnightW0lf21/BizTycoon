@@ -38,57 +38,8 @@ export default function MyFactoryPage() {
     manualResearchCooldownEnd, // New from context
   } = useGame();
 
-  const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
-  const [secondsRemainingForResearchCooldown, setSecondsRemainingForResearchCooldown] = useState(0); // New state for research cooldown
-  const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
-  const [currentDialogContext, setCurrentDialogContext] = useState<{
-    productionLineId: string;
-    slotIndex: number;
-    assignedMachineInstanceId: string | null;
-    currentRecipeId: string | null;
-  } | null>(null);
-
-  useEffect(() => {
-    if (!playerStats.factoryPurchased) return;
-
-    let intervalId: NodeJS.Timeout;
-    const updateCooldown = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((materialCollectionCooldownEnd - now) / 1000));
-      setSecondsRemainingForCooldown(remaining);
-      if (remaining === 0) clearInterval(intervalId);
-    };
-    if (materialCollectionCooldownEnd > Date.now()) {
-      updateCooldown(); 
-      intervalId = setInterval(updateCooldown, 1000);
-    } else {
-      setSecondsRemainingForCooldown(0);
-    }
-    return () => clearInterval(intervalId);
-  }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
-
-  // New useEffect for research cooldown
-  useEffect(() => {
-    if (!playerStats.factoryPurchased || playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) return;
-    let intervalId: NodeJS.Timeout;
-    const updateResearchCooldown = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((manualResearchCooldownEnd - now) / 1000));
-      setSecondsRemainingForResearchCooldown(remaining);
-      if (remaining === 0) clearInterval(intervalId);
-    };
-    if (manualResearchCooldownEnd > Date.now()) {
-      updateResearchCooldown();
-      intervalId = setInterval(updateResearchCooldown, 1000);
-    } else {
-      setSecondsRemainingForResearchCooldown(0);
-    }
-    return () => clearInterval(intervalId);
-  }, [manualResearchCooldownEnd, playerStats.factoryPurchased, playerStats.timesPrestiged]);
-
-
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
-
+  
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
     if (!playerStats.factoryPurchased || netPower < 0) return 0; 
     
@@ -142,6 +93,54 @@ export default function MyFactoryPage() {
       netPower
   ]);
 
+
+  const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
+  const [secondsRemainingForResearchCooldown, setSecondsRemainingForResearchCooldown] = useState(0); // New state for research cooldown
+  const [isRecipeDialogOpen, setIsRecipeDialogOpen] = useState(false);
+  const [currentDialogContext, setCurrentDialogContext] = useState<{
+    productionLineId: string;
+    slotIndex: number;
+    assignedMachineInstanceId: string | null;
+    currentRecipeId: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!playerStats.factoryPurchased) return;
+
+    let intervalId: NodeJS.Timeout;
+    const updateCooldown = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((materialCollectionCooldownEnd - now) / 1000));
+      setSecondsRemainingForCooldown(remaining);
+      if (remaining === 0) clearInterval(intervalId);
+    };
+    if (materialCollectionCooldownEnd > Date.now()) {
+      updateCooldown(); 
+      intervalId = setInterval(updateCooldown, 1000);
+    } else {
+      setSecondsRemainingForCooldown(0);
+    }
+    return () => clearInterval(intervalId);
+  }, [materialCollectionCooldownEnd, playerStats.factoryPurchased]);
+
+  // New useEffect for research cooldown
+  useEffect(() => {
+    if (!playerStats.factoryPurchased || playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) return;
+    let intervalId: NodeJS.Timeout;
+    const updateResearchCooldown = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((manualResearchCooldownEnd - now) / 1000));
+      setSecondsRemainingForResearchCooldown(remaining);
+      if (remaining === 0) clearInterval(intervalId);
+    };
+    if (manualResearchCooldownEnd > Date.now()) {
+      updateResearchCooldown();
+      intervalId = setInterval(updateResearchCooldown, 1000);
+    } else {
+      setSecondsRemainingForResearchCooldown(0);
+    }
+    return () => clearInterval(intervalId);
+  }, [manualResearchCooldownEnd, playerStats.factoryPurchased, playerStats.timesPrestiged]);
 
   const handleOpenRecipeDialog = (productionLineId: string, slotIndex: number) => {
     const line = playerStats.factoryProductionLines.find(l => l.id === productionLineId);
@@ -351,14 +350,14 @@ export default function MyFactoryPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => {
-                  const isLocked = config.requiredResearchId && !playerStats.unlockedResearchIds.includes(config.requiredResearchId);
+                  const isLocked = !!config.requiredResearchId && !playerStats.unlockedResearchIds.includes(config.requiredResearchId);
                   const researchName = isLocked ? researchItems.find(r => r.id === config.requiredResearchId)?.name : undefined;
                   return (
                     <MachinePurchaseCard
                       key={config.id}
                       machineConfig={config}
                       playerMoney={playerStats.money}
-                      onPurchase={() => purchaseFactoryMachine(config.id)}
+                      onPurchase={purchaseFactoryMachine}
                       isResearchLocked={isLocked}
                       researchItemName={researchName}
                     />
@@ -408,7 +407,7 @@ export default function MyFactoryPage() {
                     <FlaskConical className="mr-2 h-5 w-5"/>
                     {secondsRemainingForResearchCooldown > 0 
                       ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)` 
-                      : `Manually Conduct Research (+1 RP, $${(10000).toLocaleString()})`}
+                      : `Manually Conduct Research (+${RESEARCH_MANUAL_GENERATION_AMOUNT} RP, $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()})`}
                   </Button>
                 </CardContent>
               </Card>
@@ -425,7 +424,7 @@ export default function MyFactoryPage() {
                       playerResearchPoints={playerStats.researchPoints}
                       playerMoney={playerStats.money}
                       unlockedResearchIds={playerStats.unlockedResearchIds}
-                      onPurchase={() => purchaseResearch(config.id)}
+                      onPurchase={purchaseResearch}
                     />
                   ))}
                 </CardContent>

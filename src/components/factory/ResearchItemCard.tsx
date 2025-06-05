@@ -9,21 +9,22 @@ import { LockKeyhole, CheckCircle2, FlaskConical, Sparkles, DollarSign } from "l
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { INITIAL_RESEARCH_ITEMS_CONFIG } from "@/config/game-config";
+import React from 'react';
 
 interface ResearchItemCardProps {
   researchConfig: ResearchItemConfig;
   playerResearchPoints: number;
   playerMoney: number;
   unlockedResearchIds: string[];
-  onPurchase: (researchId: string) => void;
+  onPurchase: (researchId: string) => void; // Changed prop
 }
 
-export function ResearchItemCard({
+const ResearchItemCard = React.memo(function ResearchItemCard({ // Wrapped with React.memo
   researchConfig,
   playerResearchPoints,
   playerMoney,
   unlockedResearchIds,
-  onPurchase,
+  onPurchase, // Changed prop
 }: ResearchItemCardProps) {
   const Icon = researchConfig.icon || FlaskConical;
   const isUnlocked = unlockedResearchIds.includes(researchConfig.id);
@@ -129,7 +130,7 @@ export function ResearchItemCard({
             <TooltipTrigger asChild>
               <div className="w-full">
                 <Button
-                  onClick={() => onPurchase(researchConfig.id)}
+                  onClick={() => onPurchase(researchConfig.id)} // Call with researchId
                   disabled={!canUnlock || isTrulyLocked} 
                   className="w-full"
                   variant={canUnlock ? "default" : "outline"}
@@ -151,4 +152,6 @@ export function ResearchItemCard({
       </Card>
     </TooltipProvider>
   );
-}
+});
+
+export { ResearchItemCard };

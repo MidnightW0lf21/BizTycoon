@@ -11,7 +11,7 @@ import React from "react"; // Import React
 interface MachinePurchaseCardProps {
   machineConfig: FactoryMachineConfig;
   playerMoney: number;
-  onPurchase: (configId: string) => void;
+  onPurchase: (configId: string) => void; // Changed prop
   isResearchLocked: boolean;
   researchItemName?: string;
 }
@@ -20,7 +20,7 @@ interface MachinePurchaseCardProps {
 const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
   machineConfig,
   playerMoney,
-  onPurchase,
+  onPurchase, // Changed prop
   isResearchLocked,
   researchItemName,
 }: MachinePurchaseCardProps) {
@@ -31,7 +31,7 @@ const MachinePurchaseCard = React.memo(function MachinePurchaseCard({
 
   const handlePurchase = () => {
     if (!isResearchLocked) {
-      onPurchase(machineConfig.id);
+      onPurchase(machineConfig.id); // Call with configId
     }
   };
 
