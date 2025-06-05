@@ -30,9 +30,10 @@ import {
   MATERIAL_COLLECTION_COOLDOWN_MS,
   INITIAL_RESEARCH_POINTS,
   INITIAL_UNLOCKED_RESEARCH_IDS,
-  RESEARCH_MANUAL_GENERATION_AMOUNT, // Base RP per click
-  RESEARCH_MANUAL_GENERATION_COST_MONEY, // Base cost
-  MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, // Added this
+  INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS, // New
+  RESEARCH_MANUAL_GENERATION_AMOUNT, 
+  RESEARCH_MANUAL_GENERATION_COST_MONEY, 
+  MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST,
   RESEARCH_MANUAL_COOLDOWN_MS,
   REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB,
   TECH_BUSINESS_IDS,
@@ -140,6 +141,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     factoryWorkers: [...INITIAL_FACTORY_WORKERS],
     researchPoints: INITIAL_RESEARCH_POINTS,
     unlockedResearchIds: [...INITIAL_UNLOCKED_RESEARCH_IDS],
+    unlockedFactoryComponentRecipeIds: [...INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS], // New
     lastManualResearchTimestamp: 0,
     currentWorkerEnergyTier: INITIAL_WORKER_ENERGY_TIER,
     manualResearchBonus: 0,
@@ -437,6 +439,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryWorkers: Array.isArray(importedData.playerStats.factoryWorkers) ? importedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
         researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+        unlockedFactoryComponentRecipeIds: Array.isArray(importedData.playerStats.unlockedFactoryComponentRecipeIds) ? importedData.playerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds, // New
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
         manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
@@ -852,14 +855,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `Need ${nextLevelData.costPrestigePoints} PP.`;
         toastVariant = "destructive";
       } else {
+        let newUnlockedFactoryComponentRecipeIds = [...(playerStatsNow.unlockedFactoryComponentRecipeIds || [])];
+        if (nextLevelData.effects.unlocksFactoryComponentRecipeIds) {
+          nextLevelData.effects.unlocksFactoryComponentRecipeIds.forEach(recipeId => {
+            if (!newUnlockedFactoryComponentRecipeIds.includes(recipeId)) {
+              newUnlockedFactoryComponentRecipeIds.push(recipeId);
+            }
+          });
+        }
+
         setPlayerStats(prev => ({
           ...prev,
           money: prev.money - nextLevelData.costMoney,
           prestigePoints: nextLevelData.costPrestigePoints ? prev.prestigePoints - nextLevelData.costPrestigePoints : prev.prestigePoints,
           hqUpgradeLevels: { ...prev.hqUpgradeLevels, [upgradeId]: nextLevel },
+          unlockedFactoryComponentRecipeIds: newUnlockedFactoryComponentRecipeIds, // Update unlocked recipes
         }));
         toastTitle = "HQ Upgrade Purchased!";
         toastDescription = `${upgradeConfig.name} upgraded to Level ${nextLevel}.`;
+        if (nextLevelData.effects.unlocksFactoryComponentRecipeIds && nextLevelData.effects.unlocksFactoryComponentRecipeIds.length > 0) {
+          toastDescription += ` Unlocked ${nextLevelData.effects.unlocksFactoryComponentRecipeIds.length} new recipe(s)!`;
+        }
       }
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1211,6 +1227,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               toastTitle = "Error"; toastDescription = "Target component recipe not found."; toastVariant = "destructive";
               return prev;
             }
+             // New check for unlocked recipe
+            if (!(playerStatsNow.unlockedFactoryComponentRecipeIds || []).includes(targetComponentId)) {
+                const hqUpgradeForRecipe = hqUpgradesRef.current.find(hq => hq.levels.some(l => l.effects.unlocksFactoryComponentRecipeIds?.includes(targetComponentId)));
+                toastTitle = "Recipe Locked";
+                toastDescription = `${componentRecipe.name} recipe must be unlocked via HQ upgrade (${hqUpgradeForRecipe?.name || 'specific HQ upgrade'}).`;
+                toastVariant = "destructive";
+                return prev;
+            }
             if (machineConfig.maxCraftableTier < componentRecipe.tier) {
               toastTitle = "Cannot Craft"; toastDescription = `${machineConfig.name} (Tier ${machineConfig.maxCraftableTier}) cannot craft ${componentRecipe.name} (Tier ${componentRecipe.tier}).`; toastVariant = "destructive";
               return prev;
@@ -1255,8 +1279,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const newProgressKey = `${productionLine.id}-${slotIndex}-${targetComponentId}`;
             newFactoryProductionProgress = {
                 ...newFactoryProductionProgress,
-                [newProgressKey]: { // Create a new object for the specific entry
-                    remainingSeconds: 0, // Ready to start
+                [newProgressKey]: { 
+                    remainingSeconds: 0, 
                     totalSeconds: effectiveProductionTime
                 }
             };
@@ -1631,6 +1655,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           unlockedSkillIds: prev.unlockedSkillIds,
           hqUpgradeLevels: prev.hqUpgradeLevels,
           stockHoldings: retainedStockHoldings,
+          unlockedFactoryComponentRecipeIds: prev.unlockedFactoryComponentRecipeIds, // Keep unlocked recipes through prestige
 
           factoryPurchased,
           factoryPowerUnitsGenerated: 0,
@@ -1734,6 +1759,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryWorkers: Array.isArray(loadedData.playerStats.factoryWorkers) ? loadedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
             researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
             unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+            unlockedFactoryComponentRecipeIds: Array.isArray(loadedData.playerStats.unlockedFactoryComponentRecipeIds) ? loadedData.playerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds, // New
             lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
             currentWorkerEnergyTier: typeof loadedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
             manualResearchBonus: typeof loadedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
@@ -2211,5 +2237,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
     

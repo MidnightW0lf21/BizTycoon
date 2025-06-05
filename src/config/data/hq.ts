@@ -2,7 +2,8 @@
 import type { HQUpgrade, HQUpgradeLevel } from '@/types';
 import { INITIAL_BUSINESSES } from './businesses';
 import { INITIAL_STOCKS } from './stocks';
-import { Activity, Scaling, Target, Award, PiggyBank, Gem, Archive, ShieldEllipsis } from 'lucide-react';
+import { INITIAL_FACTORY_COMPONENTS_CONFIG } from './factory';
+import { Activity, Scaling, Target, Award, PiggyBank, Gem, Archive, ShieldEllipsis, Scroll, BookOpen, FlaskConical, Cpu, AtomIcon } from 'lucide-react';
 
 const globalHQUgrades: HQUpgrade[] = [
   {
@@ -83,7 +84,58 @@ const globalHQUgrades: HQUpgrade[] = [
       { level: 1, costMoney: 5E10, costPrestigePoints: 1000, description: '+5% to all stock dividend yields. Truly game-changing.', effects: { globalDividendYieldBoostPercent: 5 } },
       { level: 2, costMoney: 2.5E11, costPrestigePoints: 2500, description: '+10% to all stock dividend yields (total). Unrivaled insight.', effects: { globalDividendYieldBoostPercent: 10 } },
     ]
-  }
+  },
+  // Factory Recipe Unlocks
+  {
+    id: 'hq_unlock_tier1_recipes',
+    name: 'Tier 1 Recipe Blueprints',
+    description: 'Unlocks all Tier 1 factory component recipes.',
+    icon: Scroll,
+    requiredTimesPrestiged: 5, // Assuming factory unlocks at prestige 5
+    levels: [
+      { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } }
+    ]
+  },
+  {
+    id: 'hq_unlock_tier2_recipes',
+    name: 'Tier 2 Advanced Schematics',
+    description: 'Unlocks all Tier 2 factory component recipes.',
+    icon: BookOpen,
+    requiredTimesPrestiged: 5,
+    levels: [
+      { level: 1, costMoney: 500000, costPrestigePoints: 5, description: 'Learn to craft more complex components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id) } }
+    ]
+  },
+  {
+    id: 'hq_unlock_tier3_recipes',
+    name: 'Tier 3 Production Mastery',
+    description: 'Unlocks all Tier 3 factory component recipes.',
+    icon: FlaskConical,
+    requiredTimesPrestiged: 6,
+    levels: [
+      { level: 1, costMoney: 2000000, costPrestigePoints: 10, description: 'Master the production of intricate parts.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id) } }
+    ]
+  },
+  {
+    id: 'hq_unlock_tier4_recipes',
+    name: 'Tier 4 Complex Assemblies',
+    description: 'Unlocks all Tier 4 factory component recipes.',
+    icon: Cpu,
+    requiredTimesPrestiged: 7,
+    levels: [
+      { level: 1, costMoney: 8000000, costPrestigePoints: 20, description: 'Manufacture highly advanced technological components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id) } }
+    ]
+  },
+  {
+    id: 'hq_unlock_tier5_recipes',
+    name: 'Tier 5 Quantum Fabrication',
+    description: 'Unlocks all Tier 5 factory component recipes, the pinnacle of manufacturing.',
+    icon: AtomIcon,
+    requiredTimesPrestiged: 8,
+    levels: [
+      { level: 1, costMoney: 25000000, costPrestigePoints: 40, description: 'Harness quantum principles for ultimate components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id) } }
+    ]
+  },
 ];
 
 const businessRetentionUpgrades: HQUpgrade[] = INITIAL_BUSINESSES.map((business, index) => {
@@ -127,5 +179,4 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   ...businessRetentionUpgrades,
   ...stockRetentionUpgrades
 ];
-
     

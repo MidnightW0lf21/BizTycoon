@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2, PackageCheck, PackageX } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS } from "@/config/game-config";
+import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS, INITIAL_HQ_UPGRADES } from "@/config/game-config"; // Added INITIAL_HQ_UPGRADES
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useGame } from "@/contexts/GameContext"; // Import useGame to access playerStats
+import { useGame } from "@/contexts/GameContext"; 
 import { useMemo } from "react";
 
 
@@ -58,6 +58,7 @@ export function RecipeSelectionDialog({
   currentDynamicMaxWorkerEnergy,
 }: RecipeSelectionDialogProps) {
   const { playerStats } = useGame(); 
+  const hqUpgradesConfig = INITIAL_HQ_UPGRADES; // Use the imported config
 
   if (!isOpen || !assignedMachineInstanceId) return null;
 
@@ -93,7 +94,7 @@ export function RecipeSelectionDialog({
 
   const isComponentCapped = (component: FactoryComponent): boolean => {
     const ownedCount = playerStats.factoryProducedComponents?.[component.id] || 0;
-    if (!component.effects) return false; // If no effects, cannot be capped in terms of bonus
+    if (!component.effects) return false; 
     
     let currentBonusContribution = 0;
     let maxBonusCap = Infinity;
@@ -114,15 +115,25 @@ export function RecipeSelectionDialog({
         currentBonusContribution = ownedCount * component.effects.factoryGlobalMaterialCollectionBoostPercent;
         maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
     }
-    // Add other primary effect types here if they become cappable
 
     return currentBonusContribution >= maxBonusCap;
   };
 
   const filteredComponentConfigs = useMemo(() => {
     if (!machineConfig) return [];
-    return allComponentConfigs.filter(component => machineConfig.maxCraftableTier >= component.tier);
-  }, [allComponentConfigs, machineConfig]);
+    return allComponentConfigs.filter(component => {
+      const isTierCompatible = machineConfig.maxCraftableTier >= component.tier;
+      const isRecipeUnlocked = (playerStats.unlockedFactoryComponentRecipeIds || []).includes(component.id);
+      return isTierCompatible && isRecipeUnlocked;
+    });
+  }, [allComponentConfigs, machineConfig, playerStats.unlockedFactoryComponentRecipeIds]);
+
+  const getHqUnlockNameForComponent = (componentId: string): string | null => {
+    const hqUpgrade = hqUpgradesConfig.find(hq => 
+        hq.levels.some(l => l.effects.unlocksFactoryComponentRecipeIds?.includes(componentId))
+    );
+    return hqUpgrade?.name || null;
+  };
 
 
   return (
@@ -131,7 +142,7 @@ export function RecipeSelectionDialog({
         <DialogHeader>
           <DialogTitle>Configure Slot {slotIndex + 1} ({machineConfig ? machineConfig.name : "Machine"})</DialogTitle>
           <DialogDescription>
-            Select a component for this machine to produce, assign a worker, and purchase machine upgrades.
+            Select a component for this machine to produce, assign a worker, and purchase machine upgrades. Recipes must be unlocked via HQ.
           </DialogDescription>
         </DialogHeader>
 
@@ -147,27 +158,35 @@ export function RecipeSelectionDialog({
             <div className="md:col-span-1"> 
               <h3 className="text-lg font-semibold mb-2">Select Recipe (Tier {machineConfig.maxCraftableTier} Max)</h3>
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
-                {filteredComponentConfigs.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No craftable recipes for this machine's tier.</p>
+                {allComponentConfigs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No component recipes defined in the game.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-3">
-                    {filteredComponentConfigs.map((component) => {
+                    {allComponentConfigs
+                      .filter(component => machineConfig.maxCraftableTier >= component.tier) // Pre-filter by tier compatibility
+                      .sort((a,b) => a.tier - b.tier) // Sort by tier for display
+                      .map((component) => {
+                        const isRecipeUnlocked = (playerStats.unlockedFactoryComponentRecipeIds || []).includes(component.id);
                         const isCurrentlyCraftingThis = currentRecipeId === component.id;
                         const Icon = component.icon;
                         const capped = isComponentCapped(component);
-                        const canSelect = !capped; // Tier check is already done by filter
+                        const canSelect = isRecipeUnlocked && !capped;
+                        const hqUnlockName = !isRecipeUnlocked ? getHqUnlockNameForComponent(component.id) : null;
 
                         return (
-                        <Card
-                            key={component.id}
+                        <TooltipProvider key={component.id} delayDuration={100}>
+                        <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div // Changed Card to div to allow TooltipTrigger asChild
                             className={cn(
-                            "hover:shadow-md",
-                            isCurrentlyCraftingThis ? "border-primary ring-2 ring-primary shadow-lg" : "border-border",
-                            !canSelect && "bg-muted/50 opacity-70",
-                            canSelect && "cursor-pointer"
+                              "rounded-md border hover:shadow-md p-0", // Ensure padding is handled by CardHeader/Content/Footer
+                              isCurrentlyCraftingThis ? "border-primary ring-2 ring-primary shadow-lg" : "border-border",
+                              !isRecipeUnlocked && "bg-muted/30 border-dashed",
+                              isRecipeUnlocked && !canSelect && "bg-muted/50 opacity-70",
+                              isRecipeUnlocked && canSelect && "cursor-pointer"
                             )}
-                            onClick={() => canSelect && handleSelectRecipe(component.id)}
-                        >
+                            onClick={() => isRecipeUnlocked && canSelect && handleSelectRecipe(component.id)}
+                          >
                             <CardHeader className="pb-1 pt-3">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base flex items-center gap-2">
@@ -203,20 +222,46 @@ export function RecipeSelectionDialog({
                             )}
                             </CardContent>
                             {isCurrentlyCraftingThis && (
-                                <div className="p-2 pt-0 text-center">
-                                    <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">Currently Crafting</Badge>
-                                </div>
+                                <CardFooter className="p-2 pt-0 text-center">
+                                    <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400 w-full justify-center">Currently Crafting</Badge>
+                                </CardFooter>
                             )}
-                            {capped && !isCurrentlyCraftingThis && (
+                            {capped && !isCurrentlyCraftingThis && isRecipeUnlocked && (
                                 <CardFooter className="p-2 pt-0 text-center">
                                     <Badge variant="destructive" className="w-full justify-center">
                                     <PackageX className="mr-1 h-3 w-3"/> Max Bonus Reached
                                     </Badge>
                                 </CardFooter>
                             )}
-                        </Card>
+                            {!isRecipeUnlocked && (
+                                <CardFooter className="p-2 pt-0 text-center">
+                                    <Badge variant="outline" className="w-full justify-center border-amber-500/50 text-amber-600 dark:text-amber-500">
+                                    <LockKeyhole className="mr-1 h-3 w-3"/> Recipe Locked
+                                    </Badge>
+                                </CardFooter>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        {!isRecipeUnlocked && hqUnlockName && (
+                            <TooltipContent>
+                                <p>Unlock this recipe via the "{hqUnlockName}" HQ upgrade.</p>
+                            </TooltipContent>
+                        )}
+                        {!isRecipeUnlocked && !hqUnlockName && (
+                            <TooltipContent>
+                                <p>This recipe must be unlocked via an HQ upgrade.</p>
+                            </TooltipContent>
+                        )}
+                        </Tooltip>
+                        </TooltipProvider>
                         );
                     })}
+                    {filteredComponentConfigs.length === 0 && allComponentConfigs.some(c => machineConfig.maxCraftableTier >= c.tier) && (
+                         <p className="text-sm text-muted-foreground text-center py-4">All compatible recipes for this machine are locked. Unlock them via HQ.</p>
+                    )}
+                    {filteredComponentConfigs.length === 0 && !allComponentConfigs.some(c => machineConfig.maxCraftableTier >= c.tier) && (
+                         <p className="text-sm text-muted-foreground text-center py-4">No recipes of a compatible tier are defined.</p>
+                    )}
                     </div>
                 )}
               </ScrollArea>
@@ -273,7 +318,7 @@ export function RecipeSelectionDialog({
 
             <div className="md:col-span-1"> 
               <h3 className="text-lg font-semibold mb-2">Machine Upgrades</h3>
-              <ScrollArea className="max-h-64 pr-4 border rounded-md p-2"> {/* Changed h-[50vh] to max-h-64 */}
+              <ScrollArea className="max-h-64 pr-4 border rounded-md p-2"> 
                 <TooltipProvider delayDuration={100}>
                   {machineConfig.upgrades && machineConfig.upgrades.length > 0 ? (
                     <div className="space-y-3">

@@ -17,6 +17,7 @@ export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
 export const INITIAL_FACTORY_WORKERS: Worker[] = [];
 export const INITIAL_WORKER_ENERGY_TIER = 0;
+export const INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS: string[] = [];
 
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;

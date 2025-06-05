@@ -74,6 +74,7 @@ export interface HQUpgradeEffects {
   globalDividendYieldBoostPercent?: number;
   globalPrestigePointBoostPercent?: number;
   retentionPercentage?: number; // Generic retention for both business levels and stock shares
+  unlocksFactoryComponentRecipeIds?: string[]; // New: For unlocking recipes
 }
 
 export interface HQUpgradeLevel {
@@ -133,6 +134,7 @@ export interface FactoryComponent {
   productionTimeSeconds: number;
   requiredAssemblerMark: number;
   effects?: FactoryComponentEffects;
+  // requiredHQUpgradeToUnlockRecipe?: string; // Optional: Link component to its HQ unlock
 }
 
 export interface FactoryMachineUpgradeEffect {
@@ -271,10 +273,11 @@ export interface PlayerStats {
   factoryPowerBuildings: FactoryPowerBuilding[];
   factoryProducedComponents: Record<string, number>;
   factoryMaterialCollectors: FactoryMaterialCollector[];
-  factoryProductionProgress?: Record<string, FactoryProductionProgressData>; // Updated type
+  factoryProductionProgress?: Record<string, FactoryProductionProgressData>;
   factoryWorkers: Worker[];
   currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
   manualResearchBonus?: number;
+  unlockedFactoryComponentRecipeIds?: string[]; // New: Track unlocked recipes
 
   researchPoints: number;
   unlockedResearchIds: string[];
@@ -288,5 +291,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-
     
