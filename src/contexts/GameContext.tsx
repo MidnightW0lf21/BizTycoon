@@ -278,11 +278,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (componentConfig?.effects) {
                 if (componentConfig.effects.globalIncomeBoostPerComponentPercent) {
                     const potentialBoost = count * componentConfig.effects.globalIncomeBoostPerComponentPercent;
-                    componentGlobalIncomeBoost += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    componentGlobalIncomeBoost += cappedBoost;
                 }
                 if (componentConfig.effects.businessSpecificIncomeBoostPercent && componentConfig.effects.businessSpecificIncomeBoostPercent.businessId === business.id) {
                     const potentialBoost = count * componentConfig.effects.businessSpecificIncomeBoostPercent.percent;
-                    componentBusinessSpecificIncomeBoost += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    componentBusinessSpecificIncomeBoost += cappedBoost;
                 }
             }
         }
@@ -315,7 +317,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
             if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
                 const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
-                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                totalCostReductionFromComponents += cappedReduction;
             }
         }
     }
@@ -340,7 +343,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
             if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
                 const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
-                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                 const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                totalCostReductionFromComponents += cappedReduction;
             }
         }
     }
@@ -364,7 +368,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
             if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
                 const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
-                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                totalCostReductionFromComponents += cappedReduction;
             }
         }
     }
@@ -433,8 +438,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
-        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
-        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -494,102 +499,116 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
 
-    const playerStatsNow = playerStatsRef.current;
-    const businessToUpdate = businessesRef.current.find(b => b.id === businessId);
+    setPlayerStats(prevPlayerStats => {
+        const playerStatsNow = prevPlayerStats; // Use current state from prevPlayerStats
+        const businessToUpdate = businessesRef.current.find(b => b.id === businessId);
 
-    if (!businessToUpdate || !businessToUpdate.upgrades) {
-      toastTitle = "Error";
-      toastDescription = "Business or upgrades not found.";
-      toastVariant = "destructive";
-    } else {
-      const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
-      if (playerStatsNow.timesPrestiged < businessIndexInConfig && !isAutoBuy) {
-        toastTitle = "Locked";
-        toastDescription = `This business unlocks after ${businessIndexInConfig} prestige(s).`;
-        toastVariant = "destructive";
-      } else {
+        if (!businessToUpdate || !businessToUpdate.upgrades) {
+          toastTitle = "Error";
+          toastDescription = "Business or upgrades not found.";
+          toastVariant = "destructive";
+          return prevPlayerStats;
+        }
+
+        const businessIndexInConfig = INITIAL_BUSINESSES.findIndex(b => b.id === businessId);
+        if (playerStatsNow.timesPrestiged < businessIndexInConfig && !isAutoBuy) {
+          toastTitle = "Locked";
+          toastDescription = `This business unlocks after ${businessIndexInConfig} prestige(s).`;
+          toastVariant = "destructive";
+          return prevPlayerStats;
+        }
+
         const upgrade = businessToUpdate.upgrades.find(u => u.id === upgradeId);
         if (!upgrade) {
           toastTitle = "Error";
           toastDescription = "Upgrade definition not found.";
           toastVariant = "destructive";
-        } else if (upgrade.isPurchased) {
-          if(!isAutoBuy) {
+          return prevPlayerStats;
+        }
+        if (upgrade.isPurchased) {
+          if (!isAutoBuy) {
             toastTitle = "Already Owned";
             toastDescription = "You already own this upgrade.";
           }
-        } else if (businessToUpdate.level < upgrade.requiredLevel) {
+          return prevPlayerStats;
+        }
+        if (businessToUpdate.level < upgrade.requiredLevel) {
           toastTitle = "Level Requirement Not Met";
           toastDescription = `${businessToUpdate.name} must be level ${upgrade.requiredLevel} for this upgrade.`;
           toastVariant = "destructive";
-        } else {
-          let actualCost = upgrade.cost;
-          
-          // Apply global skill-based cost reduction
-          let globalSkillUpgradeCostReduction = 0;
-          (playerStatsNow.unlockedSkillIds || []).forEach(skillId => {
-              const skill = skillTreeRef.current.find(s => s.id === skillId);
-              if (skill && skill.effects && skill.effects.globalBusinessUpgradeCostReductionPercent) { 
-                globalSkillUpgradeCostReduction += skill.effects.globalBusinessUpgradeCostReductionPercent; 
-              }
-          });
-          if (globalSkillUpgradeCostReduction > 0) {
-              actualCost *= (1 - globalSkillUpgradeCostReduction / 100);
-          }
+          return prevPlayerStats;
+        }
 
-          // Apply component-based cost reduction
-          let totalComponentUpgradeCostReduction = 0;
-          for (const componentId in playerStatsNow.factoryProducedComponents) {
-              const count = playerStatsNow.factoryProducedComponents[componentId];
-              if (count > 0) {
-                  const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
-                  if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent && componentConfig.effects.businessSpecificUpgradeCostReductionPercent.businessId === businessId) {
-                      const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
-                      totalComponentUpgradeCostReduction += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
-                  }
-              }
+        let actualCost = upgrade.cost;
+        let globalSkillUpgradeCostReduction = 0;
+        (playerStatsNow.unlockedSkillIds || []).forEach(skillId => {
+          const skill = skillTreeRef.current.find(s => s.id === skillId);
+          if (skill && skill.effects && skill.effects.globalBusinessUpgradeCostReductionPercent) {
+            globalSkillUpgradeCostReduction += skill.effects.globalBusinessUpgradeCostReductionPercent;
           }
-          if (totalComponentUpgradeCostReduction > 0) {
-              actualCost *= (1 - totalComponentUpgradeCostReduction / 100);
-          }
-          
-          actualCost = Math.max(0, Math.floor(actualCost));
+        });
+        if (globalSkillUpgradeCostReduction > 0) {
+          actualCost *= (1 - globalSkillUpgradeCostReduction / 100);
+        }
 
-
-          if (playerStatsNow.money < actualCost) {
-            toastTitle = "Not Enough Money";
-            toastDescription = `You need $${Number(actualCost).toLocaleString('en-US', { maximumFractionDigits: 0 })} to purchase ${upgrade.name}.`;
-            toastVariant = "destructive";
-          } else {
-            setPlayerStats(prev => ({
-              ...prev,
-              money: prev.money - actualCost,
-              achievedBusinessMilestones: {
-                ...prev.achievedBusinessMilestones,
-                [businessId]: {
-                  ...(prev.achievedBusinessMilestones?.[businessId] || {}),
-                  purchasedUpgradeIds: [...((prev.achievedBusinessMilestones?.[businessId]?.purchasedUpgradeIds || []).filter(id => id !== upgradeId)), upgradeId],
-                },
-              },
-            }));
-            setBusinesses(prevBusinesses => {
-                const newBusinesses = prevBusinesses.map(b => b.id === businessId ? { ...b, upgrades: b.upgrades?.map(u => u.id === upgradeId ? { ...u, isPurchased: true } : u) } : b );
-                businessesRef.current = newBusinesses;
-                return newBusinesses;
-            });
-            success = true;
-            toastTitle = isAutoBuy ? "Auto-Upgrade!" : "Upgrade Purchased!";
-            toastDescription = isAutoBuy ? `${upgrade.name} for ${businessToUpdate.name}` : `${upgrade.name} for ${businessToUpdate.name} is now active.`;
+        let totalComponentUpgradeCostReduction = 0;
+        for (const componentId in playerStatsNow.factoryProducedComponents) {
+          const count = playerStatsNow.factoryProducedComponents[componentId];
+          if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent && componentConfig.effects.businessSpecificUpgradeCostReductionPercent.businessId === businessId) {
+              const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
+              const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+              totalComponentUpgradeCostReduction += cappedReduction;
+            }
           }
         }
-      }
-    }
+        if (totalComponentUpgradeCostReduction > 0) {
+          actualCost *= (1 - totalComponentUpgradeCostReduction / 100);
+        }
+        actualCost = Math.max(0, Math.floor(actualCost));
 
+        if (playerStatsNow.money < actualCost) {
+          toastTitle = "Not Enough Money";
+          toastDescription = `You need $${Number(actualCost).toLocaleString('en-US', { maximumFractionDigits: 0 })} to purchase ${upgrade.name}.`;
+          toastVariant = "destructive";
+          return prevPlayerStats;
+        }
+
+        setBusinesses(prevBusinesses => {
+          const newBusinesses = prevBusinesses.map(b =>
+            b.id === businessId
+              ? { ...b, upgrades: b.upgrades?.map(u => u.id === upgradeId ? { ...u, isPurchased: true } : u) }
+              : b
+          );
+          businessesRef.current = newBusinesses;
+          return newBusinesses;
+        });
+
+        success = true;
+        toastTitle = isAutoBuy ? "Auto-Upgrade!" : "Upgrade Purchased!";
+        toastDescription = isAutoBuy ? `${upgrade.name} for ${businessToUpdate.name}` : `${upgrade.name} for ${businessToUpdate.name} is now active.`;
+
+        return {
+          ...prevPlayerStats,
+          money: prevPlayerStats.money - actualCost,
+          achievedBusinessMilestones: {
+            ...prevPlayerStats.achievedBusinessMilestones,
+            [businessId]: {
+              ...(prevPlayerStats.achievedBusinessMilestones?.[businessId] || {}),
+              purchasedUpgradeIds: [...((prevPlayerStats.achievedBusinessMilestones?.[businessId]?.purchasedUpgradeIds || []).filter(id => id !== upgradeId)), upgradeId],
+            },
+          },
+        };
+    }); // end setPlayerStats
+
+    // Show toast outside setPlayerStats to use updated toastTitle/Description
     if (toastTitle && (!isAutoBuy || toastVariant === "destructive")) {
-      toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant, duration: isAutoBuy ? 1500 : 3000 });
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant, duration: isAutoBuy ? 1500 : 3000 });
     }
     return success;
   }, []);
+
 
   const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
     let toastTitle = "";
@@ -620,7 +639,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
                     if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
                         const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
-                        totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                        const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                        totalCostReductionFromComponents += cappedReduction;
                     }
                 }
             }
@@ -943,31 +963,36 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
-    let machineReplacedAnother = false;
-    let oldMachineName: string | undefined;
-    let replacedLineName: string | undefined;
-    let replacedSlotIndex: number | undefined;
+    
+    setPlayerStats(prev => {
+        const playerStatsNow = prev;
+        const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
 
-    const playerStatsNow = playerStatsRef.current;
-    const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
+        if (!newMachineConfig) {
+            toastTitle = "Machine Type Not Found";
+            toastVariant = "destructive";
+            return prev;
+        }
+        if (!playerStatsNow.factoryPurchased) {
+            toastTitle = "Factory Not Owned";
+            toastDescription = "Purchase the factory building first.";
+            toastVariant = "destructive";
+            return prev;
+        }
+        if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
+            const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
+            toastTitle = "Research Required";
+            toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
+            toastVariant = "destructive";
+            return prev;
+        }
+        if (playerStatsNow.money < newMachineConfig.baseCost) {
+            toastTitle = "Not Enough Money";
+            toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
+            toastVariant = "destructive";
+            return prev;
+        }
 
-    if (!newMachineConfig) {
-        toastTitle = "Machine Type Not Found";
-        toastVariant = "destructive";
-    } else if (!playerStatsNow.factoryPurchased) {
-        toastTitle = "Factory Not Owned";
-        toastDescription = "Purchase the factory building first.";
-        toastVariant = "destructive";
-    } else if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
-        const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
-        toastTitle = "Research Required";
-        toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
-        toastVariant = "destructive";
-    } else if (playerStatsNow.money < newMachineConfig.baseCost) {
-        toastTitle = "Not Enough Money";
-        toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
-        toastVariant = "destructive";
-    } else {
         const newMachineInstance: FactoryMachine = {
             instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             configId: newMachineConfig.id,
@@ -975,16 +1000,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             purchasedUpgradeIds: [],
         };
 
-        let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
+        let updatedMachines = [...(playerStatsNow.factoryMachines || [])];
+        let updatedProductionLines = [...(playerStatsNow.factoryProductionLines || [])];
+        let updatedWorkers = [...(playerStatsNow.factoryWorkers || [])];
+        let machineReplacedAnother = false;
+        let oldMachineName: string | undefined;
+        let replacedLineName: string | undefined;
+        let replacedSlotIndex: number | undefined;
 
+        // Replacement Logic
+        let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
         if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
             const candidates = [];
-            for (const line of (playerStatsNow.factoryProductionLines || [])) {
+            for (const line of updatedProductionLines) {
                 if (!line.isUnlocked) continue;
                 for (let slotIdx = 0; slotIdx < line.slots.length; slotIdx++) {
                     const slot = line.slots[slotIdx];
                     if (slot.machineInstanceId) {
-                        const existingMachine = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                        const existingMachine = updatedMachines.find(m => m.instanceId === slot.machineInstanceId);
                         if (existingMachine) {
                             const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
                             if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
@@ -1002,58 +1035,73 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (replacementCandidate) {
             const machineToRemoveId = replacementCandidate.machineInstanceIdToReplace;
-            const oldMachineInstance = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === machineToRemoveId);
+            const oldMachineInstance = updatedMachines.find(m => m.instanceId === machineToRemoveId);
             const oldMachineConfig = oldMachineInstance ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === oldMachineInstance.configId) : undefined;
             oldMachineName = oldMachineConfig?.name;
-            replacedLineName = (playerStatsNow.factoryProductionLines || []).find(l => l.id === replacementCandidate!.lineId)?.name;
+            replacedLineName = updatedProductionLines.find(l => l.id === replacementCandidate!.lineId)?.name;
             replacedSlotIndex = replacementCandidate.slotIndex;
 
             newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
-            newMachineInstance.purchasedUpgradeIds = [];
-
-
-            machineReplacedAnother = true;
-
-            setPlayerStats(prev => {
-                const updatedMachines = (prev.factoryMachines || []).filter(m => m.instanceId !== machineToRemoveId).concat(newMachineInstance);
-                const updatedProductionLines = (prev.factoryProductionLines || []).map(line => {
-                    if (line.id === replacementCandidate!.lineId) {
-                        const newSlots = [...line.slots];
-                        newSlots[replacementCandidate!.slotIndex] = { ...newSlots[replacementCandidate!.slotIndex], machineInstanceId: newMachineInstance.instanceId };
-                        return { ...line, slots: newSlots };
-                    }
-                    return line;
-                });
-                let updatedWorkers = [...(prev.factoryWorkers || [])];
-                const workerIndex = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === machineToRemoveId);
-                if (workerIndex !== -1) {
-                    updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: newMachineInstance.instanceId };
+            updatedMachines = updatedMachines.filter(m => m.instanceId !== machineToRemoveId).concat(newMachineInstance);
+            updatedProductionLines = updatedProductionLines.map(line => {
+                if (line.id === replacementCandidate!.lineId) {
+                    const newSlots = [...line.slots];
+                    newSlots[replacementCandidate!.slotIndex] = { ...newSlots[replacementCandidate!.slotIndex], machineInstanceId: newMachineInstance.instanceId };
+                    return { ...line, slots: newSlots };
                 }
-
-                return {
-                    ...prev,
-                    money: prev.money - newMachineConfig.baseCost,
-                    factoryMachines: updatedMachines,
-                    factoryProductionLines: updatedProductionLines,
-                    factoryWorkers: updatedWorkers,
-                };
+                return line;
             });
-        } else {
-            setPlayerStats(prev => ({
-                ...prev,
-                money: prev.money - newMachineConfig.baseCost,
-                factoryMachines: [...(prev.factoryMachines || []), newMachineInstance],
-            }));
-        }
-
-        if (machineReplacedAnother && oldMachineName && replacedLineName && replacedSlotIndex !== undefined) {
+            const workerIndex = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === machineToRemoveId);
+            if (workerIndex !== -1) {
+                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: newMachineInstance.instanceId };
+            }
+            machineReplacedAnother = true;
             toastTitle = "Machine Upgraded!";
-            toastDescription = `${oldMachineName} in ${replacedLineName}, Slot ${replacedSlotIndex + 1} was replaced by ${newMachineConfig.name}.`;
+            toastDescription = `${oldMachineName} in ${replacedLineName}, Slot ${replacedSlotIndex! + 1} was replaced by ${newMachineConfig.name}.`;
         } else {
-            toastTitle = "Machine Built!";
-            toastDescription = `${newMachineConfig.name} is ready and unassigned.`;
+            // Auto-Assignment Logic
+            let assignedToEmptySlot = false;
+            updatedMachines.push(newMachineInstance); // Add new machine to list first
+
+            for (let lineIdx = 0; lineIdx < updatedProductionLines.length; lineIdx++) {
+                const line = updatedProductionLines[lineIdx];
+                if (line.isUnlocked) {
+                    for (let slotIdx = 0; slotIdx < line.slots.length; slotIdx++) {
+                        if (line.slots[slotIdx].machineInstanceId === null) {
+                            updatedProductionLines[lineIdx] = {
+                                ...line,
+                                slots: line.slots.map((s, i) =>
+                                    i === slotIdx ? { ...s, machineInstanceId: newMachineInstance.instanceId } : s
+                                ),
+                            };
+                            updatedMachines = updatedMachines.map(m =>
+                                m.instanceId === newMachineInstance.instanceId
+                                    ? { ...m, assignedProductionLineId: line.id }
+                                    : m
+                            );
+                            assignedToEmptySlot = true;
+                            toastTitle = "Machine Built & Assigned!";
+                            toastDescription = `${newMachineConfig.name} built and placed in ${line.name}, Slot ${slotIdx + 1}.`;
+                            break; 
+                        }
+                    }
+                }
+                if (assignedToEmptySlot) break;
+            }
+            if (!assignedToEmptySlot) {
+                toastTitle = "Machine Built!";
+                toastDescription = `${newMachineConfig.name} is ready and unassigned.`;
+            }
         }
-    }
+        
+        return {
+            ...prev,
+            money: prev.money - newMachineConfig.baseCost,
+            factoryMachines: updatedMachines,
+            factoryProductionLines: updatedProductionLines,
+            factoryWorkers: updatedWorkers,
+        };
+    });
 
     if (toastTitle) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1748,6 +1796,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newFactoryPowerUnitsGenerated = 0;
 
         // Calculate Base Power Generation (before component boosts)
+        let basePowerGenerated = 0;
         (prev.factoryPowerBuildings || []).forEach(pb => {
             const config = currentFactoryPowerBuildingsConfig.find(c => c.id === pb.configId);
             if (config) {
@@ -1756,7 +1805,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
                     output *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
                 }
-                newFactoryPowerUnitsGenerated += output;
+                basePowerGenerated += output;
             }
         });
 
@@ -1768,14 +1817,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
                 if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
                     const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
-                    totalFactoryPowerBoostPercent += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    totalFactoryPowerBoostPercent += cappedBoost;
                 }
             }
         }
-        if (totalFactoryPowerBoostPercent > 0) {
-            newFactoryPowerUnitsGenerated *= (1 + totalFactoryPowerBoostPercent / 100);
-        }
-        newFactoryPowerUnitsGenerated = Math.floor(newFactoryPowerUnitsGenerated);
+        newFactoryPowerUnitsGenerated = Math.floor(basePowerGenerated * (1 + totalFactoryPowerBoostPercent / 100));
 
 
         const currentTotalBusinessIncome = currentBusinesses.reduce((sum, biz) => {
@@ -1810,7 +1857,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
                     if (componentConfig?.effects?.stockSpecificDividendYieldBoostPercent && componentConfig.effects.stockSpecificDividendYieldBoostPercent.stockId === stockDetails.id) {
                         const potentialBoost = count * componentConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
-                        stockSpecificDividendBoostFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                        const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                        stockSpecificDividendBoostFromComponents += cappedBoost;
                     }
                 }
             }
@@ -1893,7 +1941,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
                     if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent) {
                         const potentialBoost = count * componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
-                        totalFactoryMaterialBoostPercent += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                        const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                        totalFactoryMaterialBoostPercent += cappedBoost;
                     }
                 }
             }
@@ -1950,66 +1999,86 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const componentRecipe = currentFactoryComponentsConfig.find(cc => cc.id === slot.targetComponentId);
 
                     if (machineInstance && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
-                      let currentMachinePowerConsumption = machineConfig.powerConsumptionKw;
-                       (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                        let currentMachinePowerConsumption = machineConfig.powerConsumptionKw;
+                        (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
                             const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
                             if (upgradeDef?.effects.powerConsumptionModifier) {
                                 currentMachinePowerConsumption *= upgradeDef.effects.powerConsumptionModifier;
                             }
                         });
-                      if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) >= currentMachinePowerConsumption) {
-                          const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
-                          let currentProgress = newFactoryProductionProgress[progressKey] || 0;
 
-                          let effectiveProductionTime = componentRecipe.productionTimeSeconds;
-                          let totalSpeedMultiplier = 1;
-                          (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
-                            const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
-                            if(upgradeDef?.effects.productionSpeedMultiplier) {
-                                totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                        if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) < currentMachinePowerConsumption) {
+                             // Not enough power specifically for this machine, skip production for this machine
+                            return;
+                        }
+
+                        let isBonusCapped = false;
+                        const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
+                        if (componentRecipe.effects) {
+                            if (componentRecipe.effects.globalIncomeBoostPerComponentPercent && componentRecipe.effects.maxBonusPercent) {
+                                const currentBonus = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
+                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                            } else if (componentRecipe.effects.businessSpecificIncomeBoostPercent && componentRecipe.effects.maxBonusPercent) {
+                                const currentBonus = existingCount * componentRecipe.effects.businessSpecificIncomeBoostPercent.percent;
+                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                            } else if (componentRecipe.effects.stockSpecificDividendYieldBoostPercent && componentRecipe.effects.maxBonusPercent) {
+                                const currentBonus = existingCount * componentRecipe.effects.stockSpecificDividendYieldBoostPercent.percent;
+                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                            } else if (componentRecipe.effects.factoryGlobalPowerOutputBoostPercent && componentRecipe.effects.maxBonusPercent) {
+                                const currentBonus = existingCount * componentRecipe.effects.factoryGlobalPowerOutputBoostPercent;
+                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                            } else if (componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent && componentRecipe.effects.maxBonusPercent) {
+                                const currentBonus = existingCount * componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent;
+                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
                             }
-                          });
-                          effectiveProductionTime /= totalSpeedMultiplier;
+                            // Add other primary effect types here if needed
+                        }
 
-                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime));
-                          
-                          let isBonusCapped = false;
-                          const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
-                          if (componentRecipe.effects?.globalIncomeBoostPerComponentPercent && componentRecipe.effects.maxBonusPercent) {
-                              const currentBonus = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
-                              if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                          } else if (componentRecipe.effects?.businessSpecificIncomeBoostPercent && componentRecipe.effects.maxBonusPercent) {
-                              const currentBonus = existingCount * componentRecipe.effects.businessSpecificIncomeBoostPercent.percent;
-                              if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                          } // Add other primary effect types here if needed
 
-                          if (isBonusCapped) {
-                            // If cap is met, don't produce but ensure worker goes idle if they were working on this.
-                            currentProgress = 0; // Reset progress for this capped item
+                        if (isBonusCapped) {
                             const workerIndex = updatedWorkers.findIndex(w => w.id === worker.id);
                             if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
                                 updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                             }
-                          } else if (currentProgress >= 1) {
-                            let canCraftOneFull = true;
-                            if (prev.factoryRawMaterials < componentRecipe.rawMaterialCost) { canCraftOneFull = false; }
-                            for (const input of componentRecipe.recipe) {
-                              if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFull = false; break; }
-                            }
+                            newFactoryProductionProgress[`${line.id}-${slotIndex}-${slot.targetComponentId}`] = 0; // Reset progress
+                            return; // Skip production for this capped item
+                        }
 
-                            if (canCraftOneFull) {
-                              currentProgress -= 1.0;
-                              newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
-                              for (const input of componentRecipe.recipe) {
-                                newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
-                              }
-                              newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
-                            } else {
-                               currentProgress = Math.max(0, currentProgress - (1 / Math.max(0.1, effectiveProductionTime)));
+
+                        const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
+                        let currentProgress = newFactoryProductionProgress[progressKey] || 0;
+
+                        let effectiveProductionTime = componentRecipe.productionTimeSeconds;
+                        let totalSpeedMultiplier = 1;
+                        (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                        const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
+                        if(upgradeDef?.effects.productionSpeedMultiplier) {
+                            totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                        }
+                        });
+                        effectiveProductionTime /= totalSpeedMultiplier;
+
+                        currentProgress += (1 / Math.max(0.1, effectiveProductionTime));
+                        
+                        if (currentProgress >= 1) {
+                        let canCraftOneFull = true;
+                        if (prev.factoryRawMaterials < componentRecipe.rawMaterialCost) { canCraftOneFull = false; }
+                        for (const input of componentRecipe.recipe) {
+                            if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFull = false; break; }
+                        }
+
+                        if (canCraftOneFull) {
+                            currentProgress -= 1.0;
+                            newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
+                            for (const input of componentRecipe.recipe) {
+                            newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
                             }
-                          }
-                          newFactoryProductionProgress[progressKey] = currentProgress;
-                       }
+                            newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
+                        } else {
+                            currentProgress = Math.max(0, currentProgress - (1 / Math.max(0.1, effectiveProductionTime)));
+                        }
+                        }
+                        newFactoryProductionProgress[progressKey] = currentProgress;
                     }
                   }
                 }
@@ -2074,7 +2143,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
                     if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent && componentConfig.effects.businessSpecificUpgradeCostReductionPercent.businessId === business.id) {
                         const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
-                        totalComponentUpgradeCostReduction += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                        const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                        totalComponentUpgradeCostReduction += cappedReduction;
                     }
                 }
             }
