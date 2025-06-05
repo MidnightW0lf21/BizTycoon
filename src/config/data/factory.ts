@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -140,5 +140,30 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
     powerConsumptionKw: 25,
     materialsPerSecond: 0.5,
     maxInstances: 10,
+    requiredResearchId: 'unlock_drone_swarm_mk1',
+  },
+  {
+    id: 'drone_swarm_mk2',
+    name: 'Heavy Drone Swarm Mk2',
+    icon: PackagePlus,
+    description: 'Larger, more efficient drones for increased material gathering.',
+    baseCost: 200000,
+    costMultiplier: 1.35,
+    powerConsumptionKw: 40,
+    materialsPerSecond: 1.5,
+    maxInstances: 8,
+    requiredResearchId: 'unlock_drone_swarm_mk2',
+  },
+  {
+    id: 'mining_rig_mk1',
+    name: 'Automated Mining Rig Mk1',
+    icon: Pickaxe,
+    description: 'A stationary rig that extracts materials from the ground.',
+    baseCost: 500000,
+    costMultiplier: 1.4,
+    powerConsumptionKw: 100,
+    materialsPerSecond: 3,
+    maxInstances: 5,
+    requiredResearchId: 'unlock_mining_rig_mk1',
   },
 ];

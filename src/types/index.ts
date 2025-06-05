@@ -171,6 +171,7 @@ export interface FactoryMaterialCollectorConfig {
   powerConsumptionKw: number;
   materialsPerSecond: number;
   maxInstances?: number;
+  requiredResearchId?: string;
 }
 
 export interface FactoryMaterialCollector {
@@ -193,6 +194,7 @@ export interface ResearchItemEffects {
   unlocksFactoryMachineConfigIds?: string[];
   unlocksFactoryComponentConfigIds?: string[];
   unlocksProductionLineId?: string;
+  unlocksFactoryMaterialCollectorConfigIds?: string[];
 }
 
 export interface ResearchItemConfig {

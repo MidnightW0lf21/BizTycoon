@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   {
@@ -79,7 +79,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 250,
     costMoney: 1200000,
-    dependencies: ['unlock_prod_line_3', 'unlock_basic_assembler_mk3'], // Added Mk3 dependency
+    dependencies: ['unlock_prod_line_3', 'unlock_basic_assembler_mk3'], 
     effects: { unlocksProductionLineId: 'line_4' }
   },
   {
@@ -89,7 +89,37 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 500,
     costMoney: 3000000,
-    dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'], // Added Mk4 dependency
+    dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'], 
     effects: { unlocksProductionLineId: 'line_5' }
+  },
+  {
+    id: 'unlock_drone_swarm_mk1',
+    name: 'Basic Drone Logistics',
+    description: 'Unlocks the Drone Swarm Mk1 for automated material collection.',
+    icon: PackageSearch,
+    costRP: 20,
+    costMoney: 75000,
+    dependencies: ['unlock_basic_assembler_mk1'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['drone_swarm_mk1'] }
+  },
+  {
+    id: 'unlock_drone_swarm_mk2',
+    name: 'Advanced Drone Coordination',
+    description: 'Unlocks the Heavy Drone Swarm Mk2 for superior material collection.',
+    icon: PackagePlus, 
+    costRP: 60,
+    costMoney: 250000,
+    dependencies: ['unlock_drone_swarm_mk1'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['drone_swarm_mk2'] }
+  },
+  {
+    id: 'unlock_mining_rig_mk1',
+    name: 'Automated Excavation Tech',
+    description: 'Unlocks the Automated Mining Rig Mk1 for ground-based extraction.',
+    icon: Pickaxe,
+    costRP: 120,
+    costMoney: 600000,
+    dependencies: ['unlock_basic_assembler_mk2'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['mining_rig_mk1'] }
   }
 ];

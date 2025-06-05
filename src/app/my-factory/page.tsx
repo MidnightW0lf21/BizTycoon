@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, UnlockIcon } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, UnlockIcon, Pickaxe, PackageSearch } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -372,7 +372,9 @@ export default function MyFactoryPage() {
                 <CardDescription>Deploy collectors to automatically gather raw materials over time. Requires power.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.map(config => (
+                {INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG
+                .filter(config => !config.requiredResearchId || (playerStats.unlockedResearchIds || []).includes(config.requiredResearchId))
+                .map(config => (
                   <FactoryMaterialCollectorCard
                     key={config.id}
                     collectorConfig={config}
@@ -381,6 +383,40 @@ export default function MyFactoryPage() {
                     onPurchase={purchaseFactoryMaterialCollector}
                   />
                 ))}
+                 {INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.filter(config => config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId)).length > 0 &&
+                  INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG
+                    .filter(config => config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId))
+                    .map(config => {
+                        const researchName = researchItems.find(r => r.id === config.requiredResearchId)?.name;
+                        return (
+                            <Card key={config.id} className="shadow-md opacity-60 border-dashed">
+                                <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg flex items-center gap-2">
+                                            <config.icon className="h-6 w-6 text-muted-foreground" />
+                                            {config.name}
+                                        </CardTitle>
+                                    </div>
+                                    <CardDescription className="text-xs">{config.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-2 pt-2 pb-3 text-sm">
+                                  <div className="flex justify-center items-center flex-col gap-2 text-center">
+                                    <LockKeyhole className="h-8 w-8 text-primary" />
+                                    <p className="text-sm font-semibold">Research Required</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Unlock via "{researchName || config.requiredResearchId}" in the Research tab.
+                                    </p>
+                                  </div>
+                                </CardContent>
+                                <CardFooter className="pt-2">
+                                  <Button disabled className="w-full" variant="outline">
+                                      Locked
+                                  </Button>
+                                </CardFooter>
+                            </Card>
+                        );
+                    })
+                }
               </CardContent>
             </Card>
           </ScrollArea>
@@ -652,6 +688,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-    
-
-    
