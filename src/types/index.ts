@@ -136,20 +136,20 @@ export interface FactoryMachineConfig {
   baseCost: number;
   powerConsumptionKw: number;
   maxCraftableTier: number;
-  requiredResearchId?: string; 
+  requiredResearchId?: string;
+  familyId?: string; 
+  mark?: number;     
 }
 
 export interface FactoryMachine {
   instanceId: string;
   configId: string;
-  assignedProductionLineId: string | null; // The ID of the production line this machine is in
-  // Note: A machine might also need to know its slot index if we want to directly reference it via line+slot.
-  // Or, we find the machine by iterating through production line slots.
+  assignedProductionLineId: string | null; 
 }
 
 export interface FactoryProductionLineSlot {
   machineInstanceId: string | null;
-  targetComponentId: string | null; // ID of the FactoryComponent to produce
+  targetComponentId: string | null; 
 }
 
 export interface FactoryProductionLine {
@@ -182,9 +182,8 @@ export interface Worker {
   id: string;
   name: string;
   assignedMachineInstanceId: string | null;
-  energy: number; // Range: 0 to MAX_WORKER_ENERGY
+  energy: number; 
   status: WorkerStatus;
-  // lastStatusChangeTimestamp: number; // To track duration for work/rest cycles
 }
 
 export interface ResearchItemConfig {
@@ -226,11 +225,11 @@ export interface PlayerStats {
   factoryProducedComponents: Record<string, number>;
   factoryMaterialCollectors: FactoryMaterialCollector[];
   factoryProductionProgress?: Record<string, number>;
-  factoryWorkers: Worker[]; // Added workers
+  factoryWorkers: Worker[];
 
   researchPoints: number;
   unlockedResearchIds: string[];
-  lastManualResearchTimestamp: number; // Used for cooldown of manual RP generation
+  lastManualResearchTimestamp: number; 
 }
 
 export interface SaveData {

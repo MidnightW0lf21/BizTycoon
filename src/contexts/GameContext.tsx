@@ -292,54 +292,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return calculateMaxAffordableLevels(business, playerStatsRef.current.money, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
   }, [getDynamicMaxBusinessLevel]);
 
-  const _attemptAutoAssignSingleMachine = useCallback((machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
-    let assignedLineId: string | null = null;
-    let assignedSlotIndex: number | null = null;
-    const newProductionLines = [...currentProductionLines];
-    for (let lineIndex = 0; lineIndex < newProductionLines.length; lineIndex++) {
-        const line = newProductionLines[lineIndex];
-        const emptySlotIndex = (line.slots || []).findIndex(slot => slot.machineInstanceId === null);
-        if (emptySlotIndex !== -1) {
-            const newSlots = [...line.slots];
-            newSlots[emptySlotIndex] = { ...newSlots[emptySlotIndex], machineInstanceId: machineInstanceId };
-            assignedLineId = line.id;
-            assignedSlotIndex = emptySlotIndex;
-            newProductionLines[lineIndex] = { ...line, slots: newSlots };
-            break;
-        }
-    }
-    return { updatedProductionLines: newProductionLines, assignedLineId, assignedSlotIndex };
-  }, []);
-
-
-  const _attemptAutoAssignWaitingMachines = useCallback(() => {
-    const playerStatsNow = playerStatsRef.current;
-    let newMachines = [...(playerStatsNow.factoryMachines || [])];
-    let newProductionLines = [...(playerStatsNow.factoryProductionLines || [])];
-    let machineAssignedThisCall = false;
-    let assignmentDetails: { machineConfigId: string, lineName: string, slotIndex: number} | undefined;
-
-    for (let i = 0; i < newMachines.length; i++) {
-        if (newMachines[i].assignedProductionLineId === null) {
-            const assignResult = _attemptAutoAssignSingleMachine(newMachines[i].instanceId, newProductionLines);
-            if (assignResult.assignedLineId !== null && assignResult.assignedSlotIndex !== null) {
-                newMachines[i] = { ...newMachines[i], assignedProductionLineId: assignResult.assignedLineId };
-                newProductionLines = assignResult.updatedProductionLines;
-                const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === newMachines[i].configId);
-                const line = newProductionLines.find(l => l.id === assignResult.assignedLineId);
-                assignmentDetails = { machineConfigId: machineConfig?.id || 'unknown', lineName: line?.name || 'a line', slotIndex: assignResult.assignedSlotIndex };
-                machineAssignedThisCall = true;
-                break;
-            }
-        }
-    }
-    if (machineAssignedThisCall && assignmentDetails) {
-        setPlayerStats(prev => ({ ...prev, factoryMachines: newMachines, factoryProductionLines: newProductionLines }));
-        const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === assignmentDetails!.machineConfigId);
-        toastRef.current({ title: "Machine Auto-Assigned to Line", description: `${machineConfig?.name || 'Machine'} placed in ${assignmentDetails!.lineName}, Slot ${assignmentDetails!.slotIndex + 1}.`, duration: 2000 });
-    }
-  }, [_attemptAutoAssignSingleMachine]);
-
   const saveStateToLocalStorage = useCallback(() => {
     try {
       const currentTimestamp = Date.now();
@@ -417,6 +369,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manualResearchCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + RESEARCH_MANUAL_COOLDOWN_MS : 0;
       setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
       setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
+
       success = true;
       toastTitle = "Game Loaded Successfully!";
       toastDescription = "Your game state has been imported.";
@@ -863,66 +816,154 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
-    const playerStatsNow = playerStatsRef.current;
-    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
+    let machineReplacedAnother = false;
+    let oldMachineName: string | undefined;
+    let replacedLineName: string | undefined;
+    let replacedSlotIndex: number | undefined;
 
-    if (!machineConfig) {
-      toastTitle = "Machine Type Not Found";
-      toastVariant = "destructive";
-    } else if (!playerStatsNow.factoryPurchased) {
-      toastTitle = "Factory Not Owned";
-      toastDescription = "Purchase the factory building first.";
-      toastVariant = "destructive";
-    } else if (machineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(machineConfig.requiredResearchId)) {
-      const researchItem = researchItemsRef.current.find(r => r.id === machineConfig.requiredResearchId);
-      toastTitle = "Research Required";
-      toastDescription = `Purchase of ${machineConfig.name} requires '${researchItem?.name || machineConfig.requiredResearchId}' research.`;
-      toastVariant = "destructive";
-    } else {
-      const cost = machineConfig.baseCost;
-      if (playerStatsNow.money < cost) {
-        toastTitle = "Not Enough Money";
-        toastDescription = `Need $${cost.toLocaleString()} to build a ${machineConfig.name}.`;
+    const playerStatsNow = playerStatsRef.current;
+    const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
+
+    if (!newMachineConfig) {
+        toastTitle = "Machine Type Not Found";
         toastVariant = "destructive";
-      } else {
-        setPlayerStats(prev => {
-            const newMachineInstanceId = `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-            const newMachine: FactoryMachine = { instanceId: newMachineInstanceId, configId: machineConfig.id, assignedProductionLineId: null, };
-             return { ...prev, money: prev.money - cost, factoryMachines: [...(prev.factoryMachines || []), newMachine], };
-        });
-        toastTitle = "Machine Built!";
-        toastDescription = `A new ${machineConfig.name} is ready. It will be auto-assigned to an empty slot.`;
-        
-        setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
-      }
+    } else if (!playerStatsNow.factoryPurchased) {
+        toastTitle = "Factory Not Owned";
+        toastDescription = "Purchase the factory building first.";
+        toastVariant = "destructive";
+    } else if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
+        const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
+        toastTitle = "Research Required";
+        toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
+        toastVariant = "destructive";
+    } else if (playerStatsNow.money < newMachineConfig.baseCost) {
+        toastTitle = "Not Enough Money";
+        toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
+        toastVariant = "destructive";
+    } else {
+        const newMachineInstance: FactoryMachine = {
+            instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            configId: newMachineConfig.id,
+            assignedProductionLineId: null,
+        };
+
+        let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
+
+        if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
+            const candidates = [];
+            for (const line of (playerStatsNow.factoryProductionLines || [])) {
+                for (let slotIdx = 0; slotIdx < line.slots.length; slotIdx++) {
+                    const slot = line.slots[slotIdx];
+                    if (slot.machineInstanceId) {
+                        const existingMachine = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                        if (existingMachine) {
+                            const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
+                            if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
+                                candidates.push({ lineId: line.id, slotIndex: slotIdx, machineInstanceIdToReplace: slot.machineInstanceId, markOfMachineToReplace: existingMachineConfig.mark, lineName: line.name });
+                            }
+                        }
+                    }
+                }
+            }
+            if (candidates.length > 0) {
+                candidates.sort((a, b) => a.markOfMachineToReplace - b.markOfMachineToReplace); // Replace lowest mark first
+                replacementCandidate = candidates[0];
+            }
+        }
+
+        if (replacementCandidate) {
+            const machineToRemoveId = replacementCandidate.machineInstanceIdToReplace;
+            const oldMachineInstance = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === machineToRemoveId);
+            const oldMachineConfig = oldMachineInstance ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === oldMachineInstance.configId) : undefined;
+            oldMachineName = oldMachineConfig?.name;
+            replacedLineName = (playerStatsNow.factoryProductionLines || []).find(l => l.id === replacementCandidate!.lineId)?.name;
+            replacedSlotIndex = replacementCandidate.slotIndex;
+
+            newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
+            machineReplacedAnother = true;
+
+            setPlayerStats(prev => {
+                const updatedMachines = (prev.factoryMachines || []).filter(m => m.instanceId !== machineToRemoveId).concat(newMachineInstance);
+                const updatedProductionLines = (prev.factoryProductionLines || []).map(line => {
+                    if (line.id === replacementCandidate!.lineId) {
+                        const newSlots = [...line.slots];
+                        newSlots[replacementCandidate!.slotIndex] = { ...newSlots[replacementCandidate!.slotIndex], machineInstanceId: newMachineInstance.instanceId };
+                        return { ...line, slots: newSlots };
+                    }
+                    return line;
+                });
+                let updatedWorkers = [...(prev.factoryWorkers || [])];
+                const workerIndex = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === machineToRemoveId);
+                if (workerIndex !== -1) {
+                    updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: newMachineInstance.instanceId };
+                }
+
+                return {
+                    ...prev,
+                    money: prev.money - newMachineConfig.baseCost,
+                    factoryMachines: updatedMachines,
+                    factoryProductionLines: updatedProductionLines,
+                    factoryWorkers: updatedWorkers,
+                };
+            });
+        } else {
+            setPlayerStats(prev => ({
+                ...prev,
+                money: prev.money - newMachineConfig.baseCost,
+                factoryMachines: [...(prev.factoryMachines || []), newMachineInstance],
+            }));
+        }
+
+        if (machineReplacedAnother && oldMachineName && replacedLineName && replacedSlotIndex !== undefined) {
+            toastTitle = "Machine Upgraded!";
+            toastDescription = `${oldMachineName} in ${replacedLineName}, Slot ${replacedSlotIndex + 1} was replaced by ${newMachineConfig.name}.`;
+        } else {
+            toastTitle = "Machine Built!";
+            toastDescription = `${newMachineConfig.name} is ready and unassigned.`;
+        }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-  }, [_attemptAutoAssignWaitingMachines]);
+
+    if (toastTitle) {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
+  }, []);
+
 
   const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
     let unassignedMachineName = "Machine";
     let success = false;
+    const playerStatsNow = playerStatsRef.current;
 
+    const targetProductionLineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(pl => pl.id === productionLineId);
+    if (targetProductionLineIndex === -1) {
+      toastRef.current({ title: "Error", description: "Production line not found.", variant: "destructive"});
+      return;
+    }
+    const targetProductionLine = playerStatsNow.factoryProductionLines[targetProductionLineIndex];
+    if (slotIndex < 0 || slotIndex >= targetProductionLine.slots.length) {
+      toastRef.current({ title: "Error", description: "Invalid slot index.", variant: "destructive"});
+      return;
+    }
+    const machineInstanceIdToUnassign = targetProductionLine.slots[slotIndex].machineInstanceId;
+    if (!machineInstanceIdToUnassign) {
+      toastRef.current({ title: "Info", description: "No machine in this slot to unassign.", variant: "default"});
+      return;
+    }
+
+    const machineToUpdateIndex = (playerStatsNow.factoryMachines || []).findIndex(m => m.instanceId === machineInstanceIdToUnassign);
+    if (machineToUpdateIndex === -1) {
+      toastRef.current({ title: "Error", description: "Machine data corrupted.", variant: "destructive"});
+      return;
+    }
+
+    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === playerStatsNow.factoryMachines[machineToUpdateIndex].configId);
+    if(machineConfig) unassignedMachineName = machineConfig.name;
+    
     setPlayerStats(prev => {
-        const targetProductionLineIndex = (prev.factoryProductionLines || []).findIndex(pl => pl.id === productionLineId);
-        if (targetProductionLineIndex === -1) return prev;
-        const targetProductionLine = prev.factoryProductionLines[targetProductionLineIndex];
-        if (slotIndex < 0 || slotIndex >= targetProductionLine.slots.length) return prev;
-        const machineInstanceIdToUnassign = targetProductionLine.slots[slotIndex].machineInstanceId;
-        if (!machineInstanceIdToUnassign) return prev;
-
-        const machineToUpdateIndex = (prev.factoryMachines || []).findIndex(m => m.instanceId === machineInstanceIdToUnassign);
-        if (machineToUpdateIndex === -1) return prev;
-
-        const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === prev.factoryMachines[machineToUpdateIndex].configId);
-        if(machineConfig) unassignedMachineName = machineConfig.name;
-
-        const newFactoryMachines = [...prev.factoryMachines];
-        newFactoryMachines[machineToUpdateIndex] = { ...newFactoryMachines[machineToUpdateIndex], assignedProductionLineId: null };
-
-        const newFactoryProductionLines = [...prev.factoryProductionLines];
+        const newFactoryMachines = (prev.factoryMachines || []).map(m => m.instanceId === machineInstanceIdToUnassign ? { ...m, assignedProductionLineId: null } : m);
+        const newFactoryProductionLines = [...(prev.factoryProductionLines || [])];
         const newSlots = [...newFactoryProductionLines[targetProductionLineIndex].slots];
-        newSlots[slotIndex] = { machineInstanceId: null, targetComponentId: null };
+        newSlots[slotIndex] = { machineInstanceId: null, targetComponentId: null }; // Also clear recipe
         newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], slots: newSlots };
 
         let updatedWorkers = [...(prev.factoryWorkers || [])];
@@ -930,16 +971,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (workerIndex !== -1) {
             updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: null, status: 'idle' };
         }
-
         success = true;
         return { ...prev, factoryMachines: newFactoryMachines, factoryProductionLines: newFactoryProductionLines, factoryWorkers: updatedWorkers };
     });
+
     if(success) {
-      toastRef.current({ title: "Machine Unassigned", description: `${unassignedMachineName} removed from slot. Associated worker (if any) is now idle and unassigned.`, duration: 2000});
-      // No longer auto-assigning machines after unassignment
-      setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
+      toastRef.current({ title: "Machine Unassigned", description: `${unassignedMachineName} removed from slot and is now idle. Associated worker (if any) is also idle and unassigned.`, duration: 2500});
     }
-  }, [_attemptAutoAssignWaitingMachines]);
+  }, []);
 
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     let toastTitle = "";
@@ -1159,9 +1198,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastTitle = "Worker Assignment Updated";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
+    const playerStatsNow = playerStatsRef.current;
 
-    const workerBeingAssignedOrUnassignedPrevState = playerStatsRef.current.factoryWorkers.find(w => workerId ? w.id === workerId : w.assignedMachineInstanceId === machineInstanceId);
-    const targetMachinePrevState = playerStatsRef.current.factoryMachines.find(m => m.instanceId === machineInstanceId);
+    const workerBeingAssignedOrUnassignedPrevState = workerId
+      ? playerStatsNow.factoryWorkers.find(w => w.id === workerId)
+      : playerStatsNow.factoryWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId);
+
+    const targetMachinePrevState = playerStatsNow.factoryMachines.find(m => m.instanceId === machineInstanceId);
     const targetMachineConfig = targetMachinePrevState ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === targetMachinePrevState.configId) : null;
     const targetMachineName = targetMachineConfig?.name || 'the machine';
 
@@ -1169,48 +1212,49 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       let newWorkers = [...(prev.factoryWorkers || [])];
       let madeChange = false;
 
-      if (workerId === null) {
-        const currentWorkerOnMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
-        if (currentWorkerOnMachineIndex !== -1) {
-          newWorkers[currentWorkerOnMachineIndex] = {
-            ...newWorkers[currentWorkerOnMachineIndex],
-            assignedMachineInstanceId: null,
-            status: 'idle'
-          };
-          madeChange = true;
-        }
-      } else {
-        const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
-        if (workerToAssignIndex === -1) {
-          toastVariant = "destructive";
-          return prev;
-        }
+      const targetMachineSlot = (prev.factoryProductionLines || []).flatMap(line => line.slots).find(s => s.machineInstanceId === machineInstanceId);
 
-        let workerToAssign = { ...newWorkers[workerToAssignIndex] };
-
-        if (workerToAssign.assignedMachineInstanceId && workerToAssign.assignedMachineInstanceId !== machineInstanceId) {
-          workerToAssign.assignedMachineInstanceId = null;
-          workerToAssign.status = 'idle';
-          madeChange = true;
-        }
-
-        const currentWorkerOnTargetMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
-        if (currentWorkerOnTargetMachineIndex !== -1 && newWorkers[currentWorkerOnTargetMachineIndex].id !== workerId) {
+      // Unassign the worker currently on the target machine IF it's not the worker being assigned
+      const currentWorkerOnTargetMachineIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
+      if (currentWorkerOnTargetMachineIndex !== -1 && newWorkers[currentWorkerOnTargetMachineIndex].id !== workerId) {
           newWorkers[currentWorkerOnTargetMachineIndex] = {
-            ...newWorkers[currentWorkerOnTargetMachineIndex],
-            assignedMachineInstanceId: null,
-            status: 'idle'
+              ...newWorkers[currentWorkerOnTargetMachineIndex],
+              assignedMachineInstanceId: null,
+              status: 'idle'
           };
           madeChange = true;
-        }
-        
-        const productionLine = (prev.factoryProductionLines || []).find(pl => pl.slots.some(s => s.machineInstanceId === machineInstanceId));
-        const slot = productionLine?.slots.find(s => s.machineInstanceId === machineInstanceId);
-        
-        workerToAssign.assignedMachineInstanceId = machineInstanceId;
-        workerToAssign.status = (slot?.targetComponentId && workerToAssign.energy > 0) ? 'working' : 'idle';
-        newWorkers[workerToAssignIndex] = workerToAssign;
-        madeChange = true;
+      }
+
+      // If a specific worker is being assigned (workerId is not null)
+      if (workerId) {
+          const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
+          if (workerToAssignIndex === -1) {
+              toastVariant = "destructive"; // Should not happen if UI is correct
+              return prev; // Worker not found
+          }
+          let workerToAssign = { ...newWorkers[workerToAssignIndex] };
+
+          // Unassign this worker from their *previous* machine, if any and if it's different
+          if (workerToAssign.assignedMachineInstanceId && workerToAssign.assignedMachineInstanceId !== machineInstanceId) {
+              workerToAssign.assignedMachineInstanceId = null; // Will be updated shortly
+              // Note: Don't set to idle yet, status depends on new assignment
+              madeChange = true;
+          }
+
+          workerToAssign.assignedMachineInstanceId = machineInstanceId;
+          workerToAssign.status = (targetMachineSlot?.targetComponentId && workerToAssign.energy > 0) ? 'working' : 'idle';
+          newWorkers[workerToAssignIndex] = workerToAssign;
+          madeChange = true;
+
+      } else { // workerId is null, meaning we are unassigning from targetMachine
+          if (currentWorkerOnTargetMachineIndex !== -1) { // This ensures we only act if there WAS a worker
+              newWorkers[currentWorkerOnTargetMachineIndex] = {
+                  ...newWorkers[currentWorkerOnTargetMachineIndex],
+                  assignedMachineInstanceId: null,
+                  status: 'idle'
+              };
+              madeChange = true;
+          }
       }
       
       if (madeChange) {
@@ -1219,13 +1263,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return prev;
     });
 
-    if (workerId === null) {
+    // Update toast description based on the action
+    if (workerId === null) { // Unassignment
         if (workerBeingAssignedOrUnassignedPrevState && workerBeingAssignedOrUnassignedPrevState.assignedMachineInstanceId === machineInstanceId) {
             toastDescription = `${workerBeingAssignedOrUnassignedPrevState.name} has been unassigned from ${targetMachineName} and is now idle.`;
         } else {
-            toastDescription = `${targetMachineName} had no worker assigned, or the worker was already unassigned.`;
+            // This case implies the slot was already empty or the worker was already unassigned
+            // No toast needed, or a more nuanced one if desired. For now, being silent for this.
+            toastTitle = ""; // Suppress toast if no effective change or already unassigned
         }
-    } else {
+    } else { // Assignment
         const assignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.id === workerId); 
         if (assignedWorker) {
             toastDescription = `${assignedWorker.name} assigned to ${targetMachineName}.`;
@@ -1239,12 +1286,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 else toastDescription += ` Status: idle.`;
             }
         } else {
-            toastDescription = "Worker assignment could not be confirmed.";
+            toastDescription = "Worker assignment could not be confirmed."; // Should not happen
             toastVariant = "destructive";
         }
     }
     
-    if (toastDescription || toastVariant === "destructive") {
+    if (toastTitle && (toastDescription || toastVariant === "destructive")) {
       toastRef.current({ title: toastTitle, description: toastDescription || "An unknown error occurred.", variant: toastVariant, duration: 2500 });
     }
   }, []);
@@ -1332,8 +1379,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
-      
-      // No auto-assignment after prestige
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
@@ -1406,7 +1451,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryWorkers: Array.isArray(loadedData.playerStats.factoryWorkers) ? loadedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
             researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
             unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
-            lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+            lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1434,7 +1479,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1750,5 +1794,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    

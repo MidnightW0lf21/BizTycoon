@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill } from 'lucide-react'; // Added Drill
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -74,16 +74,21 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     baseCost: 100000,
     powerConsumptionKw: 50,
     maxCraftableTier: 1,
-    requiredResearchId: 'unlock_basic_assembler_mk1', 
+    requiredResearchId: 'unlock_basic_assembler_mk1',
+    familyId: 'basic_assembler',
+    mark: 1,
   },
   {
     id: 'basic_assembler_mk2',
     name: 'Basic Assembler Mk2',
-    icon: Wrench,
-    description: 'An upgraded assembler capable of crafting Tier 1 and Tier 2 components.',
+    icon: Drill, // Using a different icon for Mk2
+    description: 'An upgraded assembler capable of crafting Tier 1 and Tier 2 components more efficiently.',
     baseCost: 250000,
     powerConsumptionKw: 75,
     maxCraftableTier: 2,
+    requiredResearchId: 'unlock_basic_assembler_mk2', // Needs new research
+    familyId: 'basic_assembler',
+    mark: 2,
   }
 ];
 
@@ -100,4 +105,3 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
     maxInstances: 10,
   },
 ];
-
