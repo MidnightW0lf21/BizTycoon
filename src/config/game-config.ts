@@ -1,10 +1,10 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
 import { INITIAL_HQ_UPGRADES } from './data/hq';
-import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG } from './data/factory';
+import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from './data/factory';
 
 
 export const INITIAL_MONEY = 10;
@@ -333,7 +333,6 @@ export { INITIAL_HQ_UPGRADES } from './data/hq';
 export {
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_COMPONENTS_CONFIG,
-  INITIAL_FACTORY_MACHINE_CONFIGS
+  INITIAL_FACTORY_MACHINE_CONFIGS,
+  INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG
 } from './data/factory';
-
-    

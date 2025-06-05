@@ -1,6 +1,6 @@
 
-import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench } from 'lucide-react';
+import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -78,7 +78,7 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   {
     id: 'basic_assembler_mk2',
     name: 'Basic Assembler Mk2',
-    icon: Wrench, 
+    icon: Wrench,
     description: 'An upgraded assembler capable of crafting Tier 1 and Tier 2 components.',
     baseCost: 250000,
     powerConsumptionKw: 75,
@@ -86,4 +86,16 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   }
 ];
 
-    
+export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollectorConfig[] = [
+  {
+    id: 'drone_swarm_mk1',
+    name: 'Automated Drone Swarm Mk1',
+    icon: PackageSearch,
+    description: 'Deploys a swarm of drones to automatically collect raw materials.',
+    baseCost: 75000,
+    costMultiplier: 1.3,
+    powerConsumptionKw: 25,
+    materialsPerSecond: 0.5,
+    maxInstances: 10,
+  },
+];
