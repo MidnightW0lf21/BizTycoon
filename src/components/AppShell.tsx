@@ -50,7 +50,7 @@ const navItems: NavItem[] = [
 ];
 
 function AppLogo() {
-  const { playerStats, businesses } = useGame(); // AppLogo now directly uses useGame
+  const { playerStats, businesses } = useGame(); 
 
   const prestigeProgress = useMemo(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
@@ -116,7 +116,16 @@ interface NavLinkProps {
   onMobileClick?: () => void;
 }
 
-function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestiged = 0, currentTimesPrestiged, action, onPrestigeClick }: NavLinkProps) {
+const NavLink = React.memo(function NavLink({ 
+  href, 
+  label, 
+  icon: Icon, 
+  onMobileClick, 
+  requiredTimesPrestiged = 0, 
+  currentTimesPrestiged, 
+  action, 
+  onPrestigeClick 
+}: NavLinkProps) {
   const pathname = usePathname();
   const isActive = action ? false : (href === '/' ? pathname === href : (href && pathname.startsWith(href)));
   const isLocked = currentTimesPrestiged < requiredTimesPrestiged;
@@ -188,7 +197,8 @@ function NavLink({ href, label, icon: Icon, onMobileClick, requiredTimesPrestige
       {linkContent}
     </div>
   );
-}
+});
+NavLink.displayName = 'NavLink';
 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -386,6 +396,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     
 
+
+    
 
     
 
