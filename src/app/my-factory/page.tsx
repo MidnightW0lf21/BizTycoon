@@ -15,6 +15,7 @@ import { ProductionLineDisplay } from "@/components/factory/ProductionLineDispla
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
 import type { FactoryMachine, Worker } from "@/types";
 import { WORKER_HIRE_COST } from "@/config/data/workers";
@@ -111,6 +112,8 @@ export default function MyFactoryPage() {
     currentRecipeId: string | null;
     currentAssignedWorkerId: string | null;
   } | null>(null);
+  const [isBuildAssemblerDialogOpen, setIsBuildAssemblerDialogOpen] = useState(false);
+
 
   useEffect(() => {
     if (!playerStats.factoryPurchased) return;
@@ -392,31 +395,13 @@ export default function MyFactoryPage() {
           <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Build Assemblers</CardTitle>
-                <CardDescription>Construct assemblers to place in your production lines. Higher Mark assemblers may replace lower Mark ones in active slots if available. Each Mark can craft up to its corresponding Tier. Some assemblers require research.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => {
-                  const isLocked = !!config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId);
-                  const researchName = isLocked ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name : undefined;
-                  return (
-                    <MachinePurchaseCard
-                      key={config.id}
-                      machineConfig={config}
-                      playerMoney={playerStats.money}
-                      onPurchase={purchaseFactoryMachine}
-                      isResearchLocked={isLocked}
-                      researchItemName={researchName}
-                    />
-                  );
-                })}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Production Lines</CardTitle>
-                <CardDescription>Assign machines to empty slots, or they will be auto-assigned if you build a higher Mark machine. Click a machine to set its recipe and assign a worker. Production starts if power, materials, a worker, and input components are sufficient.</CardDescription>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Production Lines</CardTitle>
+                  <Button onClick={() => setIsBuildAssemblerDialogOpen(true)} variant="outline" size="sm">
+                     <Wrench className="mr-2 h-4 w-4"/> Build Assembler
+                  </Button>
+                </div>
+                <CardDescription>Assign machines to empty slots. Click a machine to set its recipe and assign a worker. Production starts if power, materials, a worker, and input components are sufficient.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(playerStats.factoryProductionLines || []).map((line, index) => {
@@ -627,6 +612,40 @@ export default function MyFactoryPage() {
         currentAssignedWorkerId={currentDialogContext.currentAssignedWorkerId}
       />
     )}
+
+    <Dialog open={isBuildAssemblerDialogOpen} onOpenChange={setIsBuildAssemblerDialogOpen}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Build New Assembler</DialogTitle>
+          <DialogDescription>
+            Construct assemblers to place in your production lines. Higher Mark assemblers may replace lower Mark ones if available.
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="max-h-[60vh] pr-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            {(INITIAL_FACTORY_MACHINE_CONFIGS || []).map(config => {
+              const isLocked = !!config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId);
+              const researchName = isLocked ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name : undefined;
+              return (
+                <MachinePurchaseCard
+                  key={config.id}
+                  machineConfig={config}
+                  playerMoney={playerStats.money}
+                  onPurchase={purchaseFactoryMachine}
+                  isResearchLocked={isLocked}
+                  researchItemName={researchName}
+                />
+              );
+            })}
+          </div>
+        </ScrollArea>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsBuildAssemblerDialogOpen(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
+
+    
