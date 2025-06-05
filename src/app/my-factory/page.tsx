@@ -17,7 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
-import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType, FactoryComponent } from "@/types";
+import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType, FactoryComponent, FactoryProductionProgressData } from "@/types";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -699,6 +699,14 @@ export default function MyFactoryPage() {
               <CardContent className="space-y-4">
                 {(playerStats.factoryProductionLines || []).map((line, index) => {
                   const researchForLine = line.requiredResearchId ? researchItems.find(r => r.id === line.requiredResearchId) : null;
+                  const lineProgressData: Record<string, FactoryProductionProgressData> = {};
+                  if (playerStats.factoryProductionProgress) {
+                      for (const key in playerStats.factoryProductionProgress) {
+                          if (key.startsWith(`${line.id}-`)) {
+                              lineProgressData[key] = playerStats.factoryProductionProgress[key];
+                          }
+                      }
+                  }
                   return (
                     <ProductionLineDisplay
                       key={line.id}
@@ -711,6 +719,8 @@ export default function MyFactoryPage() {
                       playerMoney={playerStats.money}
                       researchRequiredName={researchForLine?.name}
                       currentDynamicMaxWorkerEnergy={currentDynamicMaxWorkerEnergy}
+                      playerStats={playerStats}
+                      lineProductionProgress={lineProgressData}
                     />
                   );
                 })}
@@ -965,3 +975,5 @@ export default function MyFactoryPage() {
     </>
   );
 }
+
+    

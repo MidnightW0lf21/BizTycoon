@@ -20,7 +20,8 @@ interface ProductionLineDisplayProps {
   playerMoney: number;
   researchRequiredName?: string | null;
   currentDynamicMaxWorkerEnergy: number;
-  playerStats: PlayerStats;
+  playerStats: PlayerStats; // Keep for general stats like power, resources
+  lineProductionProgress: Record<string, FactoryProductionProgressData>; // Specific progress data for this line's slots
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -41,6 +42,7 @@ export function ProductionLineDisplay({
   researchRequiredName,
   currentDynamicMaxWorkerEnergy,
   playerStats,
+  lineProductionProgress, // Use this new prop
 }: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
@@ -112,31 +114,36 @@ export function ProductionLineDisplay({
           const MachineIcon = machineConfig?.icon || Loader2;
           const ComponentIcon = componentConfig?.icon || PlusCircle;
           const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
-
+          
           let timerDisplay = "";
           const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
 
           if (componentConfig && slot.targetComponentId && progressKey) {
-            const productionData = playerStats?.factoryProductionProgress?.[progressKey];
+            const productionData = lineProductionProgress?.[progressKey]; // Use the specific prop here
+            
+            let displayTotalSeconds = productionData?.totalSeconds;
+            if ((!displayTotalSeconds || displayTotalSeconds <= 0) && componentConfig) {
+                displayTotalSeconds = componentConfig.productionTimeSeconds;
+            }
 
-            if (productionData && typeof productionData.remainingSeconds === 'number' && typeof productionData.totalSeconds === 'number' && productionData.totalSeconds > 0) {
-              if (productionData.remainingSeconds > 0) {
-                timerDisplay = `${Math.ceil(productionData.remainingSeconds).toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s`;
-              } else { // remainingSeconds <= 0, item is complete or was just set and is 0
-                let canCraftNext = true;
-                if (!playerStats || playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) {
-                    canCraftNext = false;
-                } else {
-                    for (const input of componentConfig.recipe) {
-                        if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) {
-                            canCraftNext = false;
-                            break;
+            if (productionData && typeof productionData.remainingSeconds === 'number' && displayTotalSeconds && displayTotalSeconds > 0) {
+                if (productionData.remainingSeconds > 0) {
+                    timerDisplay = `${Math.ceil(productionData.remainingSeconds).toFixed(0)}s / ${displayTotalSeconds.toFixed(0)}s`;
+                } else { // remainingSeconds <= 0, item is complete or stalled
+                    let canCraftNext = true;
+                    if (!playerStats || playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) {
+                        canCraftNext = false;
+                    } else {
+                        for (const input of componentConfig.recipe) {
+                            if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) {
+                                canCraftNext = false;
+                                break;
+                            }
                         }
                     }
+                    timerDisplay = canCraftNext ? "Ready" : "Inputs Blocked";
                 }
-                timerDisplay = canCraftNext ? "Ready" : "Inputs Blocked";
-              }
-            } else if (componentConfig) { 
+            } else if (componentConfig) { // Fallback if no valid productionData
                 timerDisplay = `Recipe Set (${componentConfig.productionTimeSeconds.toFixed(0)}s)`;
             } else {
                 timerDisplay = "Configuring..."; 
@@ -163,7 +170,7 @@ export function ProductionLineDisplay({
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
-            const productionDataForTooltip = playerStats?.factoryProductionProgress?.[progressKey!];
+            const productionDataForTooltip = lineProductionProgress?.[progressKey!]; // Use prop
             const timeInfo = productionDataForTooltip && productionDataForTooltip.totalSeconds > 0
                 ? `${Math.ceil(productionDataForTooltip.remainingSeconds).toFixed(0)}s / ${productionDataForTooltip.totalSeconds.toFixed(0)}s`
                 : (componentConfig.productionTimeSeconds > 0 ? `Base: ${componentConfig.productionTimeSeconds}s` : 'N/A');
@@ -230,7 +237,7 @@ export function ProductionLineDisplay({
                              <p className="text-[8px] sm:text-[9px] leading-tight">Set Recipe</p>
                            </div>
                         )}
-                        {(timerDisplay && timerDisplay !== "Empty Slot" && timerDisplay !== "Set Recipe") && (
+                         {(timerDisplay && timerDisplay !== "Empty Slot" && timerDisplay !== "Set Recipe" && timerDisplay !== "Configuring...") && (
                            <div className="flex items-center text-[8px] sm:text-[9px] text-muted-foreground leading-tight gap-0.5 mt-0.5">
                              <Timer className="h-2 w-2" />
                              {timerDisplay}
@@ -264,3 +271,4 @@ export function ProductionLineDisplay({
   );
 }
 
+    
