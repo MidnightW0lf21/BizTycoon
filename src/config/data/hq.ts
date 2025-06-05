@@ -179,6 +179,3 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   ...businessRetentionUpgrades,
   ...stockRetentionUpgrades
 ];
-    
-
-    

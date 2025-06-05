@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, FactoryMachineUpgradeConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, SolarPanel, Combine } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, Combine, Landmark, Briefcase, ShieldCheck, FlaskConical, Rocket, Ship, Dna, Radio, Sigma, Anchor, Headset, Construction, LineChart, Languages, SproutIcon, UserCheck, Beaker, PenTool, Scroll, Milestone, BotIcon, Replace, Building2, Handshake, Database, HelpCircle, Gavel, University, Power, Aperture, Orbit, Layers, Truck, Map } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -214,7 +214,6 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     }
   },
 
-  // New Component Families (15 Components)
   // Family 1: Circuits
   {
     id: 'basic_circuit_board',
@@ -333,14 +332,14 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
   {
     id: 'basic_energy_cell',
     name: 'Basic Energy Cell',
-    description: 'Simple power storage unit. Slightly reduces Diesel Generator power consumption in effect (conceptual).',
+    description: 'Simple power storage unit. Slightly boosts factory power output.',
     icon: BatteryCharging,
     tier: 1,
     recipe: [],
     rawMaterialCost: 20,
     productionTimeSeconds: 30,
     requiredAssemblerMark: 1,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 1 } // Small general boost instead of specific building effect
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 1 }
   },
   {
     id: 'efficient_power_core',
@@ -372,7 +371,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'magnetic_storage_unit',
     name: 'Magnetic Storage Unit',
     description: 'Basic data storage device. Minor boost to OmniMedia Group income.',
-    icon: PackageCheck, // Placeholder, could be ServerIcon
+    icon: PackageCheck,
     tier: 1,
     recipe: [],
     rawMaterialCost: 18,
@@ -384,7 +383,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'solid_state_drive_array',
     name: 'Solid State Drive Array',
     description: 'Fast and reliable data storage. Aids Universal Translation Services income.',
-    icon: PackageCheck, // Placeholder
+    icon: PackageCheck,
     tier: 2,
     recipe: [{ componentId: 'magnetic_storage_unit', quantity: 4 }, { componentId: 'basic_circuit_board', quantity: 1 }],
     rawMaterialCost: 45,
@@ -396,7 +395,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'holographic_data_crystal',
     name: 'Holographic Data Crystal',
     description: 'Vast storage capacity using holographic technology. Boosts Omniversal Data Archive income.',
-    icon: PackageCheck, // Placeholder
+    icon: PackageCheck,
     tier: 3,
     recipe: [{ componentId: 'solid_state_drive_array', quantity: 2 }, { componentId: 'polished_optical_array', quantity: 1 }],
     rawMaterialCost: 120,
@@ -405,7 +404,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.11 }, maxBonusPercent: 16 }
   },
 
-  // Additional Unique Components (5 Components)
+  // Additional Unique Components
   {
     id: 'automated_coffee_grinder',
     name: 'Automated Coffee Grinder',
@@ -419,22 +418,22 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'coffee_shop', percent: 0.15 }, maxBonusPercent: 20 }
   },
   {
-    id: 'high_yield_solar_cell_adv', // Renamed to avoid conflict if 'solar_cell' is used elsewhere
+    id: 'high_yield_solar_cell_adv',
     name: 'High-Yield Solar Cell',
-    description: 'Advanced photovoltaic cell. Boosts Solar Panel Array Mk2 power output (conceptual effect handled by game logic).',
-    icon: SolarPanel, // Assuming SolarPanel is a valid LucideIcon
+    description: 'Advanced photovoltaic cell. Boosts Solar Panel Array Mk2 power output.',
+    icon: Sun,
     tier: 3,
     recipe: [{ componentId: 'advanced_gear', quantity: 2 }, { componentId: 'precision_gear', quantity: 1 }],
     rawMaterialCost: 80,
     productionTimeSeconds: 200,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.02, maxBonusPercent: 5 } // Broader effect for factory
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.02, maxBonusPercent: 5 }
   },
   {
-    id: 'robotic_arm_actuator_adv', // Renamed for uniqueness
+    id: 'robotic_arm_actuator_adv',
     name: 'Robotic Arm Actuator',
     description: 'Key component for robotic arms. Reduces Manufacturing Plant level up costs.',
-    icon: Combine, // Using Combine as a placeholder for a robotic arm part
+    icon: Combine,
     tier: 4,
     recipe: [{ componentId: 'alloy_gear', quantity: 1 }, { componentId: 'advanced_logic_chip', quantity: 2 }],
     rawMaterialCost: 150,
@@ -457,14 +456,424 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
   {
     id: 'advanced_mining_drill_bit',
     name: 'Advanced Mining Drill Bit',
-    description: 'Extremely durable drill bit. Boosts Automated Mining Rig Mk1 material collection rate (conceptual).',
+    description: 'Extremely durable drill bit. Boosts Automated Mining Rig Mk1 material collection rate.',
     icon: Drill,
     tier: 3,
     recipe: [{ componentId: 'precision_gear', quantity: 2 }, { componentId: 'simple_frame', quantity: 3 }],
     rawMaterialCost: 70,
     productionTimeSeconds: 220,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.015, maxBonusPercent: 4 } // Broader effect for factory
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.015, maxBonusPercent: 4 }
+  },
+
+  // New Families & Components (Phase 1 additions for 250 goal)
+  // Family 6: Power Regulators
+  {
+    id: 'power_regulator_mk1',
+    name: 'Power Regulator Mk1',
+    description: 'Stabilizes power flow. Small boost to global factory power output.',
+    icon: Zap,
+    tier: 2,
+    recipe: [{ componentId: 'basic_circuit_board', quantity: 2 }, { componentId: 'efficiency_coil', quantity: 1 }],
+    rawMaterialCost: 35,
+    productionTimeSeconds: 80,
+    requiredAssemblerMark: 2,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.02, maxBonusPercent: 3 }
+  },
+  {
+    id: 'power_regulator_mk2',
+    name: 'Power Regulator Mk2',
+    description: 'Advanced power regulation. Moderate boost to global factory power output.',
+    icon: Zap,
+    tier: 3,
+    recipe: [{ componentId: 'power_regulator_mk1', quantity: 3 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 80,
+    productionTimeSeconds: 250,
+    requiredAssemblerMark: 3,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.05, maxBonusPercent: 7 }
+  },
+  {
+    id: 'power_regulator_mk3',
+    name: 'Power Regulator Mk3',
+    description: 'Cutting-edge power flow control. Large boost to global factory power output.',
+    icon: Zap,
+    tier: 4,
+    recipe: [{ componentId: 'power_regulator_mk2', quantity: 2 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
+    rawMaterialCost: 200,
+    productionTimeSeconds: 1000,
+    requiredAssemblerMark: 4,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.10, maxBonusPercent: 12 }
+  },
+
+  // Family 7: Nanite Assemblers
+  {
+    id: 'nanite_conduit',
+    name: 'Nanite Conduit',
+    description: 'Channels for nanite operations. Reduces level-up cost for Manufacturing businesses.',
+    icon: Combine,
+    tier: 3,
+    recipe: [{ componentId: 'precision_gear', quantity: 1 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 90,
+    productionTimeSeconds: 320,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.02 }, maxBonusPercent: 4 } // Example, adjust for actual manufacturing type
+  },
+  {
+    id: 'nanite_assembler_core',
+    name: 'Nanite Assembler Core',
+    description: 'Core unit for nanite construction. Further reduces level-up cost for Manufacturing businesses.',
+    icon: Combine,
+    tier: 4,
+    recipe: [{ componentId: 'nanite_conduit', quantity: 3 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
+    rawMaterialCost: 250,
+    productionTimeSeconds: 1200,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.04 }, maxBonusPercent: 8 }
+  },
+  {
+    id: 'self_replicating_nanite_swarm_component', // Added _component to differentiate from a potential future research item
+    name: 'Self-Replicating Nanite Swarm',
+    description: 'Autonomous nanites for complex tasks. Significantly reduces Manufacturing business level-up costs and small global income boost.',
+    icon: CloudCog, // Using CloudCog for swarm
+    tier: 5,
+    recipe: [{ componentId: 'nanite_assembler_core', quantity: 2 }, { componentId: 'quantum_gear', quantity: 1 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4000,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.08 }, globalIncomeBoostPerComponentPercent: 0.005, maxBonusPercent: 15 }
+  },
+
+  // Specific Business Boosts (New)
+  {
+    id: 'artisanal_sourdough_culture',
+    name: 'Artisanal Sourdough Culture',
+    description: 'A unique yeast culture for superior bread. Boosts Artisan Bakery income.',
+    icon: Landmark, // Using Landmark, needs better icon
+    tier: 2,
+    recipe: [{ componentId: 'basic_gear', quantity: 2 }], // Simple recipe
+    rawMaterialCost: 22,
+    productionTimeSeconds: 55,
+    requiredAssemblerMark: 1,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.08 }, maxBonusPercent: 15 }
+  },
+  {
+    id: 'secure_encryption_module',
+    name: 'Secure Encryption Module',
+    description: 'Hardware module for strong encryption. Boosts Cybersecurity Solutions income.',
+    icon: ShieldCheck,
+    tier: 3,
+    recipe: [{ componentId: 'advanced_logic_chip', quantity: 2 }, { componentId: 'efficiency_coil', quantity: 2 }],
+    rawMaterialCost: 85,
+    productionTimeSeconds: 280,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.1 }, maxBonusPercent: 20 }
+  },
+  {
+    id: 'bio_reactor_catalyst',
+    name: 'Bio-Reactor Catalyst',
+    description: 'Speeds up biological reactions. Boosts Pharmaceutical Company income.',
+    icon: FlaskConical,
+    tier: 3,
+    recipe: [{ componentId: 'precision_gear', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 3 }],
+    rawMaterialCost: 70,
+    productionTimeSeconds: 260,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.09 }, maxBonusPercent: 18 }
+  },
+  {
+    id: 'miniature_fusion_core_component', // Added _component
+    name: 'Miniature Fusion Core',
+    description: 'Compact power source for spacecraft. Boosts Space Exploration Inc. income.',
+    icon: Rocket,
+    tier: 4,
+    recipe: [{ componentId: 'quantum_processor_unit', quantity: 1 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
+    rawMaterialCost: 220,
+    productionTimeSeconds: 1100,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.12 }, maxBonusPercent: 22 }
+  },
+  {
+    id: 'automated_logistics_router',
+    name: 'Automated Logistics Router',
+    description: 'Optimizes cargo routes. Boosts Horizon Logistics income.',
+    icon: Ship,
+    tier: 3,
+    recipe: [{ componentId: 'advanced_logic_chip', quantity: 2 }, { componentId: 'survey_drone_module', quantity: 1 }],
+    rawMaterialCost: 95,
+    productionTimeSeconds: 310,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.08 }, maxBonusPercent: 16 }
+  },
+  {
+    id: 'neural_net_processor_adv_component', // Added _component
+    name: 'Advanced Neural Net Processor',
+    description: 'High-performance AI chip. Boosts AI Research Lab income.',
+    icon: BrainCircuit,
+    tier: 4,
+    recipe: [{ componentId: 'quantum_processor_unit', quantity: 2 }, { componentId: 'holographic_data_crystal', quantity: 1 }],
+    rawMaterialCost: 280,
+    productionTimeSeconds: 1300,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.11 }, maxBonusPercent: 20 }
+  },
+  {
+    id: 'gene_splicing_kit',
+    name: 'Gene Splicing Kit',
+    description: 'Tools for precise genetic modification. Boosts EvoGenesis Labs income.',
+    icon: Dna,
+    tier: 3,
+    recipe: [{ componentId: 'precision_gear', quantity: 1 }, { componentId: 'polished_optical_array', quantity: 1 }],
+    rawMaterialCost: 75,
+    productionTimeSeconds: 270,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.1 }, maxBonusPercent: 19 }
+  },
+  {
+    id: 'vr_sensory_enhancer',
+    name: 'VR Sensory Enhancer',
+    description: 'Heightens realism in virtual environments. Boosts Elysian VR Realms income.',
+    icon: Headset,
+    tier: 3,
+    recipe: [{ componentId: 'advanced_logic_chip', quantity: 1 }, { componentId: 'polished_optical_array', quantity: 2 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 330,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.09 }, maxBonusPercent: 17 }
+  },
+  {
+    id: 'terraforming_microbes',
+    name: 'Terraforming Microbes',
+    description: 'Engineered organisms for planetary transformation. Boosts Genesis TerraCorp income.',
+    icon: SproutIcon,
+    tier: 4,
+    recipe: [{ componentId: 'gene_splicing_kit', quantity: 2 }, { componentId: 'miniature_ai_core', quantity: 1 }],
+    rawMaterialCost: 200,
+    productionTimeSeconds: 1150,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'planetary_terraforming_corp', percent: 0.12 }, maxBonusPercent: 21 }
+  },
+
+  // Specific Stock Boosts (New)
+  {
+    id: 'green_energy_turbine_blade',
+    name: 'Advanced Turbine Blade',
+    description: 'Aerodynamic blade for wind turbines. Boosts Green Energy Co. (GEC) stock dividend yield.',
+    icon: Zap, // Placeholder, Wind icon used by business
+    tier: 2,
+    recipe: [{ componentId: 'simple_frame', quantity: 3 }, { componentId: 'basic_gear', quantity: 2 }],
+    rawMaterialCost: 30,
+    productionTimeSeconds: 70,
+    requiredAssemblerMark: 2,
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.0003 }, maxBonusPercent: 0.15 }
+  },
+  {
+    id: 'real_estate_ai_predictor_component', // Added _component
+    name: 'Real Estate AI Predictor',
+    description: 'AI model for predicting property market trends. Boosts Summit Real Estate (SRE) stock dividend yield.',
+    icon: Landmark,
+    tier: 3,
+    recipe: [{ componentId: 'miniature_ai_core', quantity: 1 }, { componentId: 'solid_state_drive_array', quantity: 1 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 320,
+    requiredAssemblerMark: 3,
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'summit_real_estate', percent: 0.0004 }, maxBonusPercent: 0.20 }
+  },
+  {
+    id: 'vtol_engine_prototype',
+    name: 'VTOL Engine Prototype',
+    description: 'Experimental engine for vertical take-off vehicles. Boosts Momentum Motors (MMTR) stock dividend yield.',
+    icon: Rocket, // Placeholder, TrendingUp used by stock
+    tier: 4,
+    recipe: [{ componentId: 'alloy_gear', quantity: 1 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
+    rawMaterialCost: 250,
+    productionTimeSeconds: 1250,
+    requiredAssemblerMark: 4,
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'momentum_motors', percent: 0.0002 }, maxBonusPercent: 0.10 }
+  },
+
+  // Business Type Boosts (New)
+  {
+    id: 'energy_grid_stabilizer',
+    name: 'Energy Grid Stabilizer',
+    description: 'Component for stabilizing large-scale power grids. Boosts income for all Energy type businesses.',
+    icon: Zap,
+    tier: 3,
+    recipe: [{ componentId: 'power_regulator_mk1', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 90,
+    productionTimeSeconds: 300,
+    requiredAssemblerMark: 3,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 0.02 }, maxBonusPercent: 5 }
+  },
+  {
+    id: 'logistics_ai_coordination_chip',
+    name: 'Logistics Coordination AI',
+    description: 'Specialized AI for coordinating complex logistics. Boosts income for all Logistics type businesses.',
+    icon: Truck,
+    tier: 3,
+    recipe: [{ componentId: 'miniature_ai_core', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 2 }],
+    rawMaterialCost: 80,
+    productionTimeSeconds: 290,
+    requiredAssemblerMark: 3,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 0.02 }, maxBonusPercent: 5 }
+  },
+
+  // Global Boosts / Factory Boosts (New)
+  {
+    id: 'reinforced_factory_plating_component', // Added _component
+    name: 'Reinforced Factory Plating',
+    description: 'Strengthens factory infrastructure. Small boost to factory power output (simulating reduced losses).',
+    icon: FactoryIcon,
+    tier: 2,
+    recipe: [{ componentId: 'simple_frame', quantity: 4 }],
+    rawMaterialCost: 25,
+    productionTimeSeconds: 60,
+    requiredAssemblerMark: 1,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.015, maxBonusPercent: 2.5 }
+  },
+  {
+    id: 'automated_resource_scanner',
+    name: 'Automated Resource Scanner',
+    description: 'Improves efficiency of material collectors. Small boost to global material collection rate.',
+    icon: PackageSearch,
+    tier: 2,
+    recipe: [{ componentId: 'basic_circuit_board', quantity: 1 }, { componentId: 'crude_lens', quantity: 2 }],
+    rawMaterialCost: 30,
+    productionTimeSeconds: 70,
+    requiredAssemblerMark: 2,
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 3 }
+  },
+  {
+    id: 'assembly_line_lubricant_super',
+    name: 'Super Lubricant',
+    description: 'Reduces friction in all machinery. Minor boost to global income.',
+    icon: Cog, // Placeholder
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 7,
+    productionTimeSeconds: 15,
+    requiredAssemblerMark: 1,
+    effects: { globalIncomeBoostPerComponentPercent: 0.0005, maxBonusPercent: 2 }
+  },
+  {
+    id: 'data_optimization_algorithm_component', // Added _component
+    name: 'Data Optimization Algorithm',
+    description: 'Improves data processing efficiency. Minor boost to global income.',
+    icon: BarChart, // Placeholder
+    tier: 2,
+    recipe: [{ componentId: 'basic_circuit_board', quantity: 2 }],
+    rawMaterialCost: 28,
+    productionTimeSeconds: 65,
+    requiredAssemblerMark: 2,
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 3 }
+  },
+  {
+    id: 'advanced_cooling_system_component', // Added _component
+    name: 'Advanced Cooling System',
+    description: 'High-efficiency cooling for factory systems. Further boost to factory power output.',
+    icon: Zap, // Placeholder
+    tier: 3,
+    recipe: [{ componentId: 'efficiency_coil', quantity: 3 }, { componentId: 'reinforced_chassis', quantity: 1 }],
+    rawMaterialCost: 65,
+    productionTimeSeconds: 230,
+    requiredAssemblerMark: 3,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.03, maxBonusPercent: 6 }
+  },
+  {
+    id: 'predictive_maintenance_module_component', // Added _component
+    name: 'Predictive Maintenance Module',
+    description: 'AI module that predicts and schedules maintenance, reducing global business upgrade costs.',
+    icon: Wrench,
+    tier: 3,
+    recipe: [{ componentId: 'miniature_ai_core', quantity: 1 }, { componentId: 'advanced_gear', quantity: 1 }],
+    rawMaterialCost: 80,
+    productionTimeSeconds: 290,
+    requiredAssemblerMark: 3,
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.01, maxBonusPercent: 2 }
+  },
+  {
+    id: 'universal_adapter_module_component', // Added _component
+    name: 'Universal Adapter Module',
+    description: 'Versatile adapter for various machinery. Reduces global business level-up costs.',
+    icon: Combine,
+    tier: 2,
+    recipe: [{ componentId: 'basic_gear', quantity: 3 }, { componentId: 'simple_frame', quantity: 1 }],
+    rawMaterialCost: 32,
+    productionTimeSeconds: 75,
+    requiredAssemblerMark: 2,
+    effects: { globalCostReductionPercent: 0.005, maxBonusPercent: 1 }
+  },
+  {
+    id: 'harmonic_resonance_capacitor',
+    name: 'Harmonic Resonance Capacitor',
+    description: 'Stores and releases energy in perfect harmony. Significant boost to factory power output.',
+    icon: Power,
+    tier: 4,
+    recipe: [{ componentId: 'power_regulator_mk2', quantity: 1 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
+    rawMaterialCost: 230,
+    productionTimeSeconds: 1100,
+    requiredAssemblerMark: 4,
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.08, maxBonusPercent: 10 }
+  },
+  {
+    id: 'geospatial_mapping_unit',
+    name: 'Geospatial Mapping Unit',
+    description: 'Advanced terrain mapping for resource extraction. Boosts global material collection rate.',
+    icon: Map,
+    tier: 3,
+    recipe: [{ componentId: 'survey_drone_module', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 90,
+    productionTimeSeconds: 310,
+    requiredAssemblerMark: 3,
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.03, maxBonusPercent: 7 }
+  },
+  // High Tier Components (New)
+  {
+    id: 'tachyon_field_emitter_component', // Added _component
+    name: 'Tachyon Field Emitter',
+    description: 'Generates tachyon fields for FTL applications. Boosts income for all Aerospace businesses.',
+    icon: Aperture,
+    tier: 5,
+    recipe: [{ componentId: 'quantum_gear', quantity: 1 }, { componentId: 'power_regulator_mk3', quantity: 1 }],
+    rawMaterialCost: 550,
+    productionTimeSeconds: 3800,
+    requiredAssemblerMark: 5,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.05 }, maxBonusPercent: 10 }
+  },
+  {
+    id: 'chroniton_particle_stabilizer_component', // Added _component
+    name: 'Chroniton Particle Stabilizer',
+    description: 'Manipulates chronitons for temporal stability. Provides a global income boost.',
+    icon: Orbit,
+    tier: 5,
+    recipe: [{ componentId: 'quantum_gear', quantity: 1 }, { componentId: 'holographic_data_crystal', quantity: 2 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4200,
+    requiredAssemblerMark: 5,
+    effects: { globalIncomeBoostPerComponentPercent: 0.025, maxBonusPercent: 10 }
+  },
+  {
+    id: 'exotic_matter_containment_cell_component', // Added _component
+    name: 'Exotic Matter Containment Cell',
+    description: 'Safely contains unstable exotic matter. Boosts income for all BioTech businesses.',
+    icon: Layers,
+    tier: 5,
+    recipe: [{ componentId: 'alloy_gear', quantity: 2 }, { componentId: 'dense_plasma_battery', quantity: 2 }],
+    rawMaterialCost: 580,
+    productionTimeSeconds: 4000,
+    requiredAssemblerMark: 5,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.06 }, maxBonusPercent: 12 }
+  },
+  {
+    id: 'reality_distortion_lens_component', // Added _component
+    name: 'Reality Distortion Lens',
+    description: 'A lens that bends local spacetime. Boosts income for Misc. Advanced businesses.',
+    icon: Replace, // Using Replace as a placeholder for reality bending
+    tier: 5,
+    recipe: [{ componentId: 'gravimetric_sensor_suite', quantity: 3 }, { componentId: 'quantum_processor_unit', quantity: 2 }],
+    rawMaterialCost: 650,
+    productionTimeSeconds: 4500,
+    requiredAssemblerMark: 5,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MISC_ADVANCED', percent: 0.04 }, maxBonusPercent: 8 }
   },
 ];
 
@@ -626,5 +1035,3 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
   },
 ];
 
-
-    
