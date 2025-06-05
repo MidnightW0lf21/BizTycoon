@@ -113,3 +113,4 @@ export function ProductionLineDisplay({ productionLine, allMachines, lineIndex, 
     </Card>
   );
 }
+

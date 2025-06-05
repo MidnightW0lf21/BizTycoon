@@ -181,12 +181,11 @@ export interface ResearchItemConfig {
   icon: LucideIcon;
   costRP: number;
   costMoney?: number;
-  requiredPrestigeLevelForHQ?: number; // Overall prestige requirement to see/interact with this
+  requiredPrestigeLevelForHQ?: number; 
   dependencies?: string[];
   effects: {
     unlocksFactoryMachineConfigIds?: string[];
     unlocksFactoryComponentConfigIds?: string[];
-    // Potential future: researchPointBoostPercent, etc.
   };
 }
 
@@ -207,7 +206,7 @@ export interface PlayerStats {
   // Factory Specific Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
-  factoryPowerConsumptionKw: number;
+  factoryPowerConsumptionKw: number; 
   factoryRawMaterials: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
@@ -228,3 +227,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+
