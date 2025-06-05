@@ -1,8 +1,9 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
+  // Assembler Unlocks
   {
     id: 'unlock_basic_assembler_mk1',
     name: 'Basic Assembly Automation',
@@ -52,6 +53,8 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_basic_assembler_mk4'],
     effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk5'] }
   },
+
+  // Production Line Unlocks
   {
     id: 'unlock_prod_line_2',
     name: 'Expand Factory Floor I',
@@ -92,6 +95,8 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'], 
     effects: { unlocksProductionLineId: 'line_5' }
   },
+
+  // Material Collector Unlocks
   {
     id: 'unlock_drone_swarm_mk1',
     name: 'Basic Drone Logistics',
@@ -121,5 +126,97 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     costMoney: 600000,
     dependencies: ['unlock_basic_assembler_mk2'],
     effects: { unlocksFactoryMaterialCollectorConfigIds: ['mining_rig_mk1'] }
-  }
+  },
+  {
+    id: 'unlock_mining_rig_mk2',
+    name: 'Enhanced Mining Operations',
+    description: 'Unlocks the Automated Mining Rig Mk2 for deeper and faster extraction.',
+    icon: Mountain,
+    costRP: 200,
+    costMoney: 1500000,
+    dependencies: ['unlock_mining_rig_mk1'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['mining_rig_mk2'] }
+  },
+  {
+    id: 'unlock_orbital_debris_collector',
+    name: 'Orbital Collection Systems',
+    description: 'Unlocks the Orbital Debris Collector for space-based material gathering.',
+    icon: Satellite,
+    costRP: 350,
+    costMoney: 3000000,
+    dependencies: ['unlock_drone_swarm_mk2', 'unlock_basic_assembler_mk3'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['orbital_debris_collector'] }
+  },
+  {
+    id: 'unlock_nanite_harvester_swarm',
+    name: 'Nanite Deconstruction',
+    description: 'Unlocks the Nanite Harvester Swarm for advanced ambient matter conversion.',
+    icon: CloudCog,
+    costRP: 600,
+    costMoney: 6000000,
+    dependencies: ['unlock_orbital_debris_collector', 'unlock_basic_assembler_mk4'],
+    effects: { unlocksFactoryMaterialCollectorConfigIds: ['nanite_harvester_swarm'] }
+  },
+
+  // Material Collector Boosts
+  {
+    id: 'boost_drone_swarm_mk1',
+    name: 'Drone Swarm Mk1 Efficiency',
+    description: 'Boosts Drone Swarm Mk1 material collection rate by 50%.',
+    icon: PackageSearch, 
+    costRP: 40,
+    costMoney: 100000,
+    dependencies: ['unlock_drone_swarm_mk1'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'drone_swarm_mk1', materialsPerSecondBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_drone_swarm_mk2',
+    name: 'Drone Swarm Mk2 Optimization',
+    description: 'Boosts Heavy Drone Swarm Mk2 material collection rate by 50%.',
+    icon: PackagePlus,
+    costRP: 80,
+    costMoney: 300000,
+    dependencies: ['unlock_drone_swarm_mk2'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'drone_swarm_mk2', materialsPerSecondBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_mining_rig_mk1',
+    name: 'Mining Rig Mk1 Augmentation',
+    description: 'Boosts Mining Rig Mk1 material collection rate by 50%.',
+    icon: Pickaxe,
+    costRP: 150,
+    costMoney: 700000,
+    dependencies: ['unlock_mining_rig_mk1'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'mining_rig_mk1', materialsPerSecondBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_mining_rig_mk2',
+    name: 'Mining Rig Mk2 Overclock',
+    description: 'Boosts Mining Rig Mk2 material collection rate by 50%.',
+    icon: Mountain,
+    costRP: 250,
+    costMoney: 1800000,
+    dependencies: ['unlock_mining_rig_mk2'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'mining_rig_mk2', materialsPerSecondBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_orbital_debris_collector',
+    name: 'Orbital Collector Targeting AI',
+    description: 'Boosts Orbital Debris Collector material collection rate by 50%.',
+    icon: Satellite,
+    costRP: 400,
+    costMoney: 3500000,
+    dependencies: ['unlock_orbital_debris_collector'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'orbital_debris_collector', materialsPerSecondBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_nanite_harvester_swarm',
+    name: 'Nanite Swarm Coordination',
+    description: 'Boosts Nanite Harvester Swarm material collection rate by 50%.',
+    icon: CloudCog,
+    costRP: 700,
+    costMoney: 7000000,
+    dependencies: ['unlock_nanite_harvester_swarm'],
+    effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'nanite_harvester_swarm', materialsPerSecondBoostPercent: 50 } }
+  },
 ];

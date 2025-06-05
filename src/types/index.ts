@@ -195,6 +195,10 @@ export interface ResearchItemEffects {
   unlocksFactoryComponentConfigIds?: string[];
   unlocksProductionLineId?: string;
   unlocksFactoryMaterialCollectorConfigIds?: string[];
+  factoryMaterialCollectorBoost?: {
+    collectorConfigId: string;
+    materialsPerSecondBoostPercent: number;
+  };
 }
 
 export interface ResearchItemConfig {

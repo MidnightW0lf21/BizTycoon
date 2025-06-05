@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -94,7 +94,7 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   {
     id: 'basic_assembler_mk3',
     name: 'Basic Assembler Mk3',
-    icon: Settings, // Re-using Settings icon, Cog is for Advanced Gear component
+    icon: Settings,
     description: 'An advanced assembler for Tier 3 components, with improved speed and efficiency.',
     baseCost: 750000,
     powerConsumptionKw: 100,
@@ -165,5 +165,41 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
     materialsPerSecond: 3,
     maxInstances: 5,
     requiredResearchId: 'unlock_mining_rig_mk1',
+  },
+  {
+    id: 'mining_rig_mk2',
+    name: 'Automated Mining Rig Mk2',
+    icon: Mountain,
+    description: 'An upgraded mining rig with enhanced drilling depth and processing capabilities.',
+    baseCost: 1200000,
+    costMultiplier: 1.45,
+    powerConsumptionKw: 150,
+    materialsPerSecond: 5,
+    maxInstances: 4,
+    requiredResearchId: 'unlock_mining_rig_mk2',
+  },
+  {
+    id: 'orbital_debris_collector',
+    name: 'Orbital Debris Collector',
+    icon: Satellite,
+    description: 'A space-based platform that collects micrometeoroids and space junk, refining them into usable materials.',
+    baseCost: 2500000,
+    costMultiplier: 1.5,
+    powerConsumptionKw: 250,
+    materialsPerSecond: 8,
+    maxInstances: 3,
+    requiredResearchId: 'unlock_orbital_debris_collector',
+  },
+  {
+    id: 'nanite_harvester_swarm',
+    name: 'Nanite Harvester Swarm',
+    icon: CloudCog,
+    description: 'A cloud of microscopic nanobots that deconstruct ambient matter into raw materials.',
+    baseCost: 5000000,
+    costMultiplier: 1.6,
+    powerConsumptionKw: 400,
+    materialsPerSecond: 15,
+    maxInstances: 2,
+    requiredResearchId: 'unlock_nanite_harvester_swarm',
   },
 ];

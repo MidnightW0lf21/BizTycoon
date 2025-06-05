@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, UnlockIcon, Pickaxe, PackageSearch } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -65,9 +65,14 @@ export default function MyFactoryPage() {
                             const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
                             return sum + (otherConfig?.powerConsumptionKw || 0);
                         }, 0));
-
+        
         if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
-           totalMats += config.materialsPerSecond;
+           let baseRate = config.materialsPerSecond;
+           const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
+           if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
+               baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
+           }
+           totalMats += baseRate;
            powerUsedByCollectors += config.powerConsumptionKw;
         }
       }
@@ -85,7 +90,12 @@ export default function MyFactoryPage() {
         }).forEach(collector => {
             const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
             if(config && tempPower >= config.powerConsumptionKw) {
-                actualTotalMats += config.materialsPerSecond;
+                let baseRate = config.materialsPerSecond;
+                const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
+                if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
+                    baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
+                }
+                actualTotalMats += baseRate;
                 tempPower -= config.powerConsumptionKw;
             }
         });
@@ -98,7 +108,9 @@ export default function MyFactoryPage() {
       playerStats.factoryMaterialCollectors,
       playerStats.factoryPowerUnitsGenerated,
       playerStats.factoryPowerConsumptionKw,
-      netPower
+      netPower,
+      playerStats.unlockedResearchIds,
+      researchItems
   ]);
 
 
@@ -350,7 +362,7 @@ export default function MyFactoryPage() {
                     Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString()} units/sec</strong>
+                    Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString('en-US', {maximumFractionDigits: 2})} units/sec</strong>
                     {netPower < 0 && <span className="text-destructive text-xs"> (Insufficient Power!)</span>}
                   </p>
                 </div>
