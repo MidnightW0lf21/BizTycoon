@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -18,7 +18,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
 import type { FactoryMachine, Worker } from "@/types";
-import { WORKER_HIRE_COST } from "@/config/data/workers";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -286,8 +285,10 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
   const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
+  const currentWorkerCount = (playerStats.factoryWorkers || []).length;
   const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length;
-  const totalWorkerCount = (playerStats.factoryWorkers || []).length;
+  const costForNextWorker = Math.floor(WORKER_HIRE_COST_BASE * Math.pow(WORKER_HIRE_COST_MULTIPLIER, currentWorkerCount));
+
 
   const getWorkerStatusBadgeVariant = (status: Worker['status']) => {
     switch (status) {
@@ -381,8 +382,8 @@ export default function MyFactoryPage() {
             <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary"/>Workers</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-blue-400">{idleWorkerCount} / {totalWorkerCount}</p>
-            <p className="text-xs text-muted-foreground">Idle / Total</p>
+            <p className="text-2xl font-bold text-blue-400">{idleWorkerCount} / {currentWorkerCount}</p>
+            <p className="text-xs text-muted-foreground">Idle / Total (Max: {MAX_WORKERS})</p>
           </CardContent>
         </Card>
       </div>
@@ -580,7 +581,9 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Manage Workers</CardTitle>
-                <CardDescription>Monitor your workforce, their energy levels (current max: {formatEnergyTime(currentDynamicMaxWorkerEnergy)}), and current assignments.</CardDescription>
+                <CardDescription>
+                  Monitor your workforce ({currentWorkerCount} / {MAX_WORKERS}), their energy levels (current max: {formatEnergyTime(currentDynamicMaxWorkerEnergy)}), and assignments.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {(playerStats.factoryWorkers || []).length === 0 ? (
@@ -640,8 +643,14 @@ export default function MyFactoryPage() {
                 )}
               </CardContent>
               <CardFooter className="pt-4">
-                <Button onClick={hireWorker} disabled={playerStats.money < WORKER_HIRE_COST}>
-                  <UserPlus className="mr-2 h-4 w-4" /> Hire Worker (${WORKER_HIRE_COST.toLocaleString()})
+                <Button 
+                  onClick={hireWorker} 
+                  disabled={playerStats.money < costForNextWorker || currentWorkerCount >= MAX_WORKERS}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" /> 
+                  {currentWorkerCount >= MAX_WORKERS 
+                    ? "Max Workers Reached" 
+                    : `Hire Worker ($${costForNextWorker.toLocaleString()})`}
                 </Button>
               </CardFooter>
             </Card>
@@ -810,4 +819,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-

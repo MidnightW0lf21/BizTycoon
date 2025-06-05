@@ -43,13 +43,15 @@ import {
   BIO_TECH_BUSINESS_IDS,
   AEROSPACE_BUSINESS_IDS,
   MISC_ADVANCED_BUSINESS_IDS,
-  WORKER_HIRE_COST,
-  INITIAL_WORKER_MAX_ENERGY, // Corrected import
+  WORKER_HIRE_COST_BASE,
+  WORKER_HIRE_COST_MULTIPLIER,
+  MAX_WORKERS,
+  INITIAL_WORKER_MAX_ENERGY, 
   WORKER_ENERGY_RATE,
   WORKER_FIRST_NAMES,
   WORKER_LAST_NAMES,
-  WORKER_ENERGY_TIERS, // Make sure this is exported from game-config and imported here
-  INITIAL_WORKER_ENERGY_TIER // Make sure this is exported and imported
+  WORKER_ENERGY_TIERS, 
+  INITIAL_WORKER_ENERGY_TIER 
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -1085,7 +1087,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         let updatedWorkers = [...(prev.factoryWorkers || [])];
                         if (workerIndex !== -1) {
                             if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
-                               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
+                               updatedUpdatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
                             } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
                                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                             }
@@ -1405,7 +1407,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       for (const hqUpgradeId in (playerStatsNow.hqUpgradeLevels || {})) {
           const purchasedLevel = playerStatsNow.hqUpgradeLevels[hqUpgradeId];
           if (purchasedLevel > 0) {
-              const hqUpgradeConfig = hqUpgradesRef.current.find(hq => h.id === hqUpgradeId);
+              const hqUpgradeConfig = hqUpgradesRef.current.find(hq => hq.id === hqUpgradeId);
               if (hqUpgradeConfig && hqUpgradeConfig.levels) {
                   const levelData = hqUpgradeConfig.levels.find(l => l.level === purchasedLevel);
                   if (levelData && levelData.effects.retentionPercentage) {
@@ -1458,7 +1460,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           researchPoints: 0, 
           unlockedResearchIds: prev.unlockedResearchIds, 
           lastManualResearchTimestamp: 0,
-          currentWorkerEnergyTier: prev.currentWorkerEnergyTier, // Keep current worker energy tier
+          currentWorkerEnergyTier: prev.currentWorkerEnergyTier, 
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
@@ -1471,34 +1473,41 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
+    const currentWorkerCount = (playerStatsNow.factoryWorkers || []).length;
     const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
-
 
     if (!playerStatsNow.factoryPurchased) {
       toastTitle = "Factory Not Owned";
       toastDescription = "Purchase the factory building first to hire workers.";
       toastVariant = "destructive";
-    } else if (playerStatsNow.money < WORKER_HIRE_COST) {
-      toastTitle = "Not Enough Money";
-      toastDescription = `You need $${WORKER_HIRE_COST.toLocaleString()} to hire a new worker.`;
+    } else if (currentWorkerCount >= MAX_WORKERS) {
+      toastTitle = "Maximum Workers Reached";
+      toastDescription = `You cannot hire more than ${MAX_WORKERS} workers.`;
       toastVariant = "destructive";
     } else {
-      const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
-      const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
-      const newWorker: Worker = {
-        id: `worker_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        name: `${firstName} ${lastName}`,
-        assignedMachineInstanceId: null,
-        energy: currentDynamicMaxEnergy,
-        status: 'idle',
-      };
-      setPlayerStats(prev => ({
-        ...prev,
-        money: prev.money - WORKER_HIRE_COST,
-        factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
-      }));
-      toastTitle = "Worker Hired!";
-      toastDescription = `${newWorker.name} has been hired and is now idle.`;
+      const costForNextWorker = Math.floor(WORKER_HIRE_COST_BASE * Math.pow(WORKER_HIRE_COST_MULTIPLIER, currentWorkerCount));
+      if (playerStatsNow.money < costForNextWorker) {
+        toastTitle = "Not Enough Money";
+        toastDescription = `You need $${costForNextWorker.toLocaleString()} to hire the next worker.`;
+        toastVariant = "destructive";
+      } else {
+        const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
+        const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
+        const newWorker: Worker = {
+          id: `worker_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          name: `${firstName} ${lastName}`,
+          assignedMachineInstanceId: null,
+          energy: currentDynamicMaxEnergy,
+          status: 'idle',
+        };
+        setPlayerStats(prev => ({
+          ...prev,
+          money: prev.money - costForNextWorker,
+          factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
+        }));
+        toastTitle = "Worker Hired!";
+        toastDescription = `${newWorker.name} has been hired for $${costForNextWorker.toLocaleString()} and is now idle.`;
+      }
     }
     if (toastTitle) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1846,7 +1855,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(gameTickIntervalId);
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]); // Added getDynamicMaxWorkerEnergy dependency
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]); 
 
   useEffect(() => {
     const pStats = playerStatsRef.current;
@@ -1942,4 +1951,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-

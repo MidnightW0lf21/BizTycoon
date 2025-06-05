@@ -22,4 +22,6 @@ export const WORKER_ENERGY_TIERS = [
 ];
 export const WORKER_ENERGY_RATE = 1; // 1 energy unit per second (for work depletion and rest regeneration)
 
-export const WORKER_HIRE_COST = 50000;
+export const WORKER_HIRE_COST_BASE = 50000; // Renamed for clarity
+export const WORKER_HIRE_COST_MULTIPLIER = 1.15;
+export const MAX_WORKERS = 30;
