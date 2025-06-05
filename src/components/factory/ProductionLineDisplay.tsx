@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig, PlayerStats } from "@/types";
+import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig, PlayerStats, FactoryProductionProgressData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon } from "lucide-react";
+import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon, Timer } from "lucide-react";
 import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,14 +20,14 @@ interface ProductionLineDisplayProps {
   playerMoney: number;
   researchRequiredName?: string | null;
   currentDynamicMaxWorkerEnergy: number;
-  playerStats: PlayerStats; // Added playerStats here
+  playerStats: PlayerStats; 
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
   if (status === 'working') return energyPercent && energyPercent > 20 ? 'text-green-500' : 'text-orange-500';
   if (status === 'resting') return 'text-blue-500';
   if (status === 'idle') return 'text-yellow-500';
-  return 'text-muted-foreground'; // Default or no worker
+  return 'text-muted-foreground'; 
 };
 
 export function ProductionLineDisplay({
@@ -40,7 +40,7 @@ export function ProductionLineDisplay({
   playerMoney,
   researchRequiredName,
   currentDynamicMaxWorkerEnergy,
-  playerStats, // Use playerStats from props
+  playerStats, 
 }: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
@@ -114,14 +114,24 @@ export function ProductionLineDisplay({
           const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
 
           const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
-          const currentProductionProgressValue = progressKey && playerStats?.factoryProductionProgress ? (playerStats.factoryProductionProgress[progressKey] || 0) : 0;
-          const productionProgressPercent = Math.min(100, currentProductionProgressValue * 100);
+          const productionData: FactoryProductionProgressData | undefined = progressKey && playerStats?.factoryProductionProgress ? playerStats.factoryProductionProgress[progressKey] : undefined;
           
-          // If there's any progress, but it's less than 1%, show it as 1% for visibility.
-          // Only apply this visual bump if the worker is actively working or supposed to be.
-          let displayProgressValue = productionProgressPercent;
-          if (worker && worker.status === 'working' && productionProgressPercent > 0 && productionProgressPercent < 1) {
-            displayProgressValue = 1;
+          let timerDisplay = "";
+          if (componentConfig && productionData && productionData.totalSeconds > 0) {
+            if (productionData.remainingSeconds > 0) {
+              timerDisplay = `${productionData.remainingSeconds.toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s`;
+            } else {
+                let canCraftOneFullInitially = true;
+                if (playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) canCraftOneFullInitially = false;
+                for (const input of componentConfig.recipe) {
+                    if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) { canCraftOneFullInitially = false; break; }
+                }
+                if (canCraftOneFullInitially) {
+                    timerDisplay = "Ready";
+                } else {
+                    timerDisplay = "Inputs Needed";
+                }
+            }
           }
 
 
@@ -141,7 +151,7 @@ export function ProductionLineDisplay({
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
-            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Progress: ${productionProgressPercent.toFixed(1)}%. ${workerTooltip}`;
+            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Time: ${timerDisplay || 'N/A'}. ${workerTooltip}`;
           }
           
           const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
@@ -205,9 +215,12 @@ export function ProductionLineDisplay({
                              <p className="text-[8px] sm:text-[9px] leading-tight">Set Recipe</p>
                            </div>
                         )}
-                        {componentConfig && slot.machineInstanceId && (
-                          <Progress value={displayProgressValue} className="h-2 w-3/4 mt-0.5" />
-                        )}
+                        {timerDisplay && (
+                           <div className="flex items-center text-[8px] sm:text-[9px] text-muted-foreground leading-tight gap-0.5 mt-0.5">
+                             <Timer className="h-2 w-2" />
+                             {timerDisplay}
+                           </div>
+                         )}
                          {!worker && machineConfig && (
                              <div className="absolute bottom-0.5 text-xs text-destructive text-[8px] sm:text-[9px]">
                                 <User className="inline h-2.5 w-2.5 mr-0.5" /> Need Worker
@@ -235,3 +248,5 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
+
+    

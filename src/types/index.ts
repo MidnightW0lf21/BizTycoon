@@ -113,6 +113,13 @@ export interface FactoryPowerBuilding {
 
 export interface FactoryComponentEffects {
   globalIncomeBoostPerComponentPercent?: number;
+  businessSpecificIncomeBoostPercent?: { businessId: string; percent: number };
+  stockSpecificDividendYieldBoostPercent?: { stockId: string; percent: number };
+  factoryGlobalPowerOutputBoostPercent?: number;
+  factoryGlobalMaterialCollectionBoostPercent?: number;
+  businessSpecificLevelUpCostReductionPercent?: { businessId: string; percent: number };
+  businessSpecificUpgradeCostReductionPercent?: { businessId: string; percent: number };
+  maxBonusPercent?: number;
 }
 
 export interface FactoryComponent {
@@ -236,6 +243,11 @@ export interface ResearchItemConfig {
   effects: ResearchItemEffects;
 }
 
+export interface FactoryProductionProgressData {
+  remainingSeconds: number;
+  totalSeconds: number;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -259,7 +271,7 @@ export interface PlayerStats {
   factoryPowerBuildings: FactoryPowerBuilding[];
   factoryProducedComponents: Record<string, number>;
   factoryMaterialCollectors: FactoryMaterialCollector[];
-  factoryProductionProgress?: Record<string, number>;
+  factoryProductionProgress?: Record<string, FactoryProductionProgressData>; // Updated type
   factoryWorkers: Worker[];
   currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
   manualResearchBonus?: number;
@@ -276,3 +288,5 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+
+    
