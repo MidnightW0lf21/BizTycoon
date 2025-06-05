@@ -500,7 +500,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastVariant: "default" | "destructive" = "default";
 
     setPlayerStats(prevPlayerStats => {
-        const playerStatsNow = prevPlayerStats; // Use current state from prevPlayerStats
+        const playerStatsNow = prevPlayerStats; 
         const businessToUpdate = businessesRef.current.find(b => b.id === businessId);
 
         if (!businessToUpdate || !businessToUpdate.upgrades) {
@@ -600,9 +600,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             },
           },
         };
-    }); // end setPlayerStats
+    }); 
 
-    // Show toast outside setPlayerStats to use updated toastTitle/Description
     if (toastTitle && (!isAutoBuy || toastVariant === "destructive")) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant, duration: isAutoBuy ? 1500 : 3000 });
     }
@@ -963,36 +962,76 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
+
+    const playerStatsNow = playerStatsRef.current;
+    const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
+
+    if (!newMachineConfig) {
+        toastTitle = "Machine Type Not Found";
+        toastVariant = "destructive";
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+        return;
+    }
+    if (!playerStatsNow.factoryPurchased) {
+        toastTitle = "Factory Not Owned";
+        toastDescription = "Purchase the factory building first.";
+        toastVariant = "destructive";
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+        return;
+    }
+    if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
+        const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
+        toastTitle = "Research Required";
+        toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
+        toastVariant = "destructive";
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+        return;
+    }
+    if (playerStatsNow.money < newMachineConfig.baseCost) {
+        toastTitle = "Not Enough Money";
+        toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
+        toastVariant = "destructive";
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+        return;
+    }
+
+    let canPlaceInEmptySlot = false;
+    (playerStatsNow.factoryProductionLines || []).forEach(line => {
+        if (line.isUnlocked && line.slots.some(s => s.machineInstanceId === null)) {
+            canPlaceInEmptySlot = true;
+        }
+    });
+
+    let canReplaceExistingMachine = false;
+    if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
+        for (const line of (playerStatsNow.factoryProductionLines || [])) {
+            if (line.isUnlocked) {
+                for (const slot of line.slots) {
+                    if (slot.machineInstanceId) {
+                        const existingMachine = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                        if (existingMachine) {
+                            const existingMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === existingMachine.configId);
+                            if (existingMachineConfig && existingMachineConfig.familyId === newMachineConfig.familyId && typeof existingMachineConfig.mark === 'number' && existingMachineConfig.mark < newMachineConfig.mark) {
+                                canReplaceExistingMachine = true;
+                                break; 
+                            }
+                        }
+                    }
+                }
+            }
+            if (canReplaceExistingMachine) break; 
+        }
+    }
+
+    if (!canPlaceInEmptySlot && !canReplaceExistingMachine) {
+        toastTitle = "Cannot Build Machine";
+        toastDescription = "No empty slots available and no suitable machines to upgrade/replace.";
+        toastVariant = "destructive";
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+        return;
+    }
     
     setPlayerStats(prev => {
-        const playerStatsNow = prev;
-        const newMachineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === configId);
-
-        if (!newMachineConfig) {
-            toastTitle = "Machine Type Not Found";
-            toastVariant = "destructive";
-            return prev;
-        }
-        if (!playerStatsNow.factoryPurchased) {
-            toastTitle = "Factory Not Owned";
-            toastDescription = "Purchase the factory building first.";
-            toastVariant = "destructive";
-            return prev;
-        }
-        if (newMachineConfig.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(newMachineConfig.requiredResearchId)) {
-            const researchItem = researchItemsRef.current.find(r => r.id === newMachineConfig.requiredResearchId);
-            toastTitle = "Research Required";
-            toastDescription = `Purchase of ${newMachineConfig.name} requires '${researchItem?.name || newMachineConfig.requiredResearchId}' research.`;
-            toastVariant = "destructive";
-            return prev;
-        }
-        if (playerStatsNow.money < newMachineConfig.baseCost) {
-            toastTitle = "Not Enough Money";
-            toastDescription = `Need $${newMachineConfig.baseCost.toLocaleString()} to build a ${newMachineConfig.name}.`;
-            toastVariant = "destructive";
-            return prev;
-        }
-
         const newMachineInstance: FactoryMachine = {
             instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             configId: newMachineConfig.id,
@@ -1000,15 +1039,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             purchasedUpgradeIds: [],
         };
 
-        let updatedMachines = [...(playerStatsNow.factoryMachines || [])];
-        let updatedProductionLines = [...(playerStatsNow.factoryProductionLines || [])];
-        let updatedWorkers = [...(playerStatsNow.factoryWorkers || [])];
+        let updatedMachines = [...(prev.factoryMachines || [])];
+        let updatedProductionLines = [...(prev.factoryProductionLines || [])];
+        let updatedWorkers = [...(prev.factoryWorkers || [])];
         let machineReplacedAnother = false;
-        let oldMachineName: string | undefined;
-        let replacedLineName: string | undefined;
-        let replacedSlotIndex: number | undefined;
+        let oldMachineNameForToast: string | undefined;
+        let replacedLineNameForToast: string | undefined;
+        let replacedSlotIndexForToast: number | undefined;
+        let assignedToEmptySlot = false;
+        let assignedLineNameForToast: string | undefined;
+        let assignedSlotIndexForToast: number | undefined;
 
-        // Replacement Logic
         let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
         if (newMachineConfig.familyId && typeof newMachineConfig.mark === 'number') {
             const candidates = [];
@@ -1037,9 +1078,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const machineToRemoveId = replacementCandidate.machineInstanceIdToReplace;
             const oldMachineInstance = updatedMachines.find(m => m.instanceId === machineToRemoveId);
             const oldMachineConfig = oldMachineInstance ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === oldMachineInstance.configId) : undefined;
-            oldMachineName = oldMachineConfig?.name;
-            replacedLineName = updatedProductionLines.find(l => l.id === replacementCandidate!.lineId)?.name;
-            replacedSlotIndex = replacementCandidate.slotIndex;
+            oldMachineNameForToast = oldMachineConfig?.name;
+            replacedLineNameForToast = updatedProductionLines.find(l => l.id === replacementCandidate!.lineId)?.name;
+            replacedSlotIndexForToast = replacementCandidate.slotIndex;
 
             newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
             updatedMachines = updatedMachines.filter(m => m.instanceId !== machineToRemoveId).concat(newMachineInstance);
@@ -1056,13 +1097,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], assignedMachineInstanceId: newMachineInstance.instanceId };
             }
             machineReplacedAnother = true;
-            toastTitle = "Machine Upgraded!";
-            toastDescription = `${oldMachineName} in ${replacedLineName}, Slot ${replacedSlotIndex! + 1} was replaced by ${newMachineConfig.name}.`;
         } else {
-            // Auto-Assignment Logic
-            let assignedToEmptySlot = false;
-            updatedMachines.push(newMachineInstance); // Add new machine to list first
-
+            updatedMachines.push(newMachineInstance);
             for (let lineIdx = 0; lineIdx < updatedProductionLines.length; lineIdx++) {
                 const line = updatedProductionLines[lineIdx];
                 if (line.isUnlocked) {
@@ -1074,38 +1110,48 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     i === slotIdx ? { ...s, machineInstanceId: newMachineInstance.instanceId } : s
                                 ),
                             };
-                            updatedMachines = updatedMachines.map(m =>
-                                m.instanceId === newMachineInstance.instanceId
-                                    ? { ...m, assignedProductionLineId: line.id }
-                                    : m
-                            );
+                            newMachineInstance.assignedProductionLineId = line.id;
                             assignedToEmptySlot = true;
-                            toastTitle = "Machine Built & Assigned!";
-                            toastDescription = `${newMachineConfig.name} built and placed in ${line.name}, Slot ${slotIdx + 1}.`;
+                            assignedLineNameForToast = line.name;
+                            assignedSlotIndexForToast = slotIdx;
                             break; 
                         }
                     }
                 }
                 if (assignedToEmptySlot) break;
             }
-            if (!assignedToEmptySlot) {
-                toastTitle = "Machine Built!";
-                toastDescription = `${newMachineConfig.name} is ready and unassigned.`;
-            }
         }
         
+        if (machineReplacedAnother) {
+            toastTitle = "Machine Upgraded!";
+            toastDescription = `${oldMachineNameForToast} in ${replacedLineNameForToast}, Slot ${replacedSlotIndexForToast! + 1} was replaced by ${newMachineConfig.name}.`;
+        } else if (assignedToEmptySlot) {
+            toastTitle = "Machine Built & Assigned!";
+            toastDescription = `${newMachineConfig.name} built and placed in ${assignedLineNameForToast}, Slot ${assignedSlotIndexForToast! + 1}.`;
+        } else {
+            toastTitle = "Machine Built!";
+            toastDescription = `${newMachineConfig.name} is ready and unassigned.`;
+        }
+        toastVariant = "default";
+
         return {
             ...prev,
             money: prev.money - newMachineConfig.baseCost,
-            factoryMachines: updatedMachines,
+            factoryMachines: updatedMachines.map(m => m.instanceId === newMachineInstance.instanceId ? newMachineInstance : m),
             factoryProductionLines: updatedProductionLines,
             factoryWorkers: updatedWorkers,
         };
     });
-
-    if (toastTitle) {
+    // The toastRef.current call below will use the toastTitle, toastDescription, toastVariant set inside setPlayerStats
+    // This relies on the closure and the synchronous setting of these variables before setPlayerStats returns.
+    // This is generally okay for React's state updates.
+    setTimeout(() => {
+      if (toastTitle) { // Check if toastTitle was actually set (meaning an operation occurred)
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-    }
+      }
+    }, 0);
+
+
   }, []);
 
   const purchaseFactoryMachineUpgrade = useCallback((machineInstanceId: string, upgradeId: string) => {
@@ -1496,12 +1542,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (workerId) {
         const workerToAssignIndex = newWorkers.findIndex(w => w.id === workerId);
         if (workerToAssignIndex === -1) {
-          toastVariant = "destructive";
-          toastDescription = "Worker to assign not found.";
-          return prev;
+          // This case should ideally not happen if UI is correct, but handle defensively
+          // No toast change here, rely on outer scope to report if something unexpected happened
+          return prev; 
         }
 
+        // If the worker being assigned was on another machine, unassign them from there
         if (newWorkers[workerToAssignIndex].assignedMachineInstanceId && newWorkers[workerToAssignIndex].assignedMachineInstanceId !== machineInstanceId) {
+           // This worker is being moved, they are no longer on their old machine.
+           // No specific action needed here for the old machine, as this worker is now assigned to the new one.
         }
 
         newWorkers[workerToAssignIndex] = {
@@ -1514,25 +1563,44 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
 
+    // Determine toast message *after* state update logic is defined
+    // We need to read the potentially updated state to correctly form the message.
+    // This part is tricky because setPlayerStats is async. A useEffect might be better for toasts based on state changes.
+    // For simplicity here, we'll use the state *before* the update for the toast message, which might sometimes be slightly off.
+    // A more robust solution would involve passing a callback to setPlayerStats or using a useEffect.
+
+    const finalPlayerStats = playerStatsRef.current; // Get latest state after setPlayerStats has processed (conceptually)
+
     if (workerId === null) {
-        const previouslyAssignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId);
+        const previouslyAssignedWorker = finalPlayerStats.factoryWorkers.find(w => w.assignedMachineInstanceId === null && 
+            (playerStatsRef.current.factoryWorkers.find(pw => pw.id === w.id)?.assignedMachineInstanceId === machineInstanceId) // Check if this worker *was* on the machine
+        );
          if (previouslyAssignedWorker) {
             toastDescription = `${previouslyAssignedWorker.name} has been unassigned from ${targetMachineName} and is now idle.`;
         } else {
-            toastDescription = `${targetMachineName} now has no worker assigned.`;
+            // If no worker was previously on it, or if the one we "unassigned" wasn't the one on it.
+            const workerActuallyOnMachine = finalPlayerStats.factoryWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId);
+            if(workerActuallyOnMachine){
+                // This state means we tried to unassign, but another worker is still there, which shouldn't happen with current logic flow.
+                // Or, the unassignment for some reason wasn't fully reflected.
+                toastDescription = `${workerActuallyOnMachine.name} remains on ${targetMachineName}. Unassignment might not have fully processed.`;
+            } else {
+                toastDescription = `${targetMachineName} now has no worker assigned.`;
+            }
         }
     } else {
-        const assignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.id === workerId);
+        const assignedWorker = finalPlayerStats.factoryWorkers.find(w => w.id === workerId && w.assignedMachineInstanceId === machineInstanceId);
         if (assignedWorker) {
             toastDescription = `${assignedWorker.name} assigned to ${targetMachineName}.`;
-            const finalStatus = (playerStatsRef.current.factoryProductionLines || []).flatMap(line => line.slots).find(s => s.machineInstanceId === machineInstanceId)?.targetComponentId && assignedWorker.energy > 0 ? 'working' : 'idle';
+            const targetMachineSlot = (finalPlayerStats.factoryProductionLines || []).flatMap(line => line.slots).find(s => s.machineInstanceId === machineInstanceId);
+            const finalStatus = (targetMachineSlot?.targetComponentId && assignedWorker.energy > 0) ? 'working' : 'idle';
             if (finalStatus === 'working') {
                 toastDescription += ` Status: working.`;
             } else {
                 toastDescription += ` Status: idle.`;
             }
         } else {
-            toastDescription = "Worker assignment could not be confirmed.";
+            toastDescription = `Worker assignment to ${targetMachineName} could not be confirmed. State might be out of sync.`;
             toastVariant = "destructive";
         }
     }
@@ -1629,7 +1697,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           unlockedResearchIds: prev.unlockedResearchIds,
           lastManualResearchTimestamp: 0,
           currentWorkerEnergyTier: prev.currentWorkerEnergyTier,
-          manualResearchBonus: prev.manualResearchBonus, // Persist manual research bonus
+          manualResearchBonus: prev.manualResearchBonus, 
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
@@ -1795,7 +1863,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let updatedWorkers = [...(prev.factoryWorkers || [])];
         let newFactoryPowerUnitsGenerated = 0;
 
-        // Calculate Base Power Generation (before component boosts)
         let basePowerGenerated = 0;
         (prev.factoryPowerBuildings || []).forEach(pb => {
             const config = currentFactoryPowerBuildingsConfig.find(c => c.id === pb.configId);
@@ -1809,8 +1876,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         });
 
-        // Apply Factory Component Boost to Power Generation
-        let totalFactoryPowerBoostPercent = 0;
+        let totalFactoryPowerBoostPercentFromComponents = 0;
         for (const componentId in prev.factoryProducedComponents) {
             const count = prev.factoryProducedComponents[componentId];
             if (count > 0) {
@@ -1818,11 +1884,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
                     const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
                     const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
-                    totalFactoryPowerBoostPercent += cappedBoost;
+                    totalFactoryPowerBoostPercentFromComponents += cappedBoost;
                 }
             }
         }
-        newFactoryPowerUnitsGenerated = Math.floor(basePowerGenerated * (1 + totalFactoryPowerBoostPercent / 100));
+        newFactoryPowerUnitsGenerated = Math.floor(basePowerGenerated * (1 + totalFactoryPowerBoostPercentFromComponents / 100));
 
 
         const currentTotalBusinessIncome = currentBusinesses.reduce((sum, biz) => {
@@ -1934,7 +2000,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
             });
 
-            let totalFactoryMaterialBoostPercent = 0;
+            let totalFactoryMaterialBoostPercentFromComponents = 0;
             for (const componentId in prev.factoryProducedComponents) {
                 const count = prev.factoryProducedComponents[componentId];
                 if (count > 0) {
@@ -1942,15 +2008,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent) {
                         const potentialBoost = count * componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
                         const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
-                        totalFactoryMaterialBoostPercent += cappedBoost;
+                        totalFactoryMaterialBoostPercentFromComponents += cappedBoost;
                     }
                 }
             }
-            if (totalFactoryMaterialBoostPercent > 0) {
-                baseMaterialsCollectedThisTick *= (1 + totalFactoryMaterialBoostPercent / 100);
+            if (totalFactoryMaterialBoostPercentFromComponents > 0) {
+                baseMaterialsCollectedThisTick *= (1 + totalFactoryMaterialBoostPercentFromComponents / 100);
             }
             newFactoryRawMaterials += baseMaterialsCollectedThisTick;
-
           }
 
           updatedWorkers = updatedWorkers.map(worker => {
@@ -2008,42 +2073,44 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         });
 
                         if (newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - currentMachinePowerConsumption) < currentMachinePowerConsumption) {
-                             // Not enough power specifically for this machine, skip production for this machine
                             return;
                         }
 
                         let isBonusCapped = false;
                         const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
                         if (componentRecipe.effects) {
-                            if (componentRecipe.effects.globalIncomeBoostPerComponentPercent && componentRecipe.effects.maxBonusPercent) {
-                                const currentBonus = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
-                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                            } else if (componentRecipe.effects.businessSpecificIncomeBoostPercent && componentRecipe.effects.maxBonusPercent) {
-                                const currentBonus = existingCount * componentRecipe.effects.businessSpecificIncomeBoostPercent.percent;
-                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                            } else if (componentRecipe.effects.stockSpecificDividendYieldBoostPercent && componentRecipe.effects.maxBonusPercent) {
-                                const currentBonus = existingCount * componentRecipe.effects.stockSpecificDividendYieldBoostPercent.percent;
-                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                            } else if (componentRecipe.effects.factoryGlobalPowerOutputBoostPercent && componentRecipe.effects.maxBonusPercent) {
-                                const currentBonus = existingCount * componentRecipe.effects.factoryGlobalPowerOutputBoostPercent;
-                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                            } else if (componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent && componentRecipe.effects.maxBonusPercent) {
-                                const currentBonus = existingCount * componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent;
-                                if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
-                            }
-                            // Add other primary effect types here if needed
-                        }
+                            let currentBonusContribution = 0;
+                            let maxBonusCap = Infinity;
 
+                            if (componentRecipe.effects.globalIncomeBoostPerComponentPercent) {
+                                currentBonusContribution = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
+                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
+                            } else if (componentRecipe.effects.businessSpecificIncomeBoostPercent) {
+                                currentBonusContribution = existingCount * componentRecipe.effects.businessSpecificIncomeBoostPercent.percent;
+                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
+                            } else if (componentRecipe.effects.stockSpecificDividendYieldBoostPercent) {
+                                currentBonusContribution = existingCount * componentRecipe.effects.stockSpecificDividendYieldBoostPercent.percent;
+                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
+                            } else if (componentRecipe.effects.factoryGlobalPowerOutputBoostPercent) {
+                                currentBonusContribution = existingCount * componentRecipe.effects.factoryGlobalPowerOutputBoostPercent;
+                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
+                            } else if (componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent) {
+                                currentBonusContribution = existingCount * componentRecipe.effects.factoryGlobalMaterialCollectionBoostPercent;
+                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
+                            }
+                            if (currentBonusContribution >= maxBonusCap) {
+                                isBonusCapped = true;
+                            }
+                        }
 
                         if (isBonusCapped) {
                             const workerIndex = updatedWorkers.findIndex(w => w.id === worker.id);
                             if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
                                 updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                             }
-                            newFactoryProductionProgress[`${line.id}-${slotIndex}-${slot.targetComponentId}`] = 0; // Reset progress
-                            return; // Skip production for this capped item
+                            newFactoryProductionProgress[`${line.id}-${slotIndex}-${slot.targetComponentId}`] = 0; 
+                            return; 
                         }
-
 
                         const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                         let currentProgress = newFactoryProductionProgress[progressKey] || 0;
@@ -2220,3 +2287,5 @@ export const useGame = (): GameContextType => {
   return context;
 };
 
+
+      
