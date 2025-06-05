@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RecipeSelectionDialogProps {
   isOpen: boolean;
@@ -77,11 +78,17 @@ export function RecipeSelectionDialog({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 {allComponentConfigs.map((component) => {
                   const canCraft = machineConfig.maxCraftableTier >= component.tier;
-                  const isCurrentlyCrafting = currentRecipeId === component.id;
+                  const isCurrentlyCraftingThis = currentRecipeId === component.id;
                   const Icon = component.icon;
 
                   return (
-                    <Card key={component.id} className={isCurrentlyCrafting ? "border-primary shadow-lg" : ""}>
+                    <Card 
+                      key={component.id} 
+                      className={cn(
+                        isCurrentlyCraftingThis ? "border-primary shadow-lg ring-2 ring-primary" : "border-border",
+                        !canCraft && "bg-muted/50 opacity-70"
+                      )}
+                    >
                       <CardHeader className="pb-2 pt-4">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg flex items-center gap-2">
@@ -127,11 +134,11 @@ export function RecipeSelectionDialog({
                       <div className="p-3 pt-0">
                         <Button
                           onClick={() => handleSelectRecipe(component.id)}
-                          disabled={!canCraft || isCurrentlyCrafting}
+                          disabled={!canCraft || isCurrentlyCraftingThis}
                           className="w-full"
-                          variant={isCurrentlyCrafting ? "secondary" : "default"}
+                          variant={isCurrentlyCraftingThis ? "secondary" : (canCraft ? "default" : "outline")}
                         >
-                          {isCurrentlyCrafting ? (
+                          {isCurrentlyCraftingThis ? (
                             <> <CheckCircle className="mr-2 h-4 w-4"/> Currently Crafting </>
                           ) : canCraft ? (
                             <> <PlusCircle className="mr-2 h-4 w-4"/> Select Recipe </>
@@ -146,7 +153,7 @@ export function RecipeSelectionDialog({
               </div>
             </ScrollArea>
             <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={handleClearRecipe} disabled={!currentRecipeId}>
+              <Button variant="outline" onClick={handleClearRecipe} disabled={currentRecipeId === null}>
                 Clear Recipe (Set to Idle)
               </Button>
               <Button onClick={onClose}>Close</Button>
