@@ -213,6 +213,7 @@ export interface PlayerStats {
   factoryPowerBuildings: FactoryPowerBuilding[];
   factoryProducedComponents: Record<string, number>;
   factoryMaterialCollectors: FactoryMaterialCollector[];
+  factoryProductionProgress?: Record<string, number>; // Added for progress tracking
 
   // Research Specific Stats
   researchPoints: number;
@@ -227,4 +228,3 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-

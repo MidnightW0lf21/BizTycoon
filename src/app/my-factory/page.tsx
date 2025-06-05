@@ -141,7 +141,7 @@ export default function MyFactoryPage() {
   }, [manualResearchCooldownEnd, playerStats.factoryPurchased, playerStats.timesPrestiged]);
 
   const handleOpenRecipeDialog = (productionLineId: string, slotIndex: number) => {
-    const line = playerStats.factoryProductionLines.find(l => l.id === productionLineId);
+    const line = (playerStats.factoryProductionLines || []).find(l => l.id === productionLineId);
     if (line && line.slots[slotIndex]) {
       const slot = line.slots[slotIndex];
       setCurrentDialogContext({
@@ -213,7 +213,7 @@ export default function MyFactoryPage() {
     );
   }
 
-  const ownedPowerBuildingCounts = playerStats.factoryPowerBuildings.reduce((acc, building) => {
+  const ownedPowerBuildingCounts = (playerStats.factoryPowerBuildings || []).reduce((acc, building) => {
     acc[building.configId] = (acc[building.configId] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -245,7 +245,7 @@ export default function MyFactoryPage() {
                 <Zap className="h-4 w-4" /> Net Power: {netPower.toLocaleString()} kW
               </span>
               <span className="flex items-center gap-1 font-medium text-orange-400">
-                <Box className="h-4 w-4" /> Materials: {playerStats.factoryRawMaterials.toLocaleString()} units
+                <Box className="h-4 w-4" /> Materials: {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} units
               </span>
                {researchTabAvailable && (
                 <span className="flex items-center gap-1 font-medium text-purple-400">
@@ -298,7 +298,7 @@ export default function MyFactoryPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-lg">
-                    Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
+                    Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString()} units/sec</strong>
@@ -346,7 +346,7 @@ export default function MyFactoryPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => {
-                  const isLocked = !!config.requiredResearchId && !playerStats.unlockedResearchIds.includes(config.requiredResearchId);
+                  const isLocked = !!config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId);
                   const researchName = isLocked ? researchItems.find(r => r.id === config.requiredResearchId)?.name : undefined;
                   return (
                     <MachinePurchaseCard
@@ -368,11 +368,11 @@ export default function MyFactoryPage() {
                 <CardDescription>Machines are auto-assigned to empty slots. Click a machine to set or change its recipe. Production starts if power, materials, and input components are sufficient.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {playerStats.factoryProductionLines.map((line, index) => (
+                {(playerStats.factoryProductionLines || []).map((line, index) => (
                   <ProductionLineDisplay
                     key={line.id}
                     productionLine={line}
-                    allMachines={playerStats.factoryMachines} 
+                    allMachines={playerStats.factoryMachines || []} 
                     lineIndex={index}
                     onOpenRecipeDialog={handleOpenRecipeDialog}
                   />
@@ -419,7 +419,7 @@ export default function MyFactoryPage() {
                       researchConfig={config}
                       playerResearchPoints={playerStats.researchPoints}
                       playerMoney={playerStats.money}
-                      unlockedResearchIds={playerStats.unlockedResearchIds}
+                      unlockedResearchIds={playerStats.unlockedResearchIds || []}
                       onPurchase={purchaseResearch}
                     />
                   ))}
@@ -438,13 +438,13 @@ export default function MyFactoryPage() {
                 <CardDescription>Inventory of components manufactured by your factory. These persist through prestige and may provide bonuses.</CardDescription>
               </CardHeader>
               <CardContent>
-                {Object.keys(playerStats.factoryProducedComponents).length === 0 ? (
+                {Object.keys(playerStats.factoryProducedComponents || {}).length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">No components produced yet.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {INITIAL_FACTORY_COMPONENTS_CONFIG.map(compConfig => {
-                      const count = playerStats.factoryProducedComponents[compConfig.id] || 0;
-                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents).includes(compConfig.id)) { 
+                      const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
+                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) { 
                         const Icon = compConfig.icon;
                         const totalBonus = compConfig.effects?.globalIncomeBoostPerComponentPercent 
                                             ? count * compConfig.effects.globalIncomeBoostPerComponentPercent 
@@ -453,7 +453,7 @@ export default function MyFactoryPage() {
                           <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
                             <Icon className="h-10 w-10 text-primary mb-2" />
                             <p className="font-semibold">{compConfig.name}</p>
-                            <p className="text-2xl font-bold text-accent">{count.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-accent">{count.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
                             <p className="text-xs text-muted-foreground">{compConfig.description}</p>
                             {compConfig.effects?.globalIncomeBoostPerComponentPercent && (
                               <Tooltip>
@@ -465,7 +465,7 @@ export default function MyFactoryPage() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>Each {compConfig.name} provides +{compConfig.effects.globalIncomeBoostPerComponentPercent.toFixed(4)}% global income.</p>
-                                  <p>Total from {count.toLocaleString()} units: +{totalBonus.toFixed(3)}%</p>
+                                  <p>Total from {count.toLocaleString('en-US', {maximumFractionDigits: 0})} units: +{totalBonus.toFixed(3)}%</p>
                                 </TooltipContent>
                               </Tooltip>
                             )}
@@ -492,7 +492,7 @@ export default function MyFactoryPage() {
         slotIndex={currentDialogContext.slotIndex}
         assignedMachineInstanceId={currentDialogContext.assignedMachineInstanceId}
         allMachineConfigs={INITIAL_FACTORY_MACHINE_CONFIGS}
-        allPlayerMachines={playerStats.factoryMachines}
+        allPlayerMachines={playerStats.factoryMachines || []}
         allComponentConfigs={INITIAL_FACTORY_COMPONENTS_CONFIG}
         setRecipe={setRecipeForProductionSlot}
         currentRecipeId={currentDialogContext.currentRecipeId}
@@ -501,5 +501,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-
-    
