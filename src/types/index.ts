@@ -136,6 +136,7 @@ export interface FactoryMachineConfig {
   baseCost: number;
   powerConsumptionKw: number;
   maxCraftableTier: number;
+  requiredResearchId?: string; // New: ID of the research item that unlocks this machine
 }
 
 export interface FactoryMachine {
@@ -153,6 +154,40 @@ export interface FactoryProductionLine {
   id: string;
   name: string;
   slots: FactoryProductionLineSlot[];
+}
+
+export interface FactoryMaterialCollectorConfig {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  description: string;
+  baseCost: number;
+  costMultiplier: number;
+  powerConsumptionKw: number;
+  materialsPerSecond: number;
+  maxInstances?: number;
+}
+
+export interface FactoryMaterialCollector {
+  instanceId: string;
+  configId: string;
+  currentMaterialsPerSecond: number;
+}
+
+export interface ResearchItemConfig {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  costRP: number;
+  costMoney?: number;
+  requiredPrestigeLevelForHQ?: number; // Overall prestige requirement to see/interact with this
+  dependencies?: string[];
+  effects: {
+    unlocksFactoryMachineConfigIds?: string[];
+    unlocksFactoryComponentConfigIds?: string[];
+    // Potential future: researchPointBoostPercent, etc.
+  };
 }
 
 export interface PlayerStats {
@@ -178,6 +213,12 @@ export interface PlayerStats {
   factoryProductionLines: FactoryProductionLine[];
   factoryPowerBuildings: FactoryPowerBuilding[];
   factoryProducedComponents: Record<string, number>;
+  factoryMaterialCollectors: FactoryMaterialCollector[];
+
+  // Research Specific Stats
+  researchPoints: number;
+  unlockedResearchIds: string[];
+  lastManualResearchTimestamp: number;
 }
 
 export interface SaveData {

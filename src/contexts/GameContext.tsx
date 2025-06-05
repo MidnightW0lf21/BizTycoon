@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -16,6 +16,8 @@ import {
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_MACHINE_CONFIGS,
   INITIAL_FACTORY_COMPONENTS_CONFIG,
+  INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG,
+  INITIAL_RESEARCH_ITEMS_CONFIG,
   getStartingMoneyBonus,
   getPrestigePointBoostPercent,
   calculateDiminishingPrestigePoints,
@@ -23,6 +25,15 @@ import {
   calculateMaxAffordableLevels,
   calculateSingleLevelUpgradeCost,
   MAX_BUSINESS_LEVEL,
+  FACTORY_PURCHASE_COST,
+  MATERIAL_COLLECTION_AMOUNT,
+  MATERIAL_COLLECTION_COOLDOWN_MS,
+  INITIAL_RESEARCH_POINTS,
+  INITIAL_UNLOCKED_RESEARCH_IDS,
+  RESEARCH_MANUAL_GENERATION_AMOUNT,
+  RESEARCH_MANUAL_GENERATION_COST_MONEY,
+  RESEARCH_MANUAL_COOLDOWN_MS,
+  REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB,
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -30,9 +41,7 @@ import { useToast } from "@/hooks/use-toast";
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000; 
 const STOCK_PRICE_UPDATE_INTERVAL = 150000; // 2.5 minutes
-const FACTORY_PURCHASE_COST = 1000000;
-const MATERIAL_COLLECTION_AMOUNT = 10;
-const MATERIAL_COLLECTION_COOLDOWN_MS = 5000; // 5 seconds
+
 
 interface GameContextType {
   playerStats: PlayerStats;
@@ -40,12 +49,14 @@ interface GameContextType {
   stocks: Stock[]; 
   skillTree: SkillNode[];
   hqUpgrades: HQUpgrade[];
+  researchItems: ResearchItemConfig[];
   lastSavedTimestamp: number | null;
   lastMarketTrends: string;
   setLastMarketTrends: (trends: string) => void;
   lastRiskTolerance: "low" | "medium" | "high";
   setLastRiskTolerance: (tolerance: "low" | "medium" | "high") => void;
   materialCollectionCooldownEnd: number;
+  manualResearchCooldownEnd: number; // New for research cooldown display
   upgradeBusiness: (businessId: string, levelsToBuy?: number) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string, isAutoBuy?: boolean) => boolean;
   purchaseHQUpgrade: (upgradeId: string) => void;
@@ -66,9 +77,11 @@ interface GameContextType {
   purchaseFactoryPowerBuilding: (configId: string) => void;
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
-  calculateNextMachineCost: (ownedMachineCount: number) => number;
+  // calculateNextMachineCost: (ownedMachineCount: number) => number; // No longer needed as baseCost is per config
   setRecipeForProductionSlot: (productionLineId: string, slotIndex: number, targetComponentId: string | null) => void;
-  // unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void; // Still here but not directly UI exposed
+  purchaseFactoryMaterialCollector: (configId: string) => void;
+  manuallyGenerateResearchPoints: () => void;
+  purchaseResearch: (researchId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -97,6 +110,10 @@ const getInitialPlayerStats = (): PlayerStats => {
     })),
     factoryPowerBuildings: [],
     factoryProducedComponents: {},
+    factoryMaterialCollectors: [],
+    researchPoints: INITIAL_RESEARCH_POINTS,
+    unlockedResearchIds: [...INITIAL_UNLOCKED_RESEARCH_IDS],
+    lastManualResearchTimestamp: 0,
   };
 };
 
@@ -105,6 +122,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [skillTreeState] = useState<SkillNode[]>(INITIAL_SKILL_TREE);
   const [hqUpgradesState] = useState<HQUpgrade[]>(INITIAL_HQ_UPGRADES);
+  const [researchItemsState] = useState<ResearchItemConfig[]>(INITIAL_RESEARCH_ITEMS_CONFIG);
   const [lastSavedTimestamp, setLastSavedTimestamp] = useState<number | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(getInitialPlayerStats());
 
@@ -125,6 +143,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [lastMarketTrends, setLastMarketTrendsInternal] = useState<string>("Tech stocks are performing well, while energy sectors are seeing a slight downturn.");
   const [lastRiskTolerance, setLastRiskToleranceInternal] = useState<"low" | "medium" | "high">("medium");
   const [materialCollectionCooldownEnd, setMaterialCollectionCooldownEnd] = useState<number>(0);
+  const [manualResearchCooldownEnd, setManualResearchCooldownEnd] = useState<number>(0);
 
 
   const setLastMarketTrends = (trends: string) => {
@@ -230,6 +249,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             : initialDefaults.factoryProductionLines,
         factoryPowerBuildings: Array.isArray(importedData.playerStats.factoryPowerBuildings) ? importedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
         factoryProducedComponents: typeof importedData.playerStats.factoryProducedComponents === 'object' && importedData.playerStats.factoryProducedComponents !== null ? importedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+        factoryMaterialCollectors: Array.isArray(importedData.playerStats.factoryMaterialCollectors) ? importedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
+        researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
+        unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+        lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
       };
 
       setPlayerStats(mergedPlayerStats);
@@ -279,6 +302,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(SAVE_DATA_KEY);
     setLastSavedTimestamp(null);
     setMaterialCollectionCooldownEnd(0); 
+    setManualResearchCooldownEnd(0);
     toast({
       title: "Game Data Wiped",
       description: "All progress has been reset to default.",
@@ -311,6 +335,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 : initialDefaults.factoryProductionLines,
             factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
             factoryProducedComponents: typeof loadedData.playerStats.factoryProducedComponents === 'object' && loadedData.playerStats.factoryProducedComponents !== null ? loadedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+            factoryMaterialCollectors: Array.isArray(loadedData.playerStats.factoryMaterialCollectors) ? loadedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
+            researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
+            unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+            lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         };
         setPlayerStats(mergedPlayerStats);
 
@@ -403,32 +431,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   useEffect(() => { // Game Loop
-    const gameLoopInterval = setInterval(() => {
-      setPlayerStats(prev => {
+    setPlayerStats(prev => {
         const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
         let dividendIncome = 0;
         let globalDividendBoost = 0;
         prev.unlockedSkillIds.forEach(skillId => {
-          const skill = skillTreeState.find(s => s.id === skillId);
-          if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) {
+            const skill = skillTreeState.find(s => s.id === skillId);
+            if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) {
             globalDividendBoost += skill.effects.globalDividendYieldBoostPercent;
-          }
+            }
         });
         for (const hqId in prev.hqUpgradeLevels) {
-          const purchasedLevel = prev.hqUpgradeLevels[hqId];
-          if (purchasedLevel > 0) {
+            const purchasedLevel = prev.hqUpgradeLevels[hqId];
+            if (purchasedLevel > 0) {
             const hqUpgrade = hqUpgradesState.find(h => h.id === hqId);
             if (hqUpgrade && hqUpgrade.levels) {
-              const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-              if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
+                const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
+                if (levelData && levelData.effects.globalDividendYieldBoostPercent) {
                 globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent;
-              }
+                }
             }
-          }
+            }
         }
         for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
-          if (stockDetails) {
+            const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+            if (stockDetails) {
             let currentDividendYield = stockDetails.dividendYield;
             const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
             if(initialStockInfo) { 
@@ -436,17 +463,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             currentDividendYield *= (1 + globalDividendBoost / 100);
             dividendIncome += holding.shares * stockDetails.price * currentDividendYield;
-          }
+            }
         }
         const newTotalIncomePerSecond = totalBusinessIncome + dividendIncome;
-        const newMoneyFromIncome = prev.money + newTotalIncomePerSecond;
+        let newMoneyFromIncome = prev.money + newTotalIncomePerSecond;
 
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
-          const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
-          if (stockDetails) {
+            const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
+            if (stockDetails) {
             currentInvestmentsValue += holding.shares * stockDetails.price;
-          }
+            }
         }
 
         let newFactoryPowerConsumptionKw = 0;
@@ -454,68 +481,112 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
 
         if (prev.factoryPurchased) {
-          prev.factoryProductionLines.forEach(line => {
-            line.slots.forEach(slot => {
-              if (slot.machineInstanceId && slot.targetComponentId) {
-                const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
-                if (machine) {
-                  const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
-                  if (machineConfig) {
-                    newFactoryPowerConsumptionKw += machineConfig.powerConsumptionKw;
-                  }
-                }
-              }
-            });
-          });
-
-          const hasSufficientPower = prev.factoryPowerUnitsGenerated >= newFactoryPowerConsumptionKw;
-          
-          if (hasSufficientPower) {
+            // Calculate power consumption from active machines and material collectors
+            let tempPowerConsumption = 0;
             prev.factoryProductionLines.forEach(line => {
-              line.slots.forEach(slot => {
-                if (slot.machineInstanceId && slot.targetComponentId) {
-                  const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
-                  const machineConfig = machine ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId) : null;
-                  const componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === slot.targetComponentId);
-
-                  if (machine && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
-                    let canCraft = true;
-                    if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) {
-                      canCraft = false;
+                line.slots.forEach(slot => {
+                    if (slot.machineInstanceId && slot.targetComponentId) {
+                        const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+                        if (machine) {
+                            const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+                            if (machineConfig) {
+                                tempPowerConsumption += machineConfig.powerConsumptionKw;
+                            }
+                        }
                     }
-                    for (const input of componentRecipe.recipe) {
-                      if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) {
-                        canCraft = false;
-                        break;
-                      }
-                    }
-
-                    if (canCraft) {
-                      newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
-                      for (const input of componentRecipe.recipe) {
-                        newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
-                      }
-                      newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1; // Assuming 1/sec for now
-                    }
-                  }
-                }
-              });
+                });
             });
-          }
+            (prev.factoryMaterialCollectors || []).forEach(collector => {
+                const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+                if (config) {
+                    tempPowerConsumption += config.powerConsumptionKw;
+                }
+            });
+            newFactoryPowerConsumptionKw = tempPowerConsumption;
+            
+            const netPower = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw;
+
+            // Automated Material Collection
+            if (netPower >= 0) { // Only collect if there's non-negative net power
+                let powerUsedByCollectors = 0;
+                (prev.factoryMaterialCollectors || []).forEach(collector => {
+                    const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+                    if (config) powerUsedByCollectors += config.powerConsumptionKw;
+                });
+
+                // Effective power available specifically for collectors
+                const powerAvailableForCollectors = prev.factoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerUsedByCollectors);
+                
+                let tempPowerForCollectors = powerAvailableForCollectors;
+                let actualMaterialsCollectedThisTick = 0;
+
+                // Prioritize collectors by their power consumption (cheapest first)
+                (prev.factoryMaterialCollectors || []).sort((a,b) => {
+                    const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
+                    const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
+                    return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
+                }).forEach(collector => {
+                    const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+                    if (config && tempPowerForCollectors >= config.powerConsumptionKw) {
+                        actualMaterialsCollectedThisTick += config.materialsPerSecond;
+                        tempPowerForCollectors -= config.powerConsumptionKw;
+                    }
+                });
+                newFactoryRawMaterials += actualMaterialsCollectedThisTick;
+            }
+
+
+            // Component Production
+            if (netPower >= 0) { // Only produce if there's non-negative net power
+                prev.factoryProductionLines.forEach(line => {
+                    line.slots.forEach(slot => {
+                    if (slot.machineInstanceId && slot.targetComponentId) {
+                        const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+                        const machineConfig = machine ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId) : null;
+                        const componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === slot.targetComponentId);
+
+                        if (machine && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
+                            let canCraft = true;
+                            if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) {
+                                canCraft = false;
+                            }
+                            for (const input of componentRecipe.recipe) {
+                                if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) {
+                                canCraft = false;
+                                break;
+                                }
+                            }
+
+                            // Check if this specific machine can operate based on available power for production
+                            // This assumes production machines are prioritized after collectors if power is scarce.
+                            // A more complex system could prioritize individual machines or lines.
+                            const powerNeededForThisMachine = machineConfig.powerConsumptionKw;
+                            const powerAvailableForProduction = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + powerNeededForThisMachine; // Add back its own consumption to see if it alone can run
+
+                            if (canCraft && powerAvailableForProduction >= powerNeededForThisMachine) {
+                                newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
+                                for (const input of componentRecipe.recipe) {
+                                newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
+                                }
+                                newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1; 
+                            }
+                        }
+                    }
+                    });
+                });
+            }
         }
 
         return { 
-          ...prev, 
-          money: newMoneyFromIncome, 
-          totalIncomePerSecond: newTotalIncomePerSecond,
-          investmentsValue: currentInvestmentsValue,
-          factoryPowerConsumptionKw: newFactoryPowerConsumptionKw,
-          factoryRawMaterials: newFactoryRawMaterials,
-          factoryProducedComponents: newFactoryProducedComponents,
+            ...prev, 
+            money: newMoneyFromIncome, 
+            totalIncomePerSecond: newTotalIncomePerSecond,
+            investmentsValue: currentInvestmentsValue,
+            factoryPowerConsumptionKw: newFactoryPowerConsumptionKw,
+            factoryRawMaterials: newFactoryRawMaterials,
+            factoryProducedComponents: newFactoryProducedComponents,
         };
-      });
-    }, 1000);
-    return () => clearInterval(gameLoopInterval);
+    });
   }, [businesses, getBusinessIncome, playerStats.stockHoldings, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, unlockedStocks]);
 
 
@@ -826,13 +897,19 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { 
       factoryPurchased, 
+      // Retain research points and unlocked research across prestige
+      researchPoints, 
+      unlockedResearchIds,
+      // Other factory stats that should persist or be selectively reset
       factoryRawMaterials, 
       factoryMachines, 
-      factoryProducedComponents
+      factoryProducedComponents,
+      factoryPowerBuildings, // Retain power buildings
+      factoryMaterialCollectors, // Retain material collectors
     } = playerStats;
+    
+    const retainedFactoryPowerUnitsGenerated = factoryPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
 
-    const retainedFactoryPowerBuildings: FactoryPowerBuilding[] = []; 
-    const retainedFactoryPowerUnitsGenerated = retainedFactoryPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
 
     for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
         const purchasedLevel = playerStats.hqUpgradeLevels[hqUpgradeId];
@@ -881,10 +958,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       factoryPowerUnitsGenerated: retainedFactoryPowerUnitsGenerated, 
       factoryPowerConsumptionKw: 0, 
       factoryRawMaterials, 
-      factoryMachines: factoryMachines.map(fm => ({ ...fm, assignedProductionLineId: null })), // Machines persist, unassigned
-      factoryProductionLines: initialProdLines, // Lines reset, slots empty
-      factoryPowerBuildings: retainedFactoryPowerBuildings, 
+      factoryMachines: factoryMachines.map(fm => ({ ...fm, assignedProductionLineId: null })), 
+      factoryProductionLines: initialProdLines, 
+      factoryPowerBuildings, 
       factoryProducedComponents, 
+      factoryMaterialCollectors,
+      researchPoints, // Persist research points
+      unlockedResearchIds, // Persist unlocked research
+      lastManualResearchTimestamp: prev.lastManualResearchTimestamp, // Persist this to avoid immediate re-research
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -1052,11 +1133,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast({ title: "Materials Collected!", description: `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.` });
   };
 
-  const calculateNextMachineCost = (ownedMachineCount: number): number => {
-      const baseCost = INITIAL_FACTORY_MACHINE_CONFIGS.find(m => m.id === 'basic_assembler_mk1')?.baseCost || 100000; // Default if not found
-      const scalingFactor = 1.25; 
-      return Math.floor(baseCost * Math.pow(scalingFactor, ownedMachineCount));
-  };
 
   const _attemptAutoAssignSingleMachine = (machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
     let assignedLineId: string | null = null;
@@ -1117,11 +1193,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    const currentMachineCount = playerStats.factoryMachines.length;
-    const cost = calculateNextMachineCost(currentMachineCount);
+    if (machineConfig.requiredResearchId && !playerStats.unlockedResearchIds.includes(machineConfig.requiredResearchId)) {
+      const researchItem = researchItemsState.find(r => r.id === machineConfig.requiredResearchId);
+      toast({ title: "Research Required", description: `Purchase of ${machineConfig.name} requires '${researchItem?.name || machineConfig.requiredResearchId}' research.`, variant: "destructive"});
+      return;
+    }
+
+    const cost = machineConfig.baseCost; // Using baseCost directly as per previous update
 
     if (playerStats.money < cost) {
-      toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build the next ${machineConfig.name}.`, variant: "destructive"});
+      toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build a ${machineConfig.name}.`, variant: "destructive"});
       return;
     }
 
@@ -1159,7 +1240,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  // Kept for potential internal use, but UI for direct unassignment is removed.
   const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
       setPlayerStats(prev => {
           const targetProductionLineIndex = prev.factoryProductionLines.findIndex(pl => pl.id === productionLineId);
@@ -1179,7 +1259,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           const newFactoryProductionLines = [...prev.factoryProductionLines];
           const newSlots = [...newFactoryProductionLines[targetProductionLineIndex].slots];
-          newSlots[slotIndex] = { machineInstanceId: null, targetComponentId: null }; // Clear both machine and recipe
+          newSlots[slotIndex] = { machineInstanceId: null, targetComponentId: null }; 
           newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], slots: newSlots };
           
           return {
@@ -1214,7 +1294,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const machineInstance = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
       if (!machineInstance) {
         toast({ title: "Error", description: "Assigned machine data not found.", variant: "destructive" });
-        return prev; // Should not happen if machineInstanceId is set
+        return prev; 
       }
 
       const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId);
@@ -1251,6 +1331,116 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  const purchaseFactoryMaterialCollector = (configId: string) => {
+    if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+    const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
+    if (!config) {
+      toast({ title: "Material Collector Not Found", variant: "destructive"});
+      return;
+    }
+
+    const numOwned = (playerStats.factoryMaterialCollectors || []).filter(mc => mc.configId === configId).length;
+    if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
+      toast({ title: "Max Instances Reached", description: `You already own the maximum of ${config.maxInstances} ${config.name}(s).`, variant: "default"});
+      return;
+    }
+
+    const costForNext = config.baseCost * Math.pow(config.costMultiplier || 1.15, numOwned);
+    if (playerStats.money < costForNext) {
+      toast({ title: "Not Enough Money", description: `Need $${costForNext.toLocaleString()} for the next ${config.name}.`, variant: "destructive"});
+      return;
+    }
+
+    const newCollector: FactoryMaterialCollector = {
+      instanceId: `${configId}_collector_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      configId: config.id,
+      currentMaterialsPerSecond: config.materialsPerSecond,
+    };
+
+    setPlayerStats(prev => {
+      const updatedCollectors = [...(prev.factoryMaterialCollectors || []), newCollector];
+      return {
+        ...prev,
+        money: prev.money - costForNext,
+        factoryMaterialCollectors: updatedCollectors,
+      };
+    });
+    toast({ title: "Material Collector Deployed!", description: `A new ${config.name} is now active.` });
+  };
+
+  const manuallyGenerateResearchPoints = () => {
+    if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+    if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
+      toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
+      return;
+    }
+    const now = Date.now();
+    if (now < manualResearchCooldownEnd) {
+        const timeLeft = Math.ceil((manualResearchCooldownEnd - now) / 1000);
+        toast({ title: "On Cooldown", description: `Please wait ${timeLeft}s before conducting research again.`, variant: "default"});
+        return;
+    }
+    if (playerStats.money < RESEARCH_MANUAL_GENERATION_COST_MONEY) {
+      toast({ title: "Not Enough Money", description: `Need $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()} to conduct research.`, variant: "destructive"});
+      return;
+    }
+    setPlayerStats(prev => ({
+      ...prev,
+      money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
+      researchPoints: prev.researchPoints + RESEARCH_MANUAL_GENERATION_AMOUNT,
+      lastManualResearchTimestamp: now,
+    }));
+    setManualResearchCooldownEnd(now + RESEARCH_MANUAL_COOLDOWN_MS);
+    toast({ title: "Research Conducted!", description: `+${RESEARCH_MANUAL_GENERATION_AMOUNT} Research Point(s) gained.` });
+  };
+
+  const purchaseResearch = (researchId: string) => {
+    if (!playerStats.factoryPurchased) {
+      toast({ title: "Factory Not Owned", description: "Purchase the factory building first.", variant: "destructive" });
+      return;
+    }
+     if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB) {
+      toast({ title: "Research Locked", description: `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`, variant: "destructive" });
+      return;
+    }
+
+    const researchConfig = researchItemsState.find(r => r.id === researchId);
+    if (!researchConfig) {
+      toast({ title: "Research Not Found", variant: "destructive" });
+      return;
+    }
+    if (playerStats.unlockedResearchIds.includes(researchId)) {
+      toast({ title: "Research Already Unlocked", variant: "default" });
+      return;
+    }
+    if (researchConfig.dependencies && researchConfig.dependencies.some(depId => !playerStats.unlockedResearchIds.includes(depId))) {
+      toast({ title: "Dependencies Not Met", description: "Unlock prerequisite research first.", variant: "destructive" });
+      return;
+    }
+    if (playerStats.researchPoints < researchConfig.costRP) {
+      toast({ title: "Not Enough Research Points", description: `Need ${researchConfig.costRP} RP.`, variant: "destructive" });
+      return;
+    }
+    if (researchConfig.costMoney && playerStats.money < researchConfig.costMoney) {
+      toast({ title: "Not Enough Money", description: `Need $${researchConfig.costMoney.toLocaleString()}.`, variant: "destructive" });
+      return;
+    }
+
+    setPlayerStats(prev => ({
+      ...prev,
+      researchPoints: prev.researchPoints - researchConfig.costRP,
+      money: researchConfig.costMoney ? prev.money - researchConfig.costMoney : prev.money,
+      unlockedResearchIds: [...prev.unlockedResearchIds, researchId],
+    }));
+    toast({ title: "Research Complete!", description: `${researchConfig.name} unlocked.` });
+  };
+
 
   return (
     <GameContext.Provider value={{
@@ -1259,12 +1449,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       stocks: unlockedStocks, 
       skillTree: skillTreeState,
       hqUpgrades: hqUpgradesState,
+      researchItems: researchItemsState,
       lastSavedTimestamp,
       lastMarketTrends,
       setLastMarketTrends,
       lastRiskTolerance,
       setLastRiskTolerance,
       materialCollectionCooldownEnd,
+      manualResearchCooldownEnd,
       upgradeBusiness,
       purchaseBusinessUpgrade,
       purchaseHQUpgrade,
@@ -1285,9 +1477,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       purchaseFactoryPowerBuilding,
       manuallyCollectRawMaterials,
       purchaseFactoryMachine,
-      calculateNextMachineCost,
       setRecipeForProductionSlot,
-      // unassignMachineFromProductionLine,
+      purchaseFactoryMaterialCollector,
+      manuallyGenerateResearchPoints,
+      purchaseResearch,
     }}>
       {children}
     </GameContext.Provider>
@@ -1301,4 +1494,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-

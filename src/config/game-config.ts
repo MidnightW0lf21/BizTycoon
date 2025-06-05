@@ -1,10 +1,11 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
 import { INITIAL_HQ_UPGRADES } from './data/hq';
 import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from './data/factory';
+import { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 
 
 export const INITIAL_MONEY = 10;
@@ -20,6 +21,13 @@ export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
 export const FACTORY_PURCHASE_COST = 1000000;
 export const MATERIAL_COLLECTION_AMOUNT = 10;
 export const MATERIAL_COLLECTION_COOLDOWN_MS = 5000;
+
+export const INITIAL_RESEARCH_POINTS = 0;
+export const INITIAL_UNLOCKED_RESEARCH_IDS: string[] = [];
+export const RESEARCH_MANUAL_GENERATION_AMOUNT = 1;
+export const RESEARCH_MANUAL_GENERATION_COST_MONEY = 10000;
+export const RESEARCH_MANUAL_COOLDOWN_MS = 10000; // 10 seconds
+export const REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB = 6;
 
 
 export const calculateIncome = (
@@ -336,3 +344,4 @@ export {
   INITIAL_FACTORY_MACHINE_CONFIGS,
   INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG
 } from './data/factory';
+export { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';

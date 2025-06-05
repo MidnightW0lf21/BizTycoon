@@ -74,6 +74,7 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     baseCost: 100000,
     powerConsumptionKw: 50,
     maxCraftableTier: 1,
+    requiredResearchId: 'unlock_basic_assembler_mk1', // Added research requirement
   },
   {
     id: 'basic_assembler_mk2',
@@ -83,6 +84,7 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
     baseCost: 250000,
     powerConsumptionKw: 75,
     maxCraftableTier: 2,
+    // requiredResearchId: 'unlock_advanced_assemblers', // Example for future
   }
 ];
 
