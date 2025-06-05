@@ -137,7 +137,7 @@ export function ProductionLineDisplay({
           }
           
           const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
-          const isPowered = netPower >= 0;
+          const isPowered = netPower >= 0; // Overall factory power status
           const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
 
 
@@ -197,7 +197,7 @@ export function ProductionLineDisplay({
                              <p className="text-[8px] sm:text-[9px] leading-tight">Set Recipe</p>
                            </div>
                         )}
-                        {componentConfig && worker && worker.status === 'working' && (
+                        {componentConfig && slot.machineInstanceId && (
                           <Progress value={productionProgressPercent} className="h-1 w-3/4 mt-0.5" />
                         )}
                          {!worker && machineConfig && (
@@ -227,3 +227,5 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
+
+    
