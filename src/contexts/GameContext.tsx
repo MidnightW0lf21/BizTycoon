@@ -1233,7 +1233,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         let updatedWorkers = [...(prev.factoryWorkers || [])];
                         if (workerIndex !== -1) {
                             if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
-                               updatedUpdatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
+                               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
                             } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
                                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                             }
@@ -1960,7 +1960,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                         let progressData = newFactoryProductionProgress[progressKey] || { remainingSeconds: 0, totalSeconds: 0 };
                         
-                        let canCraftOneFullInitially = true; // Moved up for initial check
+                        let canCraftOneFullInitially = true; 
                         if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canCraftOneFullInitially = false;
                         for (const input of componentRecipe.recipe) {
                             if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFullInitially = false; break; }
@@ -1982,15 +1982,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     effectiveProductionTime = Math.max(1, effectiveProductionTime);
 
                                     progressData = { remainingSeconds: effectiveProductionTime, totalSeconds: effectiveProductionTime };
-                                } else { // Cannot start new item due to lack of inputs
+                                } else { 
                                      if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                                 }
                             }
 
-                            // If item is in progress (either just started or continuing)
-                            if (progressData.remainingSeconds > 0 && canCraftOneFullInitially) { // Ensure inputs were there if it's a "new" start
+                            
+                            if (progressData.remainingSeconds > 0 && canCraftOneFullInitially) { 
                                 progressData.remainingSeconds -= 1;
-                                powerAvailableForFactoryOperations -= currentMachinePowerDemand; // Consume power only if actually progressing
+                                powerAvailableForFactoryOperations -= currentMachinePowerDemand; 
                                 actualPowerConsumedThisTick += currentMachinePowerDemand;
 
                                 if (progressData.remainingSeconds <= 0) {
@@ -1999,7 +1999,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             }
                             newFactoryProductionProgress[progressKey] = progressData;
 
-                        } else { // Not enough power, or bonus capped, or cannot start due to initial inputs
+                        } else { 
                             if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                         }
                     } else { 
