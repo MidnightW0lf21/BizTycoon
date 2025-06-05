@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig } from "@/types";
+import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig, PlayerStats } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon } from "lucide-react";
 import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
@@ -20,6 +20,7 @@ interface ProductionLineDisplayProps {
   playerMoney: number;
   researchRequiredName?: string | null;
   currentDynamicMaxWorkerEnergy: number;
+  playerStats: PlayerStats; // Added to access factoryProductionProgress
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -39,6 +40,7 @@ export function ProductionLineDisplay({
   playerMoney,
   researchRequiredName,
   currentDynamicMaxWorkerEnergy,
+  playerStats,
 }: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
@@ -97,18 +99,23 @@ export function ProductionLineDisplay({
       <CardHeader className="pb-2 pt-3">
         <CardTitle className="text-lg">{productionLine.name}</CardTitle>
         <CardDescription className="text-xs">
-          Click a machine to set its recipe or assign a worker.
+          Click a machine to set its recipe or assign a worker. Production starts if power, materials, a worker, and input components are sufficient.
         </CardDescription>
       </CardHeader>
       <TooltipProvider>
       <CardContent className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-3">
         {productionLine.slots.map((slot, slotIdx) => {
+          const machineInstance = allMachines.find(m => m.instanceId === slot.machineInstanceId);
           const machineConfig = getMachineDetails(slot.machineInstanceId);
           const componentConfig = getComponentDetails(slot.targetComponentId);
           const worker = getWorkerDetails(slot.machineInstanceId);
           const MachineIcon = machineConfig?.icon || Loader2;
           const ComponentIcon = componentConfig?.icon || PlusCircle;
           const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
+
+          const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
+          const currentProductionProgressValue = progressKey ? playerStats.factoryProductionProgress?.[progressKey] || 0 : 0;
+          const productionProgressPercent = Math.min(100, currentProductionProgressValue * 100);
 
           let displayName = machineConfig?.name || "Machine";
           if (machineConfig?.familyId === 'basic_assembler' && machineConfig.mark) {
@@ -126,8 +133,12 @@ export function ProductionLineDisplay({
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
-            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. ${workerTooltip}`;
+            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Progress: ${productionProgressPercent.toFixed(1)}%. ${workerTooltip}`;
           }
+          
+          const isPowered = playerStats.factoryPowerUnitsGenerated >= playerStats.factoryPowerConsumptionKw; // Simplified overall check for display
+          const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
+
 
           return (
             <Tooltip key={slotIdx}>
@@ -138,7 +149,8 @@ export function ProductionLineDisplay({
                     "aspect-square border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 transition-colors h-auto w-full relative overflow-hidden",
                     "hover:bg-accent hover:text-accent-foreground focus:ring-accent",
                     slot.machineInstanceId && !componentConfig && "border-primary ring-1 ring-primary",
-                    componentConfig && "border-green-500 ring-1 ring-green-500"
+                    componentConfig && "border-green-500 ring-1 ring-green-500",
+                    machineIsActiveAndNeedsPower && !isPowered && "border-destructive ring-1 ring-destructive"
                   )}
                   onClick={() => {
                     if (slot.machineInstanceId) {
@@ -149,7 +161,7 @@ export function ProductionLineDisplay({
                 >
                   {slot.machineInstanceId && machineConfig ? (
                     <>
-                      <div className="relative w-full h-full flex flex-col items-center justify-center">
+                      <div className="relative w-full h-full flex flex-col items-center justify-center space-y-0.5">
                         {worker && (
                           <div className="absolute top-0.5 left-0.5 right-0.5 flex items-center justify-between px-0.5">
                             <User className={cn("h-2.5 w-2.5", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
@@ -164,25 +176,31 @@ export function ProductionLineDisplay({
                             />
                           </div>
                         )}
-                        <MachineIcon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 mt-2", componentConfig ? "text-green-500" : "text-primary")} />
+                        {machineIsActiveAndNeedsPower && !isPowered && (
+                           <NoPowerIcon className="absolute top-0.5 right-0.5 h-3 w-3 text-destructive" />
+                        )}
+                        <MachineIcon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0 mt-2", componentConfig ? "text-green-500" : "text-primary")} />
                         <p className="text-[9px] sm:text-[10px] font-medium truncate w-full leading-tight" title={machineConfig.name}>
                           {displayName}
                         </p>
                         {componentConfig ? (
-                          <div className="flex items-center justify-center gap-1 mt-0">
+                          <div className="flex items-center justify-center gap-1">
                             <ComponentIcon className="h-3 w-3 text-muted-foreground"/>
                             <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate leading-tight" title={componentConfig.name}>
                               {componentConfig.name.substring(0,7)}{componentConfig.name.length > 7 ? '...' : ''}
                             </p>
                           </div>
                         ) : (
-                           <div className="flex items-center justify-center gap-0.5 mt-0 text-amber-600">
+                           <div className="flex items-center justify-center gap-0.5 text-amber-600">
                              <Cog className="h-2.5 w-2.5"/>
                              <p className="text-[8px] sm:text-[9px] leading-tight">Set Recipe</p>
                            </div>
                         )}
-                         {!worker && (
-                             <div className="absolute bottom-0.5 text-xs text-destructive">
+                        {componentConfig && worker && worker.status === 'working' && (
+                          <Progress value={productionProgressPercent} className="h-1 w-3/4 mt-0.5" />
+                        )}
+                         {!worker && machineConfig && (
+                             <div className="absolute bottom-0.5 text-xs text-destructive text-[8px] sm:text-[9px]">
                                 <User className="inline h-2.5 w-2.5 mr-0.5" /> Need Worker
                              </div>
                          )}
@@ -198,6 +216,7 @@ export function ProductionLineDisplay({
               </TooltipTrigger>
               <TooltipContent>
                 <p>{slotTooltipContent}</p>
+                 {machineIsActiveAndNeedsPower && !isPowered && <p className="text-destructive">Insufficient power for operation!</p>}
               </TooltipContent>
             </Tooltip>
           );
