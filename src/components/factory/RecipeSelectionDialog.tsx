@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2 } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { MAX_WORKER_ENERGY, INITIAL_RESEARCH_ITEMS_CONFIG } from "@/config/game-config";
+import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS } from "@/config/game-config";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
@@ -21,7 +21,7 @@ interface RecipeSelectionDialogProps {
   slotIndex: number;
   assignedMachineInstanceId: string | null;
   allMachineConfigs: FactoryMachineConfig[];
-  allPlayerMachines: FactoryMachine[]; // Need full machine instances for purchasedUpgradeIds
+  allPlayerMachines: FactoryMachine[]; 
   allComponentConfigs: FactoryComponent[];
   setRecipe: (productionLineId: string, slotIndex: number, componentId: string | null) => void;
   currentRecipeId: string | null;
@@ -32,6 +32,7 @@ interface RecipeSelectionDialogProps {
   playerResearchPoints: number;
   unlockedResearchIds: string[];
   purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
+  currentDynamicMaxWorkerEnergy: number;
 }
 
 export function RecipeSelectionDialog({
@@ -51,7 +52,8 @@ export function RecipeSelectionDialog({
   playerMoney,
   playerResearchPoints,
   unlockedResearchIds,
-  purchaseFactoryMachineUpgrade
+  purchaseFactoryMachineUpgrade,
+  currentDynamicMaxWorkerEnergy,
 }: RecipeSelectionDialogProps) {
   if (!isOpen || !assignedMachineInstanceId) return null;
 
@@ -78,8 +80,8 @@ export function RecipeSelectionDialog({
     }
   };
 
-  const formatEnergyTime = (energy: number) => {
-    const totalSeconds = energy;
+  const formatEnergyTime = (energyInSeconds: number) => {
+    const totalSeconds = Math.round(energyInSeconds);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
@@ -87,7 +89,7 @@ export function RecipeSelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-4xl"> {/* Increased width for upgrades */}
+      <DialogContent className="max-w-4xl"> 
         <DialogHeader>
           <DialogTitle>Configure Slot {slotIndex + 1} ({machineConfig ? machineConfig.name : "Machine"})</DialogTitle>
           <DialogDescription>
@@ -103,8 +105,8 @@ export function RecipeSelectionDialog({
         )}
 
         {machineConfig && machineInstance && (
-          <div className="grid md:grid-cols-3 gap-6"> {/* Changed to 3 columns */}
-            <div className="md:col-span-1"> {/* Recipe Selection takes 1 column */}
+          <div className="grid md:grid-cols-3 gap-6"> 
+            <div className="md:col-span-1"> 
               <h3 className="text-lg font-semibold mb-2">Select Recipe</h3>
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
                 <div className="grid grid-cols-1 gap-3">
@@ -169,7 +171,7 @@ export function RecipeSelectionDialog({
               </ScrollArea>
             </div>
             
-            <div className="md:col-span-1 space-y-4"> {/* Worker Assignment takes 1 column */}
+            <div className="md:col-span-1 space-y-4"> 
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><UserCog className="h-5 w-5"/>Assign Worker</h3>
                  <Select
@@ -182,7 +184,7 @@ export function RecipeSelectionDialog({
                     <SelectContent>
                       <SelectItem value="none">None (Unassign)</SelectItem>
                       <SelectGroup>
-                        <SelectLabel>Available Workers</SelectLabel>
+                        <SelectLabel>Available Workers (Max Energy: {formatEnergyTime(currentDynamicMaxWorkerEnergy)})</SelectLabel>
                         {allWorkers.filter(w => w.assignedMachineInstanceId === null || w.assignedMachineInstanceId === assignedMachineInstanceId).map(worker => (
                           <SelectItem key={worker.id} value={worker.id}>
                             {worker.name} - {formatEnergyTime(worker.energy)} ({worker.status})
@@ -218,7 +220,7 @@ export function RecipeSelectionDialog({
               </div>
             </div>
 
-            <div className="md:col-span-1"> {/* Machine Upgrades take 1 column */}
+            <div className="md:col-span-1"> 
               <h3 className="text-lg font-semibold mb-2">Machine Upgrades</h3>
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
                 <TooltipProvider delayDuration={100}>

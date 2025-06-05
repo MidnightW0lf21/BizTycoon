@@ -128,6 +128,21 @@ export interface FactoryComponent {
   effects?: FactoryComponentEffects;
 }
 
+export interface FactoryMachineUpgradeEffect {
+  productionSpeedMultiplier?: number;
+  powerConsumptionModifier?: number;
+}
+
+export interface FactoryMachineUpgradeConfig {
+  id: string;
+  name: string;
+  description: string;
+  costMoney: number;
+  costRP?: number;
+  requiredResearchId?: string;
+  effects: FactoryMachineUpgradeEffect;
+}
+
 export interface FactoryMachineConfig {
   id: string;
   name: string;
@@ -139,12 +154,14 @@ export interface FactoryMachineConfig {
   requiredResearchId?: string;
   familyId?: string;
   mark?: number;
+  upgrades?: FactoryMachineUpgradeConfig[];
 }
 
 export interface FactoryMachine {
   instanceId: string;
   configId: string;
   assignedProductionLineId: string | null;
+  purchasedUpgradeIds?: string[];
 }
 
 export interface FactoryProductionLineSlot {
@@ -204,6 +221,7 @@ export interface ResearchItemEffects {
     buildingConfigId: string;
     powerOutputBoostPercent: number;
   };
+  upgradesWorkerEnergyTier?: boolean;
 }
 
 export interface ResearchItemConfig {
@@ -242,6 +260,7 @@ export interface PlayerStats {
   factoryMaterialCollectors: FactoryMaterialCollector[];
   factoryProductionProgress?: Record<string, number>;
   factoryWorkers: Worker[];
+  currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
 
   researchPoints: number;
   unlockedResearchIds: string[];
@@ -255,4 +274,3 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-

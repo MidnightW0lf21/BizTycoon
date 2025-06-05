@@ -44,10 +44,12 @@ import {
   AEROSPACE_BUSINESS_IDS,
   MISC_ADVANCED_BUSINESS_IDS,
   WORKER_HIRE_COST,
-  MAX_WORKER_ENERGY,
+  INITIAL_WORKER_MAX_ENERGY, // Corrected import
   WORKER_ENERGY_RATE,
   WORKER_FIRST_NAMES,
   WORKER_LAST_NAMES,
+  WORKER_ENERGY_TIERS, // Make sure this is exported from game-config and imported here
+  INITIAL_WORKER_ENERGY_TIER // Make sure this is exported and imported
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -136,6 +138,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     researchPoints: INITIAL_RESEARCH_POINTS,
     unlockedResearchIds: [...INITIAL_UNLOCKED_RESEARCH_IDS],
     lastManualResearchTimestamp: 0,
+    currentWorkerEnergyTier: INITIAL_WORKER_ENERGY_TIER,
   };
 };
 
@@ -181,6 +184,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => { playerStatsRef.current = playerStats; }, [playerStats]);
   useEffect(() => { businessesRef.current = businesses; }, [businesses]);
+
+  const getDynamicMaxWorkerEnergy = useCallback((): number => {
+    const tier = playerStatsRef.current.currentWorkerEnergyTier;
+    return WORKER_ENERGY_TIERS[tier] || WORKER_ENERGY_TIERS[0];
+  }, []);
+
 
   const unlockedStocks = useMemo(() => {
     const filtered = stocksWithDynamicPrices.filter(currentDynamicStock => {
@@ -354,6 +363,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -853,7 +863,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             instanceId: `${configId}_machine_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             configId: newMachineConfig.id,
             assignedProductionLineId: null,
-            purchasedUpgradeIds: [], // Initialize with no upgrades
+            purchasedUpgradeIds: [],
         };
 
         let replacementCandidate: { lineId: string; slotIndex: number; machineInstanceIdToReplace: string; markOfMachineToReplace: number; } | null = null;
@@ -890,9 +900,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             replacedSlotIndex = replacementCandidate.slotIndex;
 
             newMachineInstance.assignedProductionLineId = replacementCandidate.lineId;
-             // Preserve purchased upgrades if the new machine is of the same configId or familyId (e.g. Mk1 -> Mk1 is not possible, but if it was, keep upgrades)
-            // For Mark upgrades, we assume upgrades are specific to the Mark, so they are NOT carried over.
-            // If upgrades were family-based, we might carry them. For now, new machine starts fresh.
             newMachineInstance.purchasedUpgradeIds = []; 
 
 
@@ -1012,6 +1019,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let machineNameForToast = "Machine";
     let productionLineNameForToast = "Production Line";
     const playerStatsNow = playerStatsRef.current;
+    const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+
 
     const lineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(line => line.id === productionLineId);
     if (lineIndex === -1) {
@@ -1099,7 +1108,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
      if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-  }, []);
+  }, [getDynamicMaxWorkerEnergy]);
 
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
     let toastTitle = "";
@@ -1221,6 +1230,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPlayerStats(prev => {
         const newUnlockedResearchIds = [...(prev.unlockedResearchIds || []), researchId];
         let updatedProductionLines = [...(prev.factoryProductionLines || [])];
+        let updatedCurrentWorkerEnergyTier = prev.currentWorkerEnergyTier;
 
         if (researchConfig.effects.unlocksProductionLineId) {
           const lineToUnlockId = researchConfig.effects.unlocksProductionLineId;
@@ -1228,6 +1238,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             line.id === lineToUnlockId ? { ...line, isUnlocked: true } : line
           );
         }
+        if (researchConfig.effects.upgradesWorkerEnergyTier) {
+          updatedCurrentWorkerEnergyTier = Math.min(prev.currentWorkerEnergyTier + 1, WORKER_ENERGY_TIERS.length - 1);
+        }
+
 
         return {
           ...prev,
@@ -1235,6 +1249,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           money: researchConfig.costMoney ? prev.money - researchConfig.costMoney : prev.money,
           unlockedResearchIds: newUnlockedResearchIds,
           factoryProductionLines: updatedProductionLines,
+          currentWorkerEnergyTier: updatedCurrentWorkerEnergyTier,
         };
       });
       toastTitle = "Research Complete!";
@@ -1244,6 +1259,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (line) {
           toastDescription += ` ${line.name} is now available!`;
         }
+      }
+      if (researchConfig.effects.upgradesWorkerEnergyTier) {
+        toastDescription += ` Max worker energy increased!`;
       }
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1361,6 +1379,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const moneyRequiredForFirstPrestige = 100000;
+    const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+
 
     if (playerStatsNow.money < moneyRequiredForFirstPrestige && playerStatsNow.timesPrestiged === 0) {
       toastTitle = "Not Enough Money";
@@ -1434,22 +1454,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryPowerBuildings, 
           factoryProducedComponents,
           factoryProductionProgress: {}, 
-          factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: MAX_WORKER_ENERGY, assignedMachineInstanceId: null })),
+          factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: currentDynamicMaxEnergy, assignedMachineInstanceId: null })),
           researchPoints: 0, 
           unlockedResearchIds: prev.unlockedResearchIds, 
           lastManualResearchTimestamp: 0,
+          currentWorkerEnergyTier: prev.currentWorkerEnergyTier, // Keep current worker energy tier
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-  }, []);
+  }, [getDynamicMaxWorkerEnergy]);
 
   const hireWorker = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
+    const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+
 
     if (!playerStatsNow.factoryPurchased) {
       toastTitle = "Factory Not Owned";
@@ -1466,7 +1489,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: `worker_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         name: `${firstName} ${lastName}`,
         assignedMachineInstanceId: null,
-        energy: MAX_WORKER_ENERGY,
+        energy: currentDynamicMaxEnergy,
         status: 'idle',
       };
       setPlayerStats(prev => ({
@@ -1480,7 +1503,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (toastTitle) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
     }
-  }, []);
+  }, [getDynamicMaxWorkerEnergy]);
 
 
   const setLastMarketTrends = useCallback((trends: string) => { setLastMarketTrendsInternal(trends); }, []);
@@ -1514,6 +1537,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
             unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
             lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+            currentWorkerEnergyTier: typeof loadedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1580,6 +1604,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const currentFactoryMaterialCollectorsConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG;
       const currentFactoryPowerBuildingsConfig = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG;
       const currentResearchItems = researchItemsRef.current;
+      const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+
 
       setPlayerStats(prev => {
         let newMoney = prev.money;
@@ -1729,8 +1755,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
               }
             } else if (worker.status === 'resting') {
-              const newEnergy = Math.min(MAX_WORKER_ENERGY, worker.energy + WORKER_ENERGY_RATE);
-              if (newEnergy === MAX_WORKER_ENERGY) {
+              const newEnergy = Math.min(currentDynamicMaxEnergy, worker.energy + WORKER_ENERGY_RATE);
+              if (newEnergy === currentDynamicMaxEnergy) {
                 return { ...worker, energy: newEnergy, status: 'idle' };
               }
               return { ...worker, energy: newEnergy };
@@ -1771,7 +1797,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                           });
                           effectiveProductionTime /= totalSpeedMultiplier;
                           
-                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime)); // Prevent division by zero or too small numbers
+                          currentProgress += (1 / Math.max(0.1, effectiveProductionTime)); 
 
                           if (currentProgress >= 1) {
                             let canCraftOneFull = true;
@@ -1820,7 +1846,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(gameTickIntervalId);
-  }, [localCalculateIncome]);
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]); // Added getDynamicMaxWorkerEnergy dependency
 
   useEffect(() => {
     const pStats = playerStatsRef.current;

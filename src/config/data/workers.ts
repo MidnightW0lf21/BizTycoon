@@ -11,7 +11,15 @@ export const WORKER_LAST_NAMES: string[] = [
   "Rodriguez", "Lewis", "Lee", "Walker", "Hall", "Allen"
 ];
 
-export const MAX_WORKER_ENERGY = 43200; // 12 hours * 60 mins * 60 secs
+export const INITIAL_WORKER_MAX_ENERGY = 1800; // 30 minutes in seconds
+export const WORKER_ENERGY_TIERS = [
+  1800,  // 30 minutes
+  3600,  // 1 hour
+  7200,  // 2 hours
+  14400, // 4 hours
+  28800, // 8 hours
+  43200  // 12 hours
+];
 export const WORKER_ENERGY_RATE = 1; // 1 energy unit per second (for work depletion and rest regeneration)
 
 export const WORKER_HIRE_COST = 50000;

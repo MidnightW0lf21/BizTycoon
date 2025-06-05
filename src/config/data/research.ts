@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon, Users } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   // Assembler Unlocks
@@ -105,7 +105,6 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_basic_assembler_mk5'],
     effects: {}
   },
-
 
   // Production Line Unlocks
   {
@@ -374,5 +373,56 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_geothermal_plant_mk1'],
     effects: { factoryPowerBuildingBoost: { buildingConfigId: 'geothermal_plant_mk1', powerOutputBoostPercent: 50 } }
   },
-];
 
+  // Worker Energy Upgrades
+  {
+    id: 'worker_stamina_1',
+    name: 'Stamina Training I',
+    description: 'Increase max worker energy to 1 hour.',
+    icon: Users,
+    costRP: 20,
+    costMoney: 100000,
+    dependencies: ['unlock_basic_assembler_mk1'],
+    effects: { upgradesWorkerEnergyTier: true }
+  },
+  {
+    id: 'worker_stamina_2',
+    name: 'Stamina Training II',
+    description: 'Increase max worker energy to 2 hours.',
+    icon: Users,
+    costRP: 50,
+    costMoney: 300000,
+    dependencies: ['worker_stamina_1'],
+    effects: { upgradesWorkerEnergyTier: true }
+  },
+  {
+    id: 'worker_stamina_3',
+    name: 'Advanced Stamina Regimen',
+    description: 'Increase max worker energy to 4 hours.',
+    icon: Users,
+    costRP: 120,
+    costMoney: 800000,
+    dependencies: ['worker_stamina_2'],
+    effects: { upgradesWorkerEnergyTier: true }
+  },
+  {
+    id: 'worker_stamina_4',
+    name: 'Peak Physical Conditioning',
+    description: 'Increase max worker energy to 8 hours.',
+    icon: Users,
+    costRP: 250,
+    costMoney: 2000000,
+    dependencies: ['worker_stamina_3'],
+    effects: { upgradesWorkerEnergyTier: true }
+  },
+  {
+    id: 'worker_stamina_5',
+    name: 'Bio-Enhanced Endurance',
+    description: 'Increase max worker energy to 12 hours.',
+    icon: Users,
+    costRP: 500,
+    costMoney: 5000000,
+    dependencies: ['worker_stamina_4'],
+    effects: { upgradesWorkerEnergyTier: true }
+  },
+];

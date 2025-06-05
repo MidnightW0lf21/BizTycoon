@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -47,6 +47,7 @@ export default function MyFactoryPage() {
     hireWorker,
     assignWorkerToMachine,
     unlockProductionLine,
+    purchaseFactoryMachineUpgrade,
   } = useGame();
 
   const [isFactoryIntroVisible, setIsFactoryIntroVisible] = useState(true);
@@ -69,6 +70,8 @@ export default function MyFactoryPage() {
 
 
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
+  const currentDynamicMaxWorkerEnergy = useMemo(() => WORKER_ENERGY_TIERS[playerStats.currentWorkerEnergyTier] || WORKER_ENERGY_TIERS[0], [playerStats.currentWorkerEnergyTier]);
+
 
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
     if (!playerStats.factoryPurchased || netPower < 0) return 0;
@@ -295,8 +298,8 @@ export default function MyFactoryPage() {
     }
   };
 
-  const formatEnergyTime = (energy: number) => {
-    const totalSeconds = energy;
+  const formatEnergyTime = (energyInSeconds: number) => {
+    const totalSeconds = Math.round(energyInSeconds);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
@@ -396,7 +399,7 @@ export default function MyFactoryPage() {
         </TabsList>
 
         <TabsContent value="power" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2">
             <Card>
               <CardHeader>
                 <CardTitle>Power Generation</CardTitle>
@@ -454,7 +457,7 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="materials" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Raw Material Acquisition</CardTitle>
@@ -538,7 +541,7 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="production" className="flex-grow flex flex-col">
-          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -563,6 +566,7 @@ export default function MyFactoryPage() {
                       onUnlockLine={unlockProductionLine}
                       playerMoney={playerStats.money}
                       researchRequiredName={researchForLine?.name}
+                      currentDynamicMaxWorkerEnergy={currentDynamicMaxWorkerEnergy}
                     />
                   );
                 })}
@@ -572,11 +576,11 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="workers" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2">
             <Card>
               <CardHeader>
                 <CardTitle>Manage Workers</CardTitle>
-                <CardDescription>Monitor your workforce, their energy levels, and current assignments.</CardDescription>
+                <CardDescription>Monitor your workforce, their energy levels (current max: {formatEnergyTime(currentDynamicMaxWorkerEnergy)}), and current assignments.</CardDescription>
               </CardHeader>
               <CardContent>
                 {(playerStats.factoryWorkers || []).length === 0 ? (
@@ -600,7 +604,7 @@ export default function MyFactoryPage() {
                           ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === assignedMachine.configId)
                           : null;
                         const assignmentText = machineConfig ? machineConfig.name : (worker.status === 'idle' ? 'Idle' : (worker.status === 'resting' ? 'Resting' : 'Unassigned'));
-                        const energyPercent = (worker.energy / MAX_WORKER_ENERGY) * 100;
+                        const energyPercent = currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
 
                         return (
                           <TableRow key={worker.id}>
@@ -646,7 +650,7 @@ export default function MyFactoryPage() {
 
         {researchTabAvailable && (
           <TabsContent value="research" className="flex-grow">
-            <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6"> {/* Adjusted height */}
+            <ScrollArea className="h-[calc(100vh-380px)] pr-2 space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Research & Development</CardTitle>
@@ -693,7 +697,7 @@ export default function MyFactoryPage() {
 
         <TabsContent value="inventory" className="flex-grow">
         <TooltipProvider>
-          <ScrollArea className="h-[calc(100vh-380px)] pr-2"> {/* Adjusted height */}
+          <ScrollArea className="h-[calc(100vh-380px)] pr-2">
             <Card>
               <CardHeader>
                 <CardTitle>Produced Components</CardTitle>
@@ -761,6 +765,11 @@ export default function MyFactoryPage() {
         allWorkers={playerStats.factoryWorkers || []}
         assignWorkerToMachine={assignWorkerToMachine}
         currentAssignedWorkerId={currentDialogContext.currentAssignedWorkerId}
+        playerMoney={playerStats.money}
+        playerResearchPoints={playerStats.researchPoints}
+        unlockedResearchIds={playerStats.unlockedResearchIds || []}
+        purchaseFactoryMachineUpgrade={purchaseFactoryMachineUpgrade}
+        currentDynamicMaxWorkerEnergy={currentDynamicMaxWorkerEnergy}
       />
     )}
 
@@ -774,25 +783,23 @@ export default function MyFactoryPage() {
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            {(INITIAL_FACTORY_MACHINE_CONFIGS || []).map(config => {
-              const isResearchRequired = !!config.requiredResearchId;
-              const isUnlockedByResearch = isResearchRequired ? (playerStats.unlockedResearchIds || []).includes(config.requiredResearchId) : true;
-              
-              if (!isResearchRequired || isUnlockedByResearch) {
-                 const researchName = isResearchRequired && !isUnlockedByResearch ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name : undefined;
+            {INITIAL_FACTORY_MACHINE_CONFIGS
+              .filter(config => !config.requiredResearchId || (playerStats.unlockedResearchIds || []).includes(config.requiredResearchId))
+              .map(config => {
+                const researchName = config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId)
+                  ? (researchItems || []).find(r => r.id === config.requiredResearchId)?.name
+                  : undefined;
                 return (
                   <MachinePurchaseCard
                     key={config.id}
                     machineConfig={config}
                     playerMoney={playerStats.money}
                     onPurchase={purchaseFactoryMachine}
-                    isResearchLocked={isResearchRequired && !isUnlockedByResearch}
+                    isResearchLocked={!!(config.requiredResearchId && !(playerStats.unlockedResearchIds || []).includes(config.requiredResearchId))}
                     researchItemName={researchName}
                   />
                 );
-              }
-              return null; 
-            }).filter(Boolean)}
+            })}
           </div>
         </ScrollArea>
         <DialogFooter>

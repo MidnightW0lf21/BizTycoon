@@ -4,7 +4,7 @@
 import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon } from "lucide-react";
-import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, MAX_WORKER_ENERGY } from "@/config/game-config";
+import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ interface ProductionLineDisplayProps {
   onUnlockLine: (lineId: string) => void;
   playerMoney: number;
   researchRequiredName?: string | null;
+  currentDynamicMaxWorkerEnergy: number;
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -37,6 +38,7 @@ export function ProductionLineDisplay({
   onUnlockLine,
   playerMoney,
   researchRequiredName,
+  currentDynamicMaxWorkerEnergy,
 }: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
@@ -106,7 +108,7 @@ export function ProductionLineDisplay({
           const worker = getWorkerDetails(slot.machineInstanceId);
           const MachineIcon = machineConfig?.icon || Loader2;
           const ComponentIcon = componentConfig?.icon || PlusCircle;
-          const workerEnergyPercent = worker ? (worker.energy / MAX_WORKER_ENERGY) * 100 : 0;
+          const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
 
           let displayName = machineConfig?.name || "Machine";
           if (machineConfig?.familyId === 'basic_assembler' && machineConfig.mark) {
@@ -205,3 +207,4 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
+
