@@ -19,7 +19,7 @@ import type { FactoryMachine } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
-const MATERIAL_COLLECTION_AMOUNT_CONST = 10; // Renamed to avoid conflict
+const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
 
 export default function MyFactoryPage() {
   const { 
@@ -28,7 +28,7 @@ export default function MyFactoryPage() {
     purchaseFactoryPowerBuilding,
     manuallyCollectRawMaterials,
     purchaseFactoryMachine,
-    calculateNextMachineCost,
+    // calculateNextMachineCost, // This function is being phased out
     materialCollectionCooldownEnd,
     setRecipeForProductionSlot,
     purchaseFactoryMaterialCollector,
@@ -86,6 +86,62 @@ export default function MyFactoryPage() {
     setIsRecipeDialogOpen(false);
     setCurrentDialogContext(null);
   };
+
+  // Moved netPower calculation and useMemo for totalAutomatedMaterialsPerSecond before conditional returns
+  const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
+
+  const totalAutomatedMaterialsPerSecond = useMemo(() => {
+    if (!playerStats.factoryPurchased || netPower < 0) return 0; 
+    
+    let totalMats = 0;
+    let powerUsedByCollectors = 0;
+    const collectors = playerStats.factoryMaterialCollectors || [];
+
+    collectors.forEach(collector => {
+      const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+      if (config) {
+        
+        const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw - 
+            (collectors.filter(c => c.instanceId !== collector.instanceId)
+                        .reduce((sum, otherCollector) => {
+                            const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
+                            return sum + (otherConfig?.powerConsumptionKw || 0);
+                        }, 0));
+        
+        if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
+           totalMats += config.materialsPerSecond;
+           powerUsedByCollectors += config.powerConsumptionKw;
+        }
+      }
+    });
+    
+    const powerAvailableForAllActiveCollectors = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
+
+    if (powerAvailableForAllActiveCollectors < powerUsedByCollectors && powerAvailableForAllActiveCollectors >=0) {
+        let tempPower = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
+        let actualTotalMats = 0;
+        (playerStats.factoryMaterialCollectors || []).sort((a,b) => { 
+            const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
+            const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
+            return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
+        }).forEach(collector => {
+            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+            if(config && tempPower >= config.powerConsumptionKw) {
+                actualTotalMats += config.materialsPerSecond;
+                tempPower -= config.powerConsumptionKw;
+            }
+        });
+        return actualTotalMats;
+    }
+
+    return totalMats;
+  }, [
+      playerStats.factoryPurchased, 
+      playerStats.factoryMaterialCollectors, 
+      playerStats.factoryPowerUnitsGenerated, 
+      playerStats.factoryPowerConsumptionKw, 
+      netPower
+  ]);
 
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
@@ -150,55 +206,6 @@ export default function MyFactoryPage() {
     acc[collector.configId] = (acc[collector.configId] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-
-  const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
-
-  const totalAutomatedMaterialsPerSecond = useMemo(() => {
-    if (netPower < 0) return 0; 
-    
-    let totalMats = 0;
-    let powerUsedByCollectors = 0;
-    const collectors = playerStats.factoryMaterialCollectors || [];
-
-    collectors.forEach(collector => {
-      const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-      if (config) {
-        
-        const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw - 
-            (collectors.filter(c => c.instanceId !== collector.instanceId)
-                        .reduce((sum, otherCollector) => {
-                            const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
-                            return sum + (otherConfig?.powerConsumptionKw || 0);
-                        }, 0));
-        
-        if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
-           totalMats += config.materialsPerSecond;
-           powerUsedByCollectors += config.powerConsumptionKw;
-        }
-      }
-    });
-    
-    const powerAvailableForAllActiveCollectors = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
-
-    if (powerAvailableForAllActiveCollectors < powerUsedByCollectors && powerAvailableForAllActiveCollectors >=0) {
-        let tempPower = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
-        let actualTotalMats = 0;
-        (playerStats.factoryMaterialCollectors || []).sort((a,b) => { 
-            const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
-            const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
-            return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
-        }).forEach(collector => {
-            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-            if(config && tempPower >= config.powerConsumptionKw) {
-                actualTotalMats += config.materialsPerSecond;
-                tempPower -= config.powerConsumptionKw;
-            }
-        });
-        return actualTotalMats;
-    }
-
-    return totalMats;
-  }, [playerStats.factoryMaterialCollectors, playerStats.factoryPowerUnitsGenerated, playerStats.factoryPowerConsumptionKw, netPower]);
 
 
   return (
@@ -418,3 +425,4 @@ export default function MyFactoryPage() {
     </>
   );
 }
+
