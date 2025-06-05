@@ -7,7 +7,7 @@ import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhol
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  SheetTrigger, // Reordered
+  SheetTrigger,
   Sheet,
   SheetContent,
   SheetTitle
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
@@ -207,6 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [isPrestigeDialogOpen, setIsPrestigeDialogOpen] = useState(false);
   const [newlyGainedPoints, setNewlyGainedPoints] = useState(0);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -242,7 +243,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     else setCurrentPageTitle('BizTycoon');
   }, [pathname]);
 
-  const handlePrestigeNavClick = () => {
+  const handlePrestigeNavClick = useCallback(() => {
     const moneyRequiredForPrestige = 100000;
 
     if (playerStats.money < moneyRequiredForPrestige && playerStats.timesPrestiged === 0) {
@@ -266,8 +267,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } else {
       setIsPrestigeDialogOpen(true);
     }
-  };
+  }, [playerStats.money, playerStats.timesPrestiged, newlyGainedPoints, toast]);
   
+  const handleOpenMobileSheet = useCallback(() => setMobileSheetOpen(true), []);
+  const handleCloseMobileSheet = useCallback(() => setMobileSheetOpen(false), []);
+
   const baseSidebarClasses = "hidden border-r bg-muted/40 md:block";
   const mountedSidebarClasses = "sticky top-0 h-screen";
   const finalSidebarClasses = mounted ? `${baseSidebarClasses} ${mountedSidebarClasses}` : baseSidebarClasses;
@@ -282,7 +286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   const baseHeaderClasses = "flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6";
   const mountedHeaderClasses = "sticky top-0 z-10 bg-background shrink-0";
-  const unmountedHeaderClasses = "bg-muted/40"; // Ensure shrink-0 is not here for server render if it caused issues
+  const unmountedHeaderClasses = "bg-muted/40";
   const finalHeaderClasses = mounted ? `${baseHeaderClasses} ${mountedHeaderClasses}` : `${baseHeaderClasses} ${unmountedHeaderClasses}`;
   
   const baseMainClasses = "flex-1 bg-background flex flex-col gap-4 p-4 lg:p-6 lg:gap-6";
@@ -315,9 +319,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header 
             className={finalHeaderClasses}
           >
-          <Sheet>
+          <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+              <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={handleOpenMobileSheet}>
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
@@ -331,10 +335,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.label}
                     {...item}
                     currentTimesPrestiged={playerStats.timesPrestiged}
-                    onMobileClick={() => {
-                      const escapeKeyEvent = new KeyboardEvent('keydown', { key: 'Escape' });
-                      document.dispatchEvent(escapeKeyEvent);
-                    }}
+                    onMobileClick={handleCloseMobileSheet}
                     onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
                   />
                 ))}
@@ -399,5 +400,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     
 
+
+    
 
     
