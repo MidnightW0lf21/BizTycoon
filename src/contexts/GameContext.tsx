@@ -77,7 +77,6 @@ interface GameContextType {
   purchaseFactoryPowerBuilding: (configId: string) => void;
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
-  // calculateNextMachineCost: (ownedMachineCount: number) => number; // No longer needed as baseCost is per config
   setRecipeForProductionSlot: (productionLineId: string, slotIndex: number, targetComponentId: string | null) => void;
   purchaseFactoryMaterialCollector: (configId: string) => void;
   manuallyGenerateResearchPoints: () => void;
@@ -481,7 +480,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
 
         if (prev.factoryPurchased) {
-            // Calculate power consumption from active machines and material collectors
             let tempPowerConsumption = 0;
             prev.factoryProductionLines.forEach(line => {
                 line.slots.forEach(slot => {
@@ -506,21 +504,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             const netPower = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw;
 
-            // Automated Material Collection
-            if (netPower >= 0) { // Only collect if there's non-negative net power
+            if (netPower >= 0) { 
                 let powerUsedByCollectors = 0;
                 (prev.factoryMaterialCollectors || []).forEach(collector => {
                     const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
                     if (config) powerUsedByCollectors += config.powerConsumptionKw;
                 });
-
-                // Effective power available specifically for collectors
                 const powerAvailableForCollectors = prev.factoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerUsedByCollectors);
-                
                 let tempPowerForCollectors = powerAvailableForCollectors;
                 let actualMaterialsCollectedThisTick = 0;
-
-                // Prioritize collectors by their power consumption (cheapest first)
                 (prev.factoryMaterialCollectors || []).sort((a,b) => {
                     const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
                     const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
@@ -535,9 +527,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 newFactoryRawMaterials += actualMaterialsCollectedThisTick;
             }
 
-
-            // Component Production
-            if (netPower >= 0) { // Only produce if there's non-negative net power
+            if (netPower >= 0) { 
                 prev.factoryProductionLines.forEach(line => {
                     line.slots.forEach(slot => {
                     if (slot.machineInstanceId && slot.targetComponentId) {
@@ -556,12 +546,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 break;
                                 }
                             }
-
-                            // Check if this specific machine can operate based on available power for production
-                            // This assumes production machines are prioritized after collectors if power is scarce.
-                            // A more complex system could prioritize individual machines or lines.
                             const powerNeededForThisMachine = machineConfig.powerConsumptionKw;
-                            const powerAvailableForProduction = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + powerNeededForThisMachine; // Add back its own consumption to see if it alone can run
+                            const powerAvailableForProduction = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + powerNeededForThisMachine; 
 
                             if (canCraft && powerAvailableForProduction >= powerNeededForThisMachine) {
                                 newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
@@ -587,7 +573,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryProducedComponents: newFactoryProducedComponents,
         };
     });
-  }, [businesses, getBusinessIncome, playerStats.stockHoldings, playerStats.unlockedSkillIds, skillTreeState, playerStats.hqUpgradeLevels, hqUpgradesState, unlockedStocks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+      businesses, 
+      playerStats.stockHoldings, 
+      playerStats.unlockedSkillIds, 
+      skillTreeState, 
+      playerStats.hqUpgradeLevels, 
+      hqUpgradesState, 
+      unlockedStocks,
+      playerStats.factoryProducedComponents, // Explicitly list this key dependency of getBusinessIncome
+      playerStats.factoryPurchased,
+      playerStats.factoryPowerUnitsGenerated,
+      // playerStats.factoryPowerConsumptionKw, // This is calculated within the effect, avoid self-dependency
+      playerStats.factoryRawMaterials,
+      playerStats.factoryMachines,
+      playerStats.factoryProductionLines,
+      playerStats.factoryPowerBuildings,
+      playerStats.factoryMaterialCollectors
+  ]);
 
 
   useEffect(() => {
@@ -897,15 +901,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { 
       factoryPurchased, 
-      // Retain research points and unlocked research across prestige
       researchPoints, 
       unlockedResearchIds,
-      // Other factory stats that should persist or be selectively reset
       factoryRawMaterials, 
       factoryMachines, 
       factoryProducedComponents,
-      factoryPowerBuildings, // Retain power buildings
-      factoryMaterialCollectors, // Retain material collectors
+      factoryPowerBuildings, 
+      factoryMaterialCollectors, 
     } = playerStats;
     
     const retainedFactoryPowerUnitsGenerated = factoryPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
@@ -963,9 +965,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       factoryPowerBuildings, 
       factoryProducedComponents, 
       factoryMaterialCollectors,
-      researchPoints, // Persist research points
-      unlockedResearchIds, // Persist unlocked research
-      lastManualResearchTimestamp: prev.lastManualResearchTimestamp, // Persist this to avoid immediate re-research
+      researchPoints, 
+      unlockedResearchIds, 
+      lastManualResearchTimestamp: prev.lastManualResearchTimestamp, 
     }));
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
@@ -1199,7 +1201,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    const cost = machineConfig.baseCost; // Using baseCost directly as per previous update
+    const cost = machineConfig.baseCost; 
 
     if (playerStats.money < cost) {
       toast({ title: "Not Enough Money", description: `Need $${cost.toLocaleString()} to build a ${machineConfig.name}.`, variant: "destructive"});
@@ -1494,3 +1496,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
