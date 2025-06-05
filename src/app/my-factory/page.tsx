@@ -4,21 +4,22 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
+import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
 import { ProductionLineDisplay } from "@/components/factory/ProductionLineDisplay";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
 import type { FactoryMachine } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
-// const FACTORY_PURCHASE_COST = 1000000; // Already in game-config
-const MATERIAL_COLLECTION_AMOUNT = 10;
+const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
+const MATERIAL_COLLECTION_AMOUNT_CONST = 10; // Renamed to avoid conflict
 
 export default function MyFactoryPage() {
   const { 
@@ -29,7 +30,8 @@ export default function MyFactoryPage() {
     purchaseFactoryMachine,
     calculateNextMachineCost,
     materialCollectionCooldownEnd,
-    setRecipeForProductionSlot, // Added from context
+    setRecipeForProductionSlot,
+    purchaseFactoryMaterialCollector, // Added
   } = useGame();
 
   const [secondsRemainingForCooldown, setSecondsRemainingForCooldown] = useState(0);
@@ -107,7 +109,6 @@ export default function MyFactoryPage() {
   }
 
   if (!playerStats.factoryPurchased) {
-    const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000; // Using game-config value
     return (
       <Card className="w-full md:max-w-lg mx-auto">
         <CardHeader className="items-center">
@@ -145,8 +146,57 @@ export default function MyFactoryPage() {
     return acc;
   }, {} as Record<string, number>);
 
-  const nextMachineCost = calculateNextMachineCost(playerStats.factoryMachines.length);
+  const ownedMaterialCollectorCounts = playerStats.factoryMaterialCollectors.reduce((acc, collector) => {
+    acc[collector.configId] = (acc[collector.configId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
+
+  const totalAutomatedMaterialsPerSecond = useMemo(() => {
+    if (netPower < 0) return 0; // No automated collection if power is negative
+    
+    let totalMats = 0;
+    let powerUsedByCollectors = 0;
+
+    playerStats.factoryMaterialCollectors.forEach(collector => {
+      const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+      if (config) {
+        if (playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - config.powerConsumptionKw) >= config.powerConsumptionKw) {
+          // Check if this specific collector can be powered without considering other collectors yet
+          // This simplified check assumes collectors get priority if total power is enough for SOME
+           totalMats += config.materialsPerSecond;
+           powerUsedByCollectors += config.powerConsumptionKw;
+        }
+      }
+    });
+     // Ensure totalMats only counts if the sum of their power is available within the net power
+     // (after accounting for machine consumption)
+    const powerAvailableForCollectors = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
+
+    if (powerAvailableForCollectors < powerUsedByCollectors && powerAvailableForCollectors >=0) {
+        // If not all collectors can be powered, we might need a priority system or simply assume none work if total demand exceeds supply.
+        // For now, simplified: if total power for active collectors isn't met, then they produce 0. More nuanced logic could scale production.
+        // This current logic re-iterates, it's not perfect but better than nothing.
+        let tempPower = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
+        let actualTotalMats = 0;
+        playerStats.factoryMaterialCollectors.sort((a,b) => { // Prioritize cheaper power consumers? Or higher output? For now, by config order.
+            const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
+            const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
+            return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
+        }).forEach(collector => {
+            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+            if(config && tempPower >= config.powerConsumptionKw) {
+                actualTotalMats += config.materialsPerSecond;
+                tempPower -= config.powerConsumptionKw;
+            }
+        });
+        return actualTotalMats;
+    }
+
+    return totalMats;
+  }, [playerStats.factoryMaterialCollectors, playerStats.factoryPowerUnitsGenerated, playerStats.factoryPowerConsumptionKw, netPower]);
+
 
   return (
     <>
@@ -207,16 +257,21 @@ export default function MyFactoryPage() {
         </TabsContent>
 
         <TabsContent value="materials" className="flex-grow">
-          <ScrollArea className="h-[calc(100vh-300px)] pr-2">
+          <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Raw Material Acquisition</CardTitle>
-                <CardDescription>Gather raw materials needed for production.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-lg">
-                  Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-lg">
+                    Current Raw Materials: <strong className="text-primary">{playerStats.factoryRawMaterials.toLocaleString()} units</strong>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString()} units/sec</strong>
+                    {netPower < 0 && <span className="text-destructive text-xs"> (Insufficient Power!)</span>}
+                  </p>
+                </div>
                 <Button 
                   onClick={manuallyCollectRawMaterials} 
                   size="lg"
@@ -225,9 +280,25 @@ export default function MyFactoryPage() {
                   <Box className="mr-2 h-5 w-5"/>
                   {secondsRemainingForCooldown > 0 
                     ? `Collect (Wait ${secondsRemainingForCooldown}s)` 
-                    : `Manually Collect ${MATERIAL_COLLECTION_AMOUNT} Raw Materials`}
+                    : `Manually Collect ${MATERIAL_COLLECTION_AMOUNT_CONST} Raw Materials`}
                 </Button>
-                <p className="text-sm text-muted-foreground">Automation for material collection will be available later.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Automated Material Collectors</CardTitle>
+                <CardDescription>Deploy collectors to automatically gather raw materials over time. Requires power.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.map(config => (
+                  <FactoryMaterialCollectorCard
+                    key={config.id}
+                    collectorConfig={config}
+                    numOwned={ownedMaterialCollectorCounts[config.id] || 0}
+                    currentMoney={playerStats.money}
+                    onPurchase={() => purchaseFactoryMaterialCollector(config.id)}
+                  />
+                ))}
               </CardContent>
             </Card>
           </ScrollArea>
@@ -237,15 +308,15 @@ export default function MyFactoryPage() {
           <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Build Machines</CardTitle>
-                <CardDescription>Construct machines to place in your production lines. Machines are auto-assigned.</CardDescription>
+                <CardTitle>Build Assemblers</CardTitle>
+                <CardDescription>Construct assemblers to place in your production lines. Assemblers are auto-assigned. Each Mark can craft up to its corresponding Tier.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => (
                   <MachinePurchaseCard
                     key={config.id}
                     machineConfig={config}
-                    nextMachineCost={nextMachineCost}
+                    // nextMachineCost removed as each machine has its own baseCost now
                     playerMoney={playerStats.money}
                     onPurchase={() => purchaseFactoryMachine(config.id)}
                   />
