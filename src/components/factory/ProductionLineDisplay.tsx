@@ -20,7 +20,7 @@ interface ProductionLineDisplayProps {
   playerMoney: number;
   researchRequiredName?: string | null;
   currentDynamicMaxWorkerEnergy: number;
-  playerStats: PlayerStats; // Added to access factoryProductionProgress
+  playerStats: PlayerStats;
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -114,7 +114,7 @@ export function ProductionLineDisplay({
           const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
 
           const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
-          const currentProductionProgressValue = progressKey ? playerStats.factoryProductionProgress?.[progressKey] || 0 : 0;
+          const currentProductionProgressValue = progressKey && playerStats?.factoryProductionProgress ? (playerStats.factoryProductionProgress[progressKey] || 0) : 0;
           const productionProgressPercent = Math.min(100, currentProductionProgressValue * 100);
 
           let displayName = machineConfig?.name || "Machine";
@@ -136,7 +136,8 @@ export function ProductionLineDisplay({
             slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Progress: ${productionProgressPercent.toFixed(1)}%. ${workerTooltip}`;
           }
           
-          const isPowered = playerStats.factoryPowerUnitsGenerated >= playerStats.factoryPowerConsumptionKw; // Simplified overall check for display
+          const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
+          const isPowered = netPower >= 0;
           const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
 
 
