@@ -113,38 +113,40 @@ export function ProductionLineDisplay({
           const ComponentIcon = componentConfig?.icon || PlusCircle;
           const workerEnergyPercent = worker && currentDynamicMaxWorkerEnergy > 0 ? (worker.energy / currentDynamicMaxWorkerEnergy) * 100 : 0;
 
-          const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
-          const productionData = progressKey && playerStats?.factoryProductionProgress ? playerStats.factoryProductionProgress[progressKey] : undefined;
-
           let timerDisplay = "";
+          const progressKey = slot.targetComponentId ? `${productionLine.id}-${slotIdx}-${slot.targetComponentId}` : null;
 
-          if (componentConfig && slot.targetComponentId) { // A recipe is set for this slot
-            if (productionData && productionData.totalSeconds > 0) {
-              // Valid progress data exists
+          if (componentConfig && slot.targetComponentId && progressKey) {
+            const productionData = playerStats?.factoryProductionProgress?.[progressKey];
+
+            if (productionData && typeof productionData.remainingSeconds === 'number' && typeof productionData.totalSeconds === 'number' && productionData.totalSeconds > 0) {
               if (productionData.remainingSeconds > 0) {
                 timerDisplay = `${Math.ceil(productionData.remainingSeconds).toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s`;
-              } else { // remainingSeconds <= 0, item is complete or ready to start if stalled
+              } else { // remainingSeconds <= 0, item is complete or was just set and is 0
                 let canCraftNext = true;
                 if (!playerStats || playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) {
-                  canCraftNext = false;
+                    canCraftNext = false;
                 } else {
-                  for (const input of componentConfig.recipe) {
-                    if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) {
-                      canCraftNext = false;
-                      break;
+                    for (const input of componentConfig.recipe) {
+                        if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) {
+                            canCraftNext = false;
+                            break;
+                        }
                     }
-                  }
                 }
-                timerDisplay = canCraftNext ? "Ready" : "Inputs Needed";
+                timerDisplay = canCraftNext ? "Ready" : "Inputs Blocked";
               }
+            } else if (componentConfig) { 
+                timerDisplay = `Recipe Set (${componentConfig.productionTimeSeconds.toFixed(0)}s)`;
             } else {
-              // No valid productionData (e.g. totalSeconds is 0 or entry missing), but a recipe IS set.
-              // This implies it's just been set and the game tick hasn't initialized actual progress, or there's an issue.
-              timerDisplay = `Idle (${componentConfig.productionTimeSeconds.toFixed(0)}s)`;
+                timerDisplay = "Configuring..."; 
             }
+          } else if (slot.machineInstanceId) {
+              timerDisplay = "Set Recipe";
+          } else {
+              timerDisplay = "Empty Slot";
           }
-
-
+          
           let displayName = machineConfig?.name || "Machine";
           if (machineConfig?.familyId === 'basic_assembler' && machineConfig.mark) {
             displayName = `Mk ${machineConfig.mark}`;
@@ -161,11 +163,14 @@ export function ProductionLineDisplay({
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
-            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Time: ${productionData && productionData.totalSeconds > 0 ? `${Math.ceil(productionData.remainingSeconds).toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s` : 'N/A'}. ${workerTooltip}`;
+            const productionDataForTooltip = playerStats?.factoryProductionProgress?.[progressKey!];
+            const timeInfo = productionDataForTooltip && productionDataForTooltip.totalSeconds > 0
+                ? `${Math.ceil(productionDataForTooltip.remainingSeconds).toFixed(0)}s / ${productionDataForTooltip.totalSeconds.toFixed(0)}s`
+                : (componentConfig.productionTimeSeconds > 0 ? `Base: ${componentConfig.productionTimeSeconds}s` : 'N/A');
+            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Time: ${timeInfo}. ${workerTooltip}`;
           }
 
           const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
-          const isPowered = netPower >= 0;
           const machineIsActiveAndNeedsPower = worker && worker.status === 'working' && slot.targetComponentId;
 
 
@@ -179,7 +184,7 @@ export function ProductionLineDisplay({
                     "hover:bg-accent hover:text-accent-foreground focus:ring-accent",
                     slot.machineInstanceId && !componentConfig && "border-primary ring-1 ring-primary",
                     componentConfig && "border-green-500 ring-1 ring-green-500",
-                    machineIsActiveAndNeedsPower && !isPowered && "border-destructive ring-1 ring-destructive"
+                    machineIsActiveAndNeedsPower && netPower < 0 && "border-destructive ring-1 ring-destructive"
                   )}
                   onClick={() => {
                     if (slot.machineInstanceId) {
@@ -205,7 +210,7 @@ export function ProductionLineDisplay({
                             />
                           </div>
                         )}
-                        {machineIsActiveAndNeedsPower && !isPowered && (
+                        {machineIsActiveAndNeedsPower && netPower < 0 && (
                            <NoPowerIcon className="absolute top-0.5 right-0.5 h-3 w-3 text-destructive" />
                         )}
                         <MachineIcon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0 mt-2", componentConfig ? "text-green-500" : "text-primary")} />
@@ -225,7 +230,7 @@ export function ProductionLineDisplay({
                              <p className="text-[8px] sm:text-[9px] leading-tight">Set Recipe</p>
                            </div>
                         )}
-                        {timerDisplay && (
+                        {(timerDisplay && timerDisplay !== "Empty Slot" && timerDisplay !== "Set Recipe") && (
                            <div className="flex items-center text-[8px] sm:text-[9px] text-muted-foreground leading-tight gap-0.5 mt-0.5">
                              <Timer className="h-2 w-2" />
                              {timerDisplay}
@@ -248,7 +253,7 @@ export function ProductionLineDisplay({
               </TooltipTrigger>
               <TooltipContent>
                 <p>{slotTooltipContent}</p>
-                 {machineIsActiveAndNeedsPower && !isPowered && <p className="text-destructive">Insufficient power for operation!</p>}
+                 {machineIsActiveAndNeedsPower && netPower < 0 && <p className="text-destructive">Insufficient power for operation!</p>}
               </TooltipContent>
             </Tooltip>
           );
@@ -258,3 +263,4 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
+

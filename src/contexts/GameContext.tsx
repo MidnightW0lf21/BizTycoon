@@ -989,7 +989,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               const firstEmptyIdx = line.slots.findIndex(s => s.machineInstanceId === null);
               if (firstEmptyIdx !== -1) {
                 emptySlotCandidate = { lineId: line.id, slotIndex: firstEmptyIdx };
-                return true; // Found an empty slot, stop searching
+                return true; 
               }
             }
             return false;
@@ -1163,100 +1163,117 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastVariant: "default" | "destructive" = "default";
     let machineNameForToast = "Machine";
     let productionLineNameForToast = "Production Line";
-    const playerStatsNow = playerStatsRef.current;
-    const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+    
+    setPlayerStats(prev => {
+        const playerStatsNow = prev;
+        const lineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(line => line.id === productionLineId);
 
-    const lineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(line => line.id === productionLineId);
-    if (lineIndex === -1) {
-      toastTitle = "Error"; toastDescription = "Production line not found."; toastVariant = "destructive";
-    } else {
-      const productionLine = playerStatsNow.factoryProductionLines[lineIndex];
-      if(!productionLine.isUnlocked) {
-        toastTitle = "Line Locked"; toastDescription = "Cannot set recipe on a locked production line."; toastVariant = "destructive";
-      } else {
-          productionLineNameForToast = productionLine.name;
-          if (slotIndex < 0 || slotIndex >= productionLine.slots.length) {
-            toastTitle = "Error"; toastDescription = "Invalid slot index."; toastVariant = "destructive";
-          } else {
-            const slot = productionLine.slots[slotIndex];
-            if (!slot.machineInstanceId) {
-              toastTitle = "No Machine"; toastDescription = "No machine assigned to this slot to set a recipe for."; toastVariant = "destructive";
-            } else {
-              const machineInstance = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
-              if (!machineInstance) {
-                toastTitle = "Error"; toastDescription = "Assigned machine data not found."; toastVariant = "destructive";
-              } else {
-                const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId);
-                if (!machineConfig) {
-                  toastTitle = "Error"; toastDescription = "Machine configuration not found."; toastVariant = "destructive";
-                } else {
-                  machineNameForToast = machineConfig.name;
-                  let componentRecipe: FactoryComponent | undefined;
-                  if (targetComponentId !== null) {
-                    componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === targetComponentId);
-                    if (!componentRecipe) {
-                      toastTitle = "Error"; toastDescription = "Target component recipe not found."; toastVariant = "destructive";
-                    } else if (machineConfig.maxCraftableTier < componentRecipe.tier) {
-                      toastTitle = "Cannot Craft"; toastDescription = `${machineConfig.name} (Tier ${machineConfig.maxCraftableTier}) cannot craft ${componentRecipe.name} (Tier ${componentRecipe.tier}).`; toastVariant = "destructive";
-                    }
-                  }
-                  if(toastVariant === "default"){
-                     setPlayerStats(prev => {
-                        let updatedProductionLines = (prev.factoryProductionLines || []).map((line, idx) => {
-                            if (idx === lineIndex) {
-                                const updatedSlots = [...line.slots];
-                                updatedSlots[slotIndex] = { ...updatedSlots[slotIndex], targetComponentId: targetComponentId };
-                                return { ...line, slots: updatedSlots };
-                            }
-                            return line;
-                        });
-                        let updatedProgress = { ...(prev.factoryProductionProgress || {}) };
-                        const oldProgressKey = `${productionLine.id}-${slotIndex}-${slot.targetComponentId}`;
-                        if (updatedProgress[oldProgressKey]) {
-                          delete updatedProgress[oldProgressKey];
-                        }
-                        if (targetComponentId && componentRecipe) {
-                          let effectiveProductionTime = componentRecipe.productionTimeSeconds;
-                          let totalSpeedMultiplier = 1;
-                          (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
-                              const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
-                              if (upgradeDef?.effects.productionSpeedMultiplier) totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
-                          });
-                          effectiveProductionTime /= totalSpeedMultiplier;
-                          effectiveProductionTime = Math.max(1, effectiveProductionTime);
-                          
-                          const newProgressKey = `${productionLine.id}-${slotIndex}-${targetComponentId}`;
-                          updatedProgress[newProgressKey] = { remainingSeconds: 0, totalSeconds: effectiveProductionTime };
-                        }
+        if (lineIndex === -1) {
+          toastTitle = "Error"; toastDescription = "Production line not found."; toastVariant = "destructive";
+          return prev;
+        }
 
-                        const workerIndex = (prev.factoryWorkers || []).findIndex(w => w.assignedMachineInstanceId === slot.machineInstanceId);
-                        let updatedWorkers = [...(prev.factoryWorkers || [])];
-                        if (workerIndex !== -1) {
-                            if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
-                               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
-                            } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
-                               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
-                            }
-                        }
-                        return { ...prev, factoryProductionLines: updatedProductionLines, factoryProductionProgress: updatedProgress, factoryWorkers: updatedWorkers };
-                    });
-                    if (targetComponentId) {
-                        const component = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === targetComponentId);
-                        toastTitle = "Recipe Set!";
-                        toastDescription = `${machineNameForToast} in ${productionLineNameForToast} (Slot ${slotIndex + 1}) will now produce ${component?.name || 'component'}. Worker status updated.`;
-                    } else {
-                        toastTitle = "Recipe Cleared";
-                        toastDescription = `${machineNameForToast} in ${productionLineNameForToast} (Slot ${slotIndex + 1}) is now idle. Worker status updated.`;
-                    }
-                  }
-                }
-              }
+        const productionLine = playerStatsNow.factoryProductionLines[lineIndex];
+        productionLineNameForToast = productionLine.name;
+
+        if (!productionLine.isUnlocked) {
+          toastTitle = "Line Locked"; toastDescription = "Cannot set recipe on a locked production line."; toastVariant = "destructive";
+          return prev;
+        }
+        if (slotIndex < 0 || slotIndex >= productionLine.slots.length) {
+          toastTitle = "Error"; toastDescription = "Invalid slot index."; toastVariant = "destructive";
+          return prev;
+        }
+
+        const slot = productionLine.slots[slotIndex];
+        if (!slot.machineInstanceId) {
+          toastTitle = "No Machine"; toastDescription = "No machine assigned to this slot."; toastVariant = "destructive";
+          return prev;
+        }
+
+        const machineInstance = (playerStatsNow.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+        if (!machineInstance) {
+          toastTitle = "Error"; toastDescription = "Assigned machine data not found."; toastVariant = "destructive";
+          return prev;
+        }
+
+        const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId);
+        if (!machineConfig) {
+          toastTitle = "Error"; toastDescription = "Machine configuration not found."; toastVariant = "destructive";
+          return prev;
+        }
+        machineNameForToast = machineConfig.name;
+
+        let componentRecipe: FactoryComponent | undefined;
+        if (targetComponentId !== null) {
+            componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === targetComponentId);
+            if (!componentRecipe) {
+              toastTitle = "Error"; toastDescription = "Target component recipe not found."; toastVariant = "destructive";
+              return prev;
             }
-          }
-      }
-    }
-     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-  }, [getDynamicMaxWorkerEnergy]);
+            if (machineConfig.maxCraftableTier < componentRecipe.tier) {
+              toastTitle = "Cannot Craft"; toastDescription = `${machineConfig.name} (Tier ${machineConfig.maxCraftableTier}) cannot craft ${componentRecipe.name} (Tier ${componentRecipe.tier}).`; toastVariant = "destructive";
+              return prev;
+            }
+        }
+
+        let updatedProductionLines = (prev.factoryProductionLines || []).map((line, idx) => {
+            if (idx === lineIndex) {
+                const updatedSlots = [...line.slots];
+                updatedSlots[slotIndex] = { ...updatedSlots[slotIndex], targetComponentId: targetComponentId };
+                return { ...line, slots: updatedSlots };
+            }
+            return line;
+        });
+
+        let updatedProgress = { ...(prev.factoryProductionProgress || {}) };
+        const oldTargetComponentIdInSlot = prev.factoryProductionLines[lineIndex].slots[slotIndex].targetComponentId;
+
+        if (oldTargetComponentIdInSlot && oldTargetComponentIdInSlot !== targetComponentId) {
+            const oldProgressKey = `${productionLine.id}-${slotIndex}-${oldTargetComponentIdInSlot}`;
+            if (updatedProgress[oldProgressKey]) {
+                delete updatedProgress[oldProgressKey];
+            }
+        }
+
+        if (targetComponentId && componentRecipe) {
+            let effectiveProductionTime = componentRecipe.productionTimeSeconds;
+            if (machineInstance && machineConfig?.upgrades) {
+                let totalSpeedMultiplier = 1;
+                (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
+                    const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
+                    if (upgradeDef?.effects.productionSpeedMultiplier) totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                });
+                effectiveProductionTime /= totalSpeedMultiplier;
+                effectiveProductionTime = Math.max(1, effectiveProductionTime);
+            }
+            const newProgressKey = `${productionLine.id}-${slotIndex}-${targetComponentId}`;
+            updatedProgress[newProgressKey] = { remainingSeconds: 0, totalSeconds: effectiveProductionTime };
+            
+            toastTitle = "Recipe Set!";
+            toastDescription = `${machineNameForToast} in ${productionLineNameForToast} (Slot ${slotIndex + 1}) will now produce ${componentRecipe.name}.`;
+        } else {
+            toastTitle = "Recipe Cleared";
+            toastDescription = `${machineNameForToast} in ${productionLineNameForToast} (Slot ${slotIndex + 1}) is now idle.`;
+        }
+        
+        let updatedWorkers = [...(prev.factoryWorkers || [])];
+        const workerIndex = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === slot.machineInstanceId);
+        if (workerIndex !== -1) {
+            if (targetComponentId !== null && updatedWorkers[workerIndex].status === 'idle' && updatedWorkers[workerIndex].energy > 0) {
+               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'working' };
+               toastDescription += " Worker set to 'working'.";
+            } else if (targetComponentId === null && updatedWorkers[workerIndex].status === 'working') {
+               updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+               toastDescription += " Worker set to 'idle'.";
+            }
+        }
+
+        return { ...prev, factoryProductionLines: updatedProductionLines, factoryProductionProgress: updatedProgress, factoryWorkers: updatedWorkers };
+    });
+
+    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+  }, []);
 
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
     let toastTitle = "";
@@ -1921,8 +1938,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return worker;
           });
+          
+          const tempNewFactoryProductionProgress = { ...newFactoryProductionProgress };
 
-        (prev.factoryProductionLines || []).forEach((line) => {
+          (prev.factoryProductionLines || []).forEach((line) => {
             if (!line.isUnlocked) return;
             (line.slots || []).forEach((slot, slotIndex) => {
                 const workerIndex = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === slot.machineInstanceId);
@@ -1944,6 +1963,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 currentMachinePowerDemand *= upgradeDef.effects.powerConsumptionModifier;
                             }
                         });
+                        currentMachinePowerDemand = Math.max(0, currentMachinePowerDemand);
+
 
                         let isBonusCapped = false;
                         const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
@@ -1953,12 +1974,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             if (componentRecipe.effects.globalIncomeBoostPerComponentPercent) {
                                 currentBonusContribution = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
                                 maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
-                            } // Simplified for brevity, other effect types would be here
+                            } // Simplified for brevity
                             if (currentBonusContribution >= maxBonusCap) isBonusCapped = true;
                         }
 
                         const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
-                        let progressData = newFactoryProductionProgress[progressKey] || { remainingSeconds: 0, totalSeconds: 0 };
+                        let currentSlotProgress = tempNewFactoryProductionProgress[progressKey] || { remainingSeconds: 0, totalSeconds: componentRecipe.productionTimeSeconds };
                         
                         let canCraftOneFullInitially = true; 
                         if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) canCraftOneFullInitially = false;
@@ -1966,53 +1987,78 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) { canCraftOneFullInitially = false; break; }
                         }
 
-                        if (powerAvailableForFactoryOperations >= currentMachinePowerDemand && !isBonusCapped) {
-                            if (progressData.remainingSeconds <= 0) { // Start new item or was stalled
-                                if (canCraftOneFullInitially) {
-                                    newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
-                                    for (const input of componentRecipe.recipe) newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
-                                    
-                                    let effectiveProductionTime = componentRecipe.productionTimeSeconds;
+                        const machineIsPoweredAndWorkerCanWork = powerAvailableForFactoryOperations >= currentMachinePowerDemand && workerCanWork && !isBonusCapped;
+
+                        if (currentSlotProgress.remainingSeconds <= 0) { // Item complete or slot ready
+                            if (canCraftOneFullInitially && machineIsPoweredAndWorkerCanWork) {
+                                newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
+                                componentRecipe.recipe.forEach(input => {
+                                    newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
+                                });
+
+                                let effectiveProductionTime = componentRecipe.productionTimeSeconds;
+                                if (machineInstance?.purchasedUpgradeIds && machineConfig.upgrades) {
                                     let totalSpeedMultiplier = 1;
-                                    (machineInstance.purchasedUpgradeIds || []).forEach(upgradeId => {
-                                        const upgradeDef = machineConfig.upgrades?.find(u => u.id === upgradeId);
-                                        if (upgradeDef?.effects.productionSpeedMultiplier) totalSpeedMultiplier *= upgradeDef.effects.productionSpeedMultiplier;
+                                    machineInstance.purchasedUpgradeIds.forEach(uid => {
+                                        const uDef = machineConfig.upgrades!.find(u => u.id === uid);
+                                        if (uDef?.effects?.productionSpeedMultiplier) totalSpeedMultiplier *= uDef.effects.productionSpeedMultiplier;
                                     });
                                     effectiveProductionTime /= totalSpeedMultiplier;
-                                    effectiveProductionTime = Math.max(1, effectiveProductionTime);
-
-                                    progressData = { remainingSeconds: effectiveProductionTime, totalSeconds: effectiveProductionTime };
-                                } else { 
-                                     if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                                }
+                                effectiveProductionTime = Math.max(1, Math.floor(effectiveProductionTime));
+                                
+                                tempNewFactoryProductionProgress[progressKey] = { // Assign new object
+                                    remainingSeconds: effectiveProductionTime -1,
+                                    totalSeconds: effectiveProductionTime
+                                };
+                                powerAvailableForFactoryOperations -= currentMachinePowerDemand;
+                                actualPowerConsumedThisTick += currentMachinePowerDemand;
+                            } else { // Cannot start new item
+                                if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
+                                    updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                                }
+                                // If it was idle or just completed, and can't start next, ensure totalSeconds reflects the recipe time if not already set
+                                if (componentRecipe && (!tempNewFactoryProductionProgress[progressKey] || tempNewFactoryProductionProgress[progressKey].totalSeconds === 0)) {
+                                    tempNewFactoryProductionProgress[progressKey] = {
+                                        remainingSeconds: 0,
+                                        totalSeconds: componentRecipe.productionTimeSeconds // Base time
+                                    };
                                 }
                             }
-
-                            
-                            if (progressData.remainingSeconds > 0 && canCraftOneFullInitially) { 
-                                progressData.remainingSeconds -= 1;
-                                powerAvailableForFactoryOperations -= currentMachinePowerDemand; 
+                        } else { // Item in progress
+                            if (machineIsPoweredAndWorkerCanWork) {
+                                tempNewFactoryProductionProgress[progressKey] = { // Assign new object
+                                    ...currentSlotProgress,
+                                    remainingSeconds: currentSlotProgress.remainingSeconds - 1
+                                };
+                                powerAvailableForFactoryOperations -= currentMachinePowerDemand;
                                 actualPowerConsumedThisTick += currentMachinePowerDemand;
 
-                                if (progressData.remainingSeconds <= 0) {
-                                    newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1;
+                                if (tempNewFactoryProductionProgress[progressKey].remainingSeconds <= 0) {
+                                    newFactoryProducedComponents[slot.targetComponentId!] = (newFactoryProducedComponents[slot.targetComponentId!] || 0) + 1;
                                 }
+                            } else { // Was working, but now no power/worker or bonus capped
+                                if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
+                                    updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                                }
+                                tempNewFactoryProductionProgress[progressKey] = { ...currentSlotProgress }; // Keep current progress, ensure new ref
                             }
-                            newFactoryProductionProgress[progressKey] = progressData;
-
-                        } else { 
-                            if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                         }
-                    } else { 
-                        if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                    } else { // Machine/recipe issue or worker cannot work
+                        if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
+                           updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                        }
                     }
-                } else if (workerIndex !== -1 && slot.targetComponentId && updatedWorkers[workerIndex].status === 'working' && updatedWorkers[workerIndex].energy <= 0) {
-                    updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'resting' };
-                } else if (workerIndex !== -1 && !slot.targetComponentId && updatedWorkers[workerIndex].status === 'working') {
+                } else if (workerIndex !== -1 && slot.targetComponentId && updatedWorkers[workerIndex].status === 'working' && updatedWorkers[workerIndex].energy <= 0) { // Worker ran out of energy mid-task
+                     updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'resting' };
+                } else if (workerIndex !== -1 && !slot.targetComponentId && updatedWorkers[workerIndex].status === 'working') { // Recipe cleared while working
                     updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
                 }
             });
           });
+           newFactoryProductionProgress = tempNewFactoryProductionProgress;
         }
+
 
         const newTotalIncomePerSecondDisplay = currentTotalBusinessIncome + currentDividendIncome;
 
