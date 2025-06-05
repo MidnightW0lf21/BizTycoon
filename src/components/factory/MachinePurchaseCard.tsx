@@ -9,19 +9,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface MachinePurchaseCardProps {
   machineConfig: FactoryMachineConfig;
-  nextMachineCost: number;
+  // nextMachineCost prop removed
   playerMoney: number;
   onPurchase: (configId: string) => void;
 }
 
 export function MachinePurchaseCard({
   machineConfig,
-  nextMachineCost,
+  // nextMachineCost prop removed
   playerMoney,
   onPurchase,
 }: MachinePurchaseCardProps) {
   const Icon = machineConfig.icon;
-  const canAfford = playerMoney >= nextMachineCost;
+  const displayCost = machineConfig.baseCost; // Use baseCost directly
+  const canAfford = playerMoney >= displayCost;
 
   const handlePurchase = () => {
     onPurchase(machineConfig.id);
@@ -47,17 +48,17 @@ export function MachinePurchaseCard({
             </div>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Materials per Unit:</span>
-             <div className="flex items-center gap-1 font-semibold text-blue-400">
-              <Box className="h-4 w-4" /> {machineConfig.rawMaterialCostPerComponent} units
+            <span className="text-muted-foreground">Max Craftable Tier:</span>
+            <div className="flex items-center gap-1 font-semibold text-blue-400">
+               <Info className="h-4 w-4" /> Tier {machineConfig.maxCraftableTier}
             </div>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Cost for Next:</span>
+            <span className="text-muted-foreground">Cost:</span>
             <div className="flex items-center gap-1">
               <DollarSign className="h-4 w-4 text-red-500" />
               <span className="font-semibold text-red-500">
-                ${nextMachineCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                ${displayCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -79,7 +80,7 @@ export function MachinePurchaseCard({
             </TooltipTrigger>
             {!canAfford && (
               <TooltipContent>
-                <p>Requires ${nextMachineCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                <p>Requires ${displayCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
               </TooltipContent>
             )}
              {canAfford && (
@@ -93,3 +94,4 @@ export function MachinePurchaseCard({
     </TooltipProvider>
   );
 }
+
