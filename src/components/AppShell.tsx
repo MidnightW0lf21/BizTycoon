@@ -50,16 +50,9 @@ const navItems: NavItem[] = [
 ];
 
 function AppLogo() {
-  const { playerStats, businesses } = useGame();
+  const { playerStats, businesses } = useGame(); // AppLogo now directly uses useGame
 
-  const [prestigeProgress, setPrestigeProgress] = useState({
-    percentage: 0,
-    levelsAchieved: 0,
-    levelsForNext: 0,
-    newlyGainedPoints: 0,
-  });
-
-  useEffect(() => {
+  const prestigeProgress = useMemo(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
     
     const potentialTotalPointsIfPrestigedNow = calculateDiminishingPrestigePoints(currentTotalLevels);
@@ -83,13 +76,13 @@ function AppLogo() {
       calculatedNewlyGainedPoints = Math.max(0, potentialTotalPointsIfPrestigedNow - playerStats.prestigePoints);
     }
 
-    setPrestigeProgress({
+    return {
       percentage: percentage,
       levelsAchieved: levelsAchievedForTarget,
       levelsForNext: costForTargetPoint === Infinity ? 0 : costForTargetPoint,
       newlyGainedPoints: calculatedNewlyGainedPoints,
-    });
-  }, [playerStats, businesses]);
+    };
+  }, [playerStats.money, playerStats.timesPrestiged, playerStats.prestigePoints, businesses]);
 
   return (
     <div className="flex flex-col p-4 border-b border-border gap-3">
@@ -393,6 +386,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     
 
+
+    
 
     
 
