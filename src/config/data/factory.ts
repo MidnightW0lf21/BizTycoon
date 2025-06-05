@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill } from 'lucide-react'; // Added Drill
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -63,6 +63,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
       globalIncomeBoostPerComponentPercent: 0.005,
     }
   }
+  // TODO: Add Tier 3, 4, 5 components later
 ];
 
 export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
@@ -81,14 +82,50 @@ export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   {
     id: 'basic_assembler_mk2',
     name: 'Basic Assembler Mk2',
-    icon: Drill, // Using a different icon for Mk2
+    icon: Drill,
     description: 'An upgraded assembler capable of crafting Tier 1 and Tier 2 components more efficiently.',
     baseCost: 250000,
     powerConsumptionKw: 75,
     maxCraftableTier: 2,
-    requiredResearchId: 'unlock_basic_assembler_mk2', // Needs new research
+    requiredResearchId: 'unlock_basic_assembler_mk2',
     familyId: 'basic_assembler',
     mark: 2,
+  },
+  {
+    id: 'basic_assembler_mk3',
+    name: 'Basic Assembler Mk3',
+    icon: Settings, // Re-using Settings icon, Cog is for Advanced Gear component
+    description: 'An advanced assembler for Tier 3 components, with improved speed and efficiency.',
+    baseCost: 750000,
+    powerConsumptionKw: 100,
+    maxCraftableTier: 3,
+    requiredResearchId: 'unlock_basic_assembler_mk3',
+    familyId: 'basic_assembler',
+    mark: 3,
+  },
+  {
+    id: 'basic_assembler_mk4',
+    name: 'Basic Assembler Mk4',
+    icon: HardHat,
+    description: 'A heavy-duty assembler designed for complex Tier 4 component manufacturing.',
+    baseCost: 2000000,
+    powerConsumptionKw: 125,
+    maxCraftableTier: 4,
+    requiredResearchId: 'unlock_basic_assembler_mk4',
+    familyId: 'basic_assembler',
+    mark: 4,
+  },
+  {
+    id: 'basic_assembler_mk5',
+    name: 'Basic Assembler Mk5',
+    icon: FactoryIcon,
+    description: 'The pinnacle of basic assembly technology, capable of crafting up to Tier 5 components.',
+    baseCost: 5000000,
+    powerConsumptionKw: 150,
+    maxCraftableTier: 5,
+    requiredResearchId: 'unlock_basic_assembler_mk5',
+    familyId: 'basic_assembler',
+    mark: 5,
   }
 ];
 

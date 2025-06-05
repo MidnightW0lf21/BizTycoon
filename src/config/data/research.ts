@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid } from 'lucide-react'; // Added PackagePlus, SlidersHorizontal, LayoutGrid
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   {
@@ -21,6 +21,36 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     costMoney: 150000,
     dependencies: ['unlock_basic_assembler_mk1'],
     effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk2'] }
+  },
+  {
+    id: 'unlock_basic_assembler_mk3',
+    name: 'Advanced Assembly Processes',
+    description: 'Unlocks the Basic Assembler Mk3 for Tier 3 component production.',
+    icon: Settings,
+    costRP: 100,
+    costMoney: 500000,
+    dependencies: ['unlock_basic_assembler_mk2'],
+    effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk3'] }
+  },
+  {
+    id: 'unlock_basic_assembler_mk4',
+    name: 'Modular Manufacturing Systems',
+    description: 'Unlocks the Basic Assembler Mk4, enabling Tier 4 component manufacturing.',
+    icon: HardHat,
+    costRP: 250,
+    costMoney: 1500000,
+    dependencies: ['unlock_basic_assembler_mk3'],
+    effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk4'] }
+  },
+  {
+    id: 'unlock_basic_assembler_mk5',
+    name: 'Automated Production Matrix',
+    description: 'Unlocks the Basic Assembler Mk5, the apex of basic assembly for Tier 5 components.',
+    icon: FactoryIcon,
+    costRP: 500,
+    costMoney: 4000000,
+    dependencies: ['unlock_basic_assembler_mk4'],
+    effects: { unlocksFactoryMachineConfigIds: ['basic_assembler_mk5'] }
   },
   {
     id: 'unlock_prod_line_2',
@@ -49,7 +79,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 250,
     costMoney: 1200000,
-    dependencies: ['unlock_prod_line_3'],
+    dependencies: ['unlock_prod_line_3', 'unlock_basic_assembler_mk3'], // Added Mk3 dependency
     effects: { unlocksProductionLineId: 'line_4' }
   },
   {
@@ -59,7 +89,7 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     icon: LayoutGrid,
     costRP: 500,
     costMoney: 3000000,
-    dependencies: ['unlock_prod_line_4'],
+    dependencies: ['unlock_prod_line_4', 'unlock_basic_assembler_mk4'], // Added Mk4 dependency
     effects: { unlocksProductionLineId: 'line_5' }
   }
 ];

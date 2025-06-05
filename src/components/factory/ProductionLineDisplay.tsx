@@ -108,6 +108,11 @@ export function ProductionLineDisplay({
           const ComponentIcon = componentConfig?.icon || PlusCircle;
           const workerEnergyPercent = worker ? (worker.energy / MAX_WORKER_ENERGY) * 100 : 0;
 
+          let displayName = machineConfig?.name || "Machine";
+          if (machineConfig?.familyId === 'basic_assembler' && machineConfig.mark) {
+            displayName = `Mk ${machineConfig.mark}`;
+          }
+
           let slotTooltipContent = "Empty slot. Machines will be auto-assigned here.";
           let workerTooltip = "";
           if (worker) {
@@ -151,14 +156,15 @@ export function ProductionLineDisplay({
                                     worker.status === 'working' && workerEnergyPercent > 20 && 'bg-green-500',
                                     worker.status === 'working' && workerEnergyPercent <= 20 && 'bg-orange-500',
                                     worker.status === 'resting' && 'bg-blue-500',
-                                    worker.status === 'idle' && 'bg-yellow-500',
+                                    worker.status === 'idle' && workerEnergyPercent === 100 && 'bg-slate-400',
+                                    worker.status === 'idle' && workerEnergyPercent < 100 && 'bg-yellow-500'
                                 )}
                             />
                           </div>
                         )}
                         <MachineIcon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 mt-2", componentConfig ? "text-green-500" : "text-primary")} />
                         <p className="text-[9px] sm:text-[10px] font-medium truncate w-full leading-tight" title={machineConfig.name}>
-                          {machineConfig.name}
+                          {displayName}
                         </p>
                         {componentConfig ? (
                           <div className="flex items-center justify-center gap-1 mt-0">
