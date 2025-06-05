@@ -137,25 +137,28 @@ export interface FactoryMachineConfig {
   powerConsumptionKw: number;
   maxCraftableTier: number;
   requiredResearchId?: string;
-  familyId?: string; 
-  mark?: number;     
+  familyId?: string;
+  mark?: number;
 }
 
 export interface FactoryMachine {
   instanceId: string;
   configId: string;
-  assignedProductionLineId: string | null; 
+  assignedProductionLineId: string | null;
 }
 
 export interface FactoryProductionLineSlot {
   machineInstanceId: string | null;
-  targetComponentId: string | null; 
+  targetComponentId: string | null;
 }
 
 export interface FactoryProductionLine {
   id: string;
   name: string;
   slots: FactoryProductionLineSlot[];
+  isUnlocked: boolean;
+  unlockCost?: number; // For line 1
+  requiredResearchId?: string; // For lines 2-5
 }
 
 export interface FactoryMaterialCollectorConfig {
@@ -182,8 +185,14 @@ export interface Worker {
   id: string;
   name: string;
   assignedMachineInstanceId: string | null;
-  energy: number; 
+  energy: number;
   status: WorkerStatus;
+}
+
+export interface ResearchItemEffects {
+  unlocksFactoryMachineConfigIds?: string[];
+  unlocksFactoryComponentConfigIds?: string[];
+  unlocksProductionLineId?: string;
 }
 
 export interface ResearchItemConfig {
@@ -193,12 +202,8 @@ export interface ResearchItemConfig {
   icon: LucideIcon;
   costRP: number;
   costMoney?: number;
-  requiredPrestigeLevelForHQ?: number; 
   dependencies?: string[];
-  effects: {
-    unlocksFactoryMachineConfigIds?: string[];
-    unlocksFactoryComponentConfigIds?: string[];
-  };
+  effects: ResearchItemEffects;
 }
 
 export interface PlayerStats {
@@ -217,7 +222,7 @@ export interface PlayerStats {
 
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
-  factoryPowerConsumptionKw: number; 
+  factoryPowerConsumptionKw: number;
   factoryRawMaterials: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
@@ -229,7 +234,7 @@ export interface PlayerStats {
 
   researchPoints: number;
   unlockedResearchIds: string[];
-  lastManualResearchTimestamp: number; 
+  lastManualResearchTimestamp: number;
 }
 
 export interface SaveData {

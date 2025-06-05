@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, UnlockIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -43,6 +43,7 @@ export default function MyFactoryPage() {
     manualResearchCooldownEnd,
     hireWorker,
     assignWorkerToMachine,
+    unlockProductionLine,
   } = useGame();
 
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
@@ -106,7 +107,7 @@ export default function MyFactoryPage() {
   const [currentDialogContext, setCurrentDialogContext] = useState<{
     productionLineId: string;
     slotIndex: number;
-    assignedMachineInstanceId: string | null; // Machine instance ID in the slot
+    assignedMachineInstanceId: string | null;
     currentRecipeId: string | null;
     currentAssignedWorkerId: string | null;
   } | null>(null);
@@ -246,7 +247,7 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
   const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
-  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length; 
+  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length;
   const totalWorkerCount = (playerStats.factoryWorkers || []).length;
 
   const getWorkerStatusBadgeVariant = (status: Worker['status']) => {
@@ -259,7 +260,7 @@ export default function MyFactoryPage() {
   };
 
   const formatEnergyTime = (energy: number) => {
-    const totalSeconds = energy; 
+    const totalSeconds = energy;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
@@ -392,7 +393,7 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Build Assemblers</CardTitle>
-                <CardDescription>Construct assemblers to place in your production lines. Assemblers are auto-assigned. Each Mark can craft up to its corresponding Tier. Some assemblers require research.</CardDescription>
+                <CardDescription>Construct assemblers to place in your production lines. Higher Mark assemblers may replace lower Mark ones in active slots if available. Each Mark can craft up to its corresponding Tier. Some assemblers require research.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {INITIAL_FACTORY_MACHINE_CONFIGS.map(config => {
@@ -415,19 +416,25 @@ export default function MyFactoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Production Lines</CardTitle>
-                <CardDescription>Machines are auto-assigned to empty slots. Click a machine to set or change its recipe. Production starts if power, materials, a worker, and input components are sufficient.</CardDescription>
+                <CardDescription>Assign machines to empty slots, or they will be auto-assigned if you build a higher Mark machine. Click a machine to set its recipe and assign a worker. Production starts if power, materials, a worker, and input components are sufficient.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(playerStats.factoryProductionLines || []).map((line, index) => (
-                  <ProductionLineDisplay
-                    key={line.id}
-                    productionLine={line}
-                    allMachines={playerStats.factoryMachines || []}
-                    allWorkers={playerStats.factoryWorkers || []}
-                    lineIndex={index}
-                    onOpenRecipeDialog={handleOpenRecipeDialog}
-                  />
-                ))}
+                {(playerStats.factoryProductionLines || []).map((line, index) => {
+                  const researchForLine = line.requiredResearchId ? researchItems.find(r => r.id === line.requiredResearchId) : null;
+                  return (
+                    <ProductionLineDisplay
+                      key={line.id}
+                      productionLine={line}
+                      allMachines={playerStats.factoryMachines || []}
+                      allWorkers={playerStats.factoryWorkers || []}
+                      lineIndex={index}
+                      onOpenRecipeDialog={handleOpenRecipeDialog}
+                      onUnlockLine={unlockProductionLine}
+                      playerMoney={playerStats.money}
+                      researchRequiredName={researchForLine?.name}
+                    />
+                  );
+                })}
               </CardContent>
             </Card>
           </ScrollArea>
@@ -463,7 +470,7 @@ export default function MyFactoryPage() {
                           : null;
                         const assignmentText = machineConfig ? machineConfig.name : (worker.status === 'idle' ? 'Idle' : (worker.status === 'resting' ? 'Resting' : 'Unassigned'));
                         const energyPercent = (worker.energy / MAX_WORKER_ENERGY) * 100;
-                        
+
                         return (
                           <TableRow key={worker.id}>
                             <TableCell className="font-medium">{worker.name}</TableCell>
@@ -474,9 +481,9 @@ export default function MyFactoryPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Progress 
-                                  value={energyPercent} 
-                                  className="h-2 w-24" 
+                                <Progress
+                                  value={energyPercent}
+                                  className="h-2 w-24"
                                   indicatorClassName={cn(
                                       worker.status === 'working' && energyPercent > 20 && 'bg-green-500',
                                       worker.status === 'working' && energyPercent <= 20 && 'bg-orange-500',
@@ -529,7 +536,7 @@ export default function MyFactoryPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Available Research Projects</CardTitle>
-                  <CardDescription>Unlock new technologies, machines, and components.</CardDescription>
+                  <CardDescription>Unlock new technologies, machines, components, and production lines.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {(researchItems || []).map(config => (
@@ -623,4 +630,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-    

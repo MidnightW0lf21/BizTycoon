@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus } from "@/types";
+import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon } from "lucide-react";
+import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign } from "lucide-react";
 import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, MAX_WORKER_ENERGY } from "@/config/game-config";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +16,9 @@ interface ProductionLineDisplayProps {
   allWorkers: Worker[];
   lineIndex: number;
   onOpenRecipeDialog: (productionLineId: string, slotIndex: number) => void;
+  onUnlockLine: (lineId: string) => void;
+  playerMoney: number;
+  researchRequiredName?: string | null;
 }
 
 const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): string => {
@@ -25,7 +28,16 @@ const getWorkerStatusColor = (status?: WorkerStatus, energyPercent?: number): st
   return 'text-muted-foreground'; // Default or no worker
 };
 
-export function ProductionLineDisplay({ productionLine, allMachines, allWorkers, lineIndex, onOpenRecipeDialog }: ProductionLineDisplayProps) {
+export function ProductionLineDisplay({
+  productionLine,
+  allMachines,
+  allWorkers,
+  lineIndex,
+  onOpenRecipeDialog,
+  onUnlockLine,
+  playerMoney,
+  researchRequiredName,
+}: ProductionLineDisplayProps) {
 
   const getMachineDetails = (instanceId: string | null): FactoryMachineConfig | null => {
     if (!instanceId) return null;
@@ -38,11 +50,45 @@ export function ProductionLineDisplay({ productionLine, allMachines, allWorkers,
     if (!componentId) return null;
     return INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === componentId) || null;
   };
-  
+
   const getWorkerDetails = (machineInstanceId: string | null): Worker | null => {
     if(!machineInstanceId) return null;
     return allWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId) || null;
   };
+
+  if (!productionLine.isUnlocked) {
+    const canAffordUnlock = productionLine.unlockCost ? playerMoney >= productionLine.unlockCost : false;
+    return (
+      <Card className="border-dashed border-muted-foreground/50 shadow-none bg-muted/20">
+        <CardHeader className="pb-2 pt-3 items-center text-center">
+          <LockKeyhole className="h-8 w-8 text-primary mb-1" />
+          <CardTitle className="text-base">{productionLine.name} - Locked</CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 text-center">
+          {productionLine.unlockCost && (
+            <>
+              <p className="text-sm text-muted-foreground mb-2">
+                Cost to unlock: ${productionLine.unlockCost.toLocaleString()}
+              </p>
+              <Button
+                onClick={() => onUnlockLine(productionLine.id)}
+                disabled={!canAffordUnlock}
+                size="sm"
+              >
+                <UnlockIcon className="mr-2 h-4 w-4" /> Unlock Line
+              </Button>
+            </>
+          )}
+          {productionLine.requiredResearchId && (
+            <p className="text-sm text-muted-foreground">
+              Requires "{researchRequiredName || productionLine.requiredResearchId}" research.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
 
   return (
     <Card className="border-border shadow-sm">
@@ -54,7 +100,7 @@ export function ProductionLineDisplay({ productionLine, allMachines, allWorkers,
       </CardHeader>
       <TooltipProvider>
       <CardContent className="grid grid-cols-3 sm:grid-cols-6 gap-2 p-3">
-        {productionLine.slots.map((slot, slotIndex) => {
+        {productionLine.slots.map((slot, slotIdx) => {
           const machineConfig = getMachineDetails(slot.machineInstanceId);
           const componentConfig = getComponentDetails(slot.targetComponentId);
           const worker = getWorkerDetails(slot.machineInstanceId);
@@ -70,28 +116,26 @@ export function ProductionLineDisplay({ productionLine, allMachines, allWorkers,
              workerTooltip = "No worker assigned.";
           }
 
-
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
             slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. ${workerTooltip}`;
           }
 
-
           return (
-            <Tooltip key={slotIndex}>
+            <Tooltip key={slotIdx}>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "aspect-square border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 transition-colors h-auto w-full relative overflow-hidden", // Added relative and overflow-hidden
+                    "aspect-square border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center p-1 text-center bg-muted/20 transition-colors h-auto w-full relative overflow-hidden",
                     "hover:bg-accent hover:text-accent-foreground focus:ring-accent",
                     slot.machineInstanceId && !componentConfig && "border-primary ring-1 ring-primary",
                     componentConfig && "border-green-500 ring-1 ring-green-500"
                   )}
                   onClick={() => {
                     if (slot.machineInstanceId) {
-                      onOpenRecipeDialog(productionLine.id, slotIndex);
+                      onOpenRecipeDialog(productionLine.id, slotIdx);
                     }
                   }}
                   disabled={!slot.machineInstanceId}
@@ -99,10 +143,10 @@ export function ProductionLineDisplay({ productionLine, allMachines, allWorkers,
                   {slot.machineInstanceId && machineConfig ? (
                     <>
                       <div className="relative w-full h-full flex flex-col items-center justify-center">
-                        {worker && ( // Worker Icon and Energy Bar
+                        {worker && (
                           <div className="absolute top-0.5 left-0.5 right-0.5 flex items-center justify-between px-0.5">
                             <User className={cn("h-2.5 w-2.5", getWorkerStatusColor(worker?.status, workerEnergyPercent))} />
-                            <Progress value={workerEnergyPercent} className="h-1 w-1/2 bg-muted-foreground/20" 
+                            <Progress value={workerEnergyPercent} className="h-1 w-1/2 bg-muted-foreground/20"
                                 indicatorClassName={cn(
                                     worker.status === 'working' && workerEnergyPercent > 20 && 'bg-green-500',
                                     worker.status === 'working' && workerEnergyPercent <= 20 && 'bg-orange-500',
@@ -155,5 +199,3 @@ export function ProductionLineDisplay({ productionLine, allMachines, allWorkers,
     </Card>
   );
 }
-
-    
