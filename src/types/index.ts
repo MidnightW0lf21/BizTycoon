@@ -102,13 +102,13 @@ export interface FactoryPowerBuildingConfig {
   costMultiplier: number;
   powerOutputKw: number;
   maxInstances?: number;
+  requiredResearchId?: string;
 }
 
 export interface FactoryPowerBuilding {
   instanceId: string; // Unique ID for this specific building instance
   configId: string;   // ID of the FactoryPowerBuildingConfig
   level: number;      // For future upgrades of individual buildings
-  currentOutputKw: number; // Current output, might change with level or efficiency
 }
 
 export interface FactoryComponentEffects {
@@ -199,6 +199,11 @@ export interface ResearchItemEffects {
     collectorConfigId: string;
     materialsPerSecondBoostPercent: number;
   };
+  unlocksFactoryPowerBuildingConfigIds?: string[];
+  factoryPowerBuildingBoost?: {
+    buildingConfigId: string;
+    powerOutputBoostPercent: number;
+  };
 }
 
 export interface ResearchItemConfig {
@@ -250,3 +255,4 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+

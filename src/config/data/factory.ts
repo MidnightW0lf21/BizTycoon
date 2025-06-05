@@ -10,8 +10,20 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
     description: 'Basic solar panels providing a modest amount of power.',
     baseCost: 50000,
     costMultiplier: 1.2,
-    powerOutputKw: 100,
+    powerOutputKw: 10,
     maxInstances: 20,
+    requiredResearchId: 'unlock_solar_mk1',
+  },
+  {
+    id: 'solar_panels_mk2',
+    name: 'Solar Panel Array Mk2',
+    icon: Sun,
+    description: 'More efficient solar panels for greater power generation. No ownership cap.',
+    baseCost: 200000,
+    costMultiplier: 1.25,
+    powerOutputKw: 50,
+    requiredResearchId: 'unlock_solar_mk2',
+    // No maxInstances means unlimited
   },
   {
     id: 'hydro_dam_small',
@@ -22,6 +34,7 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
     costMultiplier: 1.35,
     powerOutputKw: 750,
     maxInstances: 5,
+    requiredResearchId: 'unlock_hydro_dam_small',
   },
   {
     id: 'diesel_generator_basic',
@@ -31,7 +44,20 @@ export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[
     baseCost: 150000,
     costMultiplier: 1.25,
     powerOutputKw: 500,
+    maxInstances: 10,
+    requiredResearchId: 'unlock_diesel_generator_basic',
   },
+  {
+    id: 'geothermal_plant_mk1',
+    name: 'Geothermal Plant Mk1',
+    icon: TrendingUp, // Placeholder for geothermal heat
+    description: 'Taps into subterranean heat for consistent and powerful energy.',
+    baseCost: 500000,
+    costMultiplier: 1.4,
+    powerOutputKw: 1000,
+    maxInstances: 3,
+    requiredResearchId: 'unlock_geothermal_plant_mk1',
+  }
 ];
 
 export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
@@ -203,3 +229,4 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
     requiredResearchId: 'unlock_nanite_harvester_swarm',
   },
 ];
+

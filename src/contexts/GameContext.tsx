@@ -762,6 +762,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Factory Not Owned";
       toastDescription = "Purchase the factory building first.";
       toastVariant = "destructive";
+    } else if (config.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(config.requiredResearchId)) {
+        const researchItem = researchItemsRef.current.find(r => r.id === config.requiredResearchId);
+        toastTitle = "Research Required";
+        toastDescription = `Building ${config.name} requires '${researchItem?.name || config.requiredResearchId}' research.`;
+        toastVariant = "destructive";
     } else {
       const numOwned = (playerStatsNow.factoryPowerBuildings || []).filter(pb => pb.configId === configId).length;
       if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
@@ -775,13 +780,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toastVariant = "destructive";
         } else {
           setPlayerStats(prev => {
-            const newBuilding: FactoryPowerBuilding = { instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, configId: config.id, level: 1, currentOutputKw: config.powerOutputKw, };
+            const newBuilding: FactoryPowerBuilding = { instanceId: `${configId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, configId: config.id, level: 1 };
             const updatedPowerBuildings = [...(prev.factoryPowerBuildings || []), newBuilding];
-            const newTotalPower = updatedPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
-            return { ...prev, money: prev.money - costForNext, factoryPowerBuildings: updatedPowerBuildings, factoryPowerUnitsGenerated: newTotalPower, };
+            return { ...prev, money: prev.money - costForNext, factoryPowerBuildings: updatedPowerBuildings };
           });
           toastTitle = "Power Building Purchased!";
-          toastDescription = `Built a new ${config.name}.`;
+          toastDescription = `Built a new ${config.name}. Total power will update next tick.`;
         }
       }
     }
@@ -1042,6 +1046,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Factory Not Owned";
       toastDescription = "Purchase the factory building first.";
       toastVariant = "destructive";
+    } else if (config.requiredResearchId && !(playerStatsNow.unlockedResearchIds || []).includes(config.requiredResearchId)) {
+        const researchItem = researchItemsRef.current.find(r => r.id === config.requiredResearchId);
+        toastTitle = "Research Required";
+        toastDescription = `Building ${config.name} requires '${researchItem?.name || config.requiredResearchId}' research.`;
+        toastVariant = "destructive";
     } else {
       const numOwned = (playerStatsNow.factoryMaterialCollectors || []).filter(mc => mc.configId === configId).length;
       if (config.maxInstances !== undefined && numOwned >= config.maxInstances) {
@@ -1255,7 +1264,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (workerId === null) {
         const previouslyAssignedWorker = playerStatsRef.current.factoryWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId);
-         if (previouslyAssignedWorker) { // This check might be redundant if state has already updated
+         if (previouslyAssignedWorker) { 
             toastDescription = `${previouslyAssignedWorker.name} has been unassigned from ${targetMachineName} and is now idle.`;
         } else {
             toastDescription = `${targetMachineName} now has no worker assigned.`;
@@ -1308,7 +1317,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers,
       } = playerStatsNow;
 
-      const retainedFactoryPowerUnitsGenerated = (factoryPowerBuildings || []).reduce((sum, pb) => sum + pb.currentOutputKw, 0);
 
       for (const hqUpgradeId in (playerStatsNow.hqUpgradeLevels || {})) {
           const purchasedLevel = playerStatsNow.hqUpgradeLevels[hqUpgradeId];
@@ -1351,7 +1359,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           stockHoldings: retainedStockHoldings, 
 
           factoryPurchased,
-          factoryPowerUnitsGenerated: retainedFactoryPowerUnitsGenerated,
+          factoryPowerUnitsGenerated: 0, // Will be recalculated based on retained buildings next tick
           factoryPowerConsumptionKw: 0, 
           factoryRawMaterials,
           factoryMachines: newMachinesState,
@@ -1359,7 +1367,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...line,
             isUnlocked: prev.factoryProductionLines[index]?.isUnlocked || false 
           })),
-          factoryPowerBuildings,
+          factoryPowerBuildings, // Retain power buildings
           factoryProducedComponents,
           factoryProductionProgress: {}, 
           factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: MAX_WORKER_ENERGY, assignedMachineInstanceId: null })),
@@ -1506,6 +1514,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const currentFactoryComponentsConfig = INITIAL_FACTORY_COMPONENTS_CONFIG;
       const currentFactoryMachineConfigs = INITIAL_FACTORY_MACHINE_CONFIGS;
       const currentFactoryMaterialCollectorsConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG;
+      const currentFactoryPowerBuildingsConfig = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG;
       const currentResearchItems = researchItemsRef.current;
 
       setPlayerStats(prev => {
@@ -1515,6 +1524,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newFactoryProductionProgress = { ...(prev.factoryProductionProgress || {}) };
         let newFactoryPowerConsumptionKw = 0;
         let updatedWorkers = [...(prev.factoryWorkers || [])];
+        let newFactoryPowerUnitsGenerated = 0;
+
+        (prev.factoryPowerBuildings || []).forEach(pb => {
+            const config = currentFactoryPowerBuildingsConfig.find(c => c.id === pb.configId);
+            if (config) {
+                let output = config.powerOutputKw;
+                const boostResearch = currentResearchItems.find(r => r.effects.factoryPowerBuildingBoost?.buildingConfigId === pb.configId);
+                if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
+                    output *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
+                }
+                newFactoryPowerUnitsGenerated += output;
+            }
+        });
+
 
         const currentTotalBusinessIncome = currentBusinesses.reduce((sum, biz) => {
           const income = localCalculateIncome(biz, prev.unlockedSkillIds, currentSkillTree, prev.hqUpgradeLevels, currentHqUpgrades, prev.factoryProducedComponents || {}, currentFactoryComponentsConfig);
@@ -1577,7 +1600,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
           newFactoryPowerConsumptionKw = tempPowerConsumption;
 
-          const netPower = prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw;
+          const netPower = newFactoryPowerUnitsGenerated - newFactoryPowerConsumptionKw;
 
           if (netPower >= 0) {
             let powerUsedByCollectors = 0;
@@ -1585,7 +1608,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const config = currentFactoryMaterialCollectorsConfig.find(c => c.id === collector.configId);
                 if (config) powerUsedByCollectors += config.powerConsumptionKw;
             });
-            const powerAvailableForCollectors = prev.factoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerUsedByCollectors);
+            const powerAvailableForCollectors = newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerUsedByCollectors);
             let tempPowerForCollectors = powerAvailableForCollectors;
             let actualMaterialsCollectedThisTick = 0;
 
@@ -1616,7 +1639,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
               if (machine && slotWithMachine && slotWithMachine.targetComponentId && netPower >=0 ) {
                 const machineConfigForPower = currentFactoryMachineConfigs.find(mc => mc.id === machine.configId);
-                if (machineConfigForPower && prev.factoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + machineConfigForPower.powerConsumptionKw >= machineConfigForPower.powerConsumptionKw) {
+                if (machineConfigForPower && newFactoryPowerUnitsGenerated - newFactoryPowerConsumptionKw + machineConfigForPower.powerConsumptionKw >= machineConfigForPower.powerConsumptionKw) {
                    const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
                     if (newEnergy === 0) { return { ...worker, energy: newEnergy, status: 'resting' }; }
                     return { ...worker, energy: newEnergy };
@@ -1645,7 +1668,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     if (machine && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
                       const powerNeededForThisMachine = machineConfig.powerConsumptionKw;
-                      const powerAvailableForThisMachineType = prev.factoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerNeededForThisMachine);
+                      const powerAvailableForThisMachineType = newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerNeededForThisMachine);
                       if (powerAvailableForThisMachineType >= powerNeededForThisMachine) {
                           const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                           let currentProgress = newFactoryProductionProgress[progressKey] || 0;
@@ -1686,6 +1709,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           money: newMoney,
           totalIncomePerSecond: newTotalIncomePerSecondDisplay,
           investmentsValue: currentInvestmentsValue,
+          factoryPowerUnitsGenerated: newFactoryPowerUnitsGenerated,
           factoryPowerConsumptionKw: newFactoryPowerConsumptionKw,
           factoryRawMaterials: Math.floor(Math.max(0, newFactoryRawMaterials)),
           factoryProducedComponents: Object.fromEntries(
@@ -1793,3 +1817,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+

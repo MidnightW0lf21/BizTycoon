@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   // Assembler Unlocks
@@ -219,4 +219,107 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['unlock_nanite_harvester_swarm'],
     effects: { factoryMaterialCollectorBoost: { collectorConfigId: 'nanite_harvester_swarm', materialsPerSecondBoostPercent: 50 } }
   },
+
+  // Power Building Unlocks
+  {
+    id: 'unlock_solar_mk1',
+    name: 'Basic Solar Power',
+    description: 'Unlocks Solar Panel Array Mk1 for basic power generation.',
+    icon: Sun,
+    costRP: 15,
+    costMoney: 40000,
+    effects: { unlocksFactoryPowerBuildingConfigIds: ['solar_panels_mk1'] }
+  },
+  {
+    id: 'unlock_solar_mk2',
+    name: 'Advanced Solar Tech',
+    description: 'Unlocks the more efficient Solar Panel Array Mk2.',
+    icon: Sun,
+    costRP: 50,
+    costMoney: 180000,
+    dependencies: ['unlock_solar_mk1'],
+    effects: { unlocksFactoryPowerBuildingConfigIds: ['solar_panels_mk2'] }
+  },
+  {
+    id: 'unlock_hydro_dam_small',
+    name: 'Hydroelectric Engineering',
+    description: 'Unlocks the Small Hydro Dam for consistent power.',
+    icon: Waves,
+    costRP: 80,
+    costMoney: 220000,
+    dependencies: ['unlock_solar_mk1'], // Example dependency
+    effects: { unlocksFactoryPowerBuildingConfigIds: ['hydro_dam_small'] }
+  },
+  {
+    id: 'unlock_diesel_generator_basic',
+    name: 'Combustion Power Systems',
+    description: 'Unlocks the Backup Diesel Generator for reliable power.',
+    icon: Zap,
+    costRP: 40,
+    costMoney: 120000,
+    effects: { unlocksFactoryPowerBuildingConfigIds: ['diesel_generator_basic'] }
+  },
+  {
+    id: 'unlock_geothermal_plant_mk1',
+    name: 'Geothermal Energy Extraction',
+    description: 'Unlocks the Geothermal Plant Mk1, tapping into Earth\'s heat.',
+    icon: TrendingUp,
+    costRP: 150,
+    costMoney: 450000,
+    dependencies: ['unlock_hydro_dam_small'], // Example dependency
+    effects: { unlocksFactoryPowerBuildingConfigIds: ['geothermal_plant_mk1'] }
+  },
+
+  // Power Building Boosts (+50%)
+  {
+    id: 'boost_solar_mk1',
+    name: 'Solar Panel Mk1 Calibration',
+    description: 'Increases Solar Panel Mk1 power output by 50%.',
+    icon: Sun,
+    costRP: 30,
+    costMoney: 80000,
+    dependencies: ['unlock_solar_mk1'],
+    effects: { factoryPowerBuildingBoost: { buildingConfigId: 'solar_panels_mk1', powerOutputBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_solar_mk2',
+    name: 'Solar Panel Mk2 Enhancement',
+    description: 'Increases Solar Panel Mk2 power output by 50%.',
+    icon: Sun,
+    costRP: 75,
+    costMoney: 250000,
+    dependencies: ['unlock_solar_mk2'],
+    effects: { factoryPowerBuildingBoost: { buildingConfigId: 'solar_panels_mk2', powerOutputBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_hydro_dam_small',
+    name: 'Hydro Dam Turbine Upgrade',
+    description: 'Increases Small Hydro Dam power output by 50%.',
+    icon: Waves,
+    costRP: 120,
+    costMoney: 300000,
+    dependencies: ['unlock_hydro_dam_small'],
+    effects: { factoryPowerBuildingBoost: { buildingConfigId: 'hydro_dam_small', powerOutputBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_diesel_generator_basic',
+    name: 'Diesel Generator Overclock',
+    description: 'Increases Backup Diesel Generator power output by 50%.',
+    icon: Zap,
+    costRP: 60,
+    costMoney: 200000,
+    dependencies: ['unlock_diesel_generator_basic'],
+    effects: { factoryPowerBuildingBoost: { buildingConfigId: 'diesel_generator_basic', powerOutputBoostPercent: 50 } }
+  },
+  {
+    id: 'boost_geothermal_plant_mk1',
+    name: 'Geothermal Plant Deep Drill',
+    description: 'Increases Geothermal Plant Mk1 power output by 50%.',
+    icon: TrendingUp,
+    costRP: 200,
+    costMoney: 600000,
+    dependencies: ['unlock_geothermal_plant_mk1'],
+    effects: { factoryPowerBuildingBoost: { buildingConfigId: 'geothermal_plant_mk1', powerOutputBoostPercent: 50 } }
+  },
 ];
+
