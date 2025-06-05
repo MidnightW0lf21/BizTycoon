@@ -1,11 +1,12 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
 import { INITIAL_HQ_UPGRADES } from './data/hq';
 import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from './data/factory';
 import { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
+import { WORKER_HIRE_COST, MAX_WORKER_ENERGY } from './data/workers';
 
 
 export const INITIAL_MONEY = 10;
@@ -14,6 +15,8 @@ export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
 export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
+export const INITIAL_FACTORY_WORKERS: Worker[] = [];
+
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;
 export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
@@ -345,3 +348,4 @@ export {
   INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG
 } from './data/factory';
 export { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
+export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, MAX_WORKER_ENERGY, WORKER_ENERGY_RATE, WORKER_HIRE_COST } from './data/workers';

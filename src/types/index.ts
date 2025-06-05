@@ -136,13 +136,15 @@ export interface FactoryMachineConfig {
   baseCost: number;
   powerConsumptionKw: number;
   maxCraftableTier: number;
-  requiredResearchId?: string; // New: ID of the research item that unlocks this machine
+  requiredResearchId?: string; 
 }
 
 export interface FactoryMachine {
   instanceId: string;
   configId: string;
-  assignedProductionLineId: string | null;
+  assignedProductionLineId: string | null; // The ID of the production line this machine is in
+  // Note: A machine might also need to know its slot index if we want to directly reference it via line+slot.
+  // Or, we find the machine by iterating through production line slots.
 }
 
 export interface FactoryProductionLineSlot {
@@ -174,6 +176,17 @@ export interface FactoryMaterialCollector {
   currentMaterialsPerSecond: number;
 }
 
+export type WorkerStatus = 'idle' | 'working' | 'resting';
+
+export interface Worker {
+  id: string;
+  name: string;
+  assignedMachineInstanceId: string | null;
+  energy: number; // Range: 0 to MAX_WORKER_ENERGY
+  status: WorkerStatus;
+  // lastStatusChangeTimestamp: number; // To track duration for work/rest cycles
+}
+
 export interface ResearchItemConfig {
   id: string;
   name: string;
@@ -203,7 +216,6 @@ export interface PlayerStats {
     purchasedUpgradeIds?: string[];
   }>;
 
-  // Factory Specific Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
   factoryPowerConsumptionKw: number; 
@@ -213,12 +225,12 @@ export interface PlayerStats {
   factoryPowerBuildings: FactoryPowerBuilding[];
   factoryProducedComponents: Record<string, number>;
   factoryMaterialCollectors: FactoryMaterialCollector[];
-  factoryProductionProgress?: Record<string, number>; // Added for progress tracking
+  factoryProductionProgress?: Record<string, number>;
+  factoryWorkers: Worker[]; // Added workers
 
-  // Research Specific Stats
   researchPoints: number;
   unlockedResearchIds: string[];
-  lastManualResearchTimestamp: number;
+  lastManualResearchTimestamp: number; // Used for cooldown of manual RP generation
 }
 
 export interface SaveData {
