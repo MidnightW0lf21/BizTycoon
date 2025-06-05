@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS } from "@/config/game-config";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGame } from "@/contexts/GameContext"; // Import useGame to access playerStats
+import { useMemo } from "react";
 
 
 interface RecipeSelectionDialogProps {
@@ -56,7 +57,7 @@ export function RecipeSelectionDialog({
   purchaseFactoryMachineUpgrade,
   currentDynamicMaxWorkerEnergy,
 }: RecipeSelectionDialogProps) {
-  const { playerStats } = useGame(); // Access playerStats here
+  const { playerStats } = useGame(); 
 
   if (!isOpen || !assignedMachineInstanceId) return null;
 
@@ -92,14 +93,37 @@ export function RecipeSelectionDialog({
 
   const isComponentCapped = (component: FactoryComponent): boolean => {
     const ownedCount = playerStats.factoryProducedComponents?.[component.id] || 0;
-    if (component.effects?.globalIncomeBoostPerComponentPercent && component.effects.maxBonusPercent) {
-        const currentBonus = ownedCount * component.effects.globalIncomeBoostPerComponentPercent;
-        return currentBonus >= component.effects.maxBonusPercent;
+    if (!component.effects) return false; // If no effects, cannot be capped in terms of bonus
+    
+    let currentBonusContribution = 0;
+    let maxBonusCap = Infinity;
+
+    if (component.effects.globalIncomeBoostPerComponentPercent) {
+        currentBonusContribution = ownedCount * component.effects.globalIncomeBoostPerComponentPercent;
+        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
+    } else if (component.effects.businessSpecificIncomeBoostPercent) {
+        currentBonusContribution = ownedCount * component.effects.businessSpecificIncomeBoostPercent.percent;
+        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
+    } else if (component.effects.stockSpecificDividendYieldBoostPercent) {
+        currentBonusContribution = ownedCount * component.effects.stockSpecificDividendYieldBoostPercent.percent;
+        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
+    } else if (component.effects.factoryGlobalPowerOutputBoostPercent) {
+        currentBonusContribution = ownedCount * component.effects.factoryGlobalPowerOutputBoostPercent;
+        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
+    } else if (component.effects.factoryGlobalMaterialCollectionBoostPercent) {
+        currentBonusContribution = ownedCount * component.effects.factoryGlobalMaterialCollectionBoostPercent;
+        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
     }
-    // Add checks for other primary effect types here if needed
-    // For now, if no primary cappable effect is defined, assume not capped for UI purposes
-    return false;
+    // Add other primary effect types here if they become cappable
+
+    return currentBonusContribution >= maxBonusCap;
   };
+
+  const filteredComponentConfigs = useMemo(() => {
+    if (!machineConfig) return [];
+    return allComponentConfigs.filter(component => machineConfig.maxCraftableTier >= component.tier);
+  }, [allComponentConfigs, machineConfig]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -121,84 +145,80 @@ export function RecipeSelectionDialog({
         {machineConfig && machineInstance && (
           <div className="grid md:grid-cols-3 gap-6"> 
             <div className="md:col-span-1"> 
-              <h3 className="text-lg font-semibold mb-2">Select Recipe</h3>
+              <h3 className="text-lg font-semibold mb-2">Select Recipe (Tier {machineConfig.maxCraftableTier} Max)</h3>
               <ScrollArea className="h-[50vh] pr-4 border rounded-md p-2">
-                <div className="grid grid-cols-1 gap-3">
-                  {allComponentConfigs.map((component) => {
-                    const canCraftTier = machineConfig.maxCraftableTier >= component.tier;
-                    const isCurrentlyCraftingThis = currentRecipeId === component.id;
-                    const Icon = component.icon;
-                    const capped = isComponentCapped(component);
-                    const canSelect = canCraftTier && !capped;
+                {filteredComponentConfigs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No craftable recipes for this machine's tier.</p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                    {filteredComponentConfigs.map((component) => {
+                        const isCurrentlyCraftingThis = currentRecipeId === component.id;
+                        const Icon = component.icon;
+                        const capped = isComponentCapped(component);
+                        const canSelect = !capped; // Tier check is already done by filter
 
-                    return (
-                      <Card
-                        key={component.id}
-                        className={cn(
-                          "hover:shadow-md",
-                          isCurrentlyCraftingThis ? "border-primary ring-2 ring-primary shadow-lg" : "border-border",
-                          !canSelect && "bg-muted/50 opacity-70",
-                          canSelect && "cursor-pointer"
-                        )}
-                        onClick={() => canSelect && handleSelectRecipe(component.id)}
-                      >
-                        <CardHeader className="pb-1 pt-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              <Icon className="h-5 w-5 text-primary" />
-                              {component.name}
-                            </CardTitle>
-                            <Badge variant={isCurrentlyCraftingThis ? "default" : (canCraftTier ? (capped ? "destructive" : "outline") : "secondary")} className={!canCraftTier && !isCurrentlyCraftingThis ? "bg-destructive text-destructive-foreground" : ""}>
-                              Tier {component.tier}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="text-xs space-y-1 pt-1 pb-2">
-                           <div className="flex justify-between text-muted-foreground">
-                            <span>Raw Materials: <Box className="inline h-3 w-3 mr-1"/>{component.rawMaterialCost}</span>
-                            <span>Time: {component.productionTimeSeconds}s</span>
-                          </div>
-                          {component.recipe.length > 0 && (
-                            <div>
-                              <p className="font-medium text-xs text-muted-foreground mb-0.5">Inputs:</p>
-                              <ul className="list-none pl-0 space-y-0.5 text-muted-foreground">
-                                {component.recipe.map(input => {
-                                  const inputCompConfig = allComponentConfigs.find(c => c.id === input.componentId);
-                                  const InputIcon = inputCompConfig?.icon || Settings;
-                                  return (
-                                    <li key={input.componentId} className="flex items-center text-xs">
-                                      <InputIcon className="h-3 w-3 mr-1"/>
-                                      {input.quantity}x {inputCompConfig?.name || input.componentId}
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          )}
-                        </CardContent>
-                         {isCurrentlyCraftingThis && (
-                            <div className="p-2 pt-0 text-center">
-                                <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">Currently Crafting</Badge>
-                            </div>
-                        )}
-                        {capped && !isCurrentlyCraftingThis && (
-                            <CardFooter className="p-2 pt-0 text-center">
-                                <Badge variant="destructive" className="w-full justify-center">
-                                  <PackageX className="mr-1 h-3 w-3"/> Max Bonus Reached
+                        return (
+                        <Card
+                            key={component.id}
+                            className={cn(
+                            "hover:shadow-md",
+                            isCurrentlyCraftingThis ? "border-primary ring-2 ring-primary shadow-lg" : "border-border",
+                            !canSelect && "bg-muted/50 opacity-70",
+                            canSelect && "cursor-pointer"
+                            )}
+                            onClick={() => canSelect && handleSelectRecipe(component.id)}
+                        >
+                            <CardHeader className="pb-1 pt-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                <Icon className="h-5 w-5 text-primary" />
+                                {component.name}
+                                </CardTitle>
+                                <Badge variant={isCurrentlyCraftingThis ? "default" : (capped ? "destructive" : "outline")} className={isCurrentlyCraftingThis ? "" : ""}>
+                                Tier {component.tier}
                                 </Badge>
-                            </CardFooter>
-                        )}
-                        {!canCraftTier && (
-                             <CardFooter className="p-2 pt-0 text-center">
-                                <Badge variant="secondary" className="w-full justify-center bg-destructive/80 text-destructive-foreground">
-                                  <LockKeyhole className="mr-1 h-3 w-3"/> Tier Too High
-                                </Badge>
-                            </CardFooter>
-                        )}
-                      </Card>
-                    );
-                  })}
-                </div>
+                            </div>
+                            </CardHeader>
+                            <CardContent className="text-xs space-y-1 pt-1 pb-2">
+                            <div className="flex justify-between text-muted-foreground">
+                                <span>Raw Materials: <Box className="inline h-3 w-3 mr-1"/>{component.rawMaterialCost}</span>
+                                <span>Time: {component.productionTimeSeconds}s</span>
+                            </div>
+                            {component.recipe.length > 0 && (
+                                <div>
+                                <p className="font-medium text-xs text-muted-foreground mb-0.5">Inputs:</p>
+                                <ul className="list-none pl-0 space-y-0.5 text-muted-foreground">
+                                    {component.recipe.map(input => {
+                                    const inputCompConfig = allComponentConfigs.find(c => c.id === input.componentId);
+                                    const InputIcon = inputCompConfig?.icon || Settings;
+                                    return (
+                                        <li key={input.componentId} className="flex items-center text-xs">
+                                        <InputIcon className="h-3 w-3 mr-1"/>
+                                        {input.quantity}x {inputCompConfig?.name || input.componentId}
+                                        </li>
+                                    );
+                                    })}
+                                </ul>
+                                </div>
+                            )}
+                            </CardContent>
+                            {isCurrentlyCraftingThis && (
+                                <div className="p-2 pt-0 text-center">
+                                    <Badge variant="secondary" className="bg-green-500/20 text-green-700 dark:text-green-400">Currently Crafting</Badge>
+                                </div>
+                            )}
+                            {capped && !isCurrentlyCraftingThis && (
+                                <CardFooter className="p-2 pt-0 text-center">
+                                    <Badge variant="destructive" className="w-full justify-center">
+                                    <PackageX className="mr-1 h-3 w-3"/> Max Bonus Reached
+                                    </Badge>
+                                </CardFooter>
+                            )}
+                        </Card>
+                        );
+                    })}
+                    </div>
+                )}
               </ScrollArea>
             </div>
             
@@ -341,3 +361,4 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
+
