@@ -135,8 +135,8 @@ const getInitialPlayerStats = (): PlayerStats => {
     ],
     factoryPowerBuildings: [],
     factoryProducedComponents: {},
-    factoryMaterialCollectors: [],
     factoryProductionProgress: {},
+    factoryMaterialCollectors: [],
     factoryWorkers: [...INITIAL_FACTORY_WORKERS],
     researchPoints: INITIAL_RESEARCH_POINTS,
     unlockedResearchIds: [...INITIAL_UNLOCKED_RESEARCH_IDS],
@@ -267,15 +267,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
       }
     }
+
+    let componentGlobalIncomeBoost = 0;
+    let componentBusinessSpecificIncomeBoost = 0;
+
     for (const componentId in currentProducedFactoryComponents) {
-      const count = currentProducedFactoryComponents[componentId];
-      if (count > 0) {
-        const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
-        if (componentConfig && componentConfig.effects?.globalIncomeBoostPerComponentPercent) {
-          totalGlobalIncomeBoost += count * componentConfig.effects.globalIncomeBoostPerComponentPercent;
+        const count = currentProducedFactoryComponents[componentId];
+        if (count > 0) {
+            const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
+            if (componentConfig?.effects) {
+                if (componentConfig.effects.globalIncomeBoostPerComponentPercent) {
+                    const potentialBoost = count * componentConfig.effects.globalIncomeBoostPerComponentPercent;
+                    componentGlobalIncomeBoost += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                }
+                if (componentConfig.effects.businessSpecificIncomeBoostPercent && componentConfig.effects.businessSpecificIncomeBoostPercent.businessId === business.id) {
+                    const potentialBoost = count * componentConfig.effects.businessSpecificIncomeBoostPercent.percent;
+                    componentBusinessSpecificIncomeBoost += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                }
+            }
         }
-      }
     }
+    totalGlobalIncomeBoost += componentGlobalIncomeBoost;
+    businessSpecificBoost += componentBusinessSpecificIncomeBoost;
+
+
     if (totalGlobalIncomeBoost > 0) { currentIncome *= (1 + totalGlobalIncomeBoost / 100); }
     if (businessSpecificBoost > 0) { currentIncome *= (1 + businessSpecificBoost / 100); }
     return currentIncome;
@@ -292,21 +307,72 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!business) return 0;
     const currentDynamicMaxLevel = getDynamicMaxBusinessLevel();
     if (business.level >= currentDynamicMaxLevel) return Infinity;
-    return calculateSingleLevelUpgradeCost( business.level, business.baseCost, business.upgradeCostMultiplier, business.upgrades, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, business.id, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current );
+
+    let totalCostReductionFromComponents = 0;
+    for (const componentId in playerStatsRef.current.factoryProducedComponents) {
+        const count = playerStatsRef.current.factoryProducedComponents[componentId];
+        if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
+                const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
+                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+            }
+        }
+    }
+    
+    let baseCalculatedCost = calculateSingleLevelUpgradeCost( business.level, business.baseCost, business.upgradeCostMultiplier, business.upgrades, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, business.id, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current );
+    if (totalCostReductionFromComponents > 0) {
+        baseCalculatedCost *= (1 - totalCostReductionFromComponents / 100);
+    }
+    return Math.max(1, Math.floor(baseCalculatedCost));
+
   }, [getDynamicMaxBusinessLevel]);
 
   const calculateCostForNLevelsForDisplay = useCallback((businessId: string, levelsToBuy: number) => {
     const business = businessesRef.current.find(b => b.id === businessId);
     if (!business) return { totalCost: Infinity, levelsPurchasable: 0 };
     const dynamicMax = getDynamicMaxBusinessLevel();
-    return calculateCostForNLevels(business, levelsToBuy, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
+    
+    let totalCostReductionFromComponents = 0;
+    for (const componentId in playerStatsRef.current.factoryProducedComponents) {
+        const count = playerStatsRef.current.factoryProducedComponents[componentId];
+        if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
+                const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
+                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+            }
+        }
+    }
+
+    const modifiedBusiness = {
+        ...business,
+        baseCost: totalCostReductionFromComponents > 0 ? business.baseCost * (1 - totalCostReductionFromComponents / 100) : business.baseCost
+    };
+    return calculateCostForNLevels(modifiedBusiness, levelsToBuy, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
   }, [getDynamicMaxBusinessLevel]);
 
   const calculateMaxAffordableLevelsForDisplay = useCallback((businessId: string) => {
     const business = businessesRef.current.find(b => b.id === businessId);
     if (!business) return { levelsToBuy: 0, totalCost: 0 };
     const dynamicMax = getDynamicMaxBusinessLevel();
-    return calculateMaxAffordableLevels(business, playerStatsRef.current.money, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
+
+    let totalCostReductionFromComponents = 0;
+    for (const componentId in playerStatsRef.current.factoryProducedComponents) {
+        const count = playerStatsRef.current.factoryProducedComponents[componentId];
+        if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
+                const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
+                totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+            }
+        }
+    }
+    const modifiedBusiness = {
+        ...business,
+        baseCost: totalCostReductionFromComponents > 0 ? business.baseCost * (1 - totalCostReductionFromComponents / 100) : business.baseCost
+    };
+    return calculateMaxAffordableLevels(modifiedBusiness, playerStatsRef.current.money, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
   }, [getDynamicMaxBusinessLevel]);
 
   const saveStateToLocalStorage = useCallback(() => {
@@ -367,8 +433,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
         unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
-        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
-        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -458,15 +524,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toastVariant = "destructive";
         } else {
           let actualCost = upgrade.cost;
-          let globalUpgradeCostReduction = 0;
+          
+          // Apply global skill-based cost reduction
+          let globalSkillUpgradeCostReduction = 0;
           (playerStatsNow.unlockedSkillIds || []).forEach(skillId => {
               const skill = skillTreeRef.current.find(s => s.id === skillId);
-              if (skill && skill.effects && skill.effects.globalBusinessUpgradeCostReductionPercent) { globalUpgradeCostReduction += skill.effects.globalBusinessUpgradeCostReductionPercent; }
+              if (skill && skill.effects && skill.effects.globalBusinessUpgradeCostReductionPercent) { 
+                globalSkillUpgradeCostReduction += skill.effects.globalBusinessUpgradeCostReductionPercent; 
+              }
           });
-          if (globalUpgradeCostReduction > 0) {
-              actualCost *= (1 - globalUpgradeCostReduction / 100);
-              actualCost = Math.max(0, Math.floor(actualCost));
+          if (globalSkillUpgradeCostReduction > 0) {
+              actualCost *= (1 - globalSkillUpgradeCostReduction / 100);
           }
+
+          // Apply component-based cost reduction
+          let totalComponentUpgradeCostReduction = 0;
+          for (const componentId in playerStatsNow.factoryProducedComponents) {
+              const count = playerStatsNow.factoryProducedComponents[componentId];
+              if (count > 0) {
+                  const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+                  if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent && componentConfig.effects.businessSpecificUpgradeCostReductionPercent.businessId === businessId) {
+                      const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
+                      totalComponentUpgradeCostReduction += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                  }
+              }
+          }
+          if (totalComponentUpgradeCostReduction > 0) {
+              actualCost *= (1 - totalComponentUpgradeCostReduction / 100);
+          }
+          
+          actualCost = Math.max(0, Math.floor(actualCost));
+
 
           if (playerStatsNow.money < actualCost) {
             toastTitle = "Not Enough Money";
@@ -525,7 +613,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toastTitle = "Max Level Reached!";
           toastDescription = `${businessToUpdate.name} is already at the maximum level (${currentDynamicMaxLevel}).`;
         } else {
-          const { totalCost, levelsPurchasable } = calculateCostForNLevels( businessToUpdate, levelsToAttempt, playerStatsNow.unlockedSkillIds, skillTreeRef.current, currentDynamicMaxLevel, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current );
+            let totalCostReductionFromComponents = 0;
+            for (const componentId in playerStatsNow.factoryProducedComponents) {
+                const count = playerStatsNow.factoryProducedComponents[componentId];
+                if (count > 0) {
+                    const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+                    if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
+                        const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
+                        totalCostReductionFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                    }
+                }
+            }
+            const modifiedBusinessForCalc = {
+                ...businessToUpdate,
+                baseCost: totalCostReductionFromComponents > 0 ? businessToUpdate.baseCost * (1 - totalCostReductionFromComponents / 100) : businessToUpdate.baseCost
+            };
+
+          const { totalCost, levelsPurchasable } = calculateCostForNLevels( modifiedBusinessForCalc, levelsToAttempt, playerStatsNow.unlockedSkillIds, skillTreeRef.current, currentDynamicMaxLevel, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current );
 
           if (levelsPurchasable === 0) {
             toastTitle = "Cannot level up";
@@ -1643,6 +1747,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let updatedWorkers = [...(prev.factoryWorkers || [])];
         let newFactoryPowerUnitsGenerated = 0;
 
+        // Calculate Base Power Generation (before component boosts)
         (prev.factoryPowerBuildings || []).forEach(pb => {
             const config = currentFactoryPowerBuildingsConfig.find(c => c.id === pb.configId);
             if (config) {
@@ -1655,6 +1760,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         });
 
+        // Apply Factory Component Boost to Power Generation
+        let totalFactoryPowerBoostPercent = 0;
+        for (const componentId in prev.factoryProducedComponents) {
+            const count = prev.factoryProducedComponents[componentId];
+            if (count > 0) {
+                const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
+                if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
+                    const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
+                    totalFactoryPowerBoostPercent += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                }
+            }
+        }
+        if (totalFactoryPowerBoostPercent > 0) {
+            newFactoryPowerUnitsGenerated *= (1 + totalFactoryPowerBoostPercent / 100);
+        }
+        newFactoryPowerUnitsGenerated = Math.floor(newFactoryPowerUnitsGenerated);
+
 
         const currentTotalBusinessIncome = currentBusinesses.reduce((sum, biz) => {
           const income = localCalculateIncome(biz, prev.unlockedSkillIds, currentSkillTree, prev.hqUpgradeLevels, currentHqUpgrades, prev.factoryProducedComponents || {}, currentFactoryComponentsConfig);
@@ -1663,10 +1785,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         newMoney += currentTotalBusinessIncome;
 
         let currentDividendIncome = 0;
-        let globalDividendBoost = 0;
+        let globalDividendBoostFromSkillsAndHQ = 0;
         prev.unlockedSkillIds.forEach(skillId => {
           const skill = currentSkillTree.find(s => s.id === skillId);
-          if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) { globalDividendBoost += skill.effects.globalDividendYieldBoostPercent; }
+          if (skill && skill.effects && skill.effects.globalDividendYieldBoostPercent) { globalDividendBoostFromSkillsAndHQ += skill.effects.globalDividendYieldBoostPercent; }
         });
         for (const hqId in prev.hqUpgradeLevels) {
           const purchasedLevel = prev.hqUpgradeLevels[hqId];
@@ -1674,18 +1796,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const hqUpgrade = currentHqUpgrades.find(h => h.id === hqId);
             if (hqUpgrade && hqUpgrade.levels) {
               const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-              if (levelData && levelData.effects.globalDividendYieldBoostPercent) { globalDividendBoost += levelData.effects.globalDividendYieldBoostPercent; }
+              if (levelData && levelData.effects.globalDividendYieldBoostPercent) { globalDividendBoostFromSkillsAndHQ += levelData.effects.globalDividendYieldBoostPercent; }
             }
           }
         }
         for (const holding of prev.stockHoldings) {
           const stockDetails = currentUnlockedStocks.find(s => s.id === holding.stockId);
           if (stockDetails) {
-            let currentDividendYield = stockDetails.dividendYield;
-            const initialStockInfo = INITIAL_STOCKS.find(is => is.id === holding.stockId);
-            if(initialStockInfo) { currentDividendYield = initialStockInfo.dividendYield; }
-            currentDividendYield *= (1 + globalDividendBoost / 100);
-            currentDividendIncome += holding.shares * stockDetails.price * currentDividendYield;
+            let stockSpecificDividendBoostFromComponents = 0;
+            for (const componentId in prev.factoryProducedComponents) {
+                const count = prev.factoryProducedComponents[componentId];
+                if (count > 0) {
+                    const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
+                    if (componentConfig?.effects?.stockSpecificDividendYieldBoostPercent && componentConfig.effects.stockSpecificDividendYieldBoostPercent.stockId === stockDetails.id) {
+                        const potentialBoost = count * componentConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
+                        stockSpecificDividendBoostFromComponents += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    }
+                }
+            }
+            const totalDividendBoostPercent = globalDividendBoostFromSkillsAndHQ + stockSpecificDividendBoostFromComponents;
+            const effectiveDividendYield = (INITIAL_STOCKS.find(is => is.id === holding.stockId)?.dividendYield || 0) * (1 + totalDividendBoostPercent / 100);
+            currentDividendIncome += holding.shares * stockDetails.price * effectiveDividendYield;
           }
         }
         newMoney += currentDividendIncome;
@@ -1729,6 +1860,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const netPower = newFactoryPowerUnitsGenerated - newFactoryPowerConsumptionKw;
 
           if (netPower >= 0) {
+            let baseMaterialsCollectedThisTick = 0;
             let powerUsedByCollectors = 0;
             (prev.factoryMaterialCollectors || []).forEach(collector => {
                 const config = currentFactoryMaterialCollectorsConfig.find(c => c.id === collector.configId);
@@ -1736,8 +1868,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
             const powerAvailableForCollectors = newFactoryPowerUnitsGenerated - (newFactoryPowerConsumptionKw - powerUsedByCollectors);
             let tempPowerForCollectors = powerAvailableForCollectors;
-            let actualMaterialsCollectedThisTick = 0;
-
+            
             (prev.factoryMaterialCollectors || []).sort((a,b) => {
                 const confA = currentFactoryMaterialCollectorsConfig.find(c => c.id === a.configId);
                 const confB = currentFactoryMaterialCollectorsConfig.find(c => c.id === b.configId);
@@ -1750,11 +1881,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
                         effectiveRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
                     }
-                    actualMaterialsCollectedThisTick += effectiveRate;
+                    baseMaterialsCollectedThisTick += effectiveRate;
                     tempPowerForCollectors -= config.powerConsumptionKw;
                 }
             });
-            newFactoryRawMaterials += actualMaterialsCollectedThisTick;
+
+            let totalFactoryMaterialBoostPercent = 0;
+            for (const componentId in prev.factoryProducedComponents) {
+                const count = prev.factoryProducedComponents[componentId];
+                if (count > 0) {
+                    const componentConfig = currentFactoryComponentsConfig.find(fc => fc.id === componentId);
+                    if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent) {
+                        const potentialBoost = count * componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+                        totalFactoryMaterialBoostPercent += componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    }
+                }
+            }
+            if (totalFactoryMaterialBoostPercent > 0) {
+                baseMaterialsCollectedThisTick *= (1 + totalFactoryMaterialBoostPercent / 100);
+            }
+            newFactoryRawMaterials += baseMaterialsCollectedThisTick;
+
           }
 
           updatedWorkers = updatedWorkers.map(worker => {
@@ -1825,8 +1972,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                           effectiveProductionTime /= totalSpeedMultiplier;
 
                           currentProgress += (1 / Math.max(0.1, effectiveProductionTime));
+                          
+                          let isBonusCapped = false;
+                          const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
+                          if (componentRecipe.effects?.globalIncomeBoostPerComponentPercent && componentRecipe.effects.maxBonusPercent) {
+                              const currentBonus = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
+                              if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                          } else if (componentRecipe.effects?.businessSpecificIncomeBoostPercent && componentRecipe.effects.maxBonusPercent) {
+                              const currentBonus = existingCount * componentRecipe.effects.businessSpecificIncomeBoostPercent.percent;
+                              if (currentBonus >= componentRecipe.effects.maxBonusPercent) isBonusCapped = true;
+                          } // Add other primary effect types here if needed
 
-                          if (currentProgress >= 1) {
+                          if (isBonusCapped) {
+                            // If cap is met, don't produce but ensure worker goes idle if they were working on this.
+                            currentProgress = 0; // Reset progress for this capped item
+                            const workerIndex = updatedWorkers.findIndex(w => w.id === worker.id);
+                            if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
+                                updatedWorkers[workerIndex] = { ...updatedWorkers[workerIndex], status: 'idle' };
+                            }
+                          } else if (currentProgress >= 1) {
                             let canCraftOneFull = true;
                             if (prev.factoryRawMaterials < componentRecipe.rawMaterialCost) { canCraftOneFull = false; }
                             for (const input of componentRecipe.recipe) {
@@ -1892,17 +2056,33 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updatedUpgrades = business.upgrades.map(upgrade => {
           if (!upgrade.isPurchased && business.level >= upgrade.requiredLevel) {
             let actualCost = upgrade.cost;
-            let globalUpgradeCostReduction = 0;
+            let globalSkillUpgradeCostReduction = 0;
             (pStats.unlockedSkillIds || []).forEach(sId => {
               const sk = currentSkillTree.find(s => s.id === sId);
               if (sk && sk.effects && sk.effects.globalBusinessUpgradeCostReductionPercent) {
-                globalUpgradeCostReduction += sk.effects.globalBusinessUpgradeCostReductionPercent;
+                globalSkillUpgradeCostReduction += sk.effects.globalBusinessUpgradeCostReductionPercent;
               }
             });
-            if (globalUpgradeCostReduction > 0) {
-              actualCost *= (1 - globalUpgradeCostReduction / 100);
-              actualCost = Math.max(0, Math.floor(actualCost));
+            if (globalSkillUpgradeCostReduction > 0) {
+              actualCost *= (1 - globalSkillUpgradeCostReduction / 100);
             }
+            
+            let totalComponentUpgradeCostReduction = 0;
+            for (const componentId in pStats.factoryProducedComponents) {
+                const count = pStats.factoryProducedComponents[componentId];
+                if (count > 0) {
+                    const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+                    if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent && componentConfig.effects.businessSpecificUpgradeCostReductionPercent.businessId === business.id) {
+                        const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
+                        totalComponentUpgradeCostReduction += componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                    }
+                }
+            }
+            if (totalComponentUpgradeCostReduction > 0) {
+                actualCost *= (1 - totalComponentUpgradeCostReduction / 100);
+            }
+            actualCost = Math.max(0, Math.floor(actualCost));
+
 
             if ((pStats.money - moneySpentThisTick) >= actualCost) {
               moneySpentThisTick += actualCost;
@@ -1941,7 +2121,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         achievedBusinessMilestones: newAchievedBusinessMilestonesForAutoBuy,
       }));
     }
-  }, [playerStats.money, playerStats.unlockedSkillIds]);
+  }, [playerStats.money, playerStats.unlockedSkillIds, playerStats.factoryProducedComponents]);
 
 
   return (

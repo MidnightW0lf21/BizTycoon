@@ -57,38 +57,47 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const componentBoosts = useMemo(() => {
     let incomeBoostPercent = 0;
     let levelUpCostReductionPercent = 0;
+    let upgradeCostReductionPercent = 0;
     const contributingComponentsIncome: string[] = [];
-    const contributingComponentsCost: string[] = [];
+    const contributingComponentsLevelCost: string[] = [];
+    const contributingComponentsUpgradeCost: string[] = [];
 
     for (const componentId in playerStats.factoryProducedComponents) {
       const count = playerStats.factoryProducedComponents[componentId];
       if (count > 0) {
         const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
-        if (componentConfig?.effects?.businessSpecificIncomeBoostPercent) {
-          const effect = componentConfig.effects.businessSpecificIncomeBoostPercent;
-          if (effect.businessId === business.id) {
+        if (componentConfig?.effects) {
+          if (componentConfig.effects.businessSpecificIncomeBoostPercent?.businessId === business.id) {
+            const effect = componentConfig.effects.businessSpecificIncomeBoostPercent;
             const potentialBoost = count * effect.percent;
             const actualBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
-            incomeBoostPercent += actualBoost; // Note: This sums up capped boosts, might need refinement if multiple components boost same stat
+            incomeBoostPercent += actualBoost;
             contributingComponentsIncome.push(`${componentConfig.name} (+${actualBoost.toFixed(2)}%)`);
           }
-        }
-        if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent) {
+          if (componentConfig.effects.businessSpecificLevelUpCostReductionPercent?.businessId === business.id) {
            const effect = componentConfig.effects.businessSpecificLevelUpCostReductionPercent;
-           if (effect.businessId === business.id) {
             const potentialReduction = count * effect.percent;
             const actualReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
             levelUpCostReductionPercent += actualReduction;
-            contributingComponentsCost.push(`${componentConfig.name} (-${actualReduction.toFixed(2)}%)`);
-           }
+            contributingComponentsLevelCost.push(`${componentConfig.name} (-${actualReduction.toFixed(2)}%)`);
+          }
+          if (componentConfig.effects.businessSpecificUpgradeCostReductionPercent?.businessId === business.id) {
+            const effect = componentConfig.effects.businessSpecificUpgradeCostReductionPercent;
+            const potentialReduction = count * effect.percent;
+            const actualReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+            upgradeCostReductionPercent += actualReduction;
+            contributingComponentsUpgradeCost.push(`${componentConfig.name} (-${actualReduction.toFixed(2)}%)`);
+          }
         }
       }
     }
     return { 
       incomeBoostPercent, 
       levelUpCostReductionPercent,
+      upgradeCostReductionPercent,
       incomeSources: contributingComponentsIncome.join(', '),
-      costReductionSources: contributingComponentsCost.join(', ')
+      levelUpCostReductionSources: contributingComponentsLevelCost.join(', '),
+      upgradeCostReductionSources: contributingComponentsUpgradeCost.join(', ')
     };
   }, [playerStats.factoryProducedComponents, business.id]);
 
@@ -142,7 +151,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
     calculateMaxAffordableLevelsForDisplay,
     dynamicMaxLevel,
     isEffectivelyUnlocked,
-    bulkBuyUnlockedForThisBusiness
+    bulkBuyUnlockedForThisBusiness,
+    componentBoosts.levelUpCostReductionPercent // Add dependency to re-calc if component boosts change
   ]);
 
 
@@ -226,7 +236,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   <FactoryIcon className="h-3.5 w-3.5 text-blue-500" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Component Boost: +{componentBoosts.incomeBoostPercent.toFixed(2)}%</p>
+                  <p>Component Income Boost: +{componentBoosts.incomeBoostPercent.toFixed(2)}%</p>
                   {componentBoosts.incomeSources && <p className="text-xs">From: {componentBoosts.incomeSources}</p>}
                 </TooltipContent>
               </Tooltip>
@@ -275,8 +285,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
                           <FactoryIcon className="h-3.5 w-3.5 text-blue-500" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Component Discount: -{componentBoosts.levelUpCostReductionPercent.toFixed(2)}%</p>
-                           {componentBoosts.costReductionSources && <p className="text-xs">From: {componentBoosts.costReductionSources}</p>}
+                          <p>Component Level-Up Discount: -{componentBoosts.levelUpCostReductionPercent.toFixed(2)}%</p>
+                           {componentBoosts.levelUpCostReductionSources && <p className="text-xs">From: {componentBoosts.levelUpCostReductionSources}</p>}
                         </TooltipContent>
                       </Tooltip>
                     )}
@@ -301,7 +311,13 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <AccordionContent className="pt-2 space-y-3">
                 
                   {currentUpgrades.map((upgrade) => {
-                    const canAffordThisUpgrade = playerStats.money >= upgrade.cost; 
+                    let actualUpgradeCost = upgrade.cost;
+                    if (componentBoosts.upgradeCostReductionPercent > 0) {
+                      actualUpgradeCost *= (1 - componentBoosts.upgradeCostReductionPercent / 100);
+                      actualUpgradeCost = Math.max(0, Math.floor(actualUpgradeCost));
+                    }
+
+                    const canAffordThisUpgrade = playerStats.money >= actualUpgradeCost; 
                     const levelRequirementMet = currentLevel >= upgrade.requiredLevel;
                     const canPurchaseThisUpgrade = !upgrade.isPurchased && canAffordThisUpgrade && levelRequirementMet;
                     
@@ -313,11 +329,23 @@ export function BusinessCard({ business }: BusinessCardProps) {
                             <p className="text-xs text-muted-foreground">{upgrade.description}</p>
                             <div className="text-xs mt-1">
                               {!upgrade.isPurchased && (
-                                <>
-                                  <span>Cost: ${upgrade.cost.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
+                                <div className="flex items-center gap-1">
+                                  {componentBoosts.upgradeCostReductionPercent > 0 && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <FactoryIcon className="h-3 w-3 text-blue-500" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Original Cost: ${upgrade.cost.toLocaleString()}</p>
+                                        <p>Component Discount: -{componentBoosts.upgradeCostReductionPercent.toFixed(2)}%</p>
+                                        {componentBoosts.upgradeCostReductionSources && <p className="text-xs">From: {componentBoosts.upgradeCostReductionSources}</p>}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  <span>Cost: ${actualUpgradeCost.toLocaleString('en-US', {maximumFractionDigits: 0})}</span>
                                   <span className="mx-1">|</span>
                                   <span>Req. Lvl: {upgrade.requiredLevel}</span>
-                                </>
+                                </div>
                               )}
                               {upgrade.isPurchased && <Badge variant="secondary" className="text-xs">Owned</Badge>}
                             </div>
@@ -339,7 +367,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 { !levelRequirementMet ? <p>Requires Level {upgrade.requiredLevel}</p> :
-                                  !canAffordThisUpgrade ? <p>Need ${upgrade.cost.toLocaleString('en-US', {maximumFractionDigits: 0})}</p> :
+                                  !canAffordThisUpgrade ? <p>Need ${actualUpgradeCost.toLocaleString('en-US', {maximumFractionDigits: 0})}</p> :
                                   <p>Purchase Upgrade</p>
                                 }
                               </TooltipContent>
