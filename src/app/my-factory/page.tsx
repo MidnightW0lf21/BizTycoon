@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus } from "lucide-react"; // Added UserPlus
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -17,15 +17,15 @@ import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
 import type { FactoryMachine } from "@/types";
-import { WORKER_HIRE_COST } from "@/config/data/workers"; // Added
+import { WORKER_HIRE_COST } from "@/config/data/workers";
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
-const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000; 
-const MATERIAL_COLLECTION_AMOUNT_CONST = 10; 
+const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
+const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
 
 export default function MyFactoryPage() {
-  const { 
-    playerStats, 
+  const {
+    playerStats,
     purchaseFactoryBuilding,
     purchaseFactoryPowerBuilding,
     manuallyCollectRawMaterials,
@@ -37,14 +37,15 @@ export default function MyFactoryPage() {
     purchaseResearch,
     researchItems,
     manualResearchCooldownEnd,
-    hireWorker, // Added
+    hireWorker,
+    assignWorkerToMachine,
   } = useGame();
 
   const netPower = playerStats.factoryPowerUnitsGenerated - playerStats.factoryPowerConsumptionKw;
-  
+
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
-    if (!playerStats.factoryPurchased || netPower < 0) return 0; 
-    
+    if (!playerStats.factoryPurchased || netPower < 0) return 0;
+
     let totalMats = 0;
     let powerUsedByCollectors = 0;
     const collectors = playerStats.factoryMaterialCollectors || [];
@@ -52,26 +53,26 @@ export default function MyFactoryPage() {
     collectors.forEach(collector => {
       const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
       if (config) {
-        const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw - 
+        const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw -
             (collectors.filter(c => c.instanceId !== collector.instanceId)
                         .reduce((sum, otherCollector) => {
                             const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
                             return sum + (otherConfig?.powerConsumptionKw || 0);
                         }, 0));
-        
+
         if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
            totalMats += config.materialsPerSecond;
            powerUsedByCollectors += config.powerConsumptionKw;
         }
       }
     });
-    
+
     const powerAvailableForAllActiveCollectors = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
 
     if (powerAvailableForAllActiveCollectors < powerUsedByCollectors && powerAvailableForAllActiveCollectors >=0) {
         let tempPower = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
         let actualTotalMats = 0;
-        (playerStats.factoryMaterialCollectors || []).sort((a,b) => { 
+        (playerStats.factoryMaterialCollectors || []).sort((a,b) => {
             const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
             const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
             return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
@@ -87,10 +88,10 @@ export default function MyFactoryPage() {
 
     return totalMats;
   }, [
-      playerStats.factoryPurchased, 
-      playerStats.factoryMaterialCollectors, 
-      playerStats.factoryPowerUnitsGenerated, 
-      playerStats.factoryPowerConsumptionKw, 
+      playerStats.factoryPurchased,
+      playerStats.factoryMaterialCollectors,
+      playerStats.factoryPowerUnitsGenerated,
+      playerStats.factoryPowerConsumptionKw,
       netPower
   ]);
 
@@ -101,8 +102,9 @@ export default function MyFactoryPage() {
   const [currentDialogContext, setCurrentDialogContext] = useState<{
     productionLineId: string;
     slotIndex: number;
-    assignedMachineInstanceId: string | null;
+    assignedMachineInstanceId: string | null; // Machine instance ID in the slot
     currentRecipeId: string | null;
+    currentAssignedWorkerId: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function MyFactoryPage() {
       if (remaining === 0 && intervalId) clearInterval(intervalId);
     };
     if (materialCollectionCooldownEnd > Date.now()) {
-      updateCooldown(); 
+      updateCooldown();
       intervalId = setInterval(updateCooldown, 1000);
     } else {
       setSecondsRemainingForCooldown(0);
@@ -150,11 +152,21 @@ export default function MyFactoryPage() {
     const line = (playerStats.factoryProductionLines || []).find(l => l.id === productionLineId);
     if (line && line.slots[slotIndex]) {
       const slot = line.slots[slotIndex];
+      const machineInstanceId = slot.machineInstanceId;
+      let workerIdForThisMachine: string | null = null;
+      if (machineInstanceId) {
+        const worker = (playerStats.factoryWorkers || []).find(w => w.assignedMachineInstanceId === machineInstanceId);
+        if (worker) {
+          workerIdForThisMachine = worker.id;
+        }
+      }
+
       setCurrentDialogContext({
         productionLineId,
         slotIndex,
-        assignedMachineInstanceId: slot.machineInstanceId,
+        assignedMachineInstanceId: machineInstanceId,
         currentRecipeId: slot.targetComponentId,
+        currentAssignedWorkerId: workerIdForThisMachine,
       });
       setIsRecipeDialogOpen(true);
     }
@@ -207,8 +219,8 @@ export default function MyFactoryPage() {
           </p>
         </CardContent>
         <CardFooter>
-          <Button 
-            onClick={purchaseFactoryBuilding} 
+          <Button
+            onClick={purchaseFactoryBuilding}
             className="w-full"
             disabled={playerStats.money < FACTORY_PURCHASE_COST_FROM_CONFIG}
           >
@@ -230,7 +242,7 @@ export default function MyFactoryPage() {
   }, {} as Record<string, number>);
 
   const researchTabAvailable = playerStats.timesPrestiged >= REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB;
-  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle' && !w.assignedMachineInstanceId).length;
+  const idleWorkerCount = (playerStats.factoryWorkers || []).filter(w => w.status === 'idle').length; // Simplified idle: not working or resting
   const totalWorkerCount = (playerStats.factoryWorkers || []).length;
 
 
@@ -322,14 +334,14 @@ export default function MyFactoryPage() {
                     {netPower < 0 && <span className="text-destructive text-xs"> (Insufficient Power!)</span>}
                   </p>
                 </div>
-                <Button 
-                  onClick={manuallyCollectRawMaterials} 
+                <Button
+                  onClick={manuallyCollectRawMaterials}
                   size="lg"
                   disabled={secondsRemainingForCooldown > 0}
                 >
                   <Box className="mr-2 h-5 w-5"/>
-                  {secondsRemainingForCooldown > 0 
-                    ? `Collect (Wait ${secondsRemainingForCooldown}s)` 
+                  {secondsRemainingForCooldown > 0
+                    ? `Collect (Wait ${secondsRemainingForCooldown}s)`
                     : `Manually Collect ${MATERIAL_COLLECTION_AMOUNT_CONST} Raw Materials`}
                 </Button>
               </CardContent>
@@ -378,7 +390,7 @@ export default function MyFactoryPage() {
                 })}
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Production Lines</CardTitle>
@@ -389,7 +401,8 @@ export default function MyFactoryPage() {
                   <ProductionLineDisplay
                     key={line.id}
                     productionLine={line}
-                    allMachines={playerStats.factoryMachines || []} 
+                    allMachines={playerStats.factoryMachines || []}
+                    allWorkers={playerStats.factoryWorkers || []}
                     lineIndex={index}
                     onOpenRecipeDialog={handleOpenRecipeDialog}
                   />
@@ -398,7 +411,7 @@ export default function MyFactoryPage() {
             </Card>
           </ScrollArea>
         </TabsContent>
-        
+
         {researchTabAvailable && (
           <TabsContent value="research" className="flex-grow">
             <ScrollArea className="h-[calc(100vh-300px)] pr-2 space-y-6">
@@ -412,14 +425,14 @@ export default function MyFactoryPage() {
                       Current Research Points: <strong className="text-primary">{playerStats.researchPoints.toLocaleString()} RP</strong>
                     </p>
                   </div>
-                  <Button 
-                    onClick={manuallyGenerateResearchPoints} 
+                  <Button
+                    onClick={manuallyGenerateResearchPoints}
                     size="lg"
                     disabled={secondsRemainingForResearchCooldown > 0 || playerStats.money < RESEARCH_MANUAL_GENERATION_COST_MONEY}
                   >
                     <FlaskConical className="mr-2 h-5 w-5"/>
-                    {secondsRemainingForResearchCooldown > 0 
-                      ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)` 
+                    {secondsRemainingForResearchCooldown > 0
+                      ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)`
                       : `Manually Conduct Research (+${RESEARCH_MANUAL_GENERATION_AMOUNT} RP, $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()})`}
                   </Button>
                 </CardContent>
@@ -461,10 +474,10 @@ export default function MyFactoryPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {INITIAL_FACTORY_COMPONENTS_CONFIG.map(compConfig => {
                       const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
-                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) { 
+                      if (count > 0 || Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) {
                         const Icon = compConfig.icon;
-                        const totalBonus = compConfig.effects?.globalIncomeBoostPerComponentPercent 
-                                            ? count * compConfig.effects.globalIncomeBoostPerComponentPercent 
+                        const totalBonus = compConfig.effects?.globalIncomeBoostPerComponentPercent
+                                            ? count * compConfig.effects.globalIncomeBoostPerComponentPercent
                                             : 0;
                         return (
                           <Card key={compConfig.id} className="p-4 flex flex-col items-center justify-center text-center">
@@ -500,8 +513,8 @@ export default function MyFactoryPage() {
         </TabsContent>
       </Tabs>
     </div>
-    
-    {currentDialogContext && (
+
+    {currentDialogContext && currentDialogContext.assignedMachineInstanceId && (
       <RecipeSelectionDialog
         isOpen={isRecipeDialogOpen}
         onClose={handleCloseRecipeDialog}
@@ -513,8 +526,13 @@ export default function MyFactoryPage() {
         allComponentConfigs={INITIAL_FACTORY_COMPONENTS_CONFIG}
         setRecipe={setRecipeForProductionSlot}
         currentRecipeId={currentDialogContext.currentRecipeId}
+        allWorkers={playerStats.factoryWorkers || []}
+        assignWorkerToMachine={assignWorkerToMachine}
+        currentAssignedWorkerId={currentDialogContext.currentAssignedWorkerId}
       />
     )}
     </>
   );
 }
+
+    
