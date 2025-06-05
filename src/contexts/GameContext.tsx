@@ -31,7 +31,8 @@ import {
   INITIAL_RESEARCH_POINTS,
   INITIAL_UNLOCKED_RESEARCH_IDS,
   RESEARCH_MANUAL_GENERATION_AMOUNT,
-  RESEARCH_MANUAL_GENERATION_COST_MONEY,
+  RESEARCH_MANUAL_GENERATION_COST_MONEY, // Base cost
+  MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, // Added this
   RESEARCH_MANUAL_COOLDOWN_MS,
   REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB,
   TECH_BUSINESS_IDS,
@@ -1165,6 +1166,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const playerStatsNow = playerStatsRef.current;
     const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0);
 
+    const numBoostStagesCompleted = (playerStatsNow.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
+    const currentManualResearchCost = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
+
+
     if (!playerStatsNow.factoryPurchased) {
       toastTitle = "Factory Not Owned";
       toastDescription = "Purchase the factory building first.";
@@ -1173,9 +1178,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Research Locked";
       toastDescription = `Research tab unlocks at Prestige Level ${REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB}.`;
       toastVariant = "destructive";
-    } else if (playerStatsNow.money < RESEARCH_MANUAL_GENERATION_COST_MONEY) {
+    } else if (playerStatsNow.money < currentManualResearchCost) {
       toastTitle = "Not Enough Money";
-      toastDescription = `Need $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()} to conduct research.`;
+      toastDescription = `Need $${currentManualResearchCost.toLocaleString()} to conduct research.`;
       toastVariant = "destructive";
     } else {
       const now = Date.now();
@@ -1186,14 +1191,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setPlayerStats(prev => ({
           ...prev,
-          money: prev.money - RESEARCH_MANUAL_GENERATION_COST_MONEY,
+          money: prev.money - currentManualResearchCost,
           researchPoints: prev.researchPoints + pointsToGain,
           lastManualResearchTimestamp: now,
         }));
         manualResearchCooldownEndRef.current = now + RESEARCH_MANUAL_COOLDOWN_MS;
         setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
         toastTitle = "Research Conducted!";
-        toastDescription = `+${pointsToGain} Research Point(s) gained.`;
+        toastDescription = `+${pointsToGain} Research Point(s) gained for $${currentManualResearchCost.toLocaleString()}.`;
       }
     }
      if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1964,3 +1969,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+

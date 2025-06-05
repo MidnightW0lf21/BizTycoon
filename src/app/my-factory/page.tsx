@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -307,6 +307,8 @@ export default function MyFactoryPage() {
   };
 
   const manualRPPointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStats.manualResearchBonus || 0);
+  const numManualRPBoostStagesCompleted = (playerStats.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
+  const currentManualRPCostMoney = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numManualRPBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
 
 
   return (
@@ -675,12 +677,12 @@ export default function MyFactoryPage() {
                   <Button
                     onClick={manuallyGenerateResearchPoints}
                     size="lg"
-                    disabled={secondsRemainingForResearchCooldown > 0 || playerStats.money < RESEARCH_MANUAL_GENERATION_COST_MONEY}
+                    disabled={secondsRemainingForResearchCooldown > 0 || playerStats.money < currentManualRPCostMoney}
                   >
                     <FlaskConical className="mr-2 h-5 w-5"/>
                     {secondsRemainingForResearchCooldown > 0
                       ? `Conduct (Wait ${secondsRemainingForResearchCooldown}s)`
-                      : `Manually Conduct Research (+${manualRPPointsToGain} RP, $${RESEARCH_MANUAL_GENERATION_COST_MONEY.toLocaleString()})`}
+                      : `Manually Conduct Research (+${manualRPPointsToGain} RP, $${currentManualRPCostMoney.toLocaleString()})`}
                   </Button>
                 </CardContent>
               </Card>
@@ -821,3 +823,4 @@ export default function MyFactoryPage() {
     </>
   );
 }
+

@@ -28,8 +28,9 @@ export const MATERIAL_COLLECTION_COOLDOWN_MS = 5000;
 
 export const INITIAL_RESEARCH_POINTS = 0;
 export const INITIAL_UNLOCKED_RESEARCH_IDS: string[] = [];
-export const RESEARCH_MANUAL_GENERATION_AMOUNT = 1;
-export const RESEARCH_MANUAL_GENERATION_COST_MONEY = 10000;
+export const RESEARCH_MANUAL_GENERATION_AMOUNT = 1; // Base RP per click
+export const RESEARCH_MANUAL_GENERATION_COST_MONEY = 10000; // Base money cost per click
+export const MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST = 10000; // Money cost increase per "manual_rp_boost" stage
 export const RESEARCH_MANUAL_COOLDOWN_MS = 10000; // 10 seconds
 export const REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB = 6;
 
@@ -66,18 +67,10 @@ export const calculateIncome = (
       if (skill.effects.businessSpecificIncomeBoost && skill.effects.businessSpecificIncomeBoost.businessId === business.id) {
         businessSpecificBoost += skill.effects.businessSpecificIncomeBoost.percent;
       }
-      if (skill.id === 'tech_empire_synergy' && TECH_BUSINESS_IDS.includes(business.id)) {
-        businessSpecificBoost += 15;
-      }
-      if (skill.id === 'logistics_network_optimization' && LOGISTICS_BUSINESS_IDS.includes(business.id)) {
-        businessSpecificBoost += 15;
-      }
-      if (skill.id === 'media_mogul_influence' && MEDIA_BUSINESS_IDS.includes(business.id)) {
-        businessSpecificBoost += 15;
-      }
-      if (skill.id === 'industrial_powerhouse' && MANUFACTURING_BUSINESS_IDS.includes(business.id)) {
-        businessSpecificBoost += 15;
-      }
+      if (skill.id === 'tech_empire_synergy' && TECH_BUSINESS_IDS.includes(business.id)) { businessSpecificBoost += 15; }
+      if (skill.id === 'logistics_network_optimization' && LOGISTICS_BUSINESS_IDS.includes(business.id)) { businessSpecificBoost += 15; }
+      if (skill.id === 'media_mogul_influence' && MEDIA_BUSINESS_IDS.includes(business.id)) { businessSpecificBoost += 15; }
+      if (skill.id === 'industrial_powerhouse' && MANUFACTURING_BUSINESS_IDS.includes(business.id)) { businessSpecificBoost += 15; }
     }
   });
 
@@ -87,13 +80,10 @@ export const calculateIncome = (
         const hqUpgrade = hqUpgradesConfig.find(h => h.id === hqId);
         if (hqUpgrade && hqUpgrade.levels) {
             const levelData = hqUpgrade.levels.find(l => l.level === purchasedLevel);
-            if (levelData && levelData.effects.globalIncomeBoostPercent) {
-                totalGlobalIncomeBoost += levelData.effects.globalIncomeBoostPercent;
-            }
-        }
-    }
+            if (levelData && levelData.effects.globalIncomeBoostPercent) { totalGlobalIncomeBoost += levelData.effects.globalIncomeBoostPercent; }
+          }
+      }
   }
-
   for (const componentId in producedFactoryComponents) {
     const count = producedFactoryComponents[componentId];
     if (count > 0) {
@@ -103,15 +93,8 @@ export const calculateIncome = (
       }
     }
   }
-
-
-  if (totalGlobalIncomeBoost > 0) {
-    currentIncome *= (1 + totalGlobalIncomeBoost / 100);
-  }
-  if (businessSpecificBoost > 0) {
-    currentIncome *= (1 + businessSpecificBoost / 100);
-  }
-
+  if (totalGlobalIncomeBoost > 0) { currentIncome *= (1 + totalGlobalIncomeBoost / 100); }
+  if (businessSpecificBoost > 0) { currentIncome *= (1 + businessSpecificBoost / 100); }
   return currentIncome;
 };
 
@@ -167,7 +150,6 @@ export const calculateSingleLevelUpgradeCost = (
   if (totalGlobalCostReduction > 0) {
     currentCost *= (1 - totalGlobalCostReduction / 100);
   }
-
   return Math.max(1, Math.floor(currentCost));
 };
 
@@ -350,3 +332,4 @@ export {
 } from './data/factory';
 export { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS } from './data/workers';
+
