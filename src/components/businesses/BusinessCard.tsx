@@ -7,13 +7,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
 import type { Business, BusinessUpgrade } from "@/types";
-import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole } from "lucide-react";
+import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole, Factory as FactoryIcon } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { INITIAL_BUSINESSES } from "@/config/game-config"; 
+import { INITIAL_BUSINESSES, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config"; 
 
 type BuyAmountOption = 1 | 10 | 25 | 'MAX';
 
@@ -53,6 +53,45 @@ export function BusinessCard({ business }: BusinessCardProps) {
     const bulkBuySkillId = `unlock_bulk_buy_${business.id}`;
     return playerStats.unlockedSkillIds.includes(bulkBuySkillId);
   }, [playerStats.unlockedSkillIds, business.id]);
+
+  const componentBoosts = useMemo(() => {
+    let incomeBoostPercent = 0;
+    let levelUpCostReductionPercent = 0;
+    const contributingComponentsIncome: string[] = [];
+    const contributingComponentsCost: string[] = [];
+
+    for (const componentId in playerStats.factoryProducedComponents) {
+      const count = playerStats.factoryProducedComponents[componentId];
+      if (count > 0) {
+        const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+        if (componentConfig?.effects?.businessSpecificIncomeBoostPercent) {
+          const effect = componentConfig.effects.businessSpecificIncomeBoostPercent;
+          if (effect.businessId === business.id) {
+            const potentialBoost = count * effect.percent;
+            const actualBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+            incomeBoostPercent += actualBoost; // Note: This sums up capped boosts, might need refinement if multiple components boost same stat
+            contributingComponentsIncome.push(`${componentConfig.name} (+${actualBoost.toFixed(2)}%)`);
+          }
+        }
+        if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent) {
+           const effect = componentConfig.effects.businessSpecificLevelUpCostReductionPercent;
+           if (effect.businessId === business.id) {
+            const potentialReduction = count * effect.percent;
+            const actualReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+            levelUpCostReductionPercent += actualReduction;
+            contributingComponentsCost.push(`${componentConfig.name} (-${actualReduction.toFixed(2)}%)`);
+           }
+        }
+      }
+    }
+    return { 
+      incomeBoostPercent, 
+      levelUpCostReductionPercent,
+      incomeSources: contributingComponentsIncome.join(', '),
+      costReductionSources: contributingComponentsCost.join(', ')
+    };
+  }, [playerStats.factoryProducedComponents, business.id]);
+
 
   useEffect(() => {
     if (!bulkBuyUnlockedForThisBusiness) {
@@ -155,6 +194,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
 
   return (
+    <TooltipProvider delayDuration={100}>
     <Card className={cn("flex flex-col relative", !isEffectivelyUnlocked && "bg-muted/50 border-dashed")}>
       {!isEffectivelyUnlocked && (
         <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg p-4">
@@ -180,6 +220,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Income/sec:</span>
           <div className="flex items-center gap-1">
+            {componentBoosts.incomeBoostPercent > 0 && isEffectivelyUnlocked && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <FactoryIcon className="h-3.5 w-3.5 text-blue-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Component Boost: +{componentBoosts.incomeBoostPercent.toFixed(2)}%</p>
+                  {componentBoosts.incomeSources && <p className="text-xs">From: {componentBoosts.incomeSources}</p>}
+                </TooltipContent>
+              </Tooltip>
+            )}
             <DollarSign className="h-4 w-4 text-green-500" />
             <span className="font-semibold text-green-500">
               {isEffectivelyUnlocked ? `$${income.toLocaleString('en-US', {maximumFractionDigits: 0})}` : 'N/A'}
@@ -218,6 +269,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Cost for {levelsToBuyDisplay > 0 ? `+${levelsToBuyDisplay}`: (bulkBuyUnlockedForThisBusiness ? 'selected' : 'next')}:</span>
                 <div className="flex items-center gap-1">
+                    {componentBoosts.levelUpCostReductionPercent > 0 && isEffectivelyUnlocked && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <FactoryIcon className="h-3.5 w-3.5 text-blue-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Component Discount: -{componentBoosts.levelUpCostReductionPercent.toFixed(2)}%</p>
+                           {componentBoosts.costReductionSources && <p className="text-xs">From: {componentBoosts.costReductionSources}</p>}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                     <DollarSign className="h-4 w-4 text-red-500" />
                     <span className="font-semibold text-red-500">
                     {isEffectivelyUnlocked && !isMaxLevel && levelsToBuyDisplay > 0 ? `$${displayCost.toLocaleString('en-US', {maximumFractionDigits: 0})}` : (isMaxLevel ? 'N/A' : 'N/A')}
@@ -237,7 +299,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-2 space-y-3">
-                <TooltipProvider delayDuration={100}>
+                
                   {currentUpgrades.map((upgrade) => {
                     const canAffordThisUpgrade = playerStats.money >= upgrade.cost; 
                     const levelRequirementMet = currentLevel >= upgrade.requiredLevel;
@@ -287,7 +349,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                       </div>
                     );
                   })}
-                </TooltipProvider>
+                
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -321,5 +383,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </Button>
       </CardFooter>
     </Card>
+    </TooltipProvider>
   );
 }
+
+    

@@ -7,9 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
-import { useState, useEffect } from "react";
-import { DollarSign, TrendingUp, TrendingDown, Info, Package } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { DollarSign, TrendingUp, TrendingDown, Info, Package, Factory as FactoryIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 
 interface StockMarketItemProps {
   stock: Stock;
@@ -23,6 +24,37 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
   const playerHolding = playerStats.stockHoldings.find(h => h.stockId === stock.id);
   const sharesOwned = playerHolding?.shares || 0;
 
+  const componentDividendBoost = useMemo(() => {
+    let totalBoostPercent = 0;
+    const contributingComponents: string[] = [];
+
+    for (const componentId in playerStats.factoryProducedComponents) {
+      const count = playerStats.factoryProducedComponents[componentId];
+      if (count > 0) {
+        const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+        if (componentConfig?.effects?.stockSpecificDividendYieldBoostPercent) {
+          const effect = componentConfig.effects.stockSpecificDividendYieldBoostPercent;
+          if (effect.stockId === stock.id) {
+            const potentialBoost = count * effect.percent;
+            const actualBoost = componentConfig.effects.maxBonusPercent 
+                                ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) 
+                                : potentialBoost;
+            totalBoostPercent += actualBoost;
+            contributingComponents.push(`${componentConfig.name} (+${actualBoost.toFixed(4)}%)`);
+          }
+        }
+      }
+    }
+    return { 
+      boostPercent: totalBoostPercent, 
+      sources: contributingComponents.join(', ') 
+    };
+  }, [playerStats.factoryProducedComponents, stock.id]);
+
+  const effectiveDividendYield = stock.dividendYield * (1 + (componentDividendBoost.boostPercent / 100));
+  const dividendPerSharePerSec = stock.price * effectiveDividendYield;
+
+
   const handleBuy = () => {
     if (sharesAmount > 0) {
       buyStock(stock.id, sharesAmount);
@@ -35,8 +67,6 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
     }
   };
   
-  const dividendPerSharePerSec = stock.price * stock.dividendYield;
-
   return (
     <TooltipProvider delayDuration={100}>
     <Card className="shadow-md hover:shadow-lg transition-shadow">
@@ -59,14 +89,25 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
           <span className="text-muted-foreground">Dividend/sec per share:</span>
           <Tooltip>
             <TooltipTrigger asChild>
-                <span className="font-semibold text-green-500 flex items-center">
+                <span className="font-semibold text-green-500 flex items-center gap-1">
+                    {componentDividendBoost.boostPercent > 0 && (
+                      <FactoryIcon className="h-3 w-3 text-blue-500" />
+                    )}
                     <DollarSign className="h-3 w-3 mr-0.5" />
                     {dividendPerSharePerSec.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                     <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
             <TooltipContent>
-                <p>This stock yields { (stock.dividendYield * 100).toFixed(4) }% of its current price as dividend per second.</p>
+                <p>Base Yield: {(stock.dividendYield * 100).toFixed(4)}%</p>
+                {componentDividendBoost.boostPercent > 0 && (
+                  <>
+                    <p>Component Boost: +{componentDividendBoost.boostPercent.toFixed(4)}%</p>
+                    <p className="text-xs">From: {componentDividendBoost.sources}</p>
+                    <p>Effective Yield: {(effectiveDividendYield * 100).toFixed(4)}%</p>
+                  </>
+                )}
+                <p>Calculation: Price × Effective Yield</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -113,3 +154,5 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
     </TooltipProvider>
   );
 }
+
+    
