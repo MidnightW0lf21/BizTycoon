@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -67,7 +67,8 @@ interface GameContextType {
   manuallyCollectRawMaterials: () => void;
   purchaseFactoryMachine: (configId: string) => void;
   calculateNextMachineCost: (ownedMachineCount: number) => number;
-  // unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void; // No longer directly callable from UI
+  setRecipeForProductionSlot: (productionLineId: string, slotIndex: number, targetComponentId: string | null) => void;
+  // unassignMachineFromProductionLine: (productionLineId: string, slotIndex: number) => void; // Still here but not directly UI exposed
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -92,7 +93,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     factoryProductionLines: Array.from({ length: 5 }, (_, i) => ({
       id: `line_${i + 1}`,
       name: `Production Line ${i + 1}`,
-      machineInstanceIds: [null, null, null, null, null, null], 
+      slots: Array.from({ length: 6 }, () => ({ machineInstanceId: null, targetComponentId: null })), 
     })),
     factoryPowerBuildings: [],
     factoryProducedComponents: {},
@@ -224,7 +225,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryPowerConsumptionKw: typeof importedData.playerStats.factoryPowerConsumptionKw === 'number' ? importedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
         factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
         factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) 
+        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) && importedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots))
             ? (importedData.playerStats.factoryProductionLines.length === 5 ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines) 
             : initialDefaults.factoryProductionLines,
         factoryPowerBuildings: Array.isArray(importedData.playerStats.factoryPowerBuildings) ? importedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
@@ -305,7 +306,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryPowerConsumptionKw: typeof loadedData.playerStats.factoryPowerConsumptionKw === 'number' ? loadedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
             factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
             factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) 
+            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) && loadedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots))
                 ? (loadedData.playerStats.factoryProductionLines.length === 5 ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
                 : initialDefaults.factoryProductionLines,
             factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
@@ -404,7 +405,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => { // Game Loop
     const gameLoopInterval = setInterval(() => {
       setPlayerStats(prev => {
-        // Calculate total income
         const totalBusinessIncome = businesses.reduce((sum, biz) => sum + getBusinessIncome(biz.id), 0);
         let dividendIncome = 0;
         let globalDividendBoost = 0;
@@ -441,7 +441,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newTotalIncomePerSecond = totalBusinessIncome + dividendIncome;
         const newMoneyFromIncome = prev.money + newTotalIncomePerSecond;
 
-        // Calculate investment value
         let currentInvestmentsValue = 0;
         for (const holding of prev.stockHoldings) {
           const stockDetails = unlockedStocks.find(s => s.id === holding.stockId);
@@ -450,17 +449,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
 
-        // Factory Production Logic
         let newFactoryPowerConsumptionKw = 0;
         let newFactoryRawMaterials = prev.factoryRawMaterials;
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
 
         if (prev.factoryPurchased) {
-          // Calculate power consumption
           prev.factoryProductionLines.forEach(line => {
-            line.machineInstanceIds.forEach(machineInstanceId => {
-              if (machineInstanceId) {
-                const machine = prev.factoryMachines.find(m => m.instanceId === machineInstanceId);
+            line.slots.forEach(slot => {
+              if (slot.machineInstanceId && slot.targetComponentId) {
+                const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
                 if (machine) {
                   const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
                   if (machineConfig) {
@@ -471,21 +468,34 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
           });
 
-          // Process production if power is sufficient
           const hasSufficientPower = prev.factoryPowerUnitsGenerated >= newFactoryPowerConsumptionKw;
+          
           if (hasSufficientPower) {
             prev.factoryProductionLines.forEach(line => {
-              line.machineInstanceIds.forEach(machineInstanceId => {
-                if (machineInstanceId) {
-                  const machine = prev.factoryMachines.find(m => m.instanceId === machineInstanceId);
-                  if (machine) {
-                    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
-                    if (machineConfig) {
-                      if (newFactoryRawMaterials >= machineConfig.rawMaterialCostPerComponent) {
-                        newFactoryRawMaterials -= machineConfig.rawMaterialCostPerComponent;
-                        newFactoryProducedComponents[machineConfig.outputComponentId] = 
-                          (newFactoryProducedComponents[machineConfig.outputComponentId] || 0) + 1;
+              line.slots.forEach(slot => {
+                if (slot.machineInstanceId && slot.targetComponentId) {
+                  const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+                  const machineConfig = machine ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId) : null;
+                  const componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === slot.targetComponentId);
+
+                  if (machine && machineConfig && componentRecipe && machineConfig.maxCraftableTier >= componentRecipe.tier) {
+                    let canCraft = true;
+                    if (newFactoryRawMaterials < componentRecipe.rawMaterialCost) {
+                      canCraft = false;
+                    }
+                    for (const input of componentRecipe.recipe) {
+                      if ((newFactoryProducedComponents[input.componentId] || 0) < input.quantity) {
+                        canCraft = false;
+                        break;
                       }
+                    }
+
+                    if (canCraft) {
+                      newFactoryRawMaterials -= componentRecipe.rawMaterialCost;
+                      for (const input of componentRecipe.recipe) {
+                        newFactoryProducedComponents[input.componentId] = (newFactoryProducedComponents[input.componentId] || 0) - input.quantity;
+                      }
+                      newFactoryProducedComponents[slot.targetComponentId] = (newFactoryProducedComponents[slot.targetComponentId] || 0) + 1; // Assuming 1/sec for now
                     }
                   }
                 }
@@ -816,19 +826,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { 
       factoryPurchased, 
-      // factoryPowerUnitsGenerated, // This should reset or be recalculated based on retained power buildings if any
       factoryRawMaterials, 
       factoryMachines, 
-      factoryProductionLines, 
-      // factoryPowerBuildings, // If power buildings are not retained, this should be empty
-      factoryProducedComponents // These persist
+      factoryProducedComponents
     } = playerStats;
 
-    // Recalculate power based on retained power buildings (currently none are retained by default)
-    // For now, assuming power buildings are reset and thus power generated also resets
-    const retainedFactoryPowerBuildings: FactoryPowerBuilding[] = []; // Placeholder
+    const retainedFactoryPowerBuildings: FactoryPowerBuilding[] = []; 
     const retainedFactoryPowerUnitsGenerated = retainedFactoryPowerBuildings.reduce((sum, pb) => sum + pb.currentOutputKw, 0);
-
 
     for (const hqUpgradeId in playerStats.hqUpgradeLevels) {
         const purchasedLevel = playerStats.hqUpgradeLevels[hqUpgradeId];
@@ -859,36 +863,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
     
+    const initialProdLines = Array.from({ length: 5 }, (_, i) => ({
+      id: `line_${i + 1}`,
+      name: `Production Line ${i + 1}`,
+      slots: Array.from({ length: 6 }, () => ({ machineInstanceId: null, targetComponentId: null })),
+    }));
 
     setPlayerStats(prev => ({
-      ...getInitialPlayerStats(), // Start with fresh defaults for most things
+      ...getInitialPlayerStats(), 
       money: moneyAfterPrestige,
       prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
       timesPrestiged: prev.timesPrestiged + 1,
-      unlockedSkillIds: prev.unlockedSkillIds, // Skills persist
-      hqUpgradeLevels: prev.hqUpgradeLevels, // HQ upgrades persist
-      stockHoldings: retainedStockHoldings, // Only retained stocks
-      
-      // Factory related stats that persist or are re-evaluated
-      factoryPurchased, // Persists
-      factoryPowerUnitsGenerated: retainedFactoryPowerUnitsGenerated, // Recalculated
-      factoryPowerConsumptionKw: 0, // Resets as machines are no longer assigned
-      factoryRawMaterials, // Persists
-      factoryMachines, // Persists (but will be unassigned)
-      factoryProductionLines: prev.factoryProductionLines.map(line => ({ // Lines persist, but machines unassigned
-        ...line,
-        machineInstanceIds: line.machineInstanceIds.map(() => null) 
-      })), 
-      factoryPowerBuildings: retainedFactoryPowerBuildings, // Retained power buildings
-      factoryProducedComponents, // Persists!
+      unlockedSkillIds: prev.unlockedSkillIds, 
+      hqUpgradeLevels: prev.hqUpgradeLevels, 
+      stockHoldings: retainedStockHoldings, 
+      factoryPurchased, 
+      factoryPowerUnitsGenerated: retainedFactoryPowerUnitsGenerated, 
+      factoryPowerConsumptionKw: 0, 
+      factoryRawMaterials, 
+      factoryMachines: factoryMachines.map(fm => ({ ...fm, assignedProductionLineId: null })), // Machines persist, unassigned
+      factoryProductionLines: initialProdLines, // Lines reset, slots empty
+      factoryPowerBuildings: retainedFactoryPowerBuildings, 
+      factoryProducedComponents, 
     }));
-
-    // Re-assign machine.assignedProductionLineId to null
-    setPlayerStats(prev => ({
-      ...prev,
-      factoryMachines: prev.factoryMachines.map(fm => ({...fm, assignedProductionLineId: null}))
-    }));
-
 
     setBusinesses(INITIAL_BUSINESSES.map(biz => ({
       ...biz, 
@@ -899,7 +896,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     })));
     
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
-    _attemptAutoAssignWaitingMachines(); // Attempt to re-assign machines after prestige
+    _attemptAutoAssignWaitingMachines();
 
     toast({ title: "Prestige Successful!", description: `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.` });
   }, [playerStats, businesses, toast, skillTreeState, hqUpgradesState]);
@@ -1056,7 +1053,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const calculateNextMachineCost = (ownedMachineCount: number): number => {
-      const baseCost = 100000; 
+      const baseCost = INITIAL_FACTORY_MACHINE_CONFIGS.find(m => m.id === 'basic_assembler_mk1')?.baseCost || 100000; // Default if not found
       const scalingFactor = 1.25; 
       return Math.floor(baseCost * Math.pow(scalingFactor, ownedMachineCount));
   };
@@ -1064,16 +1061,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const _attemptAutoAssignSingleMachine = (machineInstanceId: string, currentProductionLines: FactoryProductionLine[]): { updatedProductionLines: FactoryProductionLine[], assignedLineId: string | null, assignedSlotIndex: number | null } => {
     let assignedLineId: string | null = null;
     let assignedSlotIndex: number | null = null;
+    
     const updatedProductionLines = currentProductionLines.map(line => {
         if (assignedLineId) return line; 
 
-        const emptySlotIndex = line.machineInstanceIds.indexOf(null);
+        const emptySlotIndex = line.slots.findIndex(slot => slot.machineInstanceId === null);
         if (emptySlotIndex !== -1) {
-            const newLineInstanceIds = [...line.machineInstanceIds];
-            newLineInstanceIds[emptySlotIndex] = machineInstanceId;
+            const newSlots = [...line.slots];
+            newSlots[emptySlotIndex] = { ...newSlots[emptySlotIndex], machineInstanceId: machineInstanceId };
             assignedLineId = line.id;
             assignedSlotIndex = emptySlotIndex;
-            return { ...line, machineInstanceIds: newLineInstanceIds };
+            return { ...line, slots: newSlots };
         }
         return line;
     });
@@ -1161,35 +1159,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  // Kept for potential internal use, but UI for direct unassignment is removed.
   const unassignMachineFromProductionLine = useCallback((productionLineId: string, slotIndex: number) => {
       setPlayerStats(prev => {
           const targetProductionLineIndex = prev.factoryProductionLines.findIndex(pl => pl.id === productionLineId);
-          if (targetProductionLineIndex === -1) {
-              return prev;
-          }
+          if (targetProductionLineIndex === -1) return prev;
           
           const targetProductionLine = prev.factoryProductionLines[targetProductionLineIndex];
-          if (slotIndex < 0 || slotIndex >= targetProductionLine.machineInstanceIds.length) {
-              return prev;
-          }
+          if (slotIndex < 0 || slotIndex >= targetProductionLine.slots.length) return prev;
 
-          const machineInstanceIdToUnassign = targetProductionLine.machineInstanceIds[slotIndex];
-          if (!machineInstanceIdToUnassign) {
-              return prev;
-          }
+          const machineInstanceIdToUnassign = targetProductionLine.slots[slotIndex].machineInstanceId;
+          if (!machineInstanceIdToUnassign) return prev;
           
           const machineToUpdateIndex = prev.factoryMachines.findIndex(m => m.instanceId === machineInstanceIdToUnassign);
-          if (machineToUpdateIndex === -1) {
-              return prev; 
-          }
+          if (machineToUpdateIndex === -1) return prev; 
           
           const newFactoryMachines = [...prev.factoryMachines];
           newFactoryMachines[machineToUpdateIndex] = { ...newFactoryMachines[machineToUpdateIndex], assignedProductionLineId: null };
 
           const newFactoryProductionLines = [...prev.factoryProductionLines];
-          const newLineInstanceIds = [...newFactoryProductionLines[targetProductionLineIndex].machineInstanceIds];
-          newLineInstanceIds[slotIndex] = null;
-          newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], machineInstanceIds: newLineInstanceIds };
+          const newSlots = [...newFactoryProductionLines[targetProductionLineIndex].slots];
+          newSlots[slotIndex] = { machineInstanceId: null, targetComponentId: null }; // Clear both machine and recipe
+          newFactoryProductionLines[targetProductionLineIndex] = { ...newFactoryProductionLines[targetProductionLineIndex], slots: newSlots };
           
           return {
               ...prev,
@@ -1199,6 +1190,66 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       setTimeout(() => _attemptAutoAssignWaitingMachines(), 0);
   }, [_attemptAutoAssignWaitingMachines]);
+
+  const setRecipeForProductionSlot = (productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
+    setPlayerStats(prev => {
+      const lineIndex = prev.factoryProductionLines.findIndex(line => line.id === productionLineId);
+      if (lineIndex === -1) {
+        toast({ title: "Error", description: "Production line not found.", variant: "destructive" });
+        return prev;
+      }
+
+      const productionLine = prev.factoryProductionLines[lineIndex];
+      if (slotIndex < 0 || slotIndex >= productionLine.slots.length) {
+        toast({ title: "Error", description: "Invalid slot index.", variant: "destructive" });
+        return prev;
+      }
+
+      const slot = productionLine.slots[slotIndex];
+      if (!slot.machineInstanceId) {
+        toast({ title: "No Machine", description: "No machine assigned to this slot to set a recipe for.", variant: "destructive" });
+        return prev;
+      }
+
+      const machineInstance = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+      if (!machineInstance) {
+        toast({ title: "Error", description: "Assigned machine data not found.", variant: "destructive" });
+        return prev; // Should not happen if machineInstanceId is set
+      }
+
+      const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId);
+      if (!machineConfig) {
+        toast({ title: "Error", description: "Machine configuration not found.", variant: "destructive" });
+        return prev;
+      }
+
+      if (targetComponentId !== null) {
+        const componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(cc => cc.id === targetComponentId);
+        if (!componentRecipe) {
+          toast({ title: "Error", description: "Target component recipe not found.", variant: "destructive" });
+          return prev;
+        }
+        if (machineConfig.maxCraftableTier < componentRecipe.tier) {
+          toast({ title: "Cannot Craft", description: `${machineConfig.name} (Tier ${machineConfig.maxCraftableTier}) cannot craft ${componentRecipe.name} (Tier ${componentRecipe.tier}).`, variant: "destructive" });
+          return prev;
+        }
+      }
+
+      const updatedProductionLines = [...prev.factoryProductionLines];
+      const updatedSlots = [...updatedProductionLines[lineIndex].slots];
+      updatedSlots[slotIndex] = { ...updatedSlots[slotIndex], targetComponentId: targetComponentId };
+      updatedProductionLines[lineIndex] = { ...updatedProductionLines[lineIndex], slots: updatedSlots };
+
+      if (targetComponentId) {
+        const component = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === targetComponentId);
+        toast({ title: "Recipe Set!", description: `${machineConfig.name} in ${productionLine.name} (Slot ${slotIndex + 1}) will now produce ${component?.name || 'component'}.` });
+      } else {
+        toast({ title: "Recipe Cleared", description: `${machineConfig.name} in ${productionLine.name} (Slot ${slotIndex + 1}) is now idle.` });
+      }
+      
+      return { ...prev, factoryProductionLines: updatedProductionLines };
+    });
+  };
 
 
   return (
@@ -1235,7 +1286,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manuallyCollectRawMaterials,
       purchaseFactoryMachine,
       calculateNextMachineCost,
-      // unassignMachineFromProductionLine, // Not exposed directly
+      setRecipeForProductionSlot,
+      // unassignMachineFromProductionLine,
     }}>
       {children}
     </GameContext.Provider>
