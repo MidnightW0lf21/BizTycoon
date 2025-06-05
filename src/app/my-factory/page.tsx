@@ -304,11 +304,6 @@ export default function MyFactoryPage() {
           </div>
           <CardDescription>Manage power, materials, and production lines to create valuable components. Hire workers to operate machines. Unlock new technologies via Research.</CardDescription>
         </CardHeader>
-        <CardFooter className="pt-2">
-           <Button onClick={hireWorker} disabled={playerStats.money < WORKER_HIRE_COST}>
-             <UserPlus className="mr-2 h-4 w-4" /> Hire Worker (${WORKER_HIRE_COST.toLocaleString()})
-           </Button>
-        </CardFooter>
       </Card>
 
       <Tabs defaultValue="production" className="w-full flex-grow flex flex-col">
@@ -489,6 +484,11 @@ export default function MyFactoryPage() {
                   </Table>
                 )}
               </CardContent>
+              <CardFooter className="pt-4">
+                <Button onClick={hireWorker} disabled={playerStats.money < WORKER_HIRE_COST}>
+                  <UserPlus className="mr-2 h-4 w-4" /> Hire Worker (${WORKER_HIRE_COST.toLocaleString()})
+                </Button>
+              </CardFooter>
             </Card>
           </ScrollArea>
         </TabsContent>
