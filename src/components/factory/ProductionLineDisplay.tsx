@@ -120,16 +120,19 @@ export function ProductionLineDisplay({
           if (componentConfig && productionData && productionData.totalSeconds > 0) {
             if (productionData.remainingSeconds > 0) {
               timerDisplay = `${productionData.remainingSeconds.toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s`;
-            } else {
-                let canCraftOneFullInitially = true;
-                if (playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) canCraftOneFullInitially = false;
+            } else { // Item is complete (remainingSeconds <= 0) or ready to start
+                let canCraftNext = true; // Assume can craft unless proven otherwise
+                if (playerStats.factoryRawMaterials < componentConfig.rawMaterialCost) canCraftNext = false;
                 for (const input of componentConfig.recipe) {
-                    if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) { canCraftOneFullInitially = false; break; }
+                    if ((playerStats.factoryProducedComponents?.[input.componentId] || 0) < input.quantity) {
+                        canCraftNext = false;
+                        break;
+                    }
                 }
-                if (canCraftOneFullInitially) {
-                    timerDisplay = "Ready";
+                if (canCraftNext) {
+                    timerDisplay = "Ready"; // Ready to start a new cycle
                 } else {
-                    timerDisplay = "Inputs Needed";
+                    timerDisplay = "Inputs Needed"; // Stalled waiting for inputs
                 }
             }
           }
@@ -151,7 +154,7 @@ export function ProductionLineDisplay({
           if (machineConfig && !componentConfig) {
             slotTooltipContent = `Machine: ${machineConfig.name}. Click to set recipe. ${workerTooltip}`;
           } else if (machineConfig && componentConfig) {
-            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Time: ${timerDisplay || 'N/A'}. ${workerTooltip}`;
+            slotTooltipContent = `Producing: ${componentConfig.name} with ${machineConfig.name}. Time: ${productionData ? `${productionData.remainingSeconds.toFixed(0)}s / ${productionData.totalSeconds.toFixed(0)}s` : 'N/A'}. ${workerTooltip}`;
           }
           
           const netPower = playerStats ? (playerStats.factoryPowerUnitsGenerated || 0) - (playerStats.factoryPowerConsumptionKw || 0) : 0;
