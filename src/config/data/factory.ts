@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, FactoryMachineUpgradeConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, Combine, Landmark, Briefcase, ShieldCheck, FlaskConical, Rocket, Ship, Dna, Radio, Sigma, Anchor, Headset, Construction, LineChart, Languages, SproutIcon, UserCheck, Beaker, PenTool, Scroll, Milestone, BotIcon, Replace, Building2, Handshake, Database, HelpCircle, Gavel, University, Power, Aperture, Orbit, Layers, Truck, Archive, Building, Film, Wind, Tv, Navigation, Map, Megaphone, Utensils, Code2, GitMerge as GitMergeIcon, PiggyBank, ShieldEllipsis, Server, Scissors, Mic, ToyBrick, Fuel, Scan, Smile, DollarSign, SlidersHorizontal, Diamond, Sparkles, Gem, BookOpen, ShieldAlert, TowerControl, TestTube, TrendingUp as TrendingUpLucideIcon, Brain, Globe, Biohazard, Airplay, Antenna, Workflow, Scale, Speaker, Router, Palette, DraftingCompass, Thermometer, Snowflake, ZapOff, Shield, Route, UserPlus, Trees, Plane, HandCoins, Users2, Recycle, ShoppingBag, Compass, TelescopeIcon as TelescopeIconLucide, Share2 } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, Combine, Landmark, Briefcase, ShieldCheck, FlaskConical, Rocket, Ship, Dna, Radio, Sigma, Anchor, Headset, Construction, LineChart, Languages, SproutIcon, UserCheck, Beaker, PenTool, Scroll, Milestone, BotIcon, Replace, Building2, Handshake, Database, HelpCircle, Gavel, University, Power, Aperture, Orbit, Layers, Truck, Archive, Building, Film, Wind, Tv, Navigation, Map, Megaphone, Utensils, Code2, GitMerge as GitMergeIcon, PiggyBank, ShieldEllipsis, Server, Scissors, Mic, ToyBrick, Fuel, Scan, Smile, DollarSign, SlidersHorizontal, Diamond, Sparkles, Gem, BookOpen, ShieldAlert, TowerControl, TestTube, TrendingUp as TrendingUpLucideIcon, Brain, Globe, Biohazard, Airplay, Antenna, Workflow, Scale, Speaker, Router, Palette, DraftingCompass, Thermometer, Snowflake, ZapOff, Shield, Route, UserPlus, Trees, Plane, HandCoins, Users2, Recycle, ShoppingBag, Compass, TelescopeIcon as TelescopeIconLucide, Share2, RouteIcon, Syringe, Dices, BoxIcon, Binary, AlertTriangle, Magnet, Hand, ScanSearch, SearchCode, MapPinned, Stamp, BookLock, Library, MemoryStick, Gauge, UsersCog, ShipWheel, PlugZap, Lock, PersonStanding } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -547,9 +547,9 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'artisanal_sourdough_culture',
     name: 'Artisanal Sourdough Culture',
     description: 'A unique yeast culture for superior bread. Boosts Artisan Bakery income.',
-    icon: Landmark,
+    icon: Landmark, // Placeholder, could be Cookie or similar
     tier: 2,
-    recipe: [{ componentId: 'basic_gear', quantity: 2 }],
+    recipe: [{ componentId: 'basic_gear', quantity: 2 }], // Placeholder recipe
     rawMaterialCost: 22,
     productionTimeSeconds: 55,
     requiredAssemblerMark: 1,
@@ -769,7 +769,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'advanced_cooling_system_component',
     name: 'Advanced Cooling System',
     description: 'High-efficiency cooling for factory systems. Further boost to factory power output.',
-    icon: Zap,
+    icon: Zap, // Could be Snowflake as well
     tier: 3,
     recipe: [{ componentId: 'efficiency_coil', quantity: 3 }, { componentId: 'reinforced_chassis', quantity: 1 }],
     rawMaterialCost: 65,
@@ -896,7 +896,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: ShieldEllipsis,
     tier: 2,
     recipe: [{ componentId: 'rugged_casing', quantity: 3 }],
-    rawMaterialCost: 15,
+    rawMaterialCost: 15, // Adjusted cost based on input (3*10 raw equivalent if we were to use that, but direct RM cost is lower for balance)
     productionTimeSeconds: 60,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.05 }, maxBonusPercent: 3 }
@@ -908,7 +908,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Rocket,
     tier: 3,
     recipe: [{ componentId: 'shielded_enclosure', quantity: 2 }, { componentId: 'basic_gear', quantity: 2 }],
-    rawMaterialCost: 30,
+    rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 180,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.07 }, maxBonusPercent: 4 }
@@ -922,7 +922,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: BrainCircuit,
     tier: 2,
     recipe: [{ componentId: 'basic_circuit_board', quantity: 3 }, { componentId: 'advanced_gear', quantity: 1 }],
-    rawMaterialCost: 30,
+    rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.06 }, maxBonusPercent: 5 }
@@ -934,7 +934,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Brain,
     tier: 3,
     recipe: [{ componentId: 'neural_processing_unit_adv', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
-    rawMaterialCost: 60,
+    rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 200,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.08 }, maxBonusPercent: 6 }
@@ -946,7 +946,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: InfinityIcon,
     tier: 4,
     recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 2 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
-    rawMaterialCost: 150,
+    rawMaterialCost: 150, // Adjusted
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.1 }, maxBonusPercent: 7 }
@@ -960,7 +960,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: GitMergeIcon,
     tier: 2,
     recipe: [{ componentId: 'efficiency_coil', quantity: 3 }],
-    rawMaterialCost: 20,
+    rawMaterialCost: 20, // Adjusted
     productionTimeSeconds: 50,
     requiredAssemblerMark: 2,
     effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 2 }
@@ -972,7 +972,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Sigma,
     tier: 3,
     recipe: [{ componentId: 'superconductive_wire_bundle', quantity: 2 }, { componentId: 'power_regulator_mk1', quantity: 1 }],
-    rawMaterialCost: 50,
+    rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 150,
     requiredAssemblerMark: 3,
     effects: { factoryGlobalPowerOutputBoostPercent: 0.03, maxBonusPercent: 5 }
@@ -984,7 +984,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Power,
     tier: 4,
     recipe: [{ componentId: 'plasma_conduit_segment_component_adv', quantity: 2 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
-    rawMaterialCost: 120,
+    rawMaterialCost: 120, // Adjusted
     productionTimeSeconds: 800,
     requiredAssemblerMark: 4,
     effects: { factoryGlobalPowerOutputBoostPercent: 0.06, maxBonusPercent: 8 }
@@ -998,7 +998,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Film,
     tier: 2,
     recipe: [{ componentId: 'polished_optical_array', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 2 }],
-    rawMaterialCost: 40,
+    rawMaterialCost: 40, // Adjusted
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.07 }, maxBonusPercent: 4 }
@@ -1010,7 +1010,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: FlaskConical,
     tier: 3,
     recipe: [{ componentId: 'precision_gear', quantity: 1 }, { componentId: 'nanite_conduit', quantity: 1 }],
-    rawMaterialCost: 70,
+    rawMaterialCost: 70, // Adjusted
     productionTimeSeconds: 220,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.09 }, maxBonusPercent: 5 }
@@ -1022,7 +1022,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Wind,
     tier: 2,
     recipe: [{ componentId: 'power_regulator_mk1', quantity: 1 }, { componentId: 'basic_energy_cell', quantity: 2 }],
-    rawMaterialCost: 45,
+    rawMaterialCost: 45, // Adjusted
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.06 }, maxBonusPercent: 4 }
@@ -1034,7 +1034,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Dna,
     tier: 3,
     recipe: [{ componentId: 'advanced_logic_chip', quantity: 2 }, { componentId: 'holographic_data_crystal', quantity: 1 }],
-    rawMaterialCost: 110,
+    rawMaterialCost: 110, // Adjusted
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.11 }, maxBonusPercent: 6 }
@@ -1046,7 +1046,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Tv,
     tier: 2,
     recipe: [{ componentId: 'advanced_logic_chip', quantity: 1 }, { componentId: 'magnetic_storage_unit', quantity: 2 }],
-    rawMaterialCost: 50,
+    rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 85,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'entertainment_streaming_service', percent: 0.05 }, maxBonusPercent: 3 }
@@ -1058,7 +1058,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Megaphone,
     tier: 3,
     recipe: [{ componentId: 'neural_processing_unit_adv', quantity: 1 }, { componentId: 'miniature_ai_core', quantity: 1 }],
-    rawMaterialCost: 90,
+    rawMaterialCost: 90, // Adjusted
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'ad_agency', percent: 0.08 }, maxBonusPercent: 5 }
@@ -1067,10 +1067,10 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'real_estate_holographic_viewer_pro',
     name: 'Holographic Property Viewer',
     description: 'Device for immersive property tours. Boosts Real Estate Agency income.',
-    icon: Landmark,
+    icon: Building,
     tier: 2,
     recipe: [{ componentId: 'polished_optical_array', quantity: 1 }, { componentId: 'simple_frame', quantity: 2 }],
-    rawMaterialCost: 35,
+    rawMaterialCost: 35, // Adjusted
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'real_estate', percent: 0.04 }, maxBonusPercent: 3 }
@@ -1082,7 +1082,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Navigation,
     tier: 2,
     recipe: [{ componentId: 'efficient_power_core', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 1 }],
-    rawMaterialCost: 60,
+    rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.07 }, maxBonusPercent: 4 }
@@ -1094,7 +1094,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Utensils,
     tier: 2,
     recipe: [{ componentId: 'basic_gear', quantity: 3 }, { componentId: 'simple_frame', quantity: 2 }],
-    rawMaterialCost: 30,
+    rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 65,
     requiredAssemblerMark: 2,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 0.06 }, maxBonusPercent: 3 }
@@ -1106,7 +1106,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Code2,
     tier: 3,
     recipe: [{ componentId: 'advanced_logic_chip', quantity: 2 }, { componentId: 'survey_drone_module', quantity: 1 }],
-    rawMaterialCost: 80,
+    rawMaterialCost: 80, // Adjusted
     productionTimeSeconds: 250,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 0.09 }, maxBonusPercent: 5 }
@@ -1118,7 +1118,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Ship,
     tier: 3,
     recipe: [{ componentId: 'solid_state_drive_array', quantity: 1 }, { componentId: 'miniature_ai_core', quantity: 1 }],
-    rawMaterialCost: 100,
+    rawMaterialCost: 100, // Adjusted
     productionTimeSeconds: 290,
     requiredAssemblerMark: 3,
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.08 }, maxBonusPercent: 4 }
@@ -1132,7 +1132,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Beaker,
     tier: 3,
     recipe: [{ componentId: 'bio_reactor_catalyst', quantity: 1 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
-    rawMaterialCost: 200,
+    rawMaterialCost: 200, // Adjusted
     productionTimeSeconds: 350,
     requiredAssemblerMark: 3,
     effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'alpha_pharma', percent: 0.0006 }, maxBonusPercent: 0.3 }
@@ -1144,7 +1144,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: AtomIcon,
     tier: 4,
     recipe: [{ componentId: 'gravimetric_sensor_suite', quantity: 1 }, { componentId: 'miniature_fusion_core_component', quantity: 1 }],
-    rawMaterialCost: 350,
+    rawMaterialCost: 350, // Adjusted
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
     effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'tech_innovations', percent: 0.0003 }, maxBonusPercent: 0.15 }
@@ -1156,7 +1156,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Building,
     tier: 2,
     recipe: [{ componentId: 'advanced_gear', quantity: 2 }, { componentId: 'efficiency_coil', quantity: 2 }],
-    rawMaterialCost: 50,
+    rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
     effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.0004 }, maxBonusPercent: 0.2 }
@@ -1170,7 +1170,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: PiggyBank,
     tier: 2,
     recipe: [{ componentId: 'solid_state_drive_array', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 2 }],
-    rawMaterialCost: 60,
+    rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 100,
     requiredAssemblerMark: 2,
     effects: { businessTypeIncomeBoostPercent: { businessType: 'FINANCE', percent: 0.01 }, maxBonusPercent: 3 }
@@ -1182,7 +1182,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Radio,
     tier: 3,
     recipe: [{ componentId: 'streaming_service_codec_optimizer_chip', quantity: 1 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
-    rawMaterialCost: 120,
+    rawMaterialCost: 120, // Adjusted
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
     effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.015 }, maxBonusPercent: 4 }
@@ -1194,7 +1194,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Compass,
     tier: 4,
     recipe: [{ componentId: 'null_g_support_structure', quantity: 1 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
-    rawMaterialCost: 200,
+    rawMaterialCost: 200, // Adjusted
     productionTimeSeconds: 950,
     requiredAssemblerMark: 4,
     effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.02 }, maxBonusPercent: 5 }
@@ -1208,7 +1208,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Waves,
     tier: 2,
     recipe: [{ componentId: 'efficiency_coil', quantity: 2 }, { componentId: 'simple_frame', quantity: 1 }],
-    rawMaterialCost: 40,
+    rawMaterialCost: 40, // Adjusted
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
     effects: { globalCostReductionPercent: 0.0025, maxBonusPercent: 0.75 }
@@ -1220,7 +1220,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Pickaxe,
     tier: 2,
     recipe: [{ componentId: 'survey_drone_module', quantity: 1 }, { componentId: 'basic_circuit_board', quantity: 1 }],
-    rawMaterialCost: 45,
+    rawMaterialCost: 45, // Adjusted
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
     effects: { factoryGlobalMaterialCollectionBoostPercent: 0.0075, maxBonusPercent: 2.5 }
@@ -1232,7 +1232,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: LineChart,
     tier: 3,
     recipe: [{ componentId: 'market_analysis_chip', quantity: 1 }, { componentId: 'neural_processing_unit_adv', quantity: 1 }],
-    rawMaterialCost: 140,
+    rawMaterialCost: 140, // Adjusted
     productionTimeSeconds: 330,
     requiredAssemblerMark: 3,
     effects: { globalDividendYieldBoostPercent: 0.0005, maxBonusPercent: 0.15 }
@@ -1244,7 +1244,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Wrench,
     tier: 3,
     recipe: [{ componentId: 'robotic_arm_actuator_adv', quantity: 1 }, { componentId: 'advanced_gear', quantity: 2 }],
-    rawMaterialCost: 80,
+    rawMaterialCost: 80, // Adjusted
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
     effects: { globalBusinessUpgradeCostReductionPercent: 0.005, maxBonusPercent: 1.5 }
@@ -1256,7 +1256,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: Database,
     tier: 4,
     recipe: [{ componentId: 'logistics_ai_processor', quantity: 1 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
-    rawMaterialCost: 300,
+    rawMaterialCost: 300, // Adjusted
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
     effects: { globalIncomeBoostPerComponentPercent: 0.003, maxBonusPercent: 1 }
@@ -1268,7 +1268,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     icon: HardHat,
     tier: 4,
     recipe: [{ componentId: 'nanite_assembler_core', quantity: 1 }, { componentId: 'precision_gear', quantity: 2 }],
-    rawMaterialCost: 320,
+    rawMaterialCost: 320, // Adjusted
     productionTimeSeconds: 1200,
     requiredAssemblerMark: 4,
     effects: { globalBusinessUpgradeCostReductionPercent: 0.0075, maxBonusPercent: 2 }
@@ -1431,7 +1431,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'movie_studio_sound_mixing_board_pro',
     name: 'Pro Sound Mixing Board',
     description: 'Studio-grade audio mixing console. Boosts Movie Studio income.',
-    icon: Radio,
+    icon: Radio, // Re-using Radio as it fits media context
     tier: 3,
     recipe: [{ componentId: 'advanced_logic_chip', quantity: 2 }, { componentId: 'basic_circuit_board', quantity: 3 }],
     rawMaterialCost: 90,
@@ -1683,7 +1683,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 25,
     productionTimeSeconds: 50,
     requiredAssemblerMark: 2,
-    effects: { factoryWorkerEnergyDrainModifier: 0.98, maxBonusPercent: 10 }
+    effects: { factoryWorkerEnergyDrainModifier: 0.98, maxBonusPercent: 10 } // Reduces drain by 2% effectively
   },
   {
     id: 'automated_stock_portfolio_manager_basic',
@@ -1699,6 +1699,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
   },
 
   // --- PHASE 4 ADDITIONS START HERE ---
+
   // Family: Advanced Sensors
   {
     id: 'basic_environmental_sensor',
@@ -2074,7 +2075,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     id: 'experimental_energy_amplifier_factory_wide',
     name: 'Experimental Factory Energy Amplifier',
     description: 'A risky but potentially potent energy booster for the entire factory.',
-    icon: ZapOff, // Indicates potential risk/instability
+    icon: ZapOff, 
     tier: 4,
     recipe: [{ componentId: 'zero_point_tap_module_component_adv', quantity: 1 }, { componentId: 'focused_energy_crystal_refined', quantity: 2 }],
     rawMaterialCost: 350,
@@ -2094,7 +2095,1141 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     requiredAssemblerMark: 4,
     effects: { factoryGlobalMaterialCollectionBoostPercent: 0.035, maxBonusPercent: 8 }
   },
+  // --- PHASE 5 ADDITIONS START HERE ---
+  // Family: Advanced Cooling Systems
+  {
+    id: 'basic_heat_sink',
+    name: 'Basic Heat Sink',
+    description: 'Simple finned heat sink for passive cooling. Small reduction in factory power consumption.',
+    icon: Snowflake, // Replaced CoolingTower
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 9,
+    productionTimeSeconds: 19,
+    requiredAssemblerMark: 1,
+    effects: { factoryGlobalPowerConsumptionModifier: 0.998, maxBonusPercent: 0.5 } // 0.2% reduction
+  },
+  {
+    id: 'liquid_cooling_loop',
+    name: 'Liquid Cooling Loop',
+    description: 'Closed-loop liquid cooling for moderate heat loads. Reduces factory power consumption more.',
+    icon: Snowflake, // Replaced CoolingTower
+    tier: 2,
+    recipe: [{ componentId: 'basic_heat_sink', quantity: 3 }, { componentId: 'servo_motor_mini', quantity: 1 }],
+    rawMaterialCost: 30,
+    productionTimeSeconds: 68,
+    requiredAssemblerMark: 2,
+    effects: { factoryGlobalPowerConsumptionModifier: 0.995, maxBonusPercent: 1 } // 0.5% reduction
+  },
+  {
+    id: 'cryogenic_cooling_system_adv',
+    name: 'Advanced Cryogenic Cooler',
+    description: 'Ultra-low temperature cooling for high-performance systems. Significant factory power consumption reduction.',
+    icon: Snowflake,
+    tier: 3,
+    recipe: [{ componentId: 'liquid_cooling_loop', quantity: 2 }, { componentId: 'power_regulator_mk1', quantity: 1 }],
+    rawMaterialCost: 70,
+    productionTimeSeconds: 230,
+    requiredAssemblerMark: 3,
+    effects: { factoryGlobalPowerConsumptionModifier: 0.99, maxBonusPercent: 2 } // 1% reduction
+  },
+
+  // Family: Automated Navigation Systems
+  {
+    id: 'simple_pathfinding_module',
+    name: 'Simple Pathfinding Module',
+    description: 'Basic algorithm for A-to-B navigation. Boosts AeroSwift Delivery income.',
+    icon: RouteIcon,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 11,
+    productionTimeSeconds: 24,
+    requiredAssemblerMark: 1,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.03 }, maxBonusPercent: 2.5 }
+  },
+  {
+    id: 'traffic_collision_avoidance_system',
+    name: 'Collision Avoidance System',
+    description: 'Prevents drone collisions in busy airspace. Reduces Horizon Logistics level up cost.',
+    icon: RouteIcon,
+    tier: 2,
+    recipe: [{ componentId: 'simple_pathfinding_module', quantity: 3 }, { componentId: 'basic_environmental_sensor', quantity: 1 }],
+    rawMaterialCost: 38,
+    productionTimeSeconds: 72,
+    requiredAssemblerMark: 2,
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_shipping_network', percent: 0.02 }, maxBonusPercent: 1.5 }
+  },
+  {
+    id: 'hyperspace_lane_charter_component', // Renamed ID slightly to avoid potential conflicts
+    name: 'Hyperspace Lane Charter',
+    description: 'AI for charting safe FTL routes. Boosts JumpPoint Navigators income.',
+    icon: RouteIcon,
+    tier: 3,
+    recipe: [{ componentId: 'traffic_collision_avoidance_system', quantity: 2 }, { componentId: 'advanced_navigation_module', quantity: 1 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 300,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'hyperspace_travel_agency', percent: 0.07 }, maxBonusPercent: 4.2 }
+  },
+
+  // Family: Bio-Enhancement Serums
+  {
+    id: 'basic_stimulant_serum',
+    name: 'Basic Stimulant Serum',
+    description: 'Mild cognitive and physical enhancer. Slightly boosts worker energy regeneration.',
+    icon: Syringe,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 13,
+    productionTimeSeconds: 20,
+    requiredAssemblerMark: 1,
+    effects: { factoryWorkerEnergyRegenModifier: 1.01, maxBonusPercent: 3 }
+  },
+  {
+    id: 'neuro_enhancement_cocktail',
+    name: 'Neuro-Enhancement Cocktail',
+    description: 'Boosts learning and decision-making. Increases manual RP generation.',
+    icon: Syringe,
+    tier: 2,
+    recipe: [{ componentId: 'basic_stimulant_serum', quantity: 3 }, { componentId: 'nutrient_gel_pack_basic', quantity: 1 }],
+    rawMaterialCost: 35,
+    productionTimeSeconds: 70,
+    requiredAssemblerMark: 2,
+    effects: { factoryManualRPGenerationBoost: 0.001, maxBonusPercent: 0.3 }
+  },
+  {
+    id: 'adaptive_regeneration_nanites_component', // Renamed ID slightly to avoid potential conflicts
+    name: 'Adaptive Regeneration Nanites',
+    description: 'Microscopic bots that repair and enhance biological tissue. Boosts BioSynth Creations income.',
+    icon: Syringe,
+    tier: 3,
+    recipe: [{ componentId: 'neuro_enhancement_cocktail', quantity: 2 }, { componentId: 'nanite_conduit', quantity: 1 }],
+    rawMaterialCost: 90,
+    productionTimeSeconds: 290,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.08 }, maxBonusPercent: 4.8 }
+  },
+
+  // Specific Business Boosts (Phase 5 Additions)
+  {
+    id: 'chronoweave_dynamics_temporal_anchor',
+    name: 'Temporal Anchor Device',
+    description: 'Stabilizes localized spacetime. Boosts ChronoWeave Dynamics income.',
+    icon: Anchor,
+    tier: 5,
+    recipe: [{ componentId: 'chroniton_particle_stabilizer_component', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 650,
+    productionTimeSeconds: 4400,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.15 }, maxBonusPercent: 7.5 }
+  },
+  {
+    id: 'matrix_simuworlds_reality_codec_chip',
+    name: 'Reality Codec Chip',
+    description: 'Optimizes data transfer for simulated realities. Boosts Matrix SimuWorlds income.',
+    icon: Layers,
+    tier: 5,
+    recipe: [{ componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }, { componentId: 'holographic_data_crystal', quantity: 2 }],
+    rawMaterialCost: 680,
+    productionTimeSeconds: 4500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_simulation_corp', percent: 0.14 }, maxBonusPercent: 7 }
+  },
+  {
+    id: 'stellarforge_megastructures_dyson_strut_core',
+    name: 'Dyson Strut Core',
+    description: 'Key structural element for Dyson spheres. Boosts StellarForge Megastructures income.',
+    icon: Construction,
+    tier: 5,
+    recipe: [{ componentId: 'null_g_support_structure', quantity: 3 }, { componentId: 'alloy_gear', quantity: 2 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4100,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_engineering_guild', percent: 0.13 }, maxBonusPercent: 6.5 }
+  },
+  {
+    id: 'slipstream_couriers_dimensional_stabilizer_array',
+    name: 'Dimensional Stabilizer Array',
+    description: 'Maintains stability during transdimensional jumps. Boosts SlipStream Couriers income.',
+    icon: Truck,
+    tier: 5,
+    recipe: [{ componentId: 'reality_distortion_lens_component', quantity: 1 }, { componentId: 'power_regulator_mk3', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.12 }, maxBonusPercent: 6 }
+  },
+  {
+    id: 'united_galactic_concourse_translation_matrix_gold',
+    name: 'Golden Translation Matrix',
+    description: 'Flawless translation for high-level diplomacy. Boosts United Galactic Concourse income.',
+    icon: Building2,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 650,
+    productionTimeSeconds: 4350,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_federation_embassy', percent: 0.11 }, maxBonusPercent: 5.5 }
+  },
+  {
+    id: 'omnibank_interdimensional_secure_quantum_vault',
+    name: 'Quantum Secure Vault Component',
+    description: 'Unbreachable vault for multi-dimensional assets. Boosts OmniBank Interdimensional income.',
+    icon: ShieldCheck,
+    tier: 5,
+    recipe: [{ componentId: 'shielded_enclosure', quantity: 3 }, { componentId: 'quantum_gear', quantity: 1 }],
+    rawMaterialCost: 580,
+    productionTimeSeconds: 4000,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_dimensional_banking', percent: 0.1 }, maxBonusPercent: 5 }
+  },
+  {
+    id: 'akashic_record_inc_data_compression_singularity',
+    name: 'Singularity Data Compressor',
+    description: 'Compresses vast amounts of data for the Akashic Record. Boosts The Akashic Record Inc. income.',
+    icon: Database,
+    tier: 5,
+    recipe: [{ componentId: 'holographic_data_crystal', quantity: 3 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 720,
+    productionTimeSeconds: 4700,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.12 }, maxBonusPercent: 6 }
+  },
+  {
+    id: 'aurum_alchemica_transmutation_catalyst_omega',
+    name: 'Omega Transmutation Catalyst',
+    description: 'The ultimate catalyst for alchemical processes. Boosts Aurum Alchemica income.',
+    icon: Gem,
+    tier: 5,
+    recipe: [{ componentId: 'focused_energy_crystal_refined', quantity: 2 }, { componentId: 'exotic_matter_containment_cell_component', quantity: 1 }],
+    rawMaterialCost: 690,
+    productionTimeSeconds: 4550,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.13 }, maxBonusPercent: 6.8 }
+  },
+  {
+    id: 'omega_oracle_truth_seeking_algorithm_core',
+    name: 'Truth-Seeking Algorithm Core',
+    description: 'Core AI for discerning universal truths. Boosts The Omega Oracle income.',
+    icon: HelpCircle,
+    tier: 5,
+    recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 2 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4250,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.15 }, maxBonusPercent: 7.7 }
+  },
+  {
+    id: 'nova_academia_galactic_universal_knowledge_codex',
+    name: 'Universal Knowledge Codex',
+    description: 'Contains distilled wisdom from across the galaxy. Boosts Nova Academia Galactica income.',
+    icon: University,
+    tier: 5,
+    recipe: [{ componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }, { componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }],
+    rawMaterialCost: 750,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'intergalactic_university', percent: 0.1 }, maxBonusPercent: 5.2 }
+  },
+  {
+    id: 'cyberevolve_augments_sentient_nanite_cluster_node',
+    name: 'Sentient Nanite Cluster Node',
+    description: 'Self-aware nanites for advanced bio-augmentation. Boosts CyberEvolve Augments income.',
+    icon: CloudCog,
+    tier: 5,
+    recipe: [{ componentId: 'self_replicating_nanite_swarm_component', quantity: 1 }, { componentId: 'synapse_dynamics_neural_feedback_loop', quantity: 1 }],
+    rawMaterialCost: 800,
+    productionTimeSeconds: 5000,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.11 }, maxBonusPercent: 5.8 }
+  },
+  {
+    id: 'atmosphere_dynamics_planetary_weather_core_stabilizer',
+    name: 'Planetary Weather Core',
+    description: 'Core AI for stabilizing planetary weather patterns. Boosts AtmoSphere Dynamics income.',
+    icon: CloudDrizzle,
+    tier: 5,
+    recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 1 }, { componentId: 'multi_spectral_imaging_array', quantity: 2 }],
+    rawMaterialCost: 550,
+    productionTimeSeconds: 3900,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'weather_control_systems', percent: 0.12 }, maxBonusPercent: 6.1 }
+  },
+  {
+    id: 'gaia_mind_initiatives_noospheric_harmonizer_node',
+    name: 'Noospheric Harmonizer Node',
+    description: 'Facilitates the merging of planetary consciousness. Boosts Gaia Mind Initiatives income.',
+    icon: Network,
+    tier: 5,
+    recipe: [{ componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 720,
+    productionTimeSeconds: 4600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.13 }, maxBonusPercent: 6.6 }
+  },
+  {
+    id: 'autogenesis_systems_universal_constructor_blueprint_chip',
+    name: 'Universal Constructor Blueprint',
+    description: 'Stores blueprints for Von Neumann machines. Boosts Autogenesis Systems income.',
+    icon: Combine,
+    tier: 5,
+    recipe: [{ componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }, { componentId: 'nanite_assembler_core', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4900,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_constructors_von_neumann', percent: 0.14 }, maxBonusPercent: 7.3 }
+  },
+  {
+    id: 'axiom_reality_editors_reality_tuning_fork_perfect',
+    name: 'Perfect Reality Tuning Fork',
+    description: 'Device for fine-tuning local physical constants. Boosts Axiom Reality Editors income.',
+    icon: Replace,
+    tier: 5,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 2 }, { componentId: 'chroniton_particle_stabilizer_component', quantity: 1 }],
+    rawMaterialCost: 820,
+    productionTimeSeconds: 5100,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_warping_services', percent: 0.15 }, maxBonusPercent: 7.9 }
+  },
+  {
+    id: 'hegemon_ai_governance_protocol_suite_ultimate',
+    name: 'Ultimate Governance Protocol Suite',
+    description: 'The complete AI code for galactic governance. Boosts The Hegemon AI income.',
+    icon: Gavel,
+    tier: 5,
+    recipe: [{ componentId: 'omega_oracle_truth_seeking_algorithm_core', quantity: 1 }, { componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }],
+    rawMaterialCost: 900,
+    productionTimeSeconds: 5500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.16 }, maxBonusPercent: 8.1 }
+  },
+  {
+    id: 'emissaries_guild_cosmic_entity_translator_cipher',
+    name: 'Cosmic Entity Cipher',
+    description: 'A key to understanding communications from elder beings. Boosts The Emissaries Guild income.',
+    icon: Handshake,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }],
+    rawMaterialCost: 850,
+    productionTimeSeconds: 5200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_entity_liaison', percent: 0.17 }, maxBonusPercent: 8.3 }
+  },
+  {
+    id: 'post_humanity_services_consciousness_shard_crystalline',
+    name: 'Crystalline Consciousness Shard',
+    description: 'A storage medium for uploaded minds. Boosts Post-Humanity Services income.',
+    icon: Puzzle,
+    tier: 5,
+    recipe: [{ componentId: 'holographic_data_crystal', quantity: 2 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4950,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.18 }, maxBonusPercent: 8.5 }
+  },
+  {
+    id: 'watchers_collective_omnipresent_sensor_node_final',
+    name: 'Omnipresent Sensor Node',
+    description: 'A node in the network of total observation. Boosts The Watchers Collective income.',
+    icon: Eye,
+    tier: 5,
+    recipe: [{ componentId: 'deep_space_observatory_lens_pro', quantity: 2 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 880,
+    productionTimeSeconds: 5300,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omnipresence_inc', percent: 0.20 }, maxBonusPercent: 9 }
+  },
+  // Global/Factory Boosts (Phase 5 Additions)
+  {
+    id: 'quantum_fluctuation_damper_global',
+    name: 'Quantum Fluctuation Damper',
+    description: 'Stabilizes local reality, slightly boosting all business incomes.',
+    icon: Dices,
+    tier: 4,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }, { componentId: 'power_regulator_mk3', quantity: 1 }],
+    rawMaterialCost: 350,
+    productionTimeSeconds: 1400,
+    requiredAssemblerMark: 4,
+    effects: { globalIncomeBoostPerComponentPercent: 0.004, maxBonusPercent: 1.2 }
+  },
+  {
+    id: 'universal_assembly_ai_core_factory_wide',
+    name: 'Factory Assembly AI Core',
+    description: 'An AI core dedicated to optimizing all factory production speeds slightly.',
+    icon: BoxIcon,
+    tier: 5,
+    recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 2 }, { componentId: 'master_craftsman_calibration_tools', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { factoryGlobalProductionSpeedModifier: 1.01, maxBonusPercent: 5 } // 1% speed boost
+  },
+
+  // --- PHASE 6 ADDITIONS START HERE ---
+  // Family: Advanced AI Modules
+  {
+    id: 'ai_logic_gate_simple',
+    name: 'Simple AI Logic Gate',
+    description: 'Basic processing unit for AI decision making. Small global business level-up cost reduction.',
+    icon: Binary,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 16,
+    productionTimeSeconds: 24,
+    requiredAssemblerMark: 1,
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 0.3 }
+  },
+  {
+    id: 'ai_neural_network_node_adv',
+    name: 'Neural Network Node',
+    description: 'A building block for complex neural networks. Boosts AI Research Lab income.',
+    icon: BrainCircuit,
+    tier: 2,
+    recipe: [{ componentId: 'ai_logic_gate_simple', quantity: 3 }, { componentId: 'basic_circuit_board', quantity: 2 }],
+    rawMaterialCost: 45,
+    productionTimeSeconds: 80,
+    requiredAssemblerMark: 2,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.04 }, maxBonusPercent: 3 }
+  },
+  {
+    id: 'ai_self_learning_matrix_core',
+    name: 'Self-Learning Matrix',
+    description: 'An AI core capable of learning and adapting. Boosts Sentient AI Consultancy income.',
+    icon: BotIcon,
+    tier: 3,
+    recipe: [{ componentId: 'ai_neural_network_node_adv', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 280,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.07 }, maxBonusPercent: 4.5 }
+  },
+  {
+    id: 'ai_skynet_consciousness_core_adv',
+    name: 'Skynet Consciousness Core',
+    description: 'A highly advanced, potentially dangerous AI core. Boosts The Hegemon AI income.',
+    icon: AlertTriangle, // Fallback for Skull
+    tier: 4,
+    recipe: [{ componentId: 'ai_self_learning_matrix_core', quantity: 2 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
+    rawMaterialCost: 220,
+    productionTimeSeconds: 1000,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.09 }, maxBonusPercent: 5.5 }
+  },
+  {
+    id: 'ai_universal_problem_solver_final',
+    name: 'Universal Problem Solver AI',
+    description: 'The ultimate AI, capable of solving any problem. Boosts The Omega Oracle income.',
+    icon: KeyRound,
+    tier: 5,
+    recipe: [{ componentId: 'ai_skynet_consciousness_core_adv', quantity: 2 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.12 }, maxBonusPercent: 7 }
+  },
+
+  // Family: Exotic Material Processors
+  {
+    id: 'material_basic_ore_crusher',
+    name: 'Basic Ore Crusher',
+    description: 'Crushes raw ore for initial processing. Slightly boosts factory material collection.',
+    icon: Hammer,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 18,
+    productionTimeSeconds: 28,
+    requiredAssemblerMark: 1,
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.005, maxBonusPercent: 1.5 }
+  },
+  {
+    id: 'material_magnetic_ore_separator_adv',
+    name: 'Magnetic Ore Separator',
+    description: 'Separates valuable metals from ore. Benefits Manufacturing businesses income.',
+    icon: Magnet,
+    tier: 2,
+    recipe: [{ componentId: 'material_basic_ore_crusher', quantity: 3 }, { componentId: 'efficiency_coil', quantity: 2 }],
+    rawMaterialCost: 50,
+    productionTimeSeconds: 90,
+    requiredAssemblerMark: 2,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.008 }, maxBonusPercent: 2.0 }
+  },
+  {
+    id: 'material_plasma_isotope_refiner_pro',
+    name: 'Plasma Isotope Refiner',
+    description: 'Refines materials to specific isotopes. Boosts Fusion Power Plant income.',
+    icon: AtomIcon,
+    tier: 3,
+    recipe: [{ componentId: 'material_magnetic_ore_separator_adv', quantity: 2 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
+    rawMaterialCost: 130,
+    productionTimeSeconds: 330,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.06 }, maxBonusPercent: 4.0 }
+  },
+  {
+    id: 'material_dark_matter_stabilizer_xtreme',
+    name: 'Dark Matter Stabilizer',
+    description: 'Stabilizes exotic dark matter for research. Boosts Exotic Matter Research income.',
+    icon: Orbit, // Fallback for CircleDotDashed
+    tier: 4,
+    recipe: [{ componentId: 'material_plasma_isotope_refiner_pro', quantity: 2 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 280,
+    productionTimeSeconds: 1100,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.08 }, maxBonusPercent: 5.0 }
+  },
+  {
+    id: 'material_chroniton_particle_agitator_ult',
+    name: 'Chroniton Particle Agitator',
+    description: 'Manipulates chroniton particles for temporal studies. Boosts Time-Space Manipulation Inc. income.',
+    icon: Hourglass,
+    tier: 5,
+    recipe: [{ componentId: 'material_dark_matter_stabilizer_xtreme', quantity: 2 }, { componentId: 'tachyon_field_emitter_component', quantity: 1 }],
+    rawMaterialCost: 650,
+    productionTimeSeconds: 4500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.1 }, maxBonusPercent: 6.0 }
+  },
+
+  // Family: Sensory Input Devices
+  {
+    id: 'sensory_basic_microphone_array',
+    name: 'Basic Microphone Array',
+    description: 'Captures audio input. Small boost to OmniMedia Group income.',
+    icon: Mic,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 10,
+    productionTimeSeconds: 20,
+    requiredAssemblerMark: 1,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.02 }, maxBonusPercent: 1.2 }
+  },
+  {
+    id: 'sensory_olfactory_sensor_chip_adv',
+    name: 'Olfactory Sensor Chip',
+    description: 'Detects and analyzes smells. Boosts Artisan Bakery income.',
+    icon: Wind, // Fallback for Nose
+    tier: 2,
+    recipe: [{ componentId: 'sensory_basic_microphone_array', quantity: 3 }, { componentId: 'basic_circuit_board', quantity: 1 }],
+    rawMaterialCost: 35,
+    productionTimeSeconds: 70,
+    requiredAssemblerMark: 2,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.04 }, maxBonusPercent: 2.8 }
+  },
+  {
+    id: 'sensory_tactile_feedback_glove_pro',
+    name: 'Tactile Feedback Glove',
+    description: 'Provides realistic touch sensations for VR. Boosts Elysian VR Realms income.',
+    icon: Hand,
+    tier: 3,
+    recipe: [{ componentId: 'sensory_olfactory_sensor_chip_adv', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 80,
+    productionTimeSeconds: 260,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.06 }, maxBonusPercent: 3.5 }
+  },
+  {
+    id: 'sensory_advanced_bio_scanner_xtreme',
+    name: 'Advanced Bio-Scanner',
+    description: 'Detailed biological scanning for genetic work. Boosts BioSynth Creations income.',
+    icon: ScanSearch,
+    tier: 4,
+    recipe: [{ componentId: 'sensory_tactile_feedback_glove_pro', quantity: 2 }, { componentId: 'genetic_sequencer_chip_adv', quantity: 1 }],
+    rawMaterialCost: 200,
+    productionTimeSeconds: 950,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.08 }, maxBonusPercent: 4.8 }
+  },
+  {
+    id: 'sensory_omni_spectrum_analyzer_ult',
+    name: 'Omni-Spectrum Analyzer',
+    description: 'Analyzes data across all known spectrums. Boosts XenoChronos Archives income.',
+    icon: SearchCode,
+    tier: 5,
+    recipe: [{ componentId: 'sensory_advanced_bio_scanner_xtreme', quantity: 2 }, { componentId: 'deep_space_observatory_lens_pro', quantity: 1 }],
+    rawMaterialCost: 550,
+    productionTimeSeconds: 4000,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.1 }, maxBonusPercent: 6.2 }
+  },
+
+  // Unique Components for High-Tier Businesses (Phase 6)
+  {
+    id: 'transdimensional_navigation_chart_unique',
+    name: 'Transdimensional Navigation Chart',
+    description: 'Essential for plotting routes through alternate dimensions. Boosts SlipStream Couriers income.',
+    icon: MapPinned,
+    tier: 5,
+    recipe: [{ componentId: 'hyperspace_lane_charter_component', quantity: 2 }, { componentId: 'reality_distortion_lens_component', quantity: 1 }],
+    rawMaterialCost: 750,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.11 }, maxBonusPercent: 6.0 }
+  },
+  {
+    id: 'universal_diplomatic_seal_unique',
+    name: 'Universal Diplomatic Seal',
+    description: 'A recognized symbol of galactic diplomacy. Reduces United Galactic Concourse upgrade costs.',
+    icon: Stamp,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'galactic_federation_embassy', percent: 0.06 }, maxBonusPercent: 3.0 }
+  },
+  {
+    id: 'quantum_entangled_ledger_unique',
+    name: 'Quantum Entangled Ledger',
+    description: 'Securely links financial data across dimensions. Boosts Omega Corp stock dividend yield.',
+    icon: BookLock,
+    tier: 5,
+    recipe: [{ componentId: 'galactic_exchange_quantum_ledger_processor', quantity: 1 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4900,
+    requiredAssemblerMark: 5,
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.0008 }, maxBonusPercent: 0.4 }
+  },
+  {
+    id: 'philosophers_catalyst_stone_unique',
+    name: 'Philosopher\'s Catalyst Stone',
+    description: 'The true catalyst for advanced transmutation. Boosts Aurum Alchemica income.',
+    icon: Gem,
+    tier: 5,
+    recipe: [{ componentId: 'aurum_alchemica_transmutation_catalyst_omega', quantity: 1 }, { componentId: 'focused_energy_crystal_refined', quantity: 2 }], // Self-reference to previous tier Omega
+    rawMaterialCost: 900, // High cost to reflect Omega
+    productionTimeSeconds: 5200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.14 }, maxBonusPercent: 7.0 }
+  },
+  {
+    id: 'holocron_of_knowledge_unique',
+    name: 'Holocron of Knowledge',
+    description: 'A repository of immense galactic wisdom. Slightly boosts manual RP generation.',
+    icon: Library,
+    tier: 5,
+    recipe: [{ componentId: 'nova_academia_galactic_universal_knowledge_codex', quantity: 1 }, { componentId: 'holographic_data_crystal', quantity: 2 }],
+    rawMaterialCost: 850,
+    productionTimeSeconds: 5100,
+    requiredAssemblerMark: 5,
+    effects: { factoryManualRPGenerationBoost: 0.005, maxBonusPercent: 1.0 }
+  },
+  {
+    id: 'adaptive_cybernetic_core_unique',
+    name: 'Adaptive Cybernetic Core',
+    description: 'The heart of advanced cybernetic enhancements. Boosts CyberEvolve Augments income.',
+    icon: MemoryStick, // Replaced Chip
+    tier: 5,
+    recipe: [{ componentId: 'cyberevolve_augments_sentient_nanite_cluster_node', quantity: 1 }, { componentId: 'cognitive_matrix_core_adv', quantity: 1 }],
+    rawMaterialCost: 880,
+    productionTimeSeconds: 5300,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.12 }, maxBonusPercent: 6.5 }
+  },
+  {
+    id: 'planetary_resonance_tuner_unique',
+    name: 'Planetary Resonance Tuner',
+    description: 'Fine-tunes planetary energies for weather control. Reduces AtmoSphere Dynamics upgrade costs.',
+    icon: Gauge,
+    tier: 5,
+    recipe: [{ componentId: 'atmosphere_dynamics_planetary_weather_core_stabilizer', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 760,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'weather_control_systems', percent: 0.07 }, maxBonusPercent: 3.5 }
+  },
+  {
+    id: 'collective_unconscious_link_unique',
+    name: 'Collective Unconscious Link',
+    description: 'Deepens the connection within a planetary mind. Boosts Gaia Mind Initiatives income.',
+    icon: UsersCog,
+    tier: 5,
+    recipe: [{ componentId: 'gaia_mind_initiatives_noospheric_harmonizer_node', quantity: 1 }, { componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }],
+    rawMaterialCost: 920,
+    productionTimeSeconds: 5600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.13 }, maxBonusPercent: 6.8 }
+  },
+  {
+    id: 'autogenesis_systems_universal_constructor_blueprint_chip',
+    name: 'Universal Constructor Blueprint',
+    description: 'Stores blueprints for Von Neumann machines. Boosts Autogenesis Systems income.',
+    icon: Combine,
+    tier: 5,
+    recipe: [{ componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }, { componentId: 'nanite_assembler_core', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4900,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_constructors_von_neumann', percent: 0.14 }, maxBonusPercent: 7.3 }
+  },
+  {
+    id: 'axiom_reality_editors_reality_tuning_fork_perfect',
+    name: 'Perfect Reality Tuning Fork',
+    description: 'Device for fine-tuning local physical constants. Boosts Axiom Reality Editors income.',
+    icon: Replace,
+    tier: 5,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 2 }, { componentId: 'chroniton_particle_stabilizer_component', quantity: 1 }],
+    rawMaterialCost: 820,
+    productionTimeSeconds: 5100,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_warping_services', percent: 0.15 }, maxBonusPercent: 7.9 }
+  },
+  {
+    id: 'hegemon_ai_governance_protocol_suite_ultimate',
+    name: 'Ultimate Governance Protocol Suite',
+    description: 'The complete AI code for galactic governance. Boosts The Hegemon AI income.',
+    icon: Gavel,
+    tier: 5,
+    recipe: [{ componentId: 'omega_oracle_truth_seeking_algorithm_core', quantity: 1 }, { componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }],
+    rawMaterialCost: 900,
+    productionTimeSeconds: 5500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.16 }, maxBonusPercent: 8.1 }
+  },
+  {
+    id: 'emissaries_guild_cosmic_entity_translator_cipher',
+    name: 'Cosmic Entity Cipher',
+    description: 'A key to understanding communications from elder beings. Boosts The Emissaries Guild income.',
+    icon: Handshake,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }],
+    rawMaterialCost: 850,
+    productionTimeSeconds: 5200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_entity_liaison', percent: 0.17 }, maxBonusPercent: 8.3 }
+  },
+  {
+    id: 'post_humanity_services_consciousness_shard_crystalline',
+    name: 'Crystalline Consciousness Shard',
+    description: 'A storage medium for uploaded minds. Boosts Post-Humanity Services income.',
+    icon: Puzzle,
+    tier: 5,
+    recipe: [{ componentId: 'holographic_data_crystal', quantity: 2 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4950,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.18 }, maxBonusPercent: 8.5 }
+  },
+  {
+    id: 'watchers_collective_omnipresent_sensor_node_final',
+    name: 'Omnipresent Sensor Node',
+    description: 'A node in the network of total observation. Boosts The Watchers Collective income.',
+    icon: Eye,
+    tier: 5,
+    recipe: [{ componentId: 'deep_space_observatory_lens_pro', quantity: 2 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 880,
+    productionTimeSeconds: 5300,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omnipresence_inc', percent: 0.20 }, maxBonusPercent: 9 }
+  },
+  // Global/Factory Boosts (Phase 5 Additions)
+  {
+    id: 'quantum_fluctuation_damper_global',
+    name: 'Quantum Fluctuation Damper',
+    description: 'Stabilizes local reality, slightly boosting all business incomes.',
+    icon: Dices,
+    tier: 4,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }, { componentId: 'power_regulator_mk3', quantity: 1 }],
+    rawMaterialCost: 350,
+    productionTimeSeconds: 1400,
+    requiredAssemblerMark: 4,
+    effects: { globalIncomeBoostPerComponentPercent: 0.004, maxBonusPercent: 1.2 }
+  },
+  {
+    id: 'universal_assembly_ai_core_factory_wide',
+    name: 'Factory Assembly AI Core',
+    description: 'An AI core dedicated to optimizing all factory production speeds slightly.',
+    icon: BoxIcon,
+    tier: 5,
+    recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 2 }, { componentId: 'master_craftsman_calibration_tools', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { factoryGlobalProductionSpeedModifier: 1.01, maxBonusPercent: 5 } // 1% speed boost
+  },
+
+  // --- PHASE 6 ADDITIONS START HERE ---
+  // Family: Advanced AI Modules
+  {
+    id: 'ai_logic_gate_simple',
+    name: 'Simple AI Logic Gate',
+    description: 'Basic processing unit for AI decision making. Small global business level-up cost reduction.',
+    icon: Binary,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 16,
+    productionTimeSeconds: 24,
+    requiredAssemblerMark: 1,
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 0.3 }
+  },
+  {
+    id: 'ai_neural_network_node_adv',
+    name: 'Neural Network Node',
+    description: 'A building block for complex neural networks. Boosts AI Research Lab income.',
+    icon: BrainCircuit,
+    tier: 2,
+    recipe: [{ componentId: 'ai_logic_gate_simple', quantity: 3 }, { componentId: 'basic_circuit_board', quantity: 2 }],
+    rawMaterialCost: 45,
+    productionTimeSeconds: 80,
+    requiredAssemblerMark: 2,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.04 }, maxBonusPercent: 3 }
+  },
+  {
+    id: 'ai_self_learning_matrix_core',
+    name: 'Self-Learning Matrix',
+    description: 'An AI core capable of learning and adapting. Boosts Sentient AI Consultancy income.',
+    icon: BotIcon,
+    tier: 3,
+    recipe: [{ componentId: 'ai_neural_network_node_adv', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 100,
+    productionTimeSeconds: 280,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.07 }, maxBonusPercent: 4.5 }
+  },
+  {
+    id: 'ai_skynet_consciousness_core_adv',
+    name: 'Skynet Consciousness Core',
+    description: 'A highly advanced, potentially dangerous AI core. Boosts The Hegemon AI income.',
+    icon: AlertTriangle, // Fallback for Skull
+    tier: 4,
+    recipe: [{ componentId: 'ai_self_learning_matrix_core', quantity: 2 }, { componentId: 'quantum_processor_unit', quantity: 1 }],
+    rawMaterialCost: 220,
+    productionTimeSeconds: 1000,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.09 }, maxBonusPercent: 5.5 }
+  },
+  {
+    id: 'ai_universal_problem_solver_final',
+    name: 'Universal Problem Solver AI',
+    description: 'The ultimate AI, capable of solving any problem. Boosts The Omega Oracle income.',
+    icon: KeyRound,
+    tier: 5,
+    recipe: [{ componentId: 'ai_skynet_consciousness_core_adv', quantity: 2 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 600,
+    productionTimeSeconds: 4200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.12 }, maxBonusPercent: 7 }
+  },
+
+  // Family: Exotic Material Processors
+  {
+    id: 'material_basic_ore_crusher',
+    name: 'Basic Ore Crusher',
+    description: 'Crushes raw ore for initial processing. Slightly boosts factory material collection.',
+    icon: Hammer,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 18,
+    productionTimeSeconds: 28,
+    requiredAssemblerMark: 1,
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.005, maxBonusPercent: 1.5 }
+  },
+  {
+    id: 'material_magnetic_ore_separator_adv',
+    name: 'Magnetic Ore Separator',
+    description: 'Separates valuable metals from ore. Benefits Manufacturing businesses income.',
+    icon: Magnet,
+    tier: 2,
+    recipe: [{ componentId: 'material_basic_ore_crusher', quantity: 3 }, { componentId: 'efficiency_coil', quantity: 2 }],
+    rawMaterialCost: 50,
+    productionTimeSeconds: 90,
+    requiredAssemblerMark: 2,
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.008 }, maxBonusPercent: 2.0 }
+  },
+  {
+    id: 'material_plasma_isotope_refiner_pro',
+    name: 'Plasma Isotope Refiner',
+    description: 'Refines materials to specific isotopes. Boosts Fusion Power Plant income.',
+    icon: AtomIcon,
+    tier: 3,
+    recipe: [{ componentId: 'material_magnetic_ore_separator_adv', quantity: 2 }, { componentId: 'power_regulator_mk2', quantity: 1 }],
+    rawMaterialCost: 130,
+    productionTimeSeconds: 330,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.06 }, maxBonusPercent: 4.0 }
+  },
+  {
+    id: 'material_dark_matter_stabilizer_xtreme',
+    name: 'Dark Matter Stabilizer',
+    description: 'Stabilizes exotic dark matter for research. Boosts Exotic Matter Research income.',
+    icon: Orbit, // Fallback for CircleDotDashed
+    tier: 4,
+    recipe: [{ componentId: 'material_plasma_isotope_refiner_pro', quantity: 2 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 280,
+    productionTimeSeconds: 1100,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.08 }, maxBonusPercent: 5.0 }
+  },
+  {
+    id: 'material_chroniton_particle_agitator_ult',
+    name: 'Chroniton Particle Agitator',
+    description: 'Manipulates chroniton particles for temporal studies. Boosts Time-Space Manipulation Inc. income.',
+    icon: Hourglass,
+    tier: 5,
+    recipe: [{ componentId: 'material_dark_matter_stabilizer_xtreme', quantity: 2 }, { componentId: 'tachyon_field_emitter_component', quantity: 1 }],
+    rawMaterialCost: 650,
+    productionTimeSeconds: 4500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.1 }, maxBonusPercent: 6.0 }
+  },
+
+  // Family: Sensory Input Devices
+  {
+    id: 'sensory_basic_microphone_array',
+    name: 'Basic Microphone Array',
+    description: 'Captures audio input. Small boost to OmniMedia Group income.',
+    icon: Mic,
+    tier: 1,
+    recipe: [],
+    rawMaterialCost: 10,
+    productionTimeSeconds: 20,
+    requiredAssemblerMark: 1,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.02 }, maxBonusPercent: 1.2 }
+  },
+  {
+    id: 'sensory_olfactory_sensor_chip_adv',
+    name: 'Olfactory Sensor Chip',
+    description: 'Detects and analyzes smells. Boosts Artisan Bakery income.',
+    icon: Wind, // Fallback for Nose
+    tier: 2,
+    recipe: [{ componentId: 'sensory_basic_microphone_array', quantity: 3 }, { componentId: 'basic_circuit_board', quantity: 1 }],
+    rawMaterialCost: 35,
+    productionTimeSeconds: 70,
+    requiredAssemblerMark: 2,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.04 }, maxBonusPercent: 2.8 }
+  },
+  {
+    id: 'sensory_tactile_feedback_glove_pro',
+    name: 'Tactile Feedback Glove',
+    description: 'Provides realistic touch sensations for VR. Boosts Elysian VR Realms income.',
+    icon: Hand,
+    tier: 3,
+    recipe: [{ componentId: 'sensory_olfactory_sensor_chip_adv', quantity: 2 }, { componentId: 'advanced_logic_chip', quantity: 1 }],
+    rawMaterialCost: 80,
+    productionTimeSeconds: 260,
+    requiredAssemblerMark: 3,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.06 }, maxBonusPercent: 3.5 }
+  },
+  {
+    id: 'sensory_advanced_bio_scanner_xtreme',
+    name: 'Advanced Bio-Scanner',
+    description: 'Detailed biological scanning for genetic work. Boosts BioSynth Creations income.',
+    icon: ScanSearch,
+    tier: 4,
+    recipe: [{ componentId: 'sensory_tactile_feedback_glove_pro', quantity: 2 }, { componentId: 'genetic_sequencer_chip_adv', quantity: 1 }],
+    rawMaterialCost: 200,
+    productionTimeSeconds: 950,
+    requiredAssemblerMark: 4,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.08 }, maxBonusPercent: 4.8 }
+  },
+  {
+    id: 'sensory_omni_spectrum_analyzer_ult',
+    name: 'Omni-Spectrum Analyzer',
+    description: 'Analyzes data across all known spectrums. Boosts XenoChronos Archives income.',
+    icon: SearchCode,
+    tier: 5,
+    recipe: [{ componentId: 'sensory_advanced_bio_scanner_xtreme', quantity: 2 }, { componentId: 'deep_space_observatory_lens_pro', quantity: 1 }],
+    rawMaterialCost: 550,
+    productionTimeSeconds: 4000,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.1 }, maxBonusPercent: 6.2 }
+  },
+
+  // Unique Components for High-Tier Businesses (Phase 6)
+  {
+    id: 'transdimensional_navigation_chart_unique',
+    name: 'Transdimensional Navigation Chart',
+    description: 'Essential for plotting routes through alternate dimensions. Boosts SlipStream Couriers income.',
+    icon: MapPinned,
+    tier: 5,
+    recipe: [{ componentId: 'hyperspace_lane_charter_component', quantity: 2 }, { componentId: 'reality_distortion_lens_component', quantity: 1 }],
+    rawMaterialCost: 750,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.11 }, maxBonusPercent: 6.0 }
+  },
+  {
+    id: 'universal_diplomatic_seal_unique',
+    name: 'Universal Diplomatic Seal',
+    description: 'A recognized symbol of galactic diplomacy. Reduces United Galactic Concourse upgrade costs.',
+    icon: Stamp,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'galactic_federation_embassy', percent: 0.06 }, maxBonusPercent: 3.0 }
+  },
+  {
+    id: 'quantum_entangled_ledger_unique',
+    name: 'Quantum Entangled Ledger',
+    description: 'Securely links financial data across dimensions. Boosts Omega Corp stock dividend yield.',
+    icon: BookLock,
+    tier: 5,
+    recipe: [{ componentId: 'galactic_exchange_quantum_ledger_processor', quantity: 1 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4900,
+    requiredAssemblerMark: 5,
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.0008 }, maxBonusPercent: 0.4 }
+  },
+  {
+    id: 'philosophers_catalyst_stone_unique',
+    name: 'Philosopher\'s Catalyst Stone',
+    description: 'The true catalyst for advanced transmutation. Boosts Aurum Alchemica income.',
+    icon: Gem,
+    tier: 5,
+    recipe: [{ componentId: 'aurum_alchemica_transmutation_catalyst_omega', quantity: 1 }, { componentId: 'focused_energy_crystal_refined', quantity: 2 }], // Self-reference to previous tier Omega
+    rawMaterialCost: 900, // High cost to reflect Omega
+    productionTimeSeconds: 5200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.14 }, maxBonusPercent: 7.0 }
+  },
+  {
+    id: 'holocron_of_knowledge_unique',
+    name: 'Holocron of Knowledge',
+    description: 'A repository of immense galactic wisdom. Slightly boosts manual RP generation.',
+    icon: Library,
+    tier: 5,
+    recipe: [{ componentId: 'nova_academia_galactic_universal_knowledge_codex', quantity: 1 }, { componentId: 'holographic_data_crystal', quantity: 2 }],
+    rawMaterialCost: 850,
+    productionTimeSeconds: 5100,
+    requiredAssemblerMark: 5,
+    effects: { factoryManualRPGenerationBoost: 0.005, maxBonusPercent: 1.0 }
+  },
+  {
+    id: 'adaptive_cybernetic_core_unique',
+    name: 'Adaptive Cybernetic Core',
+    description: 'The heart of advanced cybernetic enhancements. Boosts CyberEvolve Augments income.',
+    icon: MemoryStick, // Replaced Chip
+    tier: 5,
+    recipe: [{ componentId: 'cyberevolve_augments_sentient_nanite_cluster_node', quantity: 1 }, { componentId: 'cognitive_matrix_core_adv', quantity: 1 }],
+    rawMaterialCost: 880,
+    productionTimeSeconds: 5300,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.12 }, maxBonusPercent: 6.5 }
+  },
+  {
+    id: 'planetary_resonance_tuner_unique',
+    name: 'Planetary Resonance Tuner',
+    description: 'Fine-tunes planetary energies for weather control. Reduces AtmoSphere Dynamics upgrade costs.',
+    icon: Gauge,
+    tier: 5,
+    recipe: [{ componentId: 'atmosphere_dynamics_planetary_weather_core_stabilizer', quantity: 1 }, { componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }],
+    rawMaterialCost: 760,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'weather_control_systems', percent: 0.07 }, maxBonusPercent: 3.5 }
+  },
+  {
+    id: 'collective_unconscious_link_unique',
+    name: 'Collective Unconscious Link',
+    description: 'Deepens the connection within a planetary mind. Boosts Gaia Mind Initiatives income.',
+    icon: UsersCog,
+    tier: 5,
+    recipe: [{ componentId: 'gaia_mind_initiatives_noospheric_harmonizer_node', quantity: 1 }, { componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }],
+    rawMaterialCost: 920,
+    productionTimeSeconds: 5600,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.13 }, maxBonusPercent: 6.8 }
+  },
+  {
+    id: 'autogenesis_systems_universal_constructor_blueprint_chip',
+    name: 'Universal Constructor Blueprint',
+    description: 'Stores blueprints for Von Neumann machines. Boosts Autogenesis Systems income.',
+    icon: Combine,
+    tier: 5,
+    recipe: [{ componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }, { componentId: 'nanite_assembler_core', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4900,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_constructors_von_neumann', percent: 0.14 }, maxBonusPercent: 7.3 }
+  },
+  {
+    id: 'axiom_reality_editors_reality_tuning_fork_perfect',
+    name: 'Perfect Reality Tuning Fork',
+    description: 'Device for fine-tuning local physical constants. Boosts Axiom Reality Editors income.',
+    icon: Replace,
+    tier: 5,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 2 }, { componentId: 'chroniton_particle_stabilizer_component', quantity: 1 }],
+    rawMaterialCost: 820,
+    productionTimeSeconds: 5100,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_warping_services', percent: 0.15 }, maxBonusPercent: 7.9 }
+  },
+  {
+    id: 'hegemon_ai_governance_protocol_suite_ultimate',
+    name: 'Ultimate Governance Protocol Suite',
+    description: 'The complete AI code for galactic governance. Boosts The Hegemon AI income.',
+    icon: Gavel,
+    tier: 5,
+    recipe: [{ componentId: 'omega_oracle_truth_seeking_algorithm_core', quantity: 1 }, { componentId: 'akashic_record_inc_data_compression_singularity', quantity: 1 }],
+    rawMaterialCost: 900,
+    productionTimeSeconds: 5500,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.16 }, maxBonusPercent: 8.1 }
+  },
+  {
+    id: 'emissaries_guild_cosmic_entity_translator_cipher',
+    name: 'Cosmic Entity Cipher',
+    description: 'A key to understanding communications from elder beings. Boosts The Emissaries Guild income.',
+    icon: Handshake,
+    tier: 5,
+    recipe: [{ componentId: 'babel_link_universal_linguistic_matrix_prime', quantity: 1 }, { componentId: 'noosphere_collective_psionic_focus_crystal_pure', quantity: 1 }],
+    rawMaterialCost: 850,
+    productionTimeSeconds: 5200,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_entity_liaison', percent: 0.17 }, maxBonusPercent: 8.3 }
+  },
+  {
+    id: 'post_humanity_services_consciousness_shard_crystalline',
+    name: 'Crystalline Consciousness Shard',
+    description: 'A storage medium for uploaded minds. Boosts Post-Humanity Services income.',
+    icon: Puzzle,
+    tier: 5,
+    recipe: [{ componentId: 'holographic_data_crystal', quantity: 2 }, { componentId: 'singularity_engine_fragment_component_adv', quantity: 1 }],
+    rawMaterialCost: 780,
+    productionTimeSeconds: 4950,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.18 }, maxBonusPercent: 8.5 }
+  },
+  {
+    id: 'watchers_collective_omnipresent_sensor_node_final',
+    name: 'Omnipresent Sensor Node',
+    description: 'A node in the network of total observation. Boosts The Watchers Collective income.',
+    icon: Eye,
+    tier: 5,
+    recipe: [{ componentId: 'deep_space_observatory_lens_pro', quantity: 2 }, { componentId: 'quantum_entanglement_communicator_prototype', quantity: 1 }],
+    rawMaterialCost: 880,
+    productionTimeSeconds: 5300,
+    requiredAssemblerMark: 5,
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omnipresence_inc', percent: 0.20 }, maxBonusPercent: 9 }
+  },
+  // Global/Factory Boosts (Phase 5 Additions)
+  {
+    id: 'quantum_fluctuation_damper_global',
+    name: 'Quantum Fluctuation Damper',
+    description: 'Stabilizes local reality, slightly boosting all business incomes.',
+    icon: Dices,
+    tier: 4,
+    recipe: [{ componentId: 'perfect_resonance_gemstone_tuned', quantity: 1 }, { componentId: 'power_regulator_mk3', quantity: 1 }],
+    rawMaterialCost: 350,
+    productionTimeSeconds: 1400,
+    requiredAssemblerMark: 4,
+    effects: { globalIncomeBoostPerComponentPercent: 0.004, maxBonusPercent: 1.2 }
+  },
+  {
+    id: 'universal_assembly_ai_core_factory_wide',
+    name: 'Factory Assembly AI Core',
+    description: 'An AI core dedicated to optimizing all factory production speeds slightly.',
+    icon: BoxIcon,
+    tier: 5,
+    recipe: [{ componentId: 'cognitive_matrix_core_adv', quantity: 2 }, { componentId: 'master_craftsman_calibration_tools', quantity: 1 }],
+    rawMaterialCost: 700,
+    productionTimeSeconds: 4800,
+    requiredAssemblerMark: 5,
+    effects: { factoryGlobalProductionSpeedModifier: 1.01, maxBonusPercent: 5 } // 1% speed boost
+  }
 ];
+
 
 export const INITIAL_FACTORY_MACHINE_CONFIGS: FactoryMachineConfig[] = [
   {
@@ -2254,3 +3389,4 @@ export const INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG: FactoryMaterialCollecto
   },
 ];
 
+    

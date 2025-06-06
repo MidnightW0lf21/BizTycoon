@@ -93,7 +93,9 @@ const globalHQUgrades: HQUpgrade[] = [
     icon: Scroll,
     requiredTimesPrestiged: 5, // Matched to My Factory unlock
     levels: [
-      { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } }
+      { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', 
+        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } 
+      }
     ]
   },
   {
@@ -103,7 +105,9 @@ const globalHQUgrades: HQUpgrade[] = [
     icon: BookOpen,
     requiredTimesPrestiged: 5, // Matched to My Factory unlock
     levels: [
-      { level: 1, costMoney: 500000, costPrestigePoints: 5, description: 'Learn to craft more complex components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id) } }
+      { level: 1, costMoney: 500000, costPrestigePoints: 5, description: 'Learn to craft more complex components.', 
+        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id) } 
+      }
     ]
   },
   {
@@ -113,7 +117,9 @@ const globalHQUgrades: HQUpgrade[] = [
     icon: FlaskConical,
     requiredTimesPrestiged: 6,
     levels: [
-      { level: 1, costMoney: 2000000, costPrestigePoints: 10, description: 'Master the production of intricate parts.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id) } }
+      { level: 1, costMoney: 2000000, costPrestigePoints: 10, description: 'Master the production of intricate parts.', 
+        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id) } 
+      }
     ]
   },
   {
@@ -123,7 +129,9 @@ const globalHQUgrades: HQUpgrade[] = [
     icon: Cpu,
     requiredTimesPrestiged: 7,
     levels: [
-      { level: 1, costMoney: 8000000, costPrestigePoints: 20, description: 'Manufacture highly advanced technological components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id) } }
+      { level: 1, costMoney: 8000000, costPrestigePoints: 20, description: 'Manufacture highly advanced technological components.', 
+        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id) } 
+      }
     ]
   },
   {
@@ -133,7 +141,9 @@ const globalHQUgrades: HQUpgrade[] = [
     icon: AtomIcon,
     requiredTimesPrestiged: 8,
     levels: [
-      { level: 1, costMoney: 25000000, costPrestigePoints: 40, description: 'Harness quantum principles for ultimate components.', effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id) } }
+      { level: 1, costMoney: 25000000, costPrestigePoints: 40, description: 'Harness quantum principles for ultimate components.', 
+        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id) } 
+      }
     ]
   },
 ];
@@ -180,3 +190,4 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   ...stockRetentionUpgrades
 ];
 
+    
