@@ -1,6 +1,6 @@
 
 import type { FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, FactoryMachineUpgradeConfig } from '@/types';
-import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, Combine, Landmark, Briefcase, ShieldCheck, FlaskConical, Rocket, Ship, Dna, Radio, Sigma, Anchor, Headset, Construction, LineChart, Languages, SproutIcon, UserCheck, Beaker, PenTool, Scroll, Milestone, BotIcon, Replace, Building2, Handshake, Database, HelpCircle, Gavel, University, Power, Aperture, Orbit, Layers, Truck, Archive, Building, Film, Wind, Tv, Navigation, Map, Megaphone, Utensils, Code2, GitMerge as GitMergeIcon, PiggyBank, ShieldEllipsis, Server, Scissors, Mic, ToyBrick, Fuel, Scan, Smile, DollarSign, SlidersHorizontal, Diamond, Sparkles, Gem, BookOpen, ShieldAlert, TowerControl, TestTube, TrendingUp as TrendingUpLucideIcon, Brain, Globe, Biohazard, Airplay, Antenna, Workflow, Scale, Speaker, Router, Palette, DraftingCompass, Thermometer, Snowflake, ZapOff, Shield, Route, UserPlus, Trees, Plane, HandCoins, Users2, Recycle, ShoppingBag, Compass, TelescopeIcon as TelescopeIconLucide } from 'lucide-react';
+import { Sun, Waves, Zap, Settings, Cog, Wrench, PackageSearch, Drill, HardHat, Factory as FactoryIcon, PackageCheck, PackagePlus, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, AtomIcon, InfinityIcon, Lightbulb, BrainCircuit, BarChart, Citrus, CircuitBoard, Frame, Camera, BatteryCharging, Users, Coffee, Combine, Landmark, Briefcase, ShieldCheck, FlaskConical, Rocket, Ship, Dna, Radio, Sigma, Anchor, Headset, Construction, LineChart, Languages, SproutIcon, UserCheck, Beaker, PenTool, Scroll, Milestone, BotIcon, Replace, Building2, Handshake, Database, HelpCircle, Gavel, University, Power, Aperture, Orbit, Layers, Truck, Archive, Building, Film, Wind, Tv, Navigation, Map, Megaphone, Utensils, Code2, GitMerge as GitMergeIcon, PiggyBank, ShieldEllipsis, Server, Scissors, Mic, ToyBrick, Fuel, Scan, Smile, DollarSign, SlidersHorizontal, Diamond, Sparkles, Gem, BookOpen, ShieldAlert, TowerControl, TestTube, TrendingUp as TrendingUpLucideIcon, Brain, Globe, Biohazard, Airplay, Antenna, Workflow, Scale, Speaker, Router, Palette, DraftingCompass, Thermometer, Snowflake, ZapOff, Shield, Route, UserPlus, Trees, Plane, HandCoins, Users2, Recycle, ShoppingBag, Compass, TelescopeIcon as TelescopeIconLucide, Share2 } from 'lucide-react';
 
 export const INITIAL_FACTORY_POWER_BUILDINGS_CONFIG: FactoryPowerBuildingConfig[] = [
   {
@@ -1273,7 +1273,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     requiredAssemblerMark: 4,
     effects: { globalBusinessUpgradeCostReductionPercent: 0.0075, maxBonusPercent: 2 }
   },
-  
+
   // --- PHASE 3 ADDITIONS START HERE ---
 
   // Family: Advanced Actuators
