@@ -105,17 +105,44 @@ export default function CompletionPage() {
         
         const totalUniqueComponents = INITIAL_FACTORY_COMPONENTS_CONFIG.length;
         let producedUniqueComponentCount = 0;
+        let achievedMaxedComponents = 0;
+        let totalMaxableComponents = 0;
+
         INITIAL_FACTORY_COMPONENTS_CONFIG.forEach(compConfig => {
             if ((playerStats.factoryProducedComponents?.[compConfig.id] || 0) > 0) {
                 producedUniqueComponentCount++;
+            }
+
+            if (compConfig.effects && compConfig.effects.maxBonusPercent) {
+                let effectPerUnit = 0;
+                if (compConfig.effects.globalIncomeBoostPerComponentPercent) {
+                    effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
+                } else if (compConfig.effects.businessSpecificIncomeBoostPercent) {
+                    effectPerUnit = compConfig.effects.businessSpecificIncomeBoostPercent.percent;
+                } else if (compConfig.effects.stockSpecificDividendYieldBoostPercent) {
+                    effectPerUnit = compConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
+                } else if (compConfig.effects.factoryGlobalPowerOutputBoostPercent) {
+                    effectPerUnit = compConfig.effects.factoryGlobalPowerOutputBoostPercent;
+                } else if (compConfig.effects.factoryGlobalMaterialCollectionBoostPercent) {
+                     effectPerUnit = compConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+                }
+                // Add other effect types here if they contribute to "maxable" status
+
+                if (effectPerUnit > 0) {
+                    totalMaxableComponents++;
+                    const count = playerStats.factoryProducedComponents?.[compConfig.id] || 0;
+                    if (count * effectPerUnit >= compConfig.effects.maxBonusPercent) {
+                        achievedMaxedComponents++;
+                    }
+                }
             }
         });
         
         const totalProductionLines = (playerStats.factoryProductionLines || []).length; // Should be 5
         const unlockedProductionLinesCount = (playerStats.factoryProductionLines || []).filter(line => line.isUnlocked).length;
 
-        factoryCompletion.current = unlockedResearchItems + producedUniqueComponentCount + unlockedProductionLinesCount;
-        factoryCompletion.total = totalResearchableItems + totalUniqueComponents + totalProductionLines;
+        factoryCompletion.current = unlockedResearchItems + producedUniqueComponentCount + unlockedProductionLinesCount + achievedMaxedComponents;
+        factoryCompletion.total = totalResearchableItems + totalUniqueComponents + totalProductionLines + totalMaxableComponents;
         factoryCompletion.percentage = factoryCompletion.total > 0 ? (factoryCompletion.current / factoryCompletion.total) * 100 : 0;
     }
     
@@ -171,7 +198,7 @@ export default function CompletionPage() {
           </CardContent>
         </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(5)].map((_, i) => ( // Increased to 5 for Factory skeleton
+          {[...Array(5)].map((_, i) => ( 
             <Card key={i}>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
@@ -238,7 +265,7 @@ export default function CompletionPage() {
           totalValue={completionData.stocks.total}
           unit="shares owned"
         />
-        { (completionData.factory.active || mounted ) && // Show factory card if active or if page is mounted (to show 0% if not active yet)
+        { (completionData.factory.active || mounted ) && 
             <CategoryProgress 
             title="Factory Progress"
             icon={FactoryIcon}
@@ -252,5 +279,7 @@ export default function CompletionPage() {
   );
 }
 
+
+    
 
     
