@@ -3,10 +3,10 @@
 
 import { useMemo, useEffect, useState } from "react";
 import { useGame } from "@/contexts/GameContext";
-import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES } from "@/config/game-config";
+import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES, INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, Briefcase, Network, BarChart, Building as HQIcon } from "lucide-react";
+import { ListChecks, Briefcase, Network, BarChart, Building as HQIcon, Factory as FactoryIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CategoryProgressProps {
@@ -40,7 +40,7 @@ function CategoryProgress({ title, icon: Icon, currentValue, totalValue, unit }:
 }
 
 export default function CompletionPage() {
-  const { playerStats, getDynamicMaxBusinessLevel } = useGame(); // Removed businesses from direct destructuring
+  const { playerStats } = useGame();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -48,10 +48,6 @@ export default function CompletionPage() {
   }, []);
 
   const completionData = useMemo(() => {
-    // getDynamicMaxBusinessLevel is still relevant for knowing what "max level" means, 
-    // but the achieved state comes from achievedBusinessMilestones.
-    // const dynamicMaxLevel = getDynamicMaxBusinessLevel(); 
-
     let achievedBusinessMaxLevelPoints = 0;
     let achievedBusinessUpgradePoints = 0;
     
@@ -61,8 +57,6 @@ export default function CompletionPage() {
     if (playerStats.achievedBusinessMilestones) {
       INITIAL_BUSINESSES.forEach(initialBusinessConfig => {
         const unlockIndex = INITIAL_BUSINESSES.findIndex(ib => ib.id === initialBusinessConfig.id);
-        // Determine if the business milestone should be counted based on prestige unlock visibility
-        // This ensures that milestones for businesses not yet "visible" due to prestige level aren't counted early.
         const isBusinessVisibleForCompletion = playerStats.timesPrestiged >= unlockIndex;
 
         if (isBusinessVisibleForCompletion) {
@@ -71,9 +65,6 @@ export default function CompletionPage() {
             achievedBusinessMaxLevelPoints++;
           }
           if (milestones?.purchasedUpgradeIds) {
-            // We count all *distinct* upgrades available for this business in its initial config
-            // and compare against the *distinct* purchased ones from milestones.
-            // This prevents counting more upgrades than exist if data were somehow inconsistent.
             const totalUpgradesForThisBiz = initialBusinessConfig.upgrades?.length || 0;
             const purchasedCountForThisBiz = milestones.purchasedUpgradeIds.length;
             achievedBusinessUpgradePoints += Math.min(purchasedCountForThisBiz, totalUpgradesForThisBiz);
@@ -104,8 +95,43 @@ export default function CompletionPage() {
     });
     const stockCompletionPercentage = totalPossibleSharesToOwn > 0 ? (currentOwnedShares / totalPossibleSharesToOwn) * 100 : 0;
 
+    // Factory Progress
+    let factoryCompletion = { current: 0, total: 0, percentage: 0, active: false };
+    if (playerStats.factoryPurchased) {
+        factoryCompletion.active = true;
 
-    const overallCompletionPercentage = (businessCompletionPercentage + skillCompletionPercentage + hqCompletionPercentage + stockCompletionPercentage) / 4;
+        const totalResearchableItems = INITIAL_RESEARCH_ITEMS_CONFIG.length;
+        const unlockedResearchItems = (playerStats.unlockedResearchIds || []).length;
+        
+        const totalUniqueComponents = INITIAL_FACTORY_COMPONENTS_CONFIG.length;
+        let producedUniqueComponentCount = 0;
+        INITIAL_FACTORY_COMPONENTS_CONFIG.forEach(compConfig => {
+            if ((playerStats.factoryProducedComponents?.[compConfig.id] || 0) > 0) {
+                producedUniqueComponentCount++;
+            }
+        });
+        
+        const totalProductionLines = (playerStats.factoryProductionLines || []).length; // Should be 5
+        const unlockedProductionLinesCount = (playerStats.factoryProductionLines || []).filter(line => line.isUnlocked).length;
+
+        factoryCompletion.current = unlockedResearchItems + producedUniqueComponentCount + unlockedProductionLinesCount;
+        factoryCompletion.total = totalResearchableItems + totalUniqueComponents + totalProductionLines;
+        factoryCompletion.percentage = factoryCompletion.total > 0 ? (factoryCompletion.current / factoryCompletion.total) * 100 : 0;
+    }
+    
+    const categoriesForAverage = [
+        businessCompletionPercentage,
+        skillCompletionPercentage,
+        hqCompletionPercentage,
+        stockCompletionPercentage,
+    ];
+    if (factoryCompletion.active) {
+        categoriesForAverage.push(factoryCompletion.percentage);
+    }
+    
+    const overallCompletionPercentage = categoriesForAverage.length > 0
+        ? categoriesForAverage.reduce((sum, val) => sum + val, 0) / categoriesForAverage.length
+        : 0;
 
     return {
       overall: Math.min(100, Math.max(0, overallCompletionPercentage)),
@@ -113,8 +139,19 @@ export default function CompletionPage() {
       skills: { current: unlockedSkills, total: totalSkills, percentage: skillCompletionPercentage },
       hq: { current: achievedHQLevels, total: totalPossibleHQLevels, percentage: hqCompletionPercentage },
       stocks: { current: currentOwnedShares, total: totalPossibleSharesToOwn, percentage: stockCompletionPercentage },
+      factory: factoryCompletion,
     };
-  }, [playerStats.achievedBusinessMilestones, playerStats.unlockedSkillIds, playerStats.hqUpgradeLevels, playerStats.stockHoldings, playerStats.timesPrestiged]); // Removed businesses, added playerStats.achievedBusinessMilestones, playerStats.timesPrestiged
+  }, [
+      playerStats.achievedBusinessMilestones, 
+      playerStats.unlockedSkillIds, 
+      playerStats.hqUpgradeLevels, 
+      playerStats.stockHoldings, 
+      playerStats.timesPrestiged,
+      playerStats.factoryPurchased,
+      playerStats.unlockedResearchIds,
+      playerStats.factoryProducedComponents,
+      playerStats.factoryProductionLines
+  ]);
 
 
   if (!mounted) {
@@ -134,7 +171,7 @@ export default function CompletionPage() {
           </CardContent>
         </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(5)].map((_, i) => ( // Increased to 5 for Factory skeleton
             <Card key={i}>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
@@ -172,7 +209,7 @@ export default function CompletionPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <CategoryProgress 
           title="Business Milestones"
           icon={Briefcase}
@@ -201,7 +238,19 @@ export default function CompletionPage() {
           totalValue={completionData.stocks.total}
           unit="shares owned"
         />
+        { (completionData.factory.active || mounted ) && // Show factory card if active or if page is mounted (to show 0% if not active yet)
+            <CategoryProgress 
+            title="Factory Progress"
+            icon={FactoryIcon}
+            currentValue={completionData.factory.current}
+            totalValue={completionData.factory.total}
+            unit="objectives"
+            />
+        }
       </div>
     </div>
   );
 }
+
+
+    
