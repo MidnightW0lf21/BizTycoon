@@ -607,7 +607,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.08 }, maxBonusPercent: 16 }
   },
   {
-    id: 'neural_net_processor_adv_component',
+    id: 'advanced_neural_net_processor_adv_component',
     name: 'Advanced Neural Net Processor',
     description: 'High-performance AI chip. Boosts AI Research Lab income.',
     icon: BrainCircuit,
@@ -1702,7 +1702,6 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
   },
 
   // --- PHASE 4 ADDITIONS START HERE ---
-
   // Family: Advanced Sensors
   {
     id: 'basic_environmental_sensor',
