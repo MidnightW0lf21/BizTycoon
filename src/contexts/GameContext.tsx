@@ -49,11 +49,12 @@ import {
   WORKER_HIRE_COST_MULTIPLIER,
   MAX_WORKERS,
   INITIAL_WORKER_MAX_ENERGY,
+  WORKER_ENERGY_TIERS,
   WORKER_ENERGY_RATE,
   WORKER_FIRST_NAMES,
   WORKER_LAST_NAMES,
-  WORKER_ENERGY_TIERS,
-  INITIAL_WORKER_ENERGY_TIER
+  INITIAL_WORKER_ENERGY_TIER,
+  INITIAL_FACTORY_RAW_MATERIALS_CAP
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -126,6 +127,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     factoryPowerUnitsGenerated: 0,
     factoryPowerConsumptionKw: 0,
     factoryRawMaterials: 0,
+    factoryRawMaterialsCap: INITIAL_FACTORY_RAW_MATERIALS_CAP,
     factoryMachines: [],
     factoryProductionLines: [
       { id: 'line_1', name: 'Production Line 1', slots: Array.from({ length: 6 }, () => ({ machineInstanceId: null, targetComponentId: null })), isUnlocked: false, unlockCost: 250000 },
@@ -428,6 +430,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryPowerUnitsGenerated: typeof importedData.playerStats.factoryPowerUnitsGenerated === 'number' ? importedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
         factoryPowerConsumptionKw: typeof importedData.playerStats.factoryPowerConsumptionKw === 'number' ? importedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
         factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+        factoryRawMaterialsCap: typeof importedData.playerStats.factoryRawMaterialsCap === 'number' ? importedData.playerStats.factoryRawMaterialsCap : initialDefaults.factoryRawMaterialsCap,
         factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
         factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) && importedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
             ? (importedData.playerStats.factoryProductionLines.length === 5 ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
@@ -964,11 +967,19 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toastTitle = "On Cooldown";
           toastDescription = `Please wait ${timeLeft}s before collecting again.`;
       } else {
-        setPlayerStats(prev => ({ ...prev, factoryRawMaterials: prev.factoryRawMaterials + MATERIAL_COLLECTION_AMOUNT }));
-        materialCollectionCooldownEndRef.current = now + MATERIAL_COLLECTION_COOLDOWN_MS;
-        setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
-        toastTitle = "Materials Collected!";
-        toastDescription = `+${MATERIAL_COLLECTION_AMOUNT} Raw Materials added.`;
+        const spaceLeft = (playerStatsNow.factoryRawMaterialsCap || 0) - playerStatsNow.factoryRawMaterials;
+        if (spaceLeft <= 0) {
+            toastTitle = "Storage Full";
+            toastDescription = "Cannot collect more materials, your storage is full.";
+            toastVariant = "destructive";
+        } else {
+            const amountToCollect = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeft);
+            setPlayerStats(prev => ({ ...prev, factoryRawMaterials: prev.factoryRawMaterials + amountToCollect }));
+            materialCollectionCooldownEndRef.current = now + MATERIAL_COLLECTION_COOLDOWN_MS;
+            setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
+            toastTitle = "Materials Collected!";
+            toastDescription = `+${amountToCollect} Raw Materials added.`;
+        }
       }
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1434,6 +1445,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let updatedProductionLines = [...(prev.factoryProductionLines || [])];
         let updatedCurrentWorkerEnergyTier = prev.currentWorkerEnergyTier;
         let updatedManualResearchBonus = prev.manualResearchBonus || 0;
+        let updatedFactoryRawMaterialsCap = prev.factoryRawMaterialsCap || INITIAL_FACTORY_RAW_MATERIALS_CAP;
 
         if (researchConfig.effects.unlocksProductionLineId) {
           const lineToUnlockId = researchConfig.effects.unlocksProductionLineId;
@@ -1447,6 +1459,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (researchConfig.effects.increaseManualResearchBonus) {
           updatedManualResearchBonus += researchConfig.effects.increaseManualResearchBonus;
         }
+        if (researchConfig.effects.increaseFactoryRawMaterialsCap) {
+          updatedFactoryRawMaterialsCap = researchConfig.effects.increaseFactoryRawMaterialsCap;
+        }
 
 
         return {
@@ -1457,6 +1472,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProductionLines: updatedProductionLines,
           currentWorkerEnergyTier: updatedCurrentWorkerEnergyTier,
           manualResearchBonus: updatedManualResearchBonus,
+          factoryRawMaterialsCap: updatedFactoryRawMaterialsCap,
         };
       });
       toastTitle = "Research Complete!";
@@ -1612,7 +1628,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const retainedStockHoldings: StockHolding[] = [];
       const {
           factoryPurchased, factoryRawMaterials,
-          factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers,
+          factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers, factoryRawMaterialsCap
       } = playerStatsNow;
 
 
@@ -1661,6 +1677,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryPowerUnitsGenerated: 0,
           factoryPowerConsumptionKw: 0,
           factoryRawMaterials,
+          factoryRawMaterialsCap,
           factoryMachines: newMachinesState,
           factoryProductionLines: newInitialPlayerStats.factoryProductionLines.map((line, index) => ({
             ...line,
@@ -1784,10 +1801,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 });
             }
             offlineGains.materials = totalMaterialsPerSecond * elapsedSeconds;
-
-            tempPlayerStats.money += offlineGains.money;
-            tempPlayerStats.factoryRawMaterials += offlineGains.materials;
             
+            const currentCap = tempPlayerStats.factoryRawMaterialsCap || INITIAL_FACTORY_RAW_MATERIALS_CAP;
+            tempPlayerStats.money += offlineGains.money;
+            tempPlayerStats.factoryRawMaterials = Math.min(currentCap, (tempPlayerStats.factoryRawMaterials || 0) + offlineGains.materials);
+
             toastRef.current({
               title: "Welcome Back!",
               description: `You earned $${Math.floor(offlineGains.money).toLocaleString()} and gathered ${Math.floor(offlineGains.materials).toLocaleString()} materials while away.`,
@@ -1807,6 +1825,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryPowerUnitsGenerated: typeof tempPlayerStats.factoryPowerUnitsGenerated === 'number' ? tempPlayerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
             factoryPowerConsumptionKw: typeof tempPlayerStats.factoryPowerConsumptionKw === 'number' ? tempPlayerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
             factoryRawMaterials: typeof tempPlayerStats.factoryRawMaterials === 'number' ? tempPlayerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+            factoryRawMaterialsCap: typeof tempPlayerStats.factoryRawMaterialsCap === 'number' ? tempPlayerStats.factoryRawMaterialsCap : initialDefaults.factoryRawMaterialsCap,
             factoryMachines: Array.isArray(tempPlayerStats.factoryMachines) ? tempPlayerStats.factoryMachines : initialDefaults.factoryMachines,
             factoryProductionLines: Array.isArray(tempPlayerStats.factoryProductionLines) && tempPlayerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
                 ? (tempPlayerStats.factoryProductionLines.length === 5 ? tempPlayerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
@@ -2010,7 +2029,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   powerUsedByCollectorsThisTick += config.powerConsumptionKw;
               }
           }
-          newFactoryRawMaterials += materialsCollectedThisTick;
+          const currentCap = prev.factoryRawMaterialsCap || INITIAL_FACTORY_RAW_MATERIALS_CAP;
+          newFactoryRawMaterials = Math.min(currentCap, newFactoryRawMaterials + materialsCollectedThisTick);
           actualPowerConsumedThisTick += powerUsedByCollectorsThisTick;
 
           updatedWorkers = updatedWorkers.map(worker => {
@@ -2294,4 +2314,5 @@ export const useGame = (): GameContextType => {
   return context;
 };
     
+
 
