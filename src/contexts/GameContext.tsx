@@ -1737,32 +1737,91 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const savedDataString = localStorage.getItem(SAVE_DATA_KEY);
       if (savedDataString) {
         const loadedData: SaveData = JSON.parse(savedDataString);
+        const now = Date.now();
+        const lastSaved = loadedData.lastSaved || now;
+        let elapsedSeconds = (now - lastSaved) / 1000;
+        const MAX_OFFLINE_SECONDS = 24 * 60 * 60; // 24 hours
+        let wasOffline = elapsedSeconds > 5;
+        
+        if (elapsedSeconds > MAX_OFFLINE_SECONDS) {
+          elapsedSeconds = MAX_OFFLINE_SECONDS;
+        }
+
+        let offlineGains = { money: 0, materials: 0, components: {} as Record<string, number> };
+        let tempPlayerStats = { ...loadedData.playerStats };
+        const tempBusinesses = loadedData.businesses;
+        
+        if (wasOffline) {
+            // Business and Stock Income
+            const totalBusinessIncomePerSecond = tempBusinesses.reduce((sum, biz) => sum + localCalculateIncome(biz, tempPlayerStats.unlockedSkillIds, skillTreeState, tempPlayerStats.hqUpgradeLevels, hqUpgradesState, tempPlayerStats.factoryProducedComponents || {}, INITIAL_FACTORY_COMPONENTS_CONFIG), 0);
+            let totalDividendIncomePerSecond = 0;
+            // This is a simplified stock price for offline calc. A more complex implementation could save stock prices too.
+            const offlineStocks = INITIAL_STOCKS; 
+            for (const holding of tempPlayerStats.stockHoldings) {
+                const stockDetails = offlineStocks.find(s => s.id === holding.stockId);
+                if (stockDetails) {
+                    let stockSpecificDividendBoostFromComponents = 0;
+                    for (const componentId in tempPlayerStats.factoryProducedComponents) {
+                        const count = tempPlayerStats.factoryProducedComponents[componentId];
+                        if (count > 0) {
+                            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+                            if (componentConfig?.effects?.stockSpecificDividendYieldBoostPercent && componentConfig.effects.stockSpecificDividendYieldBoostPercent.stockId === stockDetails.id) {
+                                stockSpecificDividendBoostFromComponents += count * componentConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
+                            }
+                        }
+                    }
+                    totalDividendIncomePerSecond += holding.shares * stockDetails.price * (stockDetails.dividendYield * (1 + (stockSpecificDividendBoostFromComponents / 100)));
+                }
+            }
+            offlineGains.money = (totalBusinessIncomePerSecond + totalDividendIncomePerSecond) * elapsedSeconds;
+
+            // Material Collection
+            let totalMaterialsPerSecond = 0;
+            if (tempPlayerStats.factoryPurchased) {
+                (tempPlayerStats.factoryMaterialCollectors || []).forEach(collector => {
+                    const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+                    if (config) totalMaterialsPerSecond += config.materialsPerSecond;
+                });
+            }
+            offlineGains.materials = totalMaterialsPerSecond * elapsedSeconds;
+
+            tempPlayerStats.money += offlineGains.money;
+            tempPlayerStats.factoryRawMaterials += offlineGains.materials;
+            
+            toastRef.current({
+              title: "Welcome Back!",
+              description: `You earned $${Math.floor(offlineGains.money).toLocaleString()} and gathered ${Math.floor(offlineGains.materials).toLocaleString()} materials while away.`,
+              duration: 5000
+            });
+        }
+
+
         const initialDefaults = getInitialPlayerStats();
         const mergedPlayerStats: PlayerStats = {
-            ...initialDefaults, ...loadedData.playerStats,
-            unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
-            hqUpgradeLevels: typeof loadedData.playerStats.hqUpgradeLevels === 'object' && loadedData.playerStats.hqUpgradeLevels !== null ? loadedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
-            stockHoldings: Array.isArray(loadedData.playerStats.stockHoldings) ? loadedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
-            achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
-            factoryPurchased: typeof loadedData.playerStats.factoryPurchased === 'boolean' ? loadedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
-            factoryPowerUnitsGenerated: typeof loadedData.playerStats.factoryPowerUnitsGenerated === 'number' ? loadedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
-            factoryPowerConsumptionKw: typeof loadedData.playerStats.factoryPowerConsumptionKw === 'number' ? loadedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
-            factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
-            factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-            factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) && loadedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
-                ? (loadedData.playerStats.factoryProductionLines.length === 5 ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
+            ...initialDefaults, ...tempPlayerStats,
+            unlockedSkillIds: Array.isArray(tempPlayerStats.unlockedSkillIds) ? tempPlayerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+            hqUpgradeLevels: typeof tempPlayerStats.hqUpgradeLevels === 'object' && tempPlayerStats.hqUpgradeLevels !== null ? tempPlayerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
+            stockHoldings: Array.isArray(tempPlayerStats.stockHoldings) ? tempPlayerStats.stockHoldings : initialDefaults.stockHoldings,
+            achievedBusinessMilestones: typeof tempPlayerStats.achievedBusinessMilestones === 'object' && tempPlayerStats.achievedBusinessMilestones !== null ? tempPlayerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
+            factoryPurchased: typeof tempPlayerStats.factoryPurchased === 'boolean' ? tempPlayerStats.factoryPurchased : initialDefaults.factoryPurchased,
+            factoryPowerUnitsGenerated: typeof tempPlayerStats.factoryPowerUnitsGenerated === 'number' ? tempPlayerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+            factoryPowerConsumptionKw: typeof tempPlayerStats.factoryPowerConsumptionKw === 'number' ? tempPlayerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
+            factoryRawMaterials: typeof tempPlayerStats.factoryRawMaterials === 'number' ? tempPlayerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+            factoryMachines: Array.isArray(tempPlayerStats.factoryMachines) ? tempPlayerStats.factoryMachines : initialDefaults.factoryMachines,
+            factoryProductionLines: Array.isArray(tempPlayerStats.factoryProductionLines) && tempPlayerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
+                ? (tempPlayerStats.factoryProductionLines.length === 5 ? tempPlayerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
                 : initialDefaults.factoryProductionLines,
-            factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
-            factoryProducedComponents: typeof loadedData.playerStats.factoryProducedComponents === 'object' && loadedData.playerStats.factoryProducedComponents !== null ? loadedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
-            factoryMaterialCollectors: Array.isArray(loadedData.playerStats.factoryMaterialCollectors) ? loadedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
-            factoryProductionProgress: typeof loadedData.playerStats.factoryProductionProgress === 'object' && loadedData.playerStats.factoryProductionProgress !== null ? loadedData.playerStats.factoryProductionProgress : {},
-            factoryWorkers: Array.isArray(loadedData.playerStats.factoryWorkers) ? loadedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
-            researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
-            unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
-            unlockedFactoryComponentRecipeIds: Array.isArray(loadedData.playerStats.unlockedFactoryComponentRecipeIds) ? loadedData.playerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds, // New
-            lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
-            currentWorkerEnergyTier: typeof loadedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
-            manualResearchBonus: typeof loadedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+            factoryPowerBuildings: Array.isArray(tempPlayerStats.factoryPowerBuildings) ? tempPlayerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
+            factoryProducedComponents: typeof tempPlayerStats.factoryProducedComponents === 'object' && tempPlayerStats.factoryProducedComponents !== null ? tempPlayerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+            factoryMaterialCollectors: Array.isArray(tempPlayerStats.factoryMaterialCollectors) ? tempPlayerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
+            factoryProductionProgress: typeof tempPlayerStats.factoryProductionProgress === 'object' && tempPlayerStats.factoryProductionProgress !== null ? tempPlayerStats.factoryProductionProgress : {},
+            factoryWorkers: Array.isArray(tempPlayerStats.factoryWorkers) ? tempPlayerStats.factoryWorkers : initialDefaults.factoryWorkers,
+            researchPoints: typeof tempPlayerStats.researchPoints === 'number' ? tempPlayerStats.researchPoints : initialDefaults.researchPoints,
+            unlockedResearchIds: Array.isArray(tempPlayerStats.unlockedResearchIds) ? tempPlayerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+            unlockedFactoryComponentRecipeIds: Array.isArray(tempPlayerStats.unlockedFactoryComponentRecipeIds) ? tempPlayerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds,
+            lastManualResearchTimestamp: typeof tempPlayerStats.lastManualResearchTimestamp === 'number' ? tempPlayerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+            currentWorkerEnergyTier: typeof tempPlayerStats.currentWorkerEnergyTier === 'number' ? tempPlayerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+            manualResearchBonus: typeof tempPlayerStats.manualResearchBonus === 'number' ? tempPlayerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1955,40 +2014,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           actualPowerConsumedThisTick += powerUsedByCollectorsThisTick;
 
           updatedWorkers = updatedWorkers.map(worker => {
-            // 1. Handle working workers
             if (worker.status === 'working' && worker.assignedMachineInstanceId) {
-                const machine = (prev.factoryMachines || []).find(m => m.instanceId === worker.assignedMachineInstanceId);
-                const lineWithMachine = (prev.factoryProductionLines || []).find(l => l.slots.some(s => s.machineInstanceId === worker.assignedMachineInstanceId) && l.isUnlocked);
-                const slotWithMachine = lineWithMachine?.slots.find(s => s.machineInstanceId === worker.assignedMachineInstanceId);
-
-                // If the machine is set up to work, drain energy.
-                if (machine && slotWithMachine && slotWithMachine.targetComponentId) {
-                    const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
-
-                    // If they run out of energy, unassign them and set them to idle.
-                    if (newEnergy === 0) {
-                        return { ...worker, energy: 0, status: 'idle', assignedMachineInstanceId: null };
-                    }
-                    // Otherwise, just drain energy.
-                    return { ...worker, energy: newEnergy };
+                const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
+                if (newEnergy === 0) {
+                    return { ...worker, energy: 0, status: 'idle', assignedMachineInstanceId: null };
                 }
-                
-                // If the machine is NOT set up to work, the worker becomes idle but stays assigned.
-                return { ...worker, status: 'idle' };
+                return { ...worker, energy: newEnergy };
             } 
-            
-            // 2. Handle energy regeneration for any non-working worker below max energy.
-            // This covers 'resting' and 'idle' workers.
             else if ((worker.status === 'resting' || worker.status === 'idle') && worker.energy < currentDynamicMaxEnergy) {
                 const newEnergy = Math.min(currentDynamicMaxEnergy, worker.energy + WORKER_ENERGY_RATE);
-                
-                // A resting worker becomes 'idle' once they are fully rested. An idle worker stays idle.
                 const newStatus = (worker.status === 'resting' && newEnergy === currentDynamicMaxEnergy) ? 'idle' : worker.status;
-                
                 return { ...worker, energy: newEnergy, status: newStatus };
             }
-            
-            // 3. Return the worker unchanged if none of the above conditions are met (e.g., idle and full energy).
             return worker;
           });
           
@@ -2257,3 +2294,4 @@ export const useGame = (): GameContextType => {
   return context;
 };
     
+
