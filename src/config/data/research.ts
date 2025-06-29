@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon, Users } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon, Users, Archive } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   // Assembler Unlocks
@@ -476,4 +476,56 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     dependencies: ['manual_rp_boost_4'],
     effects: { increaseManualResearchBonus: 1 }
   },
+  
+  // Material Cap Upgrades
+  {
+    id: 'material_storage_1',
+    name: 'Expanded Warehouse I',
+    description: 'Increases raw material storage capacity to 1,000.',
+    icon: Archive,
+    costRP: 30,
+    costMoney: 100000,
+    dependencies: ['unlock_drone_swarm_mk1'],
+    effects: { increaseFactoryRawMaterialsCap: 1000 }
+  },
+  {
+    id: 'material_storage_2',
+    name: 'Large-Scale Storage II',
+    description: 'Increases raw material storage capacity to 5,000.',
+    icon: Archive,
+    costRP: 80,
+    costMoney: 500000,
+    dependencies: ['material_storage_1'],
+    effects: { increaseFactoryRawMaterialsCap: 5000 }
+  },
+  {
+    id: 'material_storage_3',
+    name: 'Logistics Center III',
+    description: 'Increases raw material storage capacity to 10,000.',
+    icon: Archive,
+    costRP: 150,
+    costMoney: 1200000,
+    dependencies: ['material_storage_2'],
+    effects: { increaseFactoryRawMaterialsCap: 10000 }
+  },
+  {
+    id: 'material_storage_4',
+    name: 'Bulk Material Depot IV',
+    description: 'Increases raw material storage capacity to 15,000.',
+    icon: Archive,
+    costRP: 300,
+    costMoney: 3000000,
+    dependencies: ['material_storage_3'],
+    effects: { increaseFactoryRawMaterialsCap: 15000 }
+  },
+  {
+    id: 'material_storage_5',
+    name: 'Strategic Resource Silo V',
+    description: 'Increases raw material storage capacity to 25,000.',
+    icon: Archive,
+    costRP: 500,
+    costMoney: 7500000,
+    dependencies: ['material_storage_4'],
+    effects: { increaseFactoryRawMaterialsCap: 25000 }
+  }
 ];

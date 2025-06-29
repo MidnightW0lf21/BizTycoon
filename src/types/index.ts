@@ -243,6 +243,7 @@ export interface ResearchItemEffects {
   };
   upgradesWorkerEnergyTier?: boolean;
   increaseManualResearchBonus?: number;
+  increaseFactoryRawMaterialsCap?: number;
 }
 
 export interface ResearchItemConfig {
@@ -279,6 +280,7 @@ export interface PlayerStats {
   factoryPowerUnitsGenerated: number;
   factoryPowerConsumptionKw: number;
   factoryRawMaterials: number;
+  factoryRawMaterialsCap: number;
   factoryMachines: FactoryMachine[];
   factoryProductionLines: FactoryProductionLine[];
   factoryPowerBuildings: FactoryPowerBuilding[];

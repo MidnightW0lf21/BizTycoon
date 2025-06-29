@@ -18,6 +18,7 @@ export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
 export const INITIAL_FACTORY_WORKERS: Worker[] = [];
 export const INITIAL_WORKER_ENERGY_TIER = 0;
 export const INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS: string[] = [];
+export const INITIAL_FACTORY_RAW_MATERIALS_CAP = 500;
 
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;
@@ -333,4 +334,5 @@ export {
 } from './data/factory';
 export { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS } from './data/workers';
+
 

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, Info as InfoIcon, ListChecks as ListChecksIcon, Briefcase, BarChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, INITIAL_BUSINESSES, INITIAL_STOCKS } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, INITIAL_BUSINESSES, INITIAL_STOCKS, MATERIAL_COLLECTION_AMOUNT } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -27,7 +27,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
-const MATERIAL_COLLECTION_AMOUNT_CONST = 10;
 const FACTORY_INTRO_DISMISSED_KEY_V1 = 'bizTycoonFactoryIntroDismissed_v1';
 
 const getTierStyling = (tier: number): { border: string; background: string; text: string; } => {
@@ -490,6 +489,9 @@ export default function MyFactoryPage() {
   const manualRPPointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStats.manualResearchBonus || 0);
   const numManualRPBoostStagesCompleted = (playerStats.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
   const currentManualRPCostMoney = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numManualRPBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
+  
+  const spaceLeftInStorage = playerStats.factoryRawMaterialsCap - playerStats.factoryRawMaterials;
+  const amountToCollectManually = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeftInStorage);
 
   const renderProducedComponent = (compConfig: FactoryComponent) => {
     const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
@@ -581,19 +583,21 @@ export default function MyFactoryPage() {
         <p className={cn("text-xl font-bold", tierStyling.text, "my-0.5")}>{count.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
         <p className="text-xs text-muted-foreground flex-grow min-h-[30px]">{compConfig.description}</p>
         {currentBonusDisplay && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={cn("mt-1.5 text-xs", tierStyling.text, "opacity-80")}>
-                <Lightbulb className="inline h-3 w-3 mr-0.5"/>
-                <span>{currentBonusDisplay} {maxBonusDisplay}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{tooltipDescription || 'Provides a special bonus.'}</p>
-              <p>Current contribution: {currentBonusDisplay}</p>
-              {isFinite(effects?.maxBonusPercent ?? Infinity) && <p>Max possible bonus from this component type: {effects?.maxBonusPercent?.toFixed(2)}%</p>}
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn("mt-1.5 text-xs", tierStyling.text, "opacity-80")}>
+                  <Lightbulb className="inline h-3 w-3 mr-0.5"/>
+                  <span>{currentBonusDisplay} {maxBonusDisplay}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltipDescription || 'Provides a special bonus.'}</p>
+                <p>Current contribution: {currentBonusDisplay}</p>
+                {isFinite(effects?.maxBonusPercent ?? Infinity) && <p>Max possible bonus from this component type: {effects?.maxBonusPercent?.toFixed(2)}%</p>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </Card>
     );
@@ -676,7 +680,9 @@ export default function MyFactoryPage() {
             <CardTitle className="text-lg flex items-center gap-2"><Box className="h-5 w-5 text-primary"/>Materials</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-orange-400">{playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+            <p className="text-2xl font-bold text-orange-400">
+              {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} / {playerStats.factoryRawMaterialsCap.toLocaleString('en-US', {maximumFractionDigits: 0})}
+            </p>
             <p className="text-xs text-muted-foreground">Raw Units</p>
           </CardContent>
         </Card>
@@ -782,7 +788,7 @@ export default function MyFactoryPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-lg">
-                    Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
+                    Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} / {playerStats.factoryRawMaterialsCap.toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString('en-US', {maximumFractionDigits: 2})} units/sec</strong>
@@ -792,12 +798,12 @@ export default function MyFactoryPage() {
                 <Button
                   onClick={manuallyCollectRawMaterials}
                   size="lg"
-                  disabled={secondsRemainingForCooldown > 0}
+                  disabled={secondsRemainingForCooldown > 0 || amountToCollectManually <= 0}
                 >
                   <Box className="mr-2 h-5 w-5"/>
                   {secondsRemainingForCooldown > 0
                     ? `Collect (Wait ${secondsRemainingForCooldown}s)`
-                    : `Manually Collect ${MATERIAL_COLLECTION_AMOUNT_CONST} Raw Materials`}
+                    : (amountToCollectManually <= 0 ? 'Storage Full' : `Manually Collect ${amountToCollectManually} Raw Materials`)}
                 </Button>
               </CardContent>
             </Card>
