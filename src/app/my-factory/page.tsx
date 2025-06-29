@@ -1081,83 +1081,85 @@ export default function MyFactoryPage() {
                     Overview of all active bonuses from your produced factory components.
                 </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[70vh] pr-3 py-4">
-                <div className="space-y-4">
-                    <Card>
-                        <CardHeader><CardTitle className="text-lg">Global Bonuses</CardTitle></CardHeader>
-                        <CardContent className="space-y-1">
-                            {bonusSummaryData.globalIncome.value > 0 && <BonusItem icon={Lightbulb} label="Global Income" value={bonusSummaryData.globalIncome.value} unit="%" sources={bonusSummaryData.globalIncome.sources} />}
-                            {bonusSummaryData.globalCostReduction.value > 0 && <BonusItem icon={DollarSign} label="Global Level-Up Cost" value={-bonusSummaryData.globalCostReduction.value} unit="%" sources={bonusSummaryData.globalCostReduction.sources} />}
-                            {bonusSummaryData.globalUpgradeCost.value > 0 && <BonusItem icon={DollarSign} label="Global Upgrade Cost" value={-bonusSummaryData.globalUpgradeCost.value} unit="%" sources={bonusSummaryData.globalUpgradeCost.sources} />}
-                            {bonusSummaryData.globalDividendYield.value > 0 && <BonusItem icon={TrendingUp} label="Global Dividend Yield" value={bonusSummaryData.globalDividendYield.value} unit="%" sources={bonusSummaryData.globalDividendYield.sources} />}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader><CardTitle className="text-lg">Factory Bonuses</CardTitle></CardHeader>
-                        <CardContent className="space-y-1">
-                            {bonusSummaryData.factoryPower.value > 0 && <BonusItem icon={Zap} label="Factory Power Output" value={bonusSummaryData.factoryPower.value} unit="%" sources={bonusSummaryData.factoryPower.sources} />}
-                            {bonusSummaryData.factoryMaterials.value > 0 && <BonusItem icon={Box} label="Factory Material Collection" value={bonusSummaryData.factoryMaterials.value} unit="%" sources={bonusSummaryData.factoryMaterials.sources} />}
-                            {bonusSummaryData.factoryRPGeneration.value > 0 && <BonusItem icon={FlaskConical} label="Manual Research Bonus" value={bonusSummaryData.factoryRPGeneration.value} unit=" RP" sources={bonusSummaryData.factoryRPGeneration.sources} />}
-                        </CardContent>
-                    </Card>
-                    
-                    {Object.keys(bonusSummaryData.businessSpecific).length > 0 && (
-                      <Card>
-                        <CardHeader><CardTitle className="text-lg">Business-Specific Bonuses</CardTitle></CardHeader>
-                        <CardContent>
-                          <Accordion type="multiple" className="w-full">
-                            {Object.entries(bonusSummaryData.businessSpecific).map(([businessId, bonuses]) => {
-                              const businessInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-                              if (!businessInfo) return null;
-                              return (
-                                <AccordionItem value={businessId} key={businessId}>
-                                  <AccordionTrigger>
-                                    <div className="flex items-center gap-2">
-                                      <Briefcase className="h-4 w-4" />
-                                      <span>{businessInfo.name}</span>
-                                    </div>
-                                  </AccordionTrigger>
-                                  <AccordionContent className="pl-4 space-y-2">
-                                    {bonuses.income > 0 && <BonusItem icon={Lightbulb} label="Income" value={bonuses.income} unit="%" sources={bonuses.sources.income} />}
-                                    {bonuses.levelCost > 0 && <BonusItem icon={DollarSign} label="Level-Up Cost" value={-bonuses.levelCost} unit="%" sources={bonuses.sources.levelCost} />}
-                                    {bonuses.upgradeCost > 0 && <BonusItem icon={DollarSign} label="Upgrade Cost" value={-bonuses.upgradeCost} unit="%" sources={bonuses.sources.upgradeCost} />}
-                                  </AccordionContent>
-                                </AccordionItem>
-                              );
-                            })}
-                          </Accordion>
-                        </CardContent>
-                      </Card>
-                    )}
+            <TooltipProvider>
+                <ScrollArea className="max-h-[70vh] pr-3 py-4">
+                    <div className="space-y-4">
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Global Bonuses</CardTitle></CardHeader>
+                            <CardContent className="space-y-1">
+                                {bonusSummaryData.globalIncome.value > 0 && <BonusItem icon={Lightbulb} label="Global Income" value={bonusSummaryData.globalIncome.value} unit="%" sources={bonusSummaryData.globalIncome.sources} />}
+                                {bonusSummaryData.globalCostReduction.value > 0 && <BonusItem icon={DollarSign} label="Global Level-Up Cost" value={-bonusSummaryData.globalCostReduction.value} unit="%" sources={bonusSummaryData.globalCostReduction.sources} />}
+                                {bonusSummaryData.globalUpgradeCost.value > 0 && <BonusItem icon={DollarSign} label="Global Upgrade Cost" value={-bonusSummaryData.globalUpgradeCost.value} unit="%" sources={bonusSummaryData.globalUpgradeCost.sources} />}
+                                {bonusSummaryData.globalDividendYield.value > 0 && <BonusItem icon={TrendingUp} label="Global Dividend Yield" value={bonusSummaryData.globalDividendYield.value} unit="%" sources={bonusSummaryData.globalDividendYield.sources} />}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Factory Bonuses</CardTitle></CardHeader>
+                            <CardContent className="space-y-1">
+                                {bonusSummaryData.factoryPower.value > 0 && <BonusItem icon={Zap} label="Factory Power Output" value={bonusSummaryData.factoryPower.value} unit="%" sources={bonusSummaryData.factoryPower.sources} />}
+                                {bonusSummaryData.factoryMaterials.value > 0 && <BonusItem icon={Box} label="Factory Material Collection" value={bonusSummaryData.factoryMaterials.value} unit="%" sources={bonusSummaryData.factoryMaterials.sources} />}
+                                {bonusSummaryData.factoryRPGeneration.value > 0 && <BonusItem icon={FlaskConical} label="Manual Research Bonus" value={bonusSummaryData.factoryRPGeneration.value} unit=" RP" sources={bonusSummaryData.factoryRPGeneration.sources} />}
+                            </CardContent>
+                        </Card>
+                        
+                        {Object.keys(bonusSummaryData.businessSpecific).length > 0 && (
+                          <Card>
+                            <CardHeader><CardTitle className="text-lg">Business-Specific Bonuses</CardTitle></CardHeader>
+                            <CardContent>
+                              <Accordion type="multiple" className="w-full">
+                                {Object.entries(bonusSummaryData.businessSpecific).map(([businessId, bonuses]) => {
+                                  const businessInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
+                                  if (!businessInfo) return null;
+                                  return (
+                                    <AccordionItem value={businessId} key={businessId}>
+                                      <AccordionTrigger>
+                                        <div className="flex items-center gap-2">
+                                          <Briefcase className="h-4 w-4" />
+                                          <span>{businessInfo.name}</span>
+                                        </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent className="pl-4 space-y-2">
+                                        {bonuses.income > 0 && <BonusItem icon={Lightbulb} label="Income" value={bonuses.income} unit="%" sources={bonuses.sources.income} />}
+                                        {bonuses.levelCost > 0 && <BonusItem icon={DollarSign} label="Level-Up Cost" value={-bonuses.levelCost} unit="%" sources={bonuses.sources.levelCost} />}
+                                        {bonuses.upgradeCost > 0 && <BonusItem icon={DollarSign} label="Upgrade Cost" value={-bonuses.upgradeCost} unit="%" sources={bonuses.sources.upgradeCost} />}
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  );
+                                })}
+                              </Accordion>
+                            </CardContent>
+                          </Card>
+                        )}
 
-                    {Object.keys(bonusSummaryData.stockSpecific).length > 0 && (
-                      <Card>
-                        <CardHeader><CardTitle className="text-lg">Stock-Specific Bonuses</CardTitle></CardHeader>
-                        <CardContent>
-                           <Accordion type="multiple" className="w-full">
-                             {Object.entries(bonusSummaryData.stockSpecific).map(([stockId, bonuses]) => {
-                               const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
-                               if (!stockInfo) return null;
-                               return (
-                                 <AccordionItem value={stockId} key={stockId}>
-                                    <AccordionTrigger>
-                                      <div className="flex items-center gap-2">
-                                        <BarChart className="h-4 w-4" />
-                                        <span>{stockInfo.companyName} ({stockInfo.ticker})</span>
-                                      </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pl-4">
-                                      {bonuses.dividend > 0 && <BonusItem icon={TrendingUp} label="Dividend Yield" value={bonuses.dividend} unit="%" sources={bonuses.sources} />}
-                                    </AccordionContent>
-                                 </AccordionItem>
-                               );
-                             })}
-                           </Accordion>
-                        </CardContent>
-                      </Card>
-                    )}
-                </div>
-            </ScrollArea>
+                        {Object.keys(bonusSummaryData.stockSpecific).length > 0 && (
+                          <Card>
+                            <CardHeader><CardTitle className="text-lg">Stock-Specific Bonuses</CardTitle></CardHeader>
+                            <CardContent>
+                               <Accordion type="multiple" className="w-full">
+                                 {Object.entries(bonusSummaryData.stockSpecific).map(([stockId, bonuses]) => {
+                                   const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
+                                   if (!stockInfo) return null;
+                                   return (
+                                     <AccordionItem value={stockId} key={stockId}>
+                                        <AccordionTrigger>
+                                          <div className="flex items-center gap-2">
+                                            <BarChart className="h-4 w-4" />
+                                            <span>{stockInfo.companyName} ({stockInfo.ticker})</span>
+                                          </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pl-4">
+                                          {bonuses.dividend > 0 && <BonusItem icon={TrendingUp} label="Dividend Yield" value={bonuses.dividend} unit="%" sources={bonuses.sources} />}
+                                        </AccordionContent>
+                                     </AccordionItem>
+                                   );
+                                 })}
+                               </Accordion>
+                            </CardContent>
+                          </Card>
+                        )}
+                    </div>
+                </ScrollArea>
+            </TooltipProvider>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsBonusSummaryOpen(false)}>Close</Button>
             </DialogFooter>
