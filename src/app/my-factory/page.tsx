@@ -4,9 +4,9 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, InfoIcon, ListChecks as ListChecksIcon } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, Info as InfoIcon, ListChecks as ListChecksIcon, Briefcase, BarChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST } from "@/config/game-config";
+import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, INITIAL_BUSINESSES, INITIAL_STOCKS } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
 import { FactoryMaterialCollectorCard } from "@/components/factory/FactoryMaterialCollectorCard";
 import { MachinePurchaseCard } from "@/components/factory/MachinePurchaseCard";
@@ -22,6 +22,8 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 const REQUIRED_PRESTIGE_LEVEL_MY_FACTORY = 5;
 const FACTORY_PURCHASE_COST_FROM_CONFIG = 1000000;
@@ -305,6 +307,101 @@ export default function MyFactoryPage() {
   }, [researchItems, playerStats.unlockedResearchIds, playerStats.researchPoints, playerStats.money]);
 
 
+  const bonusSummaryData = useMemo(() => {
+    const summary = {
+      globalIncome: { value: 0, sources: [] as string[] },
+      globalCostReduction: { value: 0, sources: [] as string[] },
+      globalDividendYield: { value: 0, sources: [] as string[] },
+      globalUpgradeCost: { value: 0, sources: [] as string[] },
+      factoryPower: { value: 0, sources: [] as string[] },
+      factoryMaterials: { value: 0, sources: [] as string[] },
+      factoryRPGeneration: { value: 0, sources: [] as string[] },
+      businessSpecific: {} as Record<string, { income: number; levelCost: number; upgradeCost: number; sources: Record<"income" | "levelCost" | "upgradeCost", string[]> }>,
+      stockSpecific: {} as Record<string, { dividend: number, sources: string[] }>,
+    };
+
+    if (!playerStats.factoryProducedComponents) return summary;
+
+    for (const compId in playerStats.factoryProducedComponents) {
+        const count = playerStats.factoryProducedComponents[compId];
+        if (count === 0) continue;
+        const config = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === compId);
+        if (!config?.effects) continue;
+        const { effects, name: compName } = config;
+
+        const getCappedBonus = (effectPercent?: number, maxBonus?: number) => {
+            if (!effectPercent) return 0;
+            const potential = count * effectPercent;
+            return maxBonus ? Math.min(potential, maxBonus) : potential;
+        };
+        
+        // Global Bonuses
+        let bonus = getCappedBonus(effects.globalIncomeBoostPerComponentPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.globalIncome.value += bonus; summary.globalIncome.sources.push(`${compName} (+${bonus.toFixed(3)}%)`); }
+        
+        bonus = getCappedBonus(effects.globalCostReductionPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.globalCostReduction.value += bonus; summary.globalCostReduction.sources.push(`${compName} (-${bonus.toFixed(3)}%)`); }
+
+        bonus = getCappedBonus(effects.globalDividendYieldBoostPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.globalDividendYield.value += bonus; summary.globalDividendYield.sources.push(`${compName} (+${bonus.toFixed(4)}%)`); }
+
+        bonus = getCappedBonus(effects.globalBusinessUpgradeCostReductionPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.globalUpgradeCost.value += bonus; summary.globalUpgradeCost.sources.push(`${compName} (-${bonus.toFixed(3)}%)`); }
+        
+        // Factory Bonuses
+        bonus = getCappedBonus(effects.factoryGlobalPowerOutputBoostPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.factoryPower.value += bonus; summary.factoryPower.sources.push(`${compName}: +${bonus.toFixed(3)}%`); }
+
+        bonus = getCappedBonus(effects.factoryGlobalMaterialCollectionBoostPercent, effects.maxBonusPercent);
+        if(bonus > 0) { summary.factoryMaterials.value += bonus; summary.factoryMaterials.sources.push(`${compName}: +${bonus.toFixed(3)}%`); }
+
+        bonus = getCappedBonus(effects.factoryManualRPGenerationBoost, effects.maxBonusPercent);
+        if(bonus > 0) { summary.factoryRPGeneration.value += bonus; summary.factoryRPGeneration.sources.push(`${compName}: +${bonus.toFixed(3)} RP`); }
+        
+        // Business Specific Bonuses
+        if (effects.businessSpecificIncomeBoostPercent) {
+            const { businessId } = effects.businessSpecificIncomeBoostPercent;
+            bonus = getCappedBonus(effects.businessSpecificIncomeBoostPercent.percent, effects.maxBonusPercent);
+            if (bonus > 0) {
+                if (!summary.businessSpecific[businessId]) summary.businessSpecific[businessId] = { income: 0, levelCost: 0, upgradeCost: 0, sources: { income: [], levelCost: [], upgradeCost: [] } };
+                summary.businessSpecific[businessId].income += bonus;
+                summary.businessSpecific[businessId].sources.income.push(`${compName}: +${bonus.toFixed(3)}%`);
+            }
+        }
+        if (effects.businessSpecificLevelUpCostReductionPercent) {
+            const { businessId } = effects.businessSpecificLevelUpCostReductionPercent;
+            bonus = getCappedBonus(effects.businessSpecificLevelUpCostReductionPercent.percent, effects.maxBonusPercent);
+            if (bonus > 0) {
+                 if (!summary.businessSpecific[businessId]) summary.businessSpecific[businessId] = { income: 0, levelCost: 0, upgradeCost: 0, sources: { income: [], levelCost: [], upgradeCost: [] } };
+                summary.businessSpecific[businessId].levelCost += bonus;
+                summary.businessSpecific[businessId].sources.levelCost.push(`${compName}: -${bonus.toFixed(3)}%`);
+            }
+        }
+        if (effects.businessSpecificUpgradeCostReductionPercent) {
+            const { businessId } = effects.businessSpecificUpgradeCostReductionPercent;
+            bonus = getCappedBonus(effects.businessSpecificUpgradeCostReductionPercent.percent, effects.maxBonusPercent);
+            if (bonus > 0) {
+                if (!summary.businessSpecific[businessId]) summary.businessSpecific[businessId] = { income: 0, levelCost: 0, upgradeCost: 0, sources: { income: [], levelCost: [], upgradeCost: [] } };
+                summary.businessSpecific[businessId].upgradeCost += bonus;
+                summary.businessSpecific[businessId].sources.upgradeCost.push(`${compName}: -${bonus.toFixed(3)}%`);
+            }
+        }
+
+        // Stock Specific Bonuses
+        if(effects.stockSpecificDividendYieldBoostPercent) {
+            const { stockId } = effects.stockSpecificDividendYieldBoostPercent;
+            bonus = getCappedBonus(effects.stockSpecificDividendYieldBoostPercent.percent, effects.maxBonusPercent);
+            if (bonus > 0) {
+                if (!summary.stockSpecific[stockId]) summary.stockSpecific[stockId] = { dividend: 0, sources: [] };
+                summary.stockSpecific[stockId].dividend += bonus;
+                summary.stockSpecific[stockId].sources.push(`${compName}: +${bonus.toFixed(4)}%`);
+            }
+        }
+    }
+    return summary;
+  }, [playerStats.factoryProducedComponents]);
+
+
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_MY_FACTORY) {
     return (
       <Card className="w-full md:max-w-2xl mx-auto">
@@ -449,6 +546,30 @@ export default function MyFactoryPage() {
       </Card>
     );
   };
+  
+    const BonusItem = ({ icon: Icon, label, value, unit, sources = [] }: { icon: React.ElementType, label: string, value: number, unit: string, sources?: string[] }) => (
+        <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-primary" />
+                <span className="text-muted-foreground">{label}:</span>
+            </div>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="font-semibold text-primary cursor-help">
+                        {value > 0 ? '+' : ''}{value.toFixed(2)}{unit}
+                    </span>
+                </TooltipTrigger>
+                {sources.length > 0 && (
+                    <TooltipContent>
+                        <p className="font-bold">Contributing Components:</p>
+                        <ul className="list-disc list-inside">
+                            {sources.map((source, i) => <li key={i}>{source}</li>)}
+                        </ul>
+                    </TooltipContent>
+                )}
+            </Tooltip>
+        </div>
+    );
 
   return (
     <>
@@ -951,21 +1072,91 @@ export default function MyFactoryPage() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
+    
     <Dialog open={isBonusSummaryOpen} onOpenChange={setIsBonusSummaryOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-4xl">
             <DialogHeader>
                 <DialogTitle>Factory Component Bonus Summary</DialogTitle>
                 <DialogDescription>
                     Overview of all active bonuses from your produced factory components.
                 </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[60vh] pr-3 py-4">
-                <p className="text-muted-foreground text-sm">
-                    This dialog will list all active global income, business-specific, stock-specific, and factory-specific bonuses.
-                    (Implementation for detailed bonus listing is pending.)
-                </p>
-                {/* TODO: Implement detailed bonus listing here */}
+            <ScrollArea className="max-h-[70vh] pr-3 py-4">
+                <div className="space-y-4">
+                    <Card>
+                        <CardHeader><CardTitle className="text-lg">Global Bonuses</CardTitle></CardHeader>
+                        <CardContent className="space-y-1">
+                            {bonusSummaryData.globalIncome.value > 0 && <BonusItem icon={Lightbulb} label="Global Income" value={bonusSummaryData.globalIncome.value} unit="%" sources={bonusSummaryData.globalIncome.sources} />}
+                            {bonusSummaryData.globalCostReduction.value > 0 && <BonusItem icon={DollarSign} label="Global Level-Up Cost" value={-bonusSummaryData.globalCostReduction.value} unit="%" sources={bonusSummaryData.globalCostReduction.sources} />}
+                            {bonusSummaryData.globalUpgradeCost.value > 0 && <BonusItem icon={DollarSign} label="Global Upgrade Cost" value={-bonusSummaryData.globalUpgradeCost.value} unit="%" sources={bonusSummaryData.globalUpgradeCost.sources} />}
+                            {bonusSummaryData.globalDividendYield.value > 0 && <BonusItem icon={TrendingUp} label="Global Dividend Yield" value={bonusSummaryData.globalDividendYield.value} unit="%" sources={bonusSummaryData.globalDividendYield.sources} />}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle className="text-lg">Factory Bonuses</CardTitle></CardHeader>
+                        <CardContent className="space-y-1">
+                            {bonusSummaryData.factoryPower.value > 0 && <BonusItem icon={Zap} label="Factory Power Output" value={bonusSummaryData.factoryPower.value} unit="%" sources={bonusSummaryData.factoryPower.sources} />}
+                            {bonusSummaryData.factoryMaterials.value > 0 && <BonusItem icon={Box} label="Factory Material Collection" value={bonusSummaryData.factoryMaterials.value} unit="%" sources={bonusSummaryData.factoryMaterials.sources} />}
+                            {bonusSummaryData.factoryRPGeneration.value > 0 && <BonusItem icon={FlaskConical} label="Manual Research Bonus" value={bonusSummaryData.factoryRPGeneration.value} unit=" RP" sources={bonusSummaryData.factoryRPGeneration.sources} />}
+                        </CardContent>
+                    </Card>
+                    
+                    {Object.keys(bonusSummaryData.businessSpecific).length > 0 && (
+                      <Card>
+                        <CardHeader><CardTitle className="text-lg">Business-Specific Bonuses</CardTitle></CardHeader>
+                        <CardContent>
+                          <Accordion type="multiple" className="w-full">
+                            {Object.entries(bonusSummaryData.businessSpecific).map(([businessId, bonuses]) => {
+                              const businessInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
+                              if (!businessInfo) return null;
+                              return (
+                                <AccordionItem value={businessId} key={businessId}>
+                                  <AccordionTrigger>
+                                    <div className="flex items-center gap-2">
+                                      <Briefcase className="h-4 w-4" />
+                                      <span>{businessInfo.name}</span>
+                                    </div>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="pl-4 space-y-2">
+                                    {bonuses.income > 0 && <BonusItem icon={Lightbulb} label="Income" value={bonuses.income} unit="%" sources={bonuses.sources.income} />}
+                                    {bonuses.levelCost > 0 && <BonusItem icon={DollarSign} label="Level-Up Cost" value={-bonuses.levelCost} unit="%" sources={bonuses.sources.levelCost} />}
+                                    {bonuses.upgradeCost > 0 && <BonusItem icon={DollarSign} label="Upgrade Cost" value={-bonuses.upgradeCost} unit="%" sources={bonuses.sources.upgradeCost} />}
+                                  </AccordionContent>
+                                </AccordionItem>
+                              );
+                            })}
+                          </Accordion>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {Object.keys(bonusSummaryData.stockSpecific).length > 0 && (
+                      <Card>
+                        <CardHeader><CardTitle className="text-lg">Stock-Specific Bonuses</CardTitle></CardHeader>
+                        <CardContent>
+                           <Accordion type="multiple" className="w-full">
+                             {Object.entries(bonusSummaryData.stockSpecific).map(([stockId, bonuses]) => {
+                               const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
+                               if (!stockInfo) return null;
+                               return (
+                                 <AccordionItem value={stockId} key={stockId}>
+                                    <AccordionTrigger>
+                                      <div className="flex items-center gap-2">
+                                        <BarChart className="h-4 w-4" />
+                                        <span>{stockInfo.companyName} ({stockInfo.ticker})</span>
+                                      </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                      {bonuses.dividend > 0 && <BonusItem icon={TrendingUp} label="Dividend Yield" value={bonuses.dividend} unit="%" sources={bonuses.sources} />}
+                                    </AccordionContent>
+                                 </AccordionItem>
+                               );
+                             })}
+                           </Accordion>
+                        </CardContent>
+                      </Card>
+                    )}
+                </div>
             </ScrollArea>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsBonusSummaryOpen(false)}>Close</Button>
@@ -975,5 +1166,3 @@ export default function MyFactoryPage() {
     </>
   );
 }
-
-    
