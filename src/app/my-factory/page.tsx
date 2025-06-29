@@ -499,21 +499,75 @@ export default function MyFactoryPage() {
     const tierStyling = getTierStyling(compConfig.tier);
     let currentBonusDisplay = "";
     let maxBonusDisplay = "";
+    let tooltipDescription = "";
 
-    // For now, only displaying primary global income boost. This section would need to be more generic for other effects.
-    if (compConfig.effects?.globalIncomeBoostPerComponentPercent) {
-        const effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
-        const currentTotalEffect = count * effectPerUnit;
-        const maxBonus = compConfig.effects.maxBonusPercent ?? Infinity;
-        currentBonusDisplay = `+${Math.min(currentTotalEffect, maxBonus).toFixed(3)}% Global Inc.`;
-        maxBonusDisplay = `/ Max: +${maxBonus.toFixed(3)}%`;
-    } else if (compConfig.effects?.businessSpecificIncomeBoostPercent) {
-        const effect = compConfig.effects.businessSpecificIncomeBoostPercent;
-        const currentTotalEffect = count * effect.percent;
-        const maxBonus = compConfig.effects.maxBonusPercent ?? Infinity;
-        currentBonusDisplay = `+${Math.min(currentTotalEffect, maxBonus).toFixed(2)}% ${effect.businessName || effect.businessId} Inc.`;
-        maxBonusDisplay = `/ Max: +${maxBonus.toFixed(2)}%`;
-    } // Add more 'else if' for other primary effects if needed for card display
+    const { effects } = compConfig;
+
+    if (effects) {
+        const maxBonus = effects.maxBonusPercent ?? Infinity;
+        const calculateCappedBonus = (effectPercent?: number) => {
+            if (!effectPercent) return 0;
+            return Math.min(count * (effectPercent || 0), maxBonus);
+        };
+
+        let effectValue: number | undefined;
+        let bonusValue: number = 0;
+
+        if ((effectValue = effects.globalIncomeBoostPerComponentPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Global Inc.`;
+            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% global income.`;
+        } else if (effects.businessSpecificIncomeBoostPercent) {
+            const { percent, businessId } = effects.businessSpecificIncomeBoostPercent;
+            bonusValue = calculateCappedBonus(percent);
+            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
+            currentBonusDisplay = `+${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Inc.`;
+            tooltipDescription = `Each provides +${percent.toFixed(4)}% income to ${bizInfo?.name || businessId}.`;
+        } else if ((effectValue = effects.globalCostReductionPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `-${bonusValue.toFixed(3)}% Global Lvl Cost`;
+            tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global level-up costs.`;
+        } else if (effects.businessSpecificLevelUpCostReductionPercent) {
+            const { percent, businessId } = effects.businessSpecificLevelUpCostReductionPercent;
+            bonusValue = calculateCappedBonus(percent);
+            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
+            currentBonusDisplay = `-${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Lvl Cost`;
+            tooltipDescription = `Each provides -${percent.toFixed(4)}% level-up cost reduction for ${bizInfo?.name || businessId}.`;
+        } else if ((effectValue = effects.globalBusinessUpgradeCostReductionPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `-${bonusValue.toFixed(3)}% Global Upg. Cost`;
+            tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global upgrade costs.`;
+        } else if (effects.businessSpecificUpgradeCostReductionPercent) {
+            const { percent, businessId } = effects.businessSpecificUpgradeCostReductionPercent;
+            bonusValue = calculateCappedBonus(percent);
+            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
+            currentBonusDisplay = `-${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Upg. Cost`;
+            tooltipDescription = `Each provides -${percent.toFixed(4)}% upgrade cost reduction for ${bizInfo?.name || businessId}.`;
+        } else if ((effectValue = effects.factoryGlobalPowerOutputBoostPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Factory Power`;
+            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory power output.`;
+        } else if ((effectValue = effects.factoryGlobalMaterialCollectionBoostPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Factory Materials`;
+            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory material collection.`;
+        } else if ((effectValue = effects.globalDividendYieldBoostPercent) !== undefined) {
+            bonusValue = calculateCappedBonus(effectValue);
+            currentBonusDisplay = `+${bonusValue.toFixed(4)}% Global Dividends`;
+            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to global dividend yield.`;
+        } else if (effects.stockSpecificDividendYieldBoostPercent) {
+            const { percent, stockId } = effects.stockSpecificDividendYieldBoostPercent;
+            bonusValue = calculateCappedBonus(percent);
+            const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
+            currentBonusDisplay = `+${bonusValue.toFixed(4)}% ${stockInfo?.ticker || stockId} Dividends`;
+            tooltipDescription = `Each provides +${percent.toFixed(4)}% dividend yield to ${stockInfo?.companyName || stockId}.`;
+        }
+        
+        if (currentBonusDisplay && isFinite(maxBonus)) {
+            maxBonusDisplay = `/ Max: ${maxBonus > 0 ? '+' : ''}${maxBonus.toFixed(2)}%`;
+        }
+    }
+
 
     return (
       <Card key={compConfig.id} className={cn("p-3 flex flex-col text-center shadow-md hover:shadow-lg", tierStyling.border, tierStyling.background)}>
@@ -535,11 +589,9 @@ export default function MyFactoryPage() {
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{compConfig.effects?.globalIncomeBoostPerComponentPercent ? `Each provides +${compConfig.effects.globalIncomeBoostPerComponentPercent.toFixed(4)}% global income.` : 
-                  compConfig.effects?.businessSpecificIncomeBoostPercent ? `Each provides +${compConfig.effects.businessSpecificIncomeBoostPercent.percent.toFixed(3)}% to ${compConfig.effects.businessSpecificIncomeBoostPercent.businessName || compConfig.effects.businessSpecificIncomeBoostPercent.businessId}` :
-                   'Provides a special bonus.'}</p>
+              <p>{tooltipDescription || 'Provides a special bonus.'}</p>
               <p>Current contribution: {currentBonusDisplay}</p>
-              <p>Max possible bonus from this component type: {compConfig.effects?.maxBonusPercent?.toFixed(2)}%</p>
+              {isFinite(effects?.maxBonusPercent ?? Infinity) && <p>Max possible bonus from this component type: {effects?.maxBonusPercent?.toFixed(2)}%</p>}
             </TooltipContent>
           </Tooltip>
         )}
