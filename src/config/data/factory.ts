@@ -72,8 +72,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 20,
     requiredAssemblerMark: 1,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.01,
-      maxBonusPercent: 5,
+      globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 6,
     }
   },
   {
@@ -87,8 +87,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 60,
     requiredAssemblerMark: 2,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.01,
-      maxBonusPercent: 7.5,
+      globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 9,
     }
   },
   {
@@ -102,8 +102,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 180,
     requiredAssemblerMark: 3,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.01,
-      maxBonusPercent: 10,
+      globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 12,
     }
   },
   {
@@ -117,8 +117,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.01,
-      maxBonusPercent: 12.5,
+      globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 15,
     }
   },
   {
@@ -132,8 +132,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 3600,
     requiredAssemblerMark: 5,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.01,
-      maxBonusPercent: 15,
+      globalIncomeBoostPerComponentPercent: 0.001,
+      maxBonusPercent: 18,
     }
   },
 
@@ -149,8 +149,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 45,
     requiredAssemblerMark: 1,
     effects: {
-      businessSpecificIncomeBoostPercent: { businessId: 'lemonade_stand', percent: 0.01 },
-      maxBonusPercent: 25,
+      businessSpecificIncomeBoostPercent: { businessId: 'lemonade_stand', percent: 0.001 },
+      maxBonusPercent: 30,
     }
   },
   {
@@ -164,8 +164,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 30,
     requiredAssemblerMark: 1,
     effects: {
-      factoryGlobalPowerOutputBoostPercent: 0.01,
-      maxBonusPercent: 10,
+      factoryGlobalPowerOutputBoostPercent: 0.001,
+      maxBonusPercent: 12,
     }
   },
   {
@@ -179,8 +179,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 30,
     requiredAssemblerMark: 1,
     effects: {
-      factoryGlobalMaterialCollectionBoostPercent: 0.01,
-      maxBonusPercent: 10,
+      factoryGlobalMaterialCollectionBoostPercent: 0.001,
+      maxBonusPercent: 12,
     }
   },
   {
@@ -194,8 +194,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 240,
     requiredAssemblerMark: 2,
     effects: {
-      businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 0.01 },
-      maxBonusPercent: 30,
+      businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 0.001 },
+      maxBonusPercent: 36,
     }
   },
   {
@@ -209,8 +209,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
     effects: {
-      stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.01 },
-      maxBonusPercent: 0.25
+      stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.001 },
+      maxBonusPercent: 0.3
     }
   },
 
@@ -226,8 +226,8 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     productionTimeSeconds: 25,
     requiredAssemblerMark: 1,
     effects: { 
-      businessSpecificLevelUpCostReductionPercent: { businessId: 'tech_startup', percent: 0.01 }, 
-      maxBonusPercent: 2 
+      businessSpecificLevelUpCostReductionPercent: { businessId: 'tech_startup', percent: 0.001 }, 
+      maxBonusPercent: 2.4
     }
   },
   {
@@ -240,7 +240,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 40,
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 0.01 }, maxBonusPercent: 10 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 0.001 }, maxBonusPercent: 12 }
   },
   {
     id: 'quantum_processor_unit',
@@ -252,7 +252,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.01 }, maxBonusPercent: 15 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.001 }, maxBonusPercent: 18 }
   },
 
   // Family 2: Frames
@@ -266,7 +266,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 8,
     productionTimeSeconds: 18,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'fast_food_franchise', percent: 0.01 }, maxBonusPercent: 1.5 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'fast_food_franchise', percent: 0.001 }, maxBonusPercent: 1.8 }
   },
   {
     id: 'reinforced_chassis',
@@ -278,7 +278,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.01 }, maxBonusPercent: 8 }
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.001 }, maxBonusPercent: 10 }
   },
   {
     id: 'null_g_support_structure',
@@ -290,7 +290,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.01 }, maxBonusPercent: 12 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.001 }, maxBonusPercent: 14 }
   },
 
   // Family 3: Optics
@@ -304,7 +304,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 12,
     productionTimeSeconds: 22,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.01 }, maxBonusPercent: 1.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.001 }, maxBonusPercent: 2.2 }
   },
   {
     id: 'polished_optical_array',
@@ -316,7 +316,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35,
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.01 }, maxBonusPercent: 9 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.001 }, maxBonusPercent: 11 }
   },
   {
     id: 'gravimetric_sensor_suite',
@@ -328,7 +328,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 110,
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'space_exploration_inc', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'space_exploration_inc', percent: 0.001 }, maxBonusPercent: 8.5 }
   },
 
   // Family 4: Power Cells
@@ -342,7 +342,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 20,
     productionTimeSeconds: 30,
     requiredAssemblerMark: 1,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 1 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 1.2 }
   },
   {
     id: 'efficient_power_core',
@@ -354,7 +354,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50,
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.01 }, maxBonusPercent: 8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.001 }, maxBonusPercent: 10 }
   },
   {
     id: 'dense_plasma_battery',
@@ -366,7 +366,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 130,
     productionTimeSeconds: 360,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.01 }, maxBonusPercent: 18 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.001 }, maxBonusPercent: 22 }
   },
 
   // Family 5: Data Storage
@@ -380,7 +380,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 18,
     productionTimeSeconds: 28,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.01 }, maxBonusPercent: 1.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.001 }, maxBonusPercent: 1.8 }
   },
   {
     id: 'solid_state_drive_array',
@@ -392,7 +392,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 45,
     productionTimeSeconds: 85,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_translation_services', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_translation_services', percent: 0.001 }, maxBonusPercent: 8.5 }
   },
   {
     id: 'holographic_data_crystal',
@@ -404,7 +404,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 120,
     productionTimeSeconds: 340,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.01 }, maxBonusPercent: 16 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.001 }, maxBonusPercent: 20 }
   },
 
   // Unique Components (Phase 1 additions)
@@ -418,7 +418,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 65,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'coffee_shop', percent: 0.01 }, maxBonusPercent: 20 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'coffee_shop', percent: 0.001 }, maxBonusPercent: 24 }
   },
   {
     id: 'high_yield_solar_cell_adv',
@@ -430,7 +430,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 200,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 5 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 6 }
   },
   {
     id: 'robotic_arm_actuator_adv',
@@ -442,7 +442,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 150,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.01 }, maxBonusPercent: 10 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.001 }, maxBonusPercent: 12 }
   },
   {
     id: 'logistics_ai_processor',
@@ -454,7 +454,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 1200,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_logistics_inc', percent: 0.01 }, maxBonusPercent: 15 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_logistics_inc', percent: 0.001 }, maxBonusPercent: 18 }
   },
   {
     id: 'advanced_mining_drill_bit',
@@ -466,7 +466,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 70,
     productionTimeSeconds: 220,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 4 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 5 }
   },
 
   // Family 6: Power Regulators
@@ -480,7 +480,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35,
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 3 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 3.6 }
   },
   {
     id: 'power_regulator_mk2',
@@ -492,7 +492,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 250,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 7 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 8.4 }
   },
   {
     id: 'power_regulator_mk3',
@@ -504,7 +504,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 12 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 14.4 }
   },
 
   // Family 7: Nanite Assemblers
@@ -518,7 +518,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'nanite_assembler_core',
@@ -530,7 +530,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1200,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.01 }, maxBonusPercent: 8 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.001 }, maxBonusPercent: 10 }
   },
   {
     id: 'self_replicating_nanite_swarm_component',
@@ -542,7 +542,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.01 }, globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 15 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'manufacturing_plant', percent: 0.001 }, globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 18 }
   },
 
   // Specific Business Boosts (Phase 1 additions for variety)
@@ -556,7 +556,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 22,
     productionTimeSeconds: 55,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.01 }, maxBonusPercent: 15 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.001 }, maxBonusPercent: 18 }
   },
   {
     id: 'secure_encryption_module',
@@ -568,7 +568,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 85,
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.01 }, maxBonusPercent: 20 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.001 }, maxBonusPercent: 24 }
   },
   {
     id: 'bio_reactor_catalyst',
@@ -580,7 +580,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 70,
     productionTimeSeconds: 260,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.01 }, maxBonusPercent: 18 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.001 }, maxBonusPercent: 22 }
   },
   {
     id: 'miniature_fusion_core_component',
@@ -592,7 +592,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 220,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.01 }, maxBonusPercent: 22 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.001 }, maxBonusPercent: 26 }
   },
   {
     id: 'automated_logistics_router',
@@ -604,7 +604,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 95,
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.01 }, maxBonusPercent: 16 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.001 }, maxBonusPercent: 19 }
   },
   {
     id: 'advanced_neural_net_processor_adv_component',
@@ -616,7 +616,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 280,
     productionTimeSeconds: 1300,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.01 }, maxBonusPercent: 20 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.001 }, maxBonusPercent: 24 }
   },
   {
     id: 'gene_splicing_kit',
@@ -628,7 +628,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 75,
     productionTimeSeconds: 270,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.01 }, maxBonusPercent: 19 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.001 }, maxBonusPercent: 23 }
   },
   {
     id: 'vr_sensory_enhancer',
@@ -640,7 +640,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 330,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.01 }, maxBonusPercent: 17 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.001 }, maxBonusPercent: 20 }
   },
   {
     id: 'terraforming_microbes',
@@ -652,7 +652,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 1150,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'planetary_terraforming_corp', percent: 0.01 }, maxBonusPercent: 21 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'planetary_terraforming_corp', percent: 0.001 }, maxBonusPercent: 25 }
   },
 
   // Specific Stock Boosts (Phase 1 additions)
@@ -666,7 +666,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.01 }, maxBonusPercent: 0.15 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.001 }, maxBonusPercent: 0.18 }
   },
   {
     id: 'real_estate_ai_predictor_component',
@@ -678,7 +678,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'summit_real_estate', percent: 0.01 }, maxBonusPercent: 0.20 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'summit_real_estate', percent: 0.001 }, maxBonusPercent: 0.24 }
   },
   {
     id: 'vtol_engine_prototype',
@@ -690,7 +690,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1250,
     requiredAssemblerMark: 4,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'momentum_motors', percent: 0.01 }, maxBonusPercent: 0.10 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'momentum_motors', percent: 0.001 }, maxBonusPercent: 0.12 }
   },
 
   // Business Type Boosts (Phase 1 additions)
@@ -704,7 +704,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'logistics_ai_coordination_chip',
@@ -716,7 +716,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 290,
     requiredAssemblerMark: 3,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 0.001 }, maxBonusPercent: 6 }
   },
 
   // Global Boosts / Factory Boosts (Phase 1 additions)
@@ -730,7 +730,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 25,
     productionTimeSeconds: 60,
     requiredAssemblerMark: 1,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 2.5 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 3 }
   },
   {
     id: 'automated_resource_scanner',
@@ -742,7 +742,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 3 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 3.6 }
   },
   {
     id: 'assembly_line_lubricant_super',
@@ -754,7 +754,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 7,
     productionTimeSeconds: 15,
     requiredAssemblerMark: 1,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 2 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 2.4 }
   },
   {
     id: 'data_optimization_algorithm_component',
@@ -766,7 +766,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 28,
     productionTimeSeconds: 65,
     requiredAssemblerMark: 2,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 3 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 3.6 }
   },
   {
     id: 'advanced_cooling_system_component',
@@ -778,7 +778,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 65,
     productionTimeSeconds: 230,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 6 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 7.2 }
   },
   {
     id: 'predictive_maintenance_module_component',
@@ -790,7 +790,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 290,
     requiredAssemblerMark: 3,
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.01, maxBonusPercent: 2 }
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.001, maxBonusPercent: 2.4 }
   },
   {
     id: 'universal_adapter_module_component',
@@ -802,7 +802,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 32,
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
-    effects: { globalCostReductionPercent: 0.01, maxBonusPercent: 1 }
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 1.2 }
   },
   {
     id: 'harmonic_resonance_capacitor',
@@ -814,7 +814,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 230,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 10 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 12 }
   },
   {
     id: 'geospatial_mapping_unit',
@@ -826,7 +826,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 7 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 8.4 }
   },
   // High Tier Components (Phase 1 additions)
   {
@@ -839,7 +839,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 550,
     productionTimeSeconds: 3800,
     requiredAssemblerMark: 5,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.01 }, maxBonusPercent: 10 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.001 }, maxBonusPercent: 12 }
   },
   {
     id: 'chroniton_particle_stabilizer_component',
@@ -851,7 +851,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4200,
     requiredAssemblerMark: 5,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 10 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 12 }
   },
   {
     id: 'exotic_matter_containment_cell_component',
@@ -863,7 +863,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 580,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.01 }, maxBonusPercent: 12 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.001 }, maxBonusPercent: 14.4 }
   },
   {
     id: 'reality_distortion_lens_component',
@@ -875,10 +875,10 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 650,
     productionTimeSeconds: 4500,
     requiredAssemblerMark: 5,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MISC_ADVANCED', percent: 0.01 }, maxBonusPercent: 8 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MISC_ADVANCED', percent: 0.001 }, maxBonusPercent: 10 }
   },
 
-  // --- PHASE 2 ADDITIONS ---
+  // --- PHASE 2 ADDITIONS START HERE ---
   // Family: Advanced Casing
   {
     id: 'rugged_casing',
@@ -890,7 +890,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 10,
     productionTimeSeconds: 20,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 0.01 }, maxBonusPercent: 2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 0.001 }, maxBonusPercent: 2.4 }
   },
   {
     id: 'shielded_enclosure',
@@ -902,7 +902,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 15, // Adjusted cost based on input (3*10 raw equivalent if we were to use that, but direct RM cost is lower for balance)
     productionTimeSeconds: 60,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'vacuum_sealed_housing',
@@ -914,7 +914,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 180,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.001 }, maxBonusPercent: 5 }
   },
 
   // Family: Computation Cores
@@ -928,7 +928,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'cognitive_matrix_core_adv',
@@ -940,7 +940,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 200,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'singularity_engine_fragment_component_adv',
@@ -952,7 +952,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 150, // Adjusted
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
 
   // Family: Energy Conduits
@@ -966,7 +966,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 20, // Adjusted
     productionTimeSeconds: 50,
     requiredAssemblerMark: 2,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 2 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 2.4 }
   },
   {
     id: 'plasma_conduit_segment_component_adv',
@@ -978,7 +978,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 150,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 5 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 6 }
   },
   {
     id: 'zero_point_tap_module_component_adv',
@@ -990,7 +990,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 120, // Adjusted
     productionTimeSeconds: 800,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 8 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 9.6 }
   },
 
   // Specific Business Boosts (Phase 2 Additions)
@@ -1004,7 +1004,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 40, // Adjusted
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'pharmaceutical_bio_printer_nozzle',
@@ -1016,7 +1016,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 70, // Adjusted
     productionTimeSeconds: 220,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'renewable_energy_grid_inverter_adv',
@@ -1028,7 +1028,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 45, // Adjusted
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'genetic_sequencer_chip_adv',
@@ -1040,7 +1040,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 110, // Adjusted
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'streaming_service_codec_optimizer_chip',
@@ -1052,7 +1052,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 85,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'entertainment_streaming_service', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'entertainment_streaming_service', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'ad_agency_neural_targeting_module_adv',
@@ -1064,7 +1064,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90, // Adjusted
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ad_agency', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ad_agency', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'real_estate_holographic_viewer_pro',
@@ -1076,7 +1076,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35, // Adjusted
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'real_estate', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'real_estate', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'logistics_drone_battery_extender_plus',
@@ -1088,7 +1088,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'fast_food_automated_dispenser',
@@ -1100,7 +1100,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30, // Adjusted
     productionTimeSeconds: 65,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'software_agency_dev_ops_pipeline_module',
@@ -1112,7 +1112,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80, // Adjusted
     productionTimeSeconds: 250,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'global_shipping_container_tracker_adv',
@@ -1124,7 +1124,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100, // Adjusted
     productionTimeSeconds: 290,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.001 }, maxBonusPercent: 5 }
   },
 
   // Specific Stock Boosts (Phase 2 Additions)
@@ -1138,7 +1138,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200, // Adjusted
     productionTimeSeconds: 350,
     requiredAssemblerMark: 3,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'alpha_pharma', percent: 0.01 }, maxBonusPercent: 0.3 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'alpha_pharma', percent: 0.001 }, maxBonusPercent: 0.36 }
   },
   {
     id: 'tech_innovations_quantum_sensor_array',
@@ -1150,7 +1150,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 350, // Adjusted
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'tech_innovations', percent: 0.01 }, maxBonusPercent: 0.15 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'tech_innovations', percent: 0.001 }, maxBonusPercent: 0.18 }
   },
   {
     id: 'global_corp_efficiency_module_adv',
@@ -1162,7 +1162,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50, // Adjusted
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.01 }, maxBonusPercent: 0.2 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'global_corp', percent: 0.001 }, maxBonusPercent: 0.24 }
   },
 
   // Business Type Boosts (Phase 2 Additions)
@@ -1176,7 +1176,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 60, // Adjusted
     productionTimeSeconds: 100,
     requiredAssemblerMark: 2,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'FINANCE', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'FINANCE', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'media_content_adaptive_streamer',
@@ -1188,7 +1188,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 120, // Adjusted
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'aerospace_navigation_computer_adv',
@@ -1200,7 +1200,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200, // Adjusted
     productionTimeSeconds: 950,
     requiredAssemblerMark: 4,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 0.001 }, maxBonusPercent: 6 }
   },
 
   // Global/Factory Boosts (Phase 2 Additions)
@@ -1214,7 +1214,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 40, // Adjusted
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
-    effects: { globalCostReductionPercent: 0.01, maxBonusPercent: 0.75 }
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 0.9 }
   },
   {
     id: 'geological_survey_data_analyzer',
@@ -1226,7 +1226,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 45, // Adjusted
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 2.5 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 3 }
   },
   {
     id: 'high_frequency_market_algorithm_core',
@@ -1238,7 +1238,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 140, // Adjusted
     productionTimeSeconds: 330,
     requiredAssemblerMark: 3,
-    effects: { globalDividendYieldBoostPercent: 0.01, maxBonusPercent: 0.15 }
+    effects: { globalDividendYieldBoostPercent: 0.001, maxBonusPercent: 0.18 }
   },
   {
     id: 'automated_maintenance_bot_toolkit',
@@ -1250,7 +1250,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80, // Adjusted
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.01, maxBonusPercent: 1.5 }
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.001, maxBonusPercent: 1.8 }
   },
   {
     id: 'universal_resource_optimization_node',
@@ -1262,7 +1262,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 300, // Adjusted
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 1 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 1.2 }
   },
   {
     id: 'master_craftsman_calibration_tools',
@@ -1274,7 +1274,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 320, // Adjusted
     productionTimeSeconds: 1200,
     requiredAssemblerMark: 4,
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.01, maxBonusPercent: 2 }
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.001, maxBonusPercent: 2.4 }
   },
 
   // --- PHASE 3 ADDITIONS START HERE ---
@@ -1290,7 +1290,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 12,
     productionTimeSeconds: 22,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.01 }, maxBonusPercent: 1.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.001 }, maxBonusPercent: 1.8 }
   },
   {
     id: 'linear_actuator_industrial',
@@ -1302,7 +1302,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.01 }, maxBonusPercent: 2 }
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.001 }, maxBonusPercent: 2.4 }
   },
   {
     id: 'electro_hydraulic_actuator_precision',
@@ -1314,7 +1314,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
 
   // Family: Biological Samples/Cultures
@@ -1328,7 +1328,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 10,
     productionTimeSeconds: 20,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.01 }, maxBonusPercent: 1.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'pharmaceutical_company', percent: 0.001 }, maxBonusPercent: 2.2 }
   },
   {
     id: 'stabilized_cell_culture_medium',
@@ -1340,7 +1340,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 28,
     productionTimeSeconds: 65,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.01 }, maxBonusPercent: 2.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.001 }, maxBonusPercent: 3 }
   },
   {
     id: 'cryo_preserved_tissue_sample_rare',
@@ -1352,7 +1352,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 75,
     productionTimeSeconds: 240,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.01 }, maxBonusPercent: 3.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.001 }, maxBonusPercent: 4.2 }
   },
 
   // Family: Exotic Crystals/Gems
@@ -1366,7 +1366,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 15,
     productionTimeSeconds: 25,
     requiredAssemblerMark: 1,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 1 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 1.2 }
   },
   {
     id: 'focused_energy_crystal_refined',
@@ -1378,7 +1378,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 40,
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 0.01 }, maxBonusPercent: 2 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 0.001 }, maxBonusPercent: 2.4 }
   },
   {
     id: 'perfect_resonance_gemstone_tuned',
@@ -1390,7 +1390,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'quantum_computing_labs_quantaleap', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'quantum_computing_labs_quantaleap', percent: 0.001 }, maxBonusPercent: 5 }
   },
 
   // Unique Components (Phase 3 Additions)
@@ -1404,7 +1404,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 8,
     productionTimeSeconds: 18,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'lemonade_stand', percent: 0.01 }, maxBonusPercent: 2.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'lemonade_stand', percent: 0.001 }, maxBonusPercent: 3 }
   },
   {
     id: 'artisan_bakery_display_case_premium',
@@ -1416,7 +1416,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 60,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'tech_startup_server_rack_optimized',
@@ -1428,7 +1428,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 38,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'tech_startup', percent: 0.01 }, maxBonusPercent: 1.5 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'tech_startup', percent: 0.001 }, maxBonusPercent: 1.8 }
   },
   {
     id: 'movie_studio_sound_mixing_board_pro',
@@ -1440,7 +1440,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 270,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'cybersecurity_threat_intel_feed_premium',
@@ -1452,7 +1452,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 110,
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.01 }, maxBonusPercent: 4.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 0.001 }, maxBonusPercent: 5.4 }
   },
   {
     id: 'space_exploration_navigation_module_advanced',
@@ -1464,7 +1464,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 950,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'space_exploration_inc', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'ai_research_lab_algorithm_library_expanded',
@@ -1476,7 +1476,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 220,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.01 }, maxBonusPercent: 4.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.001 }, maxBonusPercent: 5.4 }
   },
   {
     id: 'genetic_engineering_crispr_toolkit_pro',
@@ -1488,7 +1488,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 180,
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'genetic_engineering_firm', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'omni_media_investigative_reporter_toolkit',
@@ -1500,7 +1500,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 70,
     productionTimeSeconds: 250,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.01 }, maxBonusPercent: 3.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.001 }, maxBonusPercent: 4.2 }
   },
   {
     id: 'robotics_factory_adaptive_ai_controller',
@@ -1512,7 +1512,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 980,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
   {
     id: 'quantum_computing_qubit_stabilizer_adv',
@@ -1524,7 +1524,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 450,
     productionTimeSeconds: 3500,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'quantum_computing_labs_quantaleap', percent: 0.01 }, maxBonusPercent: 7.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'quantum_computing_labs_quantaleap', percent: 0.001 }, maxBonusPercent: 9 }
   },
 
   // Specific Stock Boosts (Phase 3 Additions)
@@ -1538,7 +1538,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 180,
     productionTimeSeconds: 920,
     requiredAssemblerMark: 4,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'biofuture_med', percent: 0.01 }, maxBonusPercent: 0.22 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'biofuture_med', percent: 0.001 }, maxBonusPercent: 0.26 }
   },
   {
     id: 'aether_logistics_drone_traffic_controller',
@@ -1550,7 +1550,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'aether_logistics', percent: 0.01 }, maxBonusPercent: 0.18 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'aether_logistics', percent: 0.001 }, maxBonusPercent: 0.22 }
   },
   {
     id: 'omega_corp_experimental_alloy_sample',
@@ -1562,7 +1562,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 180,
     productionTimeSeconds: 950,
     requiredAssemblerMark: 4,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.01 }, maxBonusPercent: 0.35 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.001 }, maxBonusPercent: 0.42 }
   },
   {
     id: 'stellar_dynamics_propulsion_fuel_cell',
@@ -1574,7 +1574,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 500,
     productionTimeSeconds: 3800,
     requiredAssemblerMark: 5,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'stellar_dynamics', percent: 0.01 }, maxBonusPercent: 0.5 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'stellar_dynamics', percent: 0.001 }, maxBonusPercent: 0.6 }
   },
 
   // Business Type Boosts (Phase 3 Additions)
@@ -1588,7 +1588,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'FINANCE', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'FINANCE', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'manufacturing_quality_control_sensor',
@@ -1600,7 +1600,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 260,
     requiredAssemblerMark: 3,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.01 }, maxBonusPercent: 4.5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.001 }, maxBonusPercent: 5.4 }
   },
   {
     id: 'media_viral_content_algorithm',
@@ -1612,7 +1612,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 210,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
 
   // Global/Factory Boosts (Phase 3 Additions)
@@ -1626,7 +1626,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 190,
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
-    effects: { globalCostReductionPercent: 0.01, maxBonusPercent: 2 }
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 2.4 }
   },
   {
     id: 'factory_energy_capacitor_large',
@@ -1638,7 +1638,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 110,
     productionTimeSeconds: 320,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 8 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 9.6 }
   },
   {
     id: 'resource_extraction_optimizer_ai',
@@ -1650,7 +1650,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 160,
     productionTimeSeconds: 850,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 6 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 7.2 }
   },
   {
     id: 'advanced_research_data_processor',
@@ -1662,7 +1662,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 130,
     productionTimeSeconds: 350,
     requiredAssemblerMark: 3,
-    effects: { factoryManualRPGenerationBoost: 0.002, maxBonusPercent: 0.5 }
+    effects: { factoryManualRPGenerationBoost: 0.002, maxBonusPercent: 0.6 }
   },
   {
     id: 'global_marketing_synergy_module',
@@ -1674,7 +1674,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 400,
     productionTimeSeconds: 3600,
     requiredAssemblerMark: 5,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 8 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 9.6 }
   },
   {
     id: 'worker_morale_enhancer_automated',
@@ -1686,7 +1686,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 25,
     productionTimeSeconds: 50,
     requiredAssemblerMark: 2,
-    effects: { factoryWorkerEnergyDrainModifier: 0.98, maxBonusPercent: 10 } // Reduces drain by 2% effectively
+    effects: { factoryWorkerEnergyDrainModifier: 0.98, maxBonusPercent: 12 } // Reduces drain by 2% effectively
   },
   {
     id: 'automated_stock_portfolio_manager_basic',
@@ -1698,7 +1698,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 140,
     productionTimeSeconds: 380,
     requiredAssemblerMark: 3,
-    effects: { globalDividendYieldBoostPercent: 0.01, maxBonusPercent: 0.2 }
+    effects: { globalDividendYieldBoostPercent: 0.001, maxBonusPercent: 0.24 }
   },
 
   // --- PHASE 4 ADDITIONS START HERE ---
@@ -1713,7 +1713,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 14,
     productionTimeSeconds: 23,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.01 }, maxBonusPercent: 2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'renewable_energy_corp', percent: 0.001 }, maxBonusPercent: 2.4 }
   },
   {
     id: 'multi_spectral_imaging_array',
@@ -1725,7 +1725,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 42,
     productionTimeSeconds: 75,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'planetary_terraforming_corp', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'planetary_terraforming_corp', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'deep_space_observatory_lens_pro',
@@ -1737,7 +1737,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 110,
     productionTimeSeconds: 310,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'interstellar_trading_guild', percent: 0.01 }, maxBonusPercent: 4 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'interstellar_trading_guild', percent: 0.001 }, maxBonusPercent: 5 }
   },
 
   // Family: Communication Systems
@@ -1751,7 +1751,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 16,
     productionTimeSeconds: 26,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.01 }, maxBonusPercent: 2.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.001 }, maxBonusPercent: 2.6 }
   },
   {
     id: 'encrypted_comms_chip_mil',
@@ -1763,7 +1763,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50,
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_satellite_network', percent: 0.01 }, maxBonusPercent: 3.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_satellite_network', percent: 0.001 }, maxBonusPercent: 4.2 }
   },
   {
     id: 'quantum_entanglement_communicator_prototype',
@@ -1775,7 +1775,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 130,
     productionTimeSeconds: 350,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_consciousness_network', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_consciousness_network', percent: 0.001 }, maxBonusPercent: 6 }
   },
 
   // Family: Robotics AI Cores
@@ -1789,7 +1789,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 13,
     productionTimeSeconds: 21,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.01 }, maxBonusPercent: 1 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'robotics_factory_synthodynamics', percent: 0.001 }, maxBonusPercent: 1.2 }
   },
   {
     id: 'swarm_robotics_coordination_module',
@@ -1801,7 +1801,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 40,
     productionTimeSeconds: 78,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'autonomous_megafactories', percent: 0.01 }, maxBonusPercent: 2.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'autonomous_megafactories', percent: 0.001 }, maxBonusPercent: 3.4 }
   },
   {
     id: 'sentient_robot_posibrain_core_adv',
@@ -1813,7 +1813,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.01 }, maxBonusPercent: 3.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.001 }, maxBonusPercent: 4.6 }
   },
 
   // Specific Business Boosts (Phase 4 Additions)
@@ -1827,7 +1827,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 120,
     productionTimeSeconds: 330,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'luxury_space_tourism', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'luxury_space_tourism', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'medimind_ai_clinics_diagnostic_scanner_upgrade',
@@ -1839,7 +1839,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 150,
     productionTimeSeconds: 880,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_driven_healthcare', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_driven_healthcare', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'novaforge_materials_exotic_alloy_synthesizer',
@@ -1851,7 +1851,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'advanced_materials_rd', percent: 0.01 }, maxBonusPercent: 6.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'advanced_materials_rd', percent: 0.001 }, maxBonusPercent: 7.8 }
   },
   {
     id: 'helios_fusion_energy_plasma_injector_optimized',
@@ -1863,7 +1863,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 920,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'fusion_power_plant', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'fusion_power_plant', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'cosmic_cartel_xeno_artifact_analyzer',
@@ -1875,7 +1875,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 120,
     productionTimeSeconds: 340,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'interstellar_trading_guild', percent: 0.01 }, maxBonusPercent: 4.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'interstellar_trading_guild', percent: 0.001 }, maxBonusPercent: 5.4 }
   },
   {
     id: 'synapse_dynamics_neural_feedback_loop',
@@ -1887,7 +1887,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 500,
     productionTimeSeconds: 3700,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'neural_interface_tech', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'neural_interface_tech', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
   {
     id: 'aquatic_dome_structural_reinforcement_adv',
@@ -1899,7 +1899,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1050,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'oceanic_colonization_project', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'oceanic_colonization_project', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
   {
     id: 'solara_construct_dyson_energy_collector_panel_max',
@@ -1911,7 +1911,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 520,
     productionTimeSeconds: 3900,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'dyson_sphere_engineering', percent: 0.01 }, maxBonusPercent: 7.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'dyson_sphere_engineering', percent: 0.001 }, maxBonusPercent: 8.6 }
   },
   {
     id: 'galactic_exchange_quantum_ledger_processor',
@@ -1923,7 +1923,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 580,
     productionTimeSeconds: 4100,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_stock_exchange', percent: 0.01 }, maxBonusPercent: 6.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_stock_exchange', percent: 0.001 }, maxBonusPercent: 8.2 }
   },
   {
     id: 'babel_link_universal_linguistic_matrix_prime',
@@ -1935,7 +1935,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 280,
     productionTimeSeconds: 1150,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_translation_services', percent: 0.01 }, maxBonusPercent: 6.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_translation_services', percent: 0.001 }, maxBonusPercent: 7.4 }
   },
   {
     id: 'dimensionx_labs_exotic_particle_manipulator',
@@ -1947,7 +1947,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 620,
     productionTimeSeconds: 4300,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.01 }, maxBonusPercent: 7.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.001 }, maxBonusPercent: 9.4 }
   },
   {
     id: 'jumppoint_navigators_hyperspace_route_calculator_pro',
@@ -1959,7 +1959,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 300,
     productionTimeSeconds: 1200,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'hyperspace_travel_agency', percent: 0.01 }, maxBonusPercent: 5.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'hyperspace_travel_agency', percent: 0.001 }, maxBonusPercent: 7 }
   },
   {
     id: 'biosynth_creations_genome_writer_precision_tool',
@@ -1971,7 +1971,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 550,
     productionTimeSeconds: 3950,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.01 }, maxBonusPercent: 7.1 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.001 }, maxBonusPercent: 8.5 }
   },
   {
     id: 'xenochronos_archives_artifact_scanner_deep_scan',
@@ -1983,7 +1983,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 180,
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'aetheria_energy_zero_point_regulator_stable',
@@ -1995,7 +1995,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 580,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'zero_point_energy_solutions', percent: 0.01 }, maxBonusPercent: 8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'zero_point_energy_solutions', percent: 0.001 }, maxBonusPercent: 9.6 }
   },
   {
     id: 'noosphere_collective_psionic_focus_crystal_pure',
@@ -2007,7 +2007,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 500,
     productionTimeSeconds: 3800,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_consciousness_network', percent: 0.01 }, maxBonusPercent: 6.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_consciousness_network', percent: 0.001 }, maxBonusPercent: 7.8 }
   },
   {
     id: 'apex_transcendence_corp_ascension_matrix_core_nexus',
@@ -2019,7 +2019,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4200,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ascension_technologies', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ascension_technologies', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
 
   // Business Type Boosts (Phase 4 Additions)
@@ -2033,7 +2033,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 280,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
   {
     id: 'biotech_research_simulation_platform_adv',
@@ -2045,7 +2045,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 250,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
 
   // Global/Factory Boosts (Phase 4 Additions)
@@ -2059,7 +2059,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50,
     productionTimeSeconds: 180,
     requiredAssemblerMark: 3,
-    effects: { factoryWorkerEnergyDrainModifier: 0.97, maxBonusPercent: 8 } // Reduces drain by 3% effectively
+    effects: { factoryWorkerEnergyDrainModifier: 0.97, maxBonusPercent: 9.6 } // Reduces drain by 3% effectively
   },
   {
     id: 'advanced_cost_reduction_analyzer_global',
@@ -2071,7 +2071,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 550,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { globalCostReductionPercent: 0.01, maxBonusPercent: 2.5 }
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 3 }
   },
   {
     id: 'experimental_energy_amplifier_factory_wide',
@@ -2083,7 +2083,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 350,
     productionTimeSeconds: 1300,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalPowerOutputBoostPercent: 0.01, maxBonusPercent: 9 }
+    effects: { factoryGlobalPowerOutputBoostPercent: 0.001, maxBonusPercent: 10.8 }
   },
   {
     id: 'geospatial_deep_scan_array_global',
@@ -2095,7 +2095,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 280,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 8 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 9.6 }
   },
   // --- PHASE 5 ADDITIONS START HERE ---
   // Family: Advanced Cooling Systems
@@ -2109,7 +2109,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 9,
     productionTimeSeconds: 19,
     requiredAssemblerMark: 1,
-    effects: { factoryGlobalPowerConsumptionModifier: 0.998, maxBonusPercent: 0.5 } // 0.2% reduction
+    effects: { factoryGlobalPowerConsumptionModifier: 0.998, maxBonusPercent: 0.6 } // 0.2% reduction
   },
   {
     id: 'liquid_cooling_loop',
@@ -2121,7 +2121,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 30,
     productionTimeSeconds: 68,
     requiredAssemblerMark: 2,
-    effects: { factoryGlobalPowerConsumptionModifier: 0.995, maxBonusPercent: 1 } // 0.5% reduction
+    effects: { factoryGlobalPowerConsumptionModifier: 0.995, maxBonusPercent: 1.2 } // 0.5% reduction
   },
   {
     id: 'cryogenic_cooling_system_adv',
@@ -2133,7 +2133,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 70,
     productionTimeSeconds: 230,
     requiredAssemblerMark: 3,
-    effects: { factoryGlobalPowerConsumptionModifier: 0.99, maxBonusPercent: 2 } // 1% reduction
+    effects: { factoryGlobalPowerConsumptionModifier: 0.99, maxBonusPercent: 2.4 } // 1% reduction
   },
 
   // Family: Automated Navigation Systems
@@ -2147,7 +2147,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 11,
     productionTimeSeconds: 24,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.01 }, maxBonusPercent: 2.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'drone_delivery_service', percent: 0.001 }, maxBonusPercent: 3 }
   },
   {
     id: 'traffic_collision_avoidance_system',
@@ -2159,7 +2159,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 38,
     productionTimeSeconds: 72,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_shipping_network', percent: 0.01 }, maxBonusPercent: 1.5 }
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_shipping_network', percent: 0.001 }, maxBonusPercent: 1.8 }
   },
   {
     id: 'hyperspace_lane_charter_component', 
@@ -2171,7 +2171,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 300,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'hyperspace_travel_agency', percent: 0.01 }, maxBonusPercent: 4.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'hyperspace_travel_agency', percent: 0.001 }, maxBonusPercent: 5 }
   },
 
   // Family: Bio-Enhancement Serums
@@ -2185,7 +2185,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 13,
     productionTimeSeconds: 20,
     requiredAssemblerMark: 1,
-    effects: { factoryWorkerEnergyRegenModifier: 1.01, maxBonusPercent: 3 }
+    effects: { factoryWorkerEnergyRegenModifier: 1.01, maxBonusPercent: 3.6 }
   },
   {
     id: 'neuro_enhancement_cocktail',
@@ -2197,7 +2197,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { factoryManualRPGenerationBoost: 0.001, maxBonusPercent: 0.3 }
+    effects: { factoryManualRPGenerationBoost: 0.001, maxBonusPercent: 0.36 }
   },
   {
     id: 'adaptive_regeneration_nanites_component', 
@@ -2209,7 +2209,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 90,
     productionTimeSeconds: 290,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.01 }, maxBonusPercent: 4.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.001 }, maxBonusPercent: 5.8 }
   },
 
   // Specific Business Boosts (Phase 5 Additions)
@@ -2223,7 +2223,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 650,
     productionTimeSeconds: 4400,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.01 }, maxBonusPercent: 7.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.001 }, maxBonusPercent: 9 }
   },
   {
     id: 'matrix_simuworlds_reality_codec_chip',
@@ -2235,7 +2235,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 680,
     productionTimeSeconds: 4500,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_simulation_corp', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_simulation_corp', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
   {
     id: 'stellarforge_megastructures_dyson_strut_core',
@@ -2247,7 +2247,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4100,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_engineering_guild', percent: 0.01 }, maxBonusPercent: 6.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_engineering_guild', percent: 0.001 }, maxBonusPercent: 7.8 }
   },
   {
     id: 'slipstream_couriers_dimensional_stabilizer_array',
@@ -2259,7 +2259,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 700,
     productionTimeSeconds: 4600,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'united_galactic_concourse_translation_matrix_gold',
@@ -2271,7 +2271,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 650,
     productionTimeSeconds: 4350,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_federation_embassy', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_federation_embassy', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
   {
     id: 'omnibank_interdimensional_secure_quantum_vault',
@@ -2283,7 +2283,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 580,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_dimensional_banking', percent: 0.01 }, maxBonusPercent: 5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_dimensional_banking', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'akashic_record_inc_data_compression_singularity',
@@ -2295,7 +2295,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 720,
     productionTimeSeconds: 4700,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.01 }, maxBonusPercent: 6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omniversal_data_archive', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'aurum_alchemica_transmutation_catalyst_omega',
@@ -2307,7 +2307,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 690,
     productionTimeSeconds: 4550,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.01 }, maxBonusPercent: 6.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.001 }, maxBonusPercent: 8.2 }
   },
   {
     id: 'omega_oracle_truth_seeking_algorithm_core',
@@ -2319,7 +2319,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4250,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.01 }, maxBonusPercent: 7.7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.001 }, maxBonusPercent: 9.2 }
   },
   {
     id: 'nova_academia_galactic_universal_knowledge_codex',
@@ -2331,7 +2331,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 750,
     productionTimeSeconds: 4800,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'intergalactic_university', percent: 0.01 }, maxBonusPercent: 5.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'intergalactic_university', percent: 0.001 }, maxBonusPercent: 6.2 }
   },
   {
     id: 'cyberevolve_augments_sentient_nanite_cluster_node',
@@ -2343,7 +2343,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 800,
     productionTimeSeconds: 5000,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.01 }, maxBonusPercent: 5.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.001 }, maxBonusPercent: 7 }
   },
   {
     id: 'atmosphere_dynamics_planetary_weather_core_stabilizer',
@@ -2355,7 +2355,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 550,
     productionTimeSeconds: 3900,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'weather_control_systems', percent: 0.01 }, maxBonusPercent: 6.1 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'weather_control_systems', percent: 0.001 }, maxBonusPercent: 7.3 }
   },
   {
     id: 'gaia_mind_initiatives_noospheric_harmonizer_node',
@@ -2367,7 +2367,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 720,
     productionTimeSeconds: 4600,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.01 }, maxBonusPercent: 6.6 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.001 }, maxBonusPercent: 7.9 }
   },
   {
     id: 'autogenesis_systems_universal_constructor_blueprint_chip',
@@ -2379,7 +2379,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 780,
     productionTimeSeconds: 4900,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_constructors_von_neumann', percent: 0.01 }, maxBonusPercent: 7.3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'universal_constructors_von_neumann', percent: 0.001 }, maxBonusPercent: 8.8 }
   },
   {
     id: 'axiom_reality_editors_reality_tuning_fork_perfect',
@@ -2391,7 +2391,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 820,
     productionTimeSeconds: 5100,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_warping_services', percent: 0.01 }, maxBonusPercent: 7.9 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'reality_warping_services', percent: 0.001 }, maxBonusPercent: 9.5 }
   },
   {
     id: 'hegemon_ai_governance_protocol_suite_ultimate',
@@ -2403,7 +2403,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 900,
     productionTimeSeconds: 5500,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.01 }, maxBonusPercent: 8.1 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.001 }, maxBonusPercent: 9.7 }
   },
   {
     id: 'emissaries_guild_cosmic_entity_translator_cipher',
@@ -2415,7 +2415,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 850,
     productionTimeSeconds: 5200,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_entity_liaison', percent: 0.01 }, maxBonusPercent: 8.3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cosmic_entity_liaison', percent: 0.001 }, maxBonusPercent: 10 }
   },
   {
     id: 'post_humanity_services_consciousness_shard_crystalline',
@@ -2427,7 +2427,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 780,
     productionTimeSeconds: 4950,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.01 }, maxBonusPercent: 8.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'singularity_management_corp', percent: 0.001 }, maxBonusPercent: 10.2 }
   },
   {
     id: 'watchers_collective_omnipresent_sensor_node_final',
@@ -2439,7 +2439,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 880,
     productionTimeSeconds: 5300,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omnipresence_inc', percent: 0.01 }, maxBonusPercent: 9 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omnipresence_inc', percent: 0.001 }, maxBonusPercent: 10.8 }
   },
   // Global/Factory Boosts (Phase 5 Additions)
   {
@@ -2452,7 +2452,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 350,
     productionTimeSeconds: 1400,
     requiredAssemblerMark: 4,
-    effects: { globalIncomeBoostPerComponentPercent: 0.01, maxBonusPercent: 1.2 }
+    effects: { globalIncomeBoostPerComponentPercent: 0.001, maxBonusPercent: 1.4 }
   },
   {
     id: 'universal_assembly_ai_core_factory_wide',
@@ -2464,7 +2464,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 700,
     productionTimeSeconds: 4800,
     requiredAssemblerMark: 5,
-    effects: { factoryGlobalProductionSpeedModifier: 1.01, maxBonusPercent: 5 } // 1% speed boost
+    effects: { factoryGlobalProductionSpeedModifier: 1.01, maxBonusPercent: 6 } // 1% speed boost
   },
 
   // --- PHASE 6 ADDITIONS START HERE ---
@@ -2479,7 +2479,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 16,
     productionTimeSeconds: 24,
     requiredAssemblerMark: 1,
-    effects: { globalCostReductionPercent: 0.01, maxBonusPercent: 0.3 }
+    effects: { globalCostReductionPercent: 0.001, maxBonusPercent: 0.4 }
   },
   {
     id: 'ai_neural_network_node_adv',
@@ -2491,7 +2491,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 45,
     productionTimeSeconds: 80,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.01 }, maxBonusPercent: 3 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'ai_research_lab', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'ai_self_learning_matrix_core',
@@ -2503,7 +2503,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 100,
     productionTimeSeconds: 280,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.01 }, maxBonusPercent: 4.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_ai_consultancy', percent: 0.001 }, maxBonusPercent: 5.4 }
   },
   {
     id: 'ai_skynet_consciousness_core_adv',
@@ -2515,7 +2515,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 220,
     productionTimeSeconds: 1000,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.01 }, maxBonusPercent: 5.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_governance_ai', percent: 0.001 }, maxBonusPercent: 6.6 }
   },
   {
     id: 'ai_universal_problem_solver_final',
@@ -2527,7 +2527,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 600,
     productionTimeSeconds: 4200,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.01 }, maxBonusPercent: 7 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'final_question_answering_service', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
 
   // Family: Exotic Material Processors
@@ -2541,7 +2541,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 18,
     productionTimeSeconds: 28,
     requiredAssemblerMark: 1,
-    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.01, maxBonusPercent: 1.5 }
+    effects: { factoryGlobalMaterialCollectionBoostPercent: 0.001, maxBonusPercent: 1.8 }
   },
   {
     id: 'material_magnetic_ore_separator_adv',
@@ -2553,7 +2553,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 50,
     productionTimeSeconds: 90,
     requiredAssemblerMark: 2,
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.01 }, maxBonusPercent: 2.0 }
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.001 }, maxBonusPercent: 2.4 }
   },
   {
     id: 'material_plasma_isotope_refiner_pro',
@@ -2565,7 +2565,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 130,
     productionTimeSeconds: 330,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.01 }, maxBonusPercent: 4.0 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fusion_power_plant', percent: 0.001 }, maxBonusPercent: 5 }
   },
   {
     id: 'material_dark_matter_stabilizer_xtreme',
@@ -2577,7 +2577,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 280,
     productionTimeSeconds: 1100,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.01 }, maxBonusPercent: 5.0 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'exotic_matter_research', percent: 0.001 }, maxBonusPercent: 6 }
   },
   {
     id: 'material_chroniton_particle_agitator_ult',
@@ -2589,7 +2589,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 650,
     productionTimeSeconds: 4500,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.01 }, maxBonusPercent: 6.0 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'time_space_manipulation_inc', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
 
   // Family: Sensory Input Devices
@@ -2603,7 +2603,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 10,
     productionTimeSeconds: 20,
     requiredAssemblerMark: 1,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.01 }, maxBonusPercent: 1.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'omni_media_group', percent: 0.001 }, maxBonusPercent: 1.4 }
   },
   {
     id: 'sensory_olfactory_sensor_chip_adv',
@@ -2615,7 +2615,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 35,
     productionTimeSeconds: 70,
     requiredAssemblerMark: 2,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.01 }, maxBonusPercent: 2.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'artisan_bakery', percent: 0.001 }, maxBonusPercent: 3.4 }
   },
   {
     id: 'sensory_tactile_feedback_glove_pro',
@@ -2627,7 +2627,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 80,
     productionTimeSeconds: 260,
     requiredAssemblerMark: 3,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.01 }, maxBonusPercent: 3.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'virtual_reality_worlds', percent: 0.001 }, maxBonusPercent: 4.2 }
   },
   {
     id: 'sensory_advanced_bio_scanner_xtreme',
@@ -2639,7 +2639,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 200,
     productionTimeSeconds: 950,
     requiredAssemblerMark: 4,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.01 }, maxBonusPercent: 4.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'custom_genome_design', percent: 0.001 }, maxBonusPercent: 5.8 }
   },
   {
     id: 'sensory_omni_spectrum_analyzer_ult',
@@ -2651,7 +2651,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 550,
     productionTimeSeconds: 4000,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.01 }, maxBonusPercent: 6.2 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'galactic_archaeology_guild', percent: 0.001 }, maxBonusPercent: 7.4 }
   },
 
   // Unique Components for High-Tier Businesses (Phase 6)
@@ -2665,7 +2665,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 750,
     productionTimeSeconds: 4800,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.01 }, maxBonusPercent: 6.0 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'transdimensional_shipping', percent: 0.001 }, maxBonusPercent: 7.2 }
   },
   {
     id: 'universal_diplomatic_seal_unique',
@@ -2677,7 +2677,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 700,
     productionTimeSeconds: 4600,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'galactic_federation_embassy', percent: 0.01 }, maxBonusPercent: 3.0 }
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'galactic_federation_embassy', percent: 0.001 }, maxBonusPercent: 3.6 }
   },
   {
     id: 'quantum_entangled_ledger_unique',
@@ -2689,7 +2689,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 780,
     productionTimeSeconds: 4900,
     requiredAssemblerMark: 5,
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.01 }, maxBonusPercent: 0.4 }
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 0.001 }, maxBonusPercent: 0.5 }
   },
   {
     id: 'philosophers_catalyst_stone_unique',
@@ -2701,7 +2701,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 900, // High cost to reflect Omega
     productionTimeSeconds: 5200,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.01 }, maxBonusPercent: 7.0 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'philosopher_stone_fabricators', percent: 0.001 }, maxBonusPercent: 8.4 }
   },
   {
     id: 'holocron_of_knowledge_unique',
@@ -2713,7 +2713,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 850,
     productionTimeSeconds: 5100,
     requiredAssemblerMark: 5,
-    effects: { factoryManualRPGenerationBoost: 0.005, maxBonusPercent: 1.0 }
+    effects: { factoryManualRPGenerationBoost: 0.005, maxBonusPercent: 1.2 }
   },
   {
     id: 'adaptive_cybernetic_core_unique',
@@ -2725,7 +2725,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 880,
     productionTimeSeconds: 5300,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.01 }, maxBonusPercent: 6.5 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'bio_cybernetic_enhancements', percent: 0.001 }, maxBonusPercent: 7.8 }
   },
   {
     id: 'planetary_resonance_tuner_unique',
@@ -2737,7 +2737,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 760,
     productionTimeSeconds: 4800,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'weather_control_systems', percent: 0.01 }, maxBonusPercent: 3.5 }
+    effects: { businessSpecificUpgradeCostReductionPercent: { businessId: 'weather_control_systems', percent: 0.001 }, maxBonusPercent: 4.2 }
   },
   {
     id: 'collective_unconscious_link_unique',
@@ -2749,7 +2749,7 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     rawMaterialCost: 920,
     productionTimeSeconds: 5600,
     requiredAssemblerMark: 5,
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.01 }, maxBonusPercent: 6.8 }
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'sentient_planetary_networks', percent: 0.001 }, maxBonusPercent: 8.2 }
   }
 ];
 
