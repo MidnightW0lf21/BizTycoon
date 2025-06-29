@@ -97,12 +97,12 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     description: 'An intricately designed gear for high-performance applications. Enhances global income.',
     icon: Drill,
     tier: 3,
-    recipe: [{ componentId: 'advanced_gear', quantity: 4 }],
+    recipe: [{ componentId: 'advanced_gear', quantity: 10 }],
     rawMaterialCost: 50,
     productionTimeSeconds: 180,
     requiredAssemblerMark: 3,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.007,
+      globalIncomeBoostPerComponentPercent: 0.005,
       maxBonusPercent: 10,
     }
   },
@@ -112,12 +112,12 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     description: 'A gear made from advanced alloys for extreme durability and efficiency. Significantly boosts global income.',
     icon: HardHat,
     tier: 4,
-    recipe: [{ componentId: 'precision_gear', quantity: 3 }],
+    recipe: [{ componentId: 'precision_gear', quantity: 15 }],
     rawMaterialCost: 120,
     productionTimeSeconds: 900,
     requiredAssemblerMark: 4,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.015,
+      globalIncomeBoostPerComponentPercent: 0.01,
       maxBonusPercent: 12.5,
     }
   },
@@ -127,12 +127,12 @@ export const INITIAL_FACTORY_COMPONENTS_CONFIG: FactoryComponent[] = [
     description: 'A gear operating on quantum principles, for cutting-edge technology. Provides a substantial global income boost.',
     icon: AtomIcon,
     tier: 5,
-    recipe: [{ componentId: 'alloy_gear', quantity: 2 }],
+    recipe: [{ componentId: 'alloy_gear', quantity: 20 }],
     rawMaterialCost: 300,
     productionTimeSeconds: 3600,
     requiredAssemblerMark: 5,
     effects: {
-      globalIncomeBoostPerComponentPercent: 0.030,
+      globalIncomeBoostPerComponentPercent: 0.02,
       maxBonusPercent: 15,
     }
   },

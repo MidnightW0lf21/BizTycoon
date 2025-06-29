@@ -605,7 +605,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
     }); 
 
-    if (toastTitle && (!isAutoBuy || toastVariant === "destructive")) {
+    if (toastTitle && (!isAutoBuy)) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant, duration: isAutoBuy ? 1500 : 3000 });
     }
     return success;
@@ -1426,7 +1426,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastVariant = "destructive";
     } else if (researchConfig.costMoney && playerStatsNow.money < researchConfig.costMoney) {
       toastTitle = "Not Enough Money";
-      toastDescription = `Need $${researchConfig.costMoney.toLocaleString()}.`;
+      toastDescription = `Need ${researchConfig.costMoney.toLocaleString()}.`;
       toastVariant = "destructive";
     } else {
       setPlayerStats(prev => {
@@ -1955,21 +1955,40 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           actualPowerConsumedThisTick += powerUsedByCollectorsThisTick;
 
           updatedWorkers = updatedWorkers.map(worker => {
+            // 1. Handle working workers
             if (worker.status === 'working' && worker.assignedMachineInstanceId) {
                 const machine = (prev.factoryMachines || []).find(m => m.instanceId === worker.assignedMachineInstanceId);
                 const lineWithMachine = (prev.factoryProductionLines || []).find(l => l.slots.some(s => s.machineInstanceId === worker.assignedMachineInstanceId) && l.isUnlocked);
                 const slotWithMachine = lineWithMachine?.slots.find(s => s.machineInstanceId === worker.assignedMachineInstanceId);
-                if (machine && slotWithMachine && slotWithMachine.targetComponentId) { 
+
+                // If the machine is set up to work, drain energy.
+                if (machine && slotWithMachine && slotWithMachine.targetComponentId) {
                     const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
-                    if (newEnergy === 0) return { ...worker, energy: newEnergy, status: 'resting' };
+
+                    // If they run out of energy, unassign them and set them to idle.
+                    if (newEnergy === 0) {
+                        return { ...worker, energy: 0, status: 'idle', assignedMachineInstanceId: null };
+                    }
+                    // Otherwise, just drain energy.
                     return { ...worker, energy: newEnergy };
                 }
-                return { ...worker, status: 'idle' }; 
-            } else if (worker.status === 'resting') {
+                
+                // If the machine is NOT set up to work, the worker becomes idle but stays assigned.
+                return { ...worker, status: 'idle' };
+            } 
+            
+            // 2. Handle energy regeneration for any non-working worker below max energy.
+            // This covers 'resting' and 'idle' workers.
+            else if ((worker.status === 'resting' || worker.status === 'idle') && worker.energy < currentDynamicMaxEnergy) {
                 const newEnergy = Math.min(currentDynamicMaxEnergy, worker.energy + WORKER_ENERGY_RATE);
-                if (newEnergy === currentDynamicMaxEnergy) return { ...worker, energy: newEnergy, status: 'idle' };
-                return { ...worker, energy: newEnergy };
+                
+                // A resting worker becomes 'idle' once they are fully rested. An idle worker stays idle.
+                const newStatus = (worker.status === 'resting' && newEnergy === currentDynamicMaxEnergy) ? 'idle' : worker.status;
+                
+                return { ...worker, energy: newEnergy, status: newStatus };
             }
+            
+            // 3. Return the worker unchanged if none of the above conditions are met (e.g., idle and full energy).
             return worker;
           });
           

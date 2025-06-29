@@ -120,6 +120,17 @@ export interface FactoryComponentEffects {
   factoryGlobalMaterialCollectionBoostPercent?: number;
   businessSpecificLevelUpCostReductionPercent?: { businessId: string; percent: number };
   businessSpecificUpgradeCostReductionPercent?: { businessId: string; percent: number };
+  businessTypeIncomeBoostPercent?: { businessType: string; percent: number };
+  businessTypeLevelUpCostReductionPercent?: { businessType: string; percent: number };
+  businessTypeUpgradeCostReductionPercent?: { businessType: string; percent: number };
+  globalBusinessUpgradeCostReductionPercent?: number;
+  globalCostReductionPercent?: number;
+  globalDividendYieldBoostPercent?: number;
+  factoryWorkerEnergyDrainModifier?: number;
+  factoryManualRPGenerationBoost?: number;
+  factoryGlobalPowerConsumptionModifier?: number;
+  factoryWorkerEnergyRegenModifier?: number;
+  factoryGlobalProductionSpeedModifier?: number;
   maxBonusPercent?: number;
 }
 
