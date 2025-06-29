@@ -94,29 +94,42 @@ export function RecipeSelectionDialog({
 
   const isComponentCapped = (component: FactoryComponent): boolean => {
     const ownedCount = playerStats.factoryProducedComponents?.[component.id] || 0;
-    if (!component.effects) return false; 
-    
-    let currentBonusContribution = 0;
-    let maxBonusCap = Infinity;
-
-    if (component.effects.globalIncomeBoostPerComponentPercent) {
-        currentBonusContribution = ownedCount * component.effects.globalIncomeBoostPerComponentPercent;
-        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
-    } else if (component.effects.businessSpecificIncomeBoostPercent) {
-        currentBonusContribution = ownedCount * component.effects.businessSpecificIncomeBoostPercent.percent;
-        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
-    } else if (component.effects.stockSpecificDividendYieldBoostPercent) {
-        currentBonusContribution = ownedCount * component.effects.stockSpecificDividendYieldBoostPercent.percent;
-        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
-    } else if (component.effects.factoryGlobalPowerOutputBoostPercent) {
-        currentBonusContribution = ownedCount * component.effects.factoryGlobalPowerOutputBoostPercent;
-        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
-    } else if (component.effects.factoryGlobalMaterialCollectionBoostPercent) {
-        currentBonusContribution = ownedCount * component.effects.factoryGlobalMaterialCollectionBoostPercent;
-        maxBonusCap = component.effects.maxBonusPercent ?? Infinity;
+    if (ownedCount === 0 || !component.effects || !component.effects.maxBonusPercent) {
+        return false;
     }
 
-    return currentBonusContribution >= maxBonusCap;
+    const { effects } = component;
+    const maxBonus = effects.maxBonusPercent;
+    let effectPerUnit = 0;
+
+    // Check for all relevant percentage-based effects
+    if (effects.globalIncomeBoostPerComponentPercent) {
+        effectPerUnit = effects.globalIncomeBoostPerComponentPercent;
+    } else if (effects.businessSpecificIncomeBoostPercent) {
+        effectPerUnit = effects.businessSpecificIncomeBoostPercent.percent;
+    } else if (effects.stockSpecificDividendYieldBoostPercent) {
+        effectPerUnit = effects.stockSpecificDividendYieldBoostPercent.percent;
+    } else if (effects.factoryGlobalPowerOutputBoostPercent) {
+        effectPerUnit = effects.factoryGlobalPowerOutputBoostPercent;
+    } else if (effects.factoryGlobalMaterialCollectionBoostPercent) {
+        effectPerUnit = effects.factoryGlobalMaterialCollectionBoostPercent;
+    } else if (effects.globalCostReductionPercent) {
+        effectPerUnit = effects.globalCostReductionPercent;
+    } else if (effects.businessSpecificLevelUpCostReductionPercent) {
+        effectPerUnit = effects.businessSpecificLevelUpCostReductionPercent.percent;
+    } else if (effects.globalBusinessUpgradeCostReductionPercent) {
+        effectPerUnit = effects.globalBusinessUpgradeCostReductionPercent;
+    } else if (effects.businessSpecificUpgradeCostReductionPercent) {
+        effectPerUnit = effects.businessSpecificUpgradeCostReductionPercent.percent;
+    } else if (effects.globalDividendYieldBoostPercent) {
+        effectPerUnit = effects.globalDividendYieldBoostPercent;
+    }
+
+    if (effectPerUnit > 0) {
+        return (ownedCount * effectPerUnit) >= maxBonus;
+    }
+
+    return false; // No relevant effect found to cap.
   };
 
   const filteredComponentConfigs = useMemo(() => {
@@ -406,4 +419,5 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
+
 
