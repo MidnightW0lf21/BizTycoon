@@ -3,7 +3,7 @@
 
 import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig, PlayerStats, FactoryProductionProgressData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon, Timer } from "lucide-react";
+import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon, Timer, Zap } from "lucide-react";
 import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -189,6 +189,31 @@ export function ProductionLineDisplay({
                     )}
                   </div>
 
+                  {machineConfig?.upgrades && machineConfig.upgrades.length > 0 && machineInstance && (
+                    <div className="absolute top-1 right-1 flex flex-col gap-1 z-20">
+                      {machineConfig.upgrades.map((upgrade, index) => {
+                        const isPurchased = (machineInstance.purchasedUpgradeIds || []).includes(upgrade.id);
+                        const Icon = index === 0 ? Wrench : Zap;
+                        return (
+                          <Tooltip key={upgrade.id}>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-center p-0.5 bg-background/50 rounded-sm">
+                                <Icon className={cn("h-3.5 w-3.5", isPurchased ? "text-accent" : "text-muted-foreground/40")} />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              <p className="font-semibold">{upgrade.name}</p>
+                              <p className="text-xs text-muted-foreground">{upgrade.description}</p>
+                              <p className={cn("text-xs font-bold mt-1", isPurchased ? "text-green-500" : "text-destructive")}>
+                                Status: {isPurchased ? "Installed" : "Not Installed"}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {/* Main Content Area */}
                   {slot.machineInstanceId && machineConfig ? (
                     <div className="flex-grow flex flex-col items-center justify-around w-full pt-3 pb-2">
@@ -272,6 +297,5 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
-    
 
     
