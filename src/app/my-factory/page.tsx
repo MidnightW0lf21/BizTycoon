@@ -490,7 +490,7 @@ export default function MyFactoryPage() {
   const numManualRPBoostStagesCompleted = (playerStats.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
   const currentManualRPCostMoney = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numManualRPBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
   
-  const spaceLeftInStorage = playerStats.factoryRawMaterialsCap - playerStats.factoryRawMaterials;
+  const spaceLeftInStorage = (playerStats.factoryRawMaterialsCap || 0) - playerStats.factoryRawMaterials;
   const amountToCollectManually = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeftInStorage);
 
   const getEffectPerUnit = (effects: FactoryComponent['effects']) => {
@@ -628,12 +628,12 @@ export default function MyFactoryPage() {
   
     const BonusItem = ({ icon: Icon, label, value, unit, sources = [] }: { icon: React.ElementType, label: string, value: number, unit: string, sources?: string[] }) => (
         <TooltipProvider>
-            <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">{label}:</span>
-                </div>
-                <Tooltip>
+            <Tooltip>
+                <div className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-primary" />
+                        <span className="text-muted-foreground">{label}:</span>
+                    </div>
                     <TooltipTrigger asChild>
                         <span className="font-semibold text-primary cursor-help">
                             {value > 0 ? '+' : ''}{value.toFixed(2)}{unit}
@@ -647,8 +647,8 @@ export default function MyFactoryPage() {
                             </ul>
                         </TooltipContent>
                     )}
-                </Tooltip>
-            </div>
+                </div>
+            </Tooltip>
         </TooltipProvider>
     );
 
@@ -970,9 +970,22 @@ export default function MyFactoryPage() {
                           <TableRow key={worker.id}>
                             <TableCell className="font-medium">{worker.name}</TableCell>
                             <TableCell>
-                              <Badge variant={getWorkerStatusBadgeVariant(worker.status)} className="capitalize">
-                                {worker.status}
-                              </Badge>
+                              <div className="flex items-center gap-1.5">
+                                <Badge variant={getWorkerStatusBadgeVariant(worker.status)} className="capitalize">
+                                  {worker.status}
+                                </Badge>
+                                {worker.status === 'resting' && worker.energy < currentDynamicMaxWorkerEnergy && (
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    ({(() => {
+                                      const energyToFull = currentDynamicMaxWorkerEnergy - worker.energy;
+                                      const regenRate = 1 * (playerStats.factoryWorkerEnergyRegenModifier || 1);
+                                      if (regenRate <= 0) return '...';
+                                      const secondsToFull = energyToFull / regenRate;
+                                      return `~${formatEnergyTime(secondsToFull)} left`;
+                                    })()})
+                                  </span>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -1070,7 +1083,7 @@ export default function MyFactoryPage() {
         )}
 
         <TabsContent value="inventory" className="flex-grow">
-        <TooltipProvider>
+          <TooltipProvider>
           <ScrollArea className="h-[calc(100vh-380px)] pr-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
