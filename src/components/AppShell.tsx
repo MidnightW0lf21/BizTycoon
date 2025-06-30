@@ -51,7 +51,9 @@ const navItems: NavItem[] = [
 ];
 
 function AppLogo() {
-  const { playerStats, businesses } = useGame(); 
+  const { playerStats, businesses } = useGame();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const prestigeProgress = useMemo(() => {
     const currentTotalLevels = businesses.reduce((sum, b) => sum + b.level, 0);
@@ -96,11 +98,11 @@ function AppLogo() {
             <span className="flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-400"/>
                 {'Prestige Lvl Progress'} 
-                {prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints} PP)`}
+                {mounted && prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints.toLocaleString()} PP)`}
             </span>
-            <span>{prestigeProgress.percentage.toFixed(1)}%</span>
+            <span>{mounted ? `${prestigeProgress.percentage.toFixed(1)}%` : '0.0%'}</span>
         </div>
-        <Progress value={prestigeProgress.percentage} className="h-2 w-full" />
+        <Progress value={mounted ? prestigeProgress.percentage : 0} className="h-2 w-full" />
       </div>
     </div>
   );
@@ -345,7 +347,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Banknote className="h-5 w-5" />
-              <span>{playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+              <span>{
+                mounted 
+                  ? playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                  : '$...'
+              }</span>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">
