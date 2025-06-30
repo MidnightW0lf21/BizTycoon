@@ -577,7 +577,8 @@ export default function MyFactoryPage() {
         }
         
         if (currentBonusDisplay && isFinite(maxBonus)) {
-            maxBonusDisplay = `/ Max: ${maxBonus > 0 ? '+' : ''}${maxBonus.toFixed(2)}%`;
+            const isNegativeBonus = currentBonusDisplay.trim().startsWith('-');
+            maxBonusDisplay = `/ Max: ${isNegativeBonus ? '-' : '+'}${maxBonus.toFixed(2)}%`;
         }
     }
 
@@ -705,7 +706,7 @@ export default function MyFactoryPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-orange-400">
-              {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} / {playerStats.factoryRawMaterialsCap.toLocaleString('en-US', {maximumFractionDigits: 0})}
+              {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} / {(playerStats.factoryRawMaterialsCap || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}
             </p>
             <p className="text-xs text-muted-foreground">Raw Units</p>
           </CardContent>
@@ -812,7 +813,7 @@ export default function MyFactoryPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-lg">
-                    Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} / {playerStats.factoryRawMaterialsCap.toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
+                    Current Raw Materials: <strong className="text-primary">{(playerStats.factoryRawMaterials || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} / {(playerStats.factoryRawMaterialsCap || 0).toLocaleString('en-US', {maximumFractionDigits: 0})} units</strong>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Automated Income: <strong className="text-green-500">{totalAutomatedMaterialsPerSecond.toLocaleString('en-US', {maximumFractionDigits: 2})} units/sec</strong>
