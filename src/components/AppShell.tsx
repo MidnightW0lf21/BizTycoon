@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Progress } from "@/components/ui/progress";
 import { calculateDiminishingPrestigePoints, getLevelsRequiredForNPoints, getCostForNthPoint } from "@/config/game-config";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from './ui/skeleton';
 
 interface NavItem {
   href?: string;
@@ -93,17 +94,29 @@ function AppLogo() {
         <Briefcase className="h-8 w-8 text-primary" />
         <h1 className="text-xl font-bold text-foreground">BizTycoon Idle</h1>
       </Link>
-      <div className="space-y-1">
-        <div className="flex justify-between items-center text-xs text-muted-foreground mb-0.5">
-            <span className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-amber-400"/>
-                {'Prestige Lvl Progress'} 
-                {mounted && prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints.toLocaleString()} PP)`}
-            </span>
-            <span>{mounted ? `${prestigeProgress.percentage.toFixed(1)}%` : null}</span>
+      {mounted ? (
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-xs text-muted-foreground mb-0.5">
+              <span className="flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-amber-400"/>
+                  {'Prestige Lvl Progress'} 
+                  {prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints.toLocaleString()} PP)`}
+              </span>
+              <span>{`${prestigeProgress.percentage.toFixed(1)}%`}</span>
+          </div>
+          <Progress value={prestigeProgress.percentage} className="h-2 w-full" />
         </div>
-        <Progress value={mounted ? prestigeProgress.percentage : 0} className="h-2 w-full" />
-      </div>
+      ) : (
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-xs text-muted-foreground mb-0.5 h-4">
+              <span className="flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-amber-400"/>
+                  {'Prestige Lvl Progress'} 
+              </span>
+          </div>
+          <Progress value={0} className="h-2 w-full" />
+        </div>
+      )}
     </div>
   );
 }
@@ -347,11 +360,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Banknote className="h-5 w-5" />
-              <span>{
-                mounted 
-                  ? playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                  : null
-              }</span>
+              {mounted ? (
+                <span>
+                  {playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </span>
+              ) : (
+                <Skeleton className="h-5 w-24" />
+              )}
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">
@@ -399,3 +414,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+    
