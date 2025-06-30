@@ -1,9 +1,10 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
 import { INITIAL_HQ_UPGRADES } from './data/hq';
+import { INITIAL_ARTIFACTS } from './data/artifacts';
 import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from './data/factory';
 import { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE } from './data/workers';
@@ -15,6 +16,7 @@ export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
 export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
 export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
+export const INITIAL_UNLOCKED_ARTIFACT_IDS: string[] = [];
 export const INITIAL_FACTORY_WORKERS: Worker[] = [];
 export const INITIAL_WORKER_ENERGY_TIER = 0;
 export const INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS: string[] = [];
@@ -27,6 +29,7 @@ export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
 export const FACTORY_PURCHASE_COST = 1000000;
 export const MATERIAL_COLLECTION_AMOUNT = 10;
 export const MATERIAL_COLLECTION_COOLDOWN_MS = 5000;
+export const EXCAVATION_COOLDOWN_MS = 30000;
 
 export const INITIAL_RESEARCH_POINTS = 0;
 export const INITIAL_UNLOCKED_RESEARCH_IDS: string[] = [];
@@ -44,7 +47,9 @@ export const calculateIncome = (
     purchasedHQUpgradeLevels: Record<string, number> = {},
     hqUpgradesConfig: HQUpgrade[] = [],
     producedFactoryComponents: Record<string, number> = {},
-    factoryComponentsConfig: FactoryComponent[] = []
+    factoryComponentsConfig: FactoryComponent[] = [],
+    unlockedArtifactIds: string[] = [],
+    artifactsConfig: Artifact[] = []
   ): number => {
   if (business.level === 0) return 0;
   let currentIncome = business.level * business.baseIncome;
@@ -86,6 +91,14 @@ export const calculateIncome = (
           }
       }
   }
+
+  unlockedArtifactIds.forEach(artifactId => {
+    const artifact = artifactsConfig.find(a => a.id === artifactId);
+    if (artifact?.effects.globalIncomeBoostPercent) {
+      totalGlobalIncomeBoost += artifact.effects.globalIncomeBoostPercent;
+    }
+  });
+
   for (const componentId in producedFactoryComponents) {
     const count = producedFactoryComponents[componentId];
     if (count > 0) {
@@ -107,9 +120,11 @@ export const calculateSingleLevelUpgradeCost = (
     purchasedUpgrades: BusinessUpgrade[] = [],
     unlockedSkillIds: string[] = [],
     skillTree: SkillNode[] = [],
-    businessId?: string,
+    businessId: string | undefined,
     purchasedHQUpgradeLevels: Record<string, number> = {},
-    hqUpgradesConfig: HQUpgrade[] = []
+    hqUpgradesConfig: HQUpgrade[] = [],
+    unlockedArtifactIds: string[] = [],
+    artifactsConfig: Artifact[] = []
   ): number => {
   let currentCost = baseCost * Math.pow(upgradeCostMultiplier, businessLevel);
 
@@ -148,6 +163,13 @@ export const calculateSingleLevelUpgradeCost = (
     }
   }
 
+  unlockedArtifactIds.forEach(artifactId => {
+    const artifact = artifactsConfig.find(a => a.id === artifactId);
+    if (artifact?.effects.globalCostReductionPercent) {
+      totalGlobalCostReduction += artifact.effects.globalCostReductionPercent;
+    }
+  });
+
 
   if (totalGlobalCostReduction > 0) {
     currentCost *= (1 - totalGlobalCostReduction / 100);
@@ -163,7 +185,9 @@ export const calculateCostForNLevels = (
   skillTree: SkillNode[],
   dynamicMaxLevel: number,
   purchasedHQUpgradeLevels: Record<string, number>,
-  hqUpgradesConfig: HQUpgrade[]
+  hqUpgradesConfig: HQUpgrade[],
+  unlockedArtifactIds: string[] = [],
+  artifactsConfig: Artifact[] = []
 ): { totalCost: number; levelsPurchasable: number } => {
   let totalCost = 0;
   let levelsPurchased = 0;
@@ -182,7 +206,9 @@ export const calculateCostForNLevels = (
       skillTree,
       business.id,
       purchasedHQUpgradeLevels,
-      hqUpgradesConfig
+      hqUpgradesConfig,
+      unlockedArtifactIds,
+      artifactsConfig
     );
     totalCost += costForThisLevel;
     levelsPurchased++;
@@ -198,7 +224,9 @@ export const calculateMaxAffordableLevels = (
   skillTree: SkillNode[],
   dynamicMaxLevel: number,
   purchasedHQUpgradeLevels: Record<string, number>,
-  hqUpgradesConfig: HQUpgrade[]
+  hqUpgradesConfig: HQUpgrade[],
+  unlockedArtifactIds: string[] = [],
+  artifactsConfig: Artifact[] = []
 ): { levelsToBuy: number; totalCost: number } => {
   let affordableLevels = 0;
   let cumulativeCost = 0;
@@ -215,7 +243,9 @@ export const calculateMaxAffordableLevels = (
       skillTree,
       business.id,
       purchasedHQUpgradeLevels,
-      hqUpgradesConfig
+      hqUpgradesConfig,
+      unlockedArtifactIds,
+      artifactsConfig
     );
 
     if (moneyLeft >= costForNextLevel) {
@@ -231,7 +261,14 @@ export const calculateMaxAffordableLevels = (
 };
 
 
-export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: SkillNode[], purchasedHQUpgradeLevels: Record<string, number>, hqUpgradesConfig: HQUpgrade[]): number => {
+export const getStartingMoneyBonus = (
+  unlockedSkillIds: string[], 
+  skillTree: SkillNode[], 
+  purchasedHQUpgradeLevels: Record<string, number>, 
+  hqUpgradesConfig: HQUpgrade[], 
+  unlockedArtifactIds: string[] = [], 
+  artifactsConfig: Artifact[] = []
+): number => {
   let bonus = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
@@ -252,10 +289,25 @@ export const getStartingMoneyBonus = (unlockedSkillIds: string[], skillTree: Ski
         }
     }
   }
+
+  unlockedArtifactIds.forEach(artifactId => {
+    const artifact = artifactsConfig.find(a => a.id === artifactId);
+    if (artifact?.effects.increaseStartingMoney) {
+      bonus += artifact.effects.increaseStartingMoney;
+    }
+  });
+
   return bonus;
 };
 
-export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTree: SkillNode[], purchasedHQUpgradeLevels: Record<string, number>, hqUpgradesConfig: HQUpgrade[]): number => {
+export const getPrestigePointBoostPercent = (
+  unlockedSkillIds: string[], 
+  skillTree: SkillNode[], 
+  purchasedHQUpgradeLevels: Record<string, number>, 
+  hqUpgradesConfig: HQUpgrade[], 
+  unlockedArtifactIds: string[] = [], 
+  artifactsConfig: Artifact[] = []
+): number => {
   let boostPercent = 0;
   unlockedSkillIds.forEach(skillId => {
     const skill = skillTree.find(s => s.id === skillId);
@@ -276,6 +328,14 @@ export const getPrestigePointBoostPercent = (unlockedSkillIds: string[], skillTr
         }
     }
   }
+
+  unlockedArtifactIds.forEach(artifactId => {
+    const artifact = artifactsConfig.find(a => a.id === artifactId);
+    if (artifact?.effects.globalPrestigePointBoostPercent) {
+      boostPercent += artifact.effects.globalPrestigePointBoostPercent;
+    }
+  });
+
   return boostPercent;
 };
 
@@ -326,6 +386,7 @@ export {
 export { INITIAL_STOCKS } from './data/stocks';
 export { INITIAL_SKILL_TREE } from './data/skills';
 export { INITIAL_HQ_UPGRADES } from './data/hq';
+export { INITIAL_ARTIFACTS } from './data/artifacts';
 export {
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_COMPONENTS_CONFIG,

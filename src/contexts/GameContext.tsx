@@ -12,6 +12,8 @@ import {
   INITIAL_UNLOCKED_SKILL_IDS,
   INITIAL_HQ_UPGRADE_LEVELS,
   INITIAL_HQ_UPGRADES,
+  INITIAL_UNLOCKED_ARTIFACT_IDS,
+  INITIAL_ARTIFACTS,
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_MACHINE_CONFIGS,
   INITIAL_FACTORY_COMPONENTS_CONFIG,
@@ -112,7 +114,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const getInitialPlayerStats = (): PlayerStats => {
-  const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, INITIAL_SKILL_TREE, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES);
+  const startingMoneyBonus = getStartingMoneyBonus(INITIAL_UNLOCKED_SKILL_IDS, INITIAL_SKILL_TREE, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES, INITIAL_UNLOCKED_ARTIFACT_IDS, INITIAL_ARTIFACTS);
   return {
     money: INITIAL_MONEY + startingMoneyBonus,
     totalIncomePerSecond: 0,
@@ -123,6 +125,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
     hqUpgradeLevels: { ...INITIAL_HQ_UPGRADE_LEVELS },
     achievedBusinessMilestones: {},
+    unlockedArtifactIds: [...INITIAL_UNLOCKED_ARTIFACT_IDS],
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
     factoryPowerConsumptionKw: 0,
@@ -328,7 +331,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
     
-    let baseCalculatedCost = calculateSingleLevelUpgradeCost( business.level, business.baseCost, business.upgradeCostMultiplier, business.upgrades, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, business.id, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current );
+    let baseCalculatedCost = calculateSingleLevelUpgradeCost( business.level, business.baseCost, business.upgradeCostMultiplier, business.upgrades, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, business.id, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current, playerStatsRef.current.unlockedArtifactIds );
     if (totalCostReductionFromComponents > 0) {
         baseCalculatedCost *= (1 - totalCostReductionFromComponents / 100);
     }
@@ -358,7 +361,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...business,
         baseCost: totalCostReductionFromComponents > 0 ? business.baseCost * (1 - totalCostReductionFromComponents / 100) : business.baseCost
     };
-    return calculateCostForNLevels(modifiedBusiness, levelsToBuy, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
+    return calculateCostForNLevels(modifiedBusiness, levelsToBuy, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current, playerStatsRef.current.unlockedArtifactIds);
   }, [getDynamicMaxBusinessLevel]);
 
   const calculateMaxAffordableLevelsForDisplay = useCallback((businessId: string) => {
@@ -382,7 +385,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...business,
         baseCost: totalCostReductionFromComponents > 0 ? business.baseCost * (1 - totalCostReductionFromComponents / 100) : business.baseCost
     };
-    return calculateMaxAffordableLevels(modifiedBusiness, playerStatsRef.current.money, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current);
+    return calculateMaxAffordableLevels(modifiedBusiness, playerStatsRef.current.money, playerStatsRef.current.unlockedSkillIds, skillTreeRef.current, dynamicMax, playerStatsRef.current.hqUpgradeLevels, hqUpgradesRef.current, playerStatsRef.current.unlockedArtifactIds);
   }, [getDynamicMaxBusinessLevel]);
 
   const saveStateToLocalStorage = useCallback(() => {
@@ -424,6 +427,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const mergedPlayerStats: PlayerStats = {
         ...initialDefaults, ...importedData.playerStats,
         unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+        unlockedArtifactIds: Array.isArray(importedData.playerStats.unlockedArtifactIds) ? importedData.playerStats.unlockedArtifactIds : initialDefaults.unlockedArtifactIds,
         hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
         stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
         achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
@@ -656,7 +660,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 baseCost: totalCostReductionFromComponents > 0 ? businessToUpdate.baseCost * (1 - totalCostReductionFromComponents / 100) : businessToUpdate.baseCost
             };
 
-          const { totalCost, levelsPurchasable } = calculateCostForNLevels( modifiedBusinessForCalc, levelsToAttempt, playerStatsNow.unlockedSkillIds, skillTreeRef.current, currentDynamicMaxLevel, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current );
+          const { totalCost, levelsPurchasable } = calculateCostForNLevels( modifiedBusinessForCalc, levelsToAttempt, playerStatsNow.unlockedSkillIds, skillTreeRef.current, currentDynamicMaxLevel, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS );
 
           if (levelsPurchasable === 0) {
             toastTitle = "Cannot level up";
@@ -1629,9 +1633,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       const totalLevels = businessesRef.current.reduce((sum, b) => sum + b.level, 0);
       let basePointsFromLevels = calculateDiminishingPrestigePoints(totalLevels);
-      const prestigePointBoost = getPrestigePointBoostPercent((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current);
+      const prestigePointBoost = getPrestigePointBoostPercent((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
       const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStatsNow.prestigePoints) * (1 + prestigePointBoost / 100));
-      const startingMoneyBonus = getStartingMoneyBonus((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current);
+      const startingMoneyBonus = getStartingMoneyBonus((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
       const moneyAfterPrestige = INITIAL_MONEY + startingMoneyBonus;
 
       const retainedBusinessLevels: Record<string, number> = {};
@@ -1680,6 +1684,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           timesPrestiged: prev.timesPrestiged + 1,
           unlockedSkillIds: prev.unlockedSkillIds,
           hqUpgradeLevels: prev.hqUpgradeLevels,
+          unlockedArtifactIds: prev.unlockedArtifactIds,
           stockHoldings: retainedStockHoldings,
           unlockedFactoryComponentRecipeIds: prev.unlockedFactoryComponentRecipeIds, // Keep unlocked recipes through prestige
 
@@ -1828,6 +1833,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const mergedPlayerStats: PlayerStats = {
             ...initialDefaults, ...tempPlayerStats,
             unlockedSkillIds: Array.isArray(tempPlayerStats.unlockedSkillIds) ? tempPlayerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+            unlockedArtifactIds: Array.isArray(tempPlayerStats.unlockedArtifactIds) ? tempPlayerStats.unlockedArtifactIds : initialDefaults.unlockedArtifactIds,
             hqUpgradeLevels: typeof tempPlayerStats.hqUpgradeLevels === 'object' && tempPlayerStats.hqUpgradeLevels !== null ? tempPlayerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
             stockHoldings: Array.isArray(tempPlayerStats.stockHoldings) ? tempPlayerStats.stockHoldings : initialDefaults.stockHoldings,
             achievedBusinessMilestones: typeof tempPlayerStats.achievedBusinessMilestones === 'object' && tempPlayerStats.achievedBusinessMilestones !== null ? tempPlayerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,

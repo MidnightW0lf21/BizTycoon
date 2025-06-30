@@ -94,6 +94,24 @@ export interface HQUpgrade {
   levels: HQUpgradeLevel[];
 }
 
+export interface ArtifactEffects {
+  globalIncomeBoostPercent?: number;
+  globalCostReductionPercent?: number;
+  increaseStartingMoney?: number;
+  globalDividendYieldBoostPercent?: number;
+  globalPrestigePointBoostPercent?: number;
+  factoryPowerGenerationBoostPercent?: number;
+  increaseManualMaterialCollection?: number;
+}
+
+export interface Artifact {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  effects: ArtifactEffects;
+}
+
 export interface FactoryPowerBuildingConfig {
   id: string;
   name: string;
@@ -276,6 +294,7 @@ export interface PlayerStats {
     maxLevelReached?: boolean;
     purchasedUpgradeIds?: string[];
   }>;
+  unlockedArtifactIds?: string[];
 
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
@@ -297,6 +316,7 @@ export interface PlayerStats {
   researchPoints: number;
   unlockedResearchIds: string[];
   lastManualResearchTimestamp: number;
+  lastExcavationTimestamp?: number;
 }
 
 export interface SaveData {
@@ -306,4 +326,3 @@ export interface SaveData {
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
-    

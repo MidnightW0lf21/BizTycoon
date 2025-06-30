@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks, Factory } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks, Factory, Mountain } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
   { href: '/businesses', label: 'Businesses', icon: Store, requiredTimesPrestiged: 0 },
   { href: '/skill-tree', label: 'Skill Tree', icon: Network, requiredTimesPrestiged: 1 },
   { href: '/hq', label: 'Headquarters', icon: HQIcon, requiredTimesPrestiged: 3 },
+  { href: '/quarry', label: 'Quarry', icon: Mountain, requiredTimesPrestiged: 4 },
   { href: '/my-factory', label: 'My Factory', icon: Factory, requiredTimesPrestiged: 5 },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 8 },
   { href: '/completion', label: 'Completion', icon: ListChecks, requiredTimesPrestiged: 0 },
@@ -392,17 +393,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-    
-
-    
-
-
-    
-
-    
-
-    
-
-    
-
-    
