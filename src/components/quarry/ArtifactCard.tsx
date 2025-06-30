@@ -22,7 +22,7 @@ const rarityStyles: Record<ArtifactRarity, { border: string, bg: string, text: s
 
 export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
   const Icon = artifact.icon;
-  const styles = rarityStyles[artifact.rarity];
+  const styles = rarityStyles[artifact.rarity || 'Common'];
 
   return (
     <Card className={cn(

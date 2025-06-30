@@ -8,6 +8,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Ancient Coin',
     description: 'A worn coin from a forgotten empire. Its residual luck grants a +1% global income boost.',
     icon: Gem,
+    rarity: 'Common',
     effects: { globalIncomeBoostPercent: 1 },
   },
   {
@@ -15,6 +16,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Master Blueprint',
     description: 'A complex schematic that reveals subtle efficiencies. Reduces all business level-up costs by 0.5%.',
     icon: Compass,
+    rarity: 'Common',
     effects: { globalCostReductionPercent: 0.5 },
   },
   {
@@ -22,6 +24,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Geode of Plenty',
     description: 'This crystal seems to attract resources. Increases manual material collection amount by 10.',
     icon: Mountain,
+    rarity: 'Uncommon',
     effects: { increaseManualMaterialCollection: 10 },
   },
   {
@@ -29,6 +32,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Perpetual Motion Gear',
     description: 'A feat of impossible engineering that hums with energy. Increases factory power generation by 2%.',
     icon: Factory,
+    rarity: 'Rare',
     effects: { factoryPowerGenerationBoostPercent: 2 },
   },
   {
@@ -36,6 +40,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'The First Tycoon\'s Ledger',
     description: 'The financial records of a legendary entrepreneur. Provides an extra $25,000 starting cash after prestige.',
     icon: BookOpen,
+    rarity: 'Uncommon',
     effects: { increaseStartingMoney: 25000 },
   },
   {
@@ -43,6 +48,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Investor\'s Manual',
     description: 'A guide to shrewd investments, bound in worn leather. Increases global dividend yield by 5%.',
     icon: Scaling,
+    rarity: 'Rare',
     effects: { globalDividendYieldBoostPercent: 5 },
   },
   {
@@ -50,6 +56,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     name: 'Bottomless Piggy Bank',
     description: 'It feels heavier than it should. A mysterious aura provides a permanent +1% to all income.',
     icon: PiggyBank,
+    rarity: 'Legendary',
     effects: { globalIncomeBoostPercent: 1 },
   },
 ];
