@@ -103,7 +103,7 @@ export const calculateIncome = (
       }
   }
 
-  unlockedArtifactIds.forEach(artifactId => {
+  (unlockedArtifactIds || []).forEach(artifactId => {
     const artifact = artifactsConfig.find(a => a.id === artifactId);
     if (artifact?.effects.globalIncomeBoostPercent) {
       totalGlobalIncomeBoost += artifact.effects.globalIncomeBoostPercent;
@@ -139,7 +139,7 @@ export const calculateSingleLevelUpgradeCost = (
   ): number => {
   let currentCost = baseCost * Math.pow(upgradeCostMultiplier, businessLevel);
 
-  purchasedUpgrades.forEach(upgrade => {
+  (purchasedUpgrades || []).forEach(upgrade => {
     if (upgrade.isPurchased && upgrade.levelUpgradeCostReductionPercent) {
       currentCost *= (1 - upgrade.levelUpgradeCostReductionPercent / 100);
     }
@@ -174,7 +174,7 @@ export const calculateSingleLevelUpgradeCost = (
     }
   }
 
-  unlockedArtifactIds.forEach(artifactId => {
+  (unlockedArtifactIds || []).forEach(artifactId => {
     const artifact = artifactsConfig.find(a => a.id === artifactId);
     if (artifact?.effects.globalCostReductionPercent) {
       totalGlobalCostReduction += artifact.effects.globalCostReductionPercent;

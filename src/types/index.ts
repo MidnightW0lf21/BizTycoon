@@ -344,6 +344,7 @@ export interface PlayerStats {
   quarryTargetDepth: number;
   quarryLevel: number;
   purchasedQuarryUpgradeIds: string[];
+  nextQuarryCost?: number;
 }
 
 export interface SaveData {
