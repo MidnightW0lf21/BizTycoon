@@ -147,6 +147,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     lastManualResearchTimestamp: 0,
     currentWorkerEnergyTier: INITIAL_WORKER_ENERGY_TIER,
     manualResearchBonus: 0,
+    factoryWorkerEnergyRegenModifier: 1,
   };
 };
 
@@ -446,6 +447,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
         currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
         manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+        factoryWorkerEnergyRegenModifier: typeof importedData.playerStats.factoryWorkerEnergyRegenModifier === 'number' ? importedData.playerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1446,6 +1448,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let updatedCurrentWorkerEnergyTier = prev.currentWorkerEnergyTier;
         let updatedManualResearchBonus = prev.manualResearchBonus || 0;
         let updatedFactoryRawMaterialsCap = prev.factoryRawMaterialsCap || INITIAL_FACTORY_RAW_MATERIALS_CAP;
+        let updatedFactoryWorkerEnergyRegenModifier = prev.factoryWorkerEnergyRegenModifier || 1;
 
         if (researchConfig.effects.unlocksProductionLineId) {
           const lineToUnlockId = researchConfig.effects.unlocksProductionLineId;
@@ -1462,6 +1465,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (researchConfig.effects.increaseFactoryRawMaterialsCap) {
           updatedFactoryRawMaterialsCap = researchConfig.effects.increaseFactoryRawMaterialsCap;
         }
+        if (researchConfig.effects.factoryWorkerEnergyRegenModifier) {
+          updatedFactoryWorkerEnergyRegenModifier = researchConfig.effects.factoryWorkerEnergyRegenModifier;
+        }
 
 
         return {
@@ -1473,6 +1479,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           currentWorkerEnergyTier: updatedCurrentWorkerEnergyTier,
           manualResearchBonus: updatedManualResearchBonus,
           factoryRawMaterialsCap: updatedFactoryRawMaterialsCap,
+          factoryWorkerEnergyRegenModifier: updatedFactoryWorkerEnergyRegenModifier,
         };
       });
       toastTitle = "Research Complete!";
@@ -1488,6 +1495,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       if (researchConfig.effects.increaseManualResearchBonus) {
         toastDescription += ` Manual RP generation increased by ${researchConfig.effects.increaseManualResearchBonus}!`;
+      }
+      if (researchConfig.effects.factoryWorkerEnergyRegenModifier) {
+        toastDescription += ` Worker rest speed is now ${researchConfig.effects.factoryWorkerEnergyRegenModifier}x.`;
       }
     }
     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1841,6 +1851,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             lastManualResearchTimestamp: typeof tempPlayerStats.lastManualResearchTimestamp === 'number' ? tempPlayerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
             currentWorkerEnergyTier: typeof tempPlayerStats.currentWorkerEnergyTier === 'number' ? tempPlayerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
             manualResearchBonus: typeof tempPlayerStats.manualResearchBonus === 'number' ? tempPlayerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+            factoryWorkerEnergyRegenModifier: typeof tempPlayerStats.factoryWorkerEnergyRegenModifier === 'number' ? tempPlayerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -2058,7 +2069,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return { ...worker, energy: newEnergy };
             } 
             else if ((worker.status === 'resting' || worker.status === 'idle') && worker.energy < currentDynamicMaxEnergy) {
-                const newEnergy = Math.min(currentDynamicMaxEnergy, worker.energy + WORKER_ENERGY_RATE);
+                const regenModifier = prev.factoryWorkerEnergyRegenModifier || 1;
+                const newEnergy = Math.min(currentDynamicMaxEnergy, worker.energy + (WORKER_ENERGY_RATE * regenModifier));
                 const newStatus = (worker.status === 'resting' && newEnergy === currentDynamicMaxEnergy) ? 'idle' : worker.status;
                 return { ...worker, energy: newEnergy, status: newStatus };
             }

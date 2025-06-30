@@ -1,6 +1,6 @@
 
 import type { ResearchItemConfig } from '@/types';
-import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon, Users, Archive } from 'lucide-react';
+import { Wrench, Drill, FlaskConical, PackagePlus, SlidersHorizontal, LayoutGrid, Settings, HardHat, Factory as FactoryIcon, PackageCheck, PackageSearch, Pickaxe, Mountain, Satellite, CloudCog, TrendingUp, Sun, Waves, Zap, AtomIcon, InfinityIcon, Users, Archive, Bed, BedDouble, Sofa, Hotel } from 'lucide-react';
 
 export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
   // Assembler Unlocks
@@ -424,6 +424,48 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     costMoney: 5000000,
     dependencies: ['worker_stamina_4'],
     effects: { upgradesWorkerEnergyTier: true }
+  },
+
+  // Worker Comfort & Rest Upgrades
+  {
+    id: 'worker_comforts_1',
+    name: 'Upgraded Break Room',
+    description: 'Improves worker rest areas. Workers now rest twice as fast.',
+    icon: Bed,
+    costRP: 40,
+    costMoney: 250000,
+    dependencies: ['worker_stamina_1'],
+    effects: { factoryWorkerEnergyRegenModifier: 2 }
+  },
+  {
+    id: 'worker_comforts_2',
+    name: 'Comfortable Bunks',
+    description: 'Even better rest facilities. Workers now rest four times as fast.',
+    icon: BedDouble,
+    costRP: 90,
+    costMoney: 750000,
+    dependencies: ['worker_comforts_1'],
+    effects: { factoryWorkerEnergyRegenModifier: 4 }
+  },
+  {
+    id: 'worker_comforts_3',
+    name: 'Recreation Lounge',
+    description: 'A lounge with sofas and entertainment. Workers now rest six times as fast.',
+    icon: Sofa,
+    costRP: 200,
+    costMoney: 2000000,
+    dependencies: ['worker_comforts_2'],
+    effects: { factoryWorkerEnergyRegenModifier: 6 }
+  },
+  {
+    id: 'worker_comforts_4',
+    name: 'Luxury Quarters',
+    description: 'Five-star accommodations. Workers rest 12 times as fast, fully resting from 12h of work in just 1h.',
+    icon: Hotel,
+    costRP: 450,
+    costMoney: 5000000,
+    dependencies: ['worker_comforts_3'],
+    effects: { factoryWorkerEnergyRegenModifier: 12 }
   },
 
   // Manual RP Generation Boosts

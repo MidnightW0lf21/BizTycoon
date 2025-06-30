@@ -113,7 +113,7 @@ export interface FactoryPowerBuilding {
 }
 
 export interface FactoryComponentEffects {
-  globalIncomeBoostPerComponentPercent?: number;
+  globalIncomeBoostPercent?: number;
   businessSpecificIncomeBoostPercent?: { businessId: string; percent: number };
   stockSpecificDividendYieldBoostPercent?: { stockId: string; percent: number };
   factoryGlobalPowerOutputBoostPercent?: number;
@@ -244,6 +244,7 @@ export interface ResearchItemEffects {
   upgradesWorkerEnergyTier?: boolean;
   increaseManualResearchBonus?: number;
   increaseFactoryRawMaterialsCap?: number;
+  factoryWorkerEnergyRegenModifier?: number;
 }
 
 export interface ResearchItemConfig {
@@ -291,6 +292,7 @@ export interface PlayerStats {
   currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
   manualResearchBonus?: number;
   unlockedFactoryComponentRecipeIds?: string[]; // New: Track unlocked recipes
+  factoryWorkerEnergyRegenModifier?: number;
 
   researchPoints: number;
   unlockedResearchIds: string[];
