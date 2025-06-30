@@ -100,7 +100,7 @@ function AppLogo() {
                 {'Prestige Lvl Progress'} 
                 {mounted && prestigeProgress.newlyGainedPoints > 0 && ` ( +${prestigeProgress.newlyGainedPoints.toLocaleString()} PP)`}
             </span>
-            <span>{mounted ? `${prestigeProgress.percentage.toFixed(1)}%` : '0.0%'}</span>
+            <span>{mounted ? `${prestigeProgress.percentage.toFixed(1)}%` : null}</span>
         </div>
         <Progress value={mounted ? prestigeProgress.percentage : 0} className="h-2 w-full" />
       </div>
@@ -350,7 +350,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span>{
                 mounted 
                   ? playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })
-                  : '$...'
+                  : null
               }</span>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
