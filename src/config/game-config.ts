@@ -30,7 +30,17 @@ export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
 export const FACTORY_PURCHASE_COST = 1000000;
 export const MATERIAL_COLLECTION_AMOUNT = 10;
 export const MATERIAL_COLLECTION_COOLDOWN_MS = 5000;
-export const EXCAVATION_COOLDOWN_MS = 30000;
+
+// Quarry Config
+export const BASE_QUARRY_COST = 10000;
+export const QUARRY_COST_MULTIPLIER = 2.5;
+export const BASE_QUARRY_DEPTH = 1000; // 10m in cm
+export const QUARRY_DEPTH_MULTIPLIER = 1.2;
+export const BASE_ARTIFACT_CHANCE_PER_DIG = 0.005; // 0.5%
+export const ARTIFACT_CHANCE_DEPTH_MULTIPLIER = 1.0001; // Small increase per cm
+export const ARTIFACT_RARITY_WEIGHTS = { Common: 60, Uncommon: 25, Rare: 10, Legendary: 4, Mythic: 1 };
+export const INITIAL_QUARRY_LEVEL = 0;
+
 
 export const INITIAL_RESEARCH_POINTS = 0;
 export const INITIAL_UNLOCKED_RESEARCH_IDS: string[] = [];
@@ -291,7 +301,7 @@ export const getStartingMoneyBonus = (
     }
   }
 
-  unlockedArtifactIds.forEach(artifactId => {
+  (unlockedArtifactIds || []).forEach(artifactId => {
     const artifact = artifactsConfig.find(a => a.id === artifactId);
     if (artifact?.effects.increaseStartingMoney) {
       bonus += artifact.effects.increaseStartingMoney;
@@ -330,7 +340,7 @@ export const getPrestigePointBoostPercent = (
     }
   }
 
-  unlockedArtifactIds.forEach(artifactId => {
+  (unlockedArtifactIds || []).forEach(artifactId => {
     const artifact = artifactsConfig.find(a => a.id === artifactId);
     if (artifact?.effects.globalPrestigePointBoostPercent) {
       boostPercent += artifact.effects.globalPrestigePointBoostPercent;

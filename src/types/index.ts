@@ -113,7 +113,7 @@ export interface Artifact {
   description: string;
   icon: LucideIcon;
   effects: ArtifactEffects;
-  rarity?: ArtifactRarity;
+  rarity: ArtifactRarity;
   dropChance?: number;
 }
 
@@ -297,6 +297,8 @@ export interface QuarryUpgrade {
   };
 }
 
+export type ArtifactFindChances = Record<ArtifactRarity, number>;
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -340,7 +342,7 @@ export interface PlayerStats {
   minerals: number;
   quarryDepth: number;
   quarryTargetDepth: number;
-  quarryCompletions: number;
+  quarryLevel: number;
   purchasedQuarryUpgradeIds: string[];
 }
 
