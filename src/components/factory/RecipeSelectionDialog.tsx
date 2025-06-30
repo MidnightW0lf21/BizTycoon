@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2, PackageCheck, PackageX } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { INITIAL_RESEARCH_ITEMS_CONFIG, WORKER_ENERGY_TIERS, INITIAL_HQ_UPGRADES } from "@/config/game-config"; // Added INITIAL_HQ_UPGRADES
+import { INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_HQ_UPGRADES } from "@/config/game-config"; // Added INITIAL_HQ_UPGRADES
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGame } from "@/contexts/GameContext"; 
 import { useMemo } from "react";
@@ -132,15 +132,6 @@ export function RecipeSelectionDialog({
     return false; // No relevant effect found to cap.
   };
 
-  const filteredComponentConfigs = useMemo(() => {
-    if (!machineConfig) return [];
-    return allComponentConfigs.filter(component => {
-      const isTierCompatible = machineConfig.maxCraftableTier >= component.tier;
-      const isRecipeUnlocked = (playerStats.unlockedFactoryComponentRecipeIds || []).includes(component.id);
-      return isTierCompatible && isRecipeUnlocked;
-    });
-  }, [allComponentConfigs, machineConfig, playerStats.unlockedFactoryComponentRecipeIds]);
-
   const getHqUnlockNameForComponent = (componentId: string): string | null => {
     const hqUpgrade = hqUpgradesConfig.find(hq => 
         hq.levels.some(l => l.effects.unlocksFactoryComponentRecipeIds?.includes(componentId))
@@ -177,6 +168,7 @@ export function RecipeSelectionDialog({
                     <div className="grid grid-cols-1 gap-3">
                     {allComponentConfigs
                       .filter(component => machineConfig.maxCraftableTier >= component.tier) // Pre-filter by tier compatibility
+                      .filter(component => !isComponentCapped(component) || component.id === currentRecipeId) // Hide capped recipes unless currently selected
                       .sort((a,b) => a.tier - b.tier) // Sort by tier for display
                       .map((component) => {
                         const isRecipeUnlocked = (playerStats.unlockedFactoryComponentRecipeIds || []).includes(component.id);
@@ -269,12 +261,6 @@ export function RecipeSelectionDialog({
                         </TooltipProvider>
                         );
                     })}
-                    {filteredComponentConfigs.length === 0 && allComponentConfigs.some(c => machineConfig.maxCraftableTier >= c.tier) && (
-                         <p className="text-sm text-muted-foreground text-center py-4">All compatible recipes for this machine are locked. Unlock them via HQ.</p>
-                    )}
-                    {filteredComponentConfigs.length === 0 && !allComponentConfigs.some(c => machineConfig.maxCraftableTier >= c.tier) && (
-                         <p className="text-sm text-muted-foreground text-center py-4">No recipes of a compatible tier are defined.</p>
-                    )}
                     </div>
                 )}
               </ScrollArea>
@@ -419,5 +405,6 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
+
 
 
