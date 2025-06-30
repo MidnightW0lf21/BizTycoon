@@ -347,19 +347,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Banknote className="h-5 w-5" />
               <span>{playerStats.money.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
             </div>
-             <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <Gem className="h-5 w-5" />
-                    <span>{playerStats.minerals?.toLocaleString() || 0}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Minerals</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
             <Button variant="outline" size="icon" className="h-9 w-9" asChild>
               <Link href="/settings">
                 <Settings className="h-[1.2rem] w-[1.2rem]" />
