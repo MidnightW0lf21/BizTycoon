@@ -1894,6 +1894,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, STOCK_PRICE_UPDATE_INTERVAL);
     return () => clearInterval(stockUpdateIntervalId);
   }, []);
+  
+  const getEffectPerUnit = (effects: FactoryComponent['effects']) => {
+      if (!effects) return 0;
+      if (effects.globalIncomeBoostPerComponentPercent) return effects.globalIncomeBoostPerComponentPercent;
+      if (effects.businessSpecificIncomeBoostPercent) return effects.businessSpecificIncomeBoostPercent.percent;
+      if (effects.stockSpecificDividendYieldBoostPercent) return effects.stockSpecificDividendYieldBoostPercent.percent;
+      if (effects.factoryGlobalPowerOutputBoostPercent) return effects.factoryGlobalPowerOutputBoostPercent;
+      if (effects.factoryGlobalMaterialCollectionBoostPercent) return effects.factoryGlobalMaterialCollectionBoostPercent;
+      if (effects.globalCostReductionPercent) return effects.globalCostReductionPercent;
+      if (effects.businessSpecificLevelUpCostReductionPercent) return effects.businessSpecificLevelUpCostReductionPercent.percent;
+      if (effects.globalBusinessUpgradeCostReductionPercent) return effects.globalBusinessUpgradeCostReductionPercent;
+      if (effects.businessSpecificUpgradeCostReductionPercent) return effects.businessSpecificUpgradeCostReductionPercent.percent;
+      if (effects.globalDividendYieldBoostPercent) return effects.globalDividendYieldBoostPercent;
+      return 0;
+  };
+
 
   useEffect(() => {
     const gameTickIntervalId = setInterval(() => {
@@ -2050,6 +2066,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
           
           let tempNewFactoryProductionProgress = { ...newFactoryProductionProgressForThisTick };
+          const justCappedComponents = new Set<string>();
 
           (prev.factoryProductionLines || []).forEach((line) => {
             if (!line.isUnlocked) return;
@@ -2077,15 +2094,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
                         let isBonusCapped = false;
-                        const existingCount = newFactoryProducedComponents[slot.targetComponentId] || 0;
-                        if (componentRecipe.effects) {
-                            let currentBonusContribution = 0;
-                            let maxBonusCap = Infinity;
-                            if (componentRecipe.effects.globalIncomeBoostPerComponentPercent) {
-                                currentBonusContribution = existingCount * componentRecipe.effects.globalIncomeBoostPerComponentPercent;
-                                maxBonusCap = componentRecipe.effects.maxBonusPercent ?? Infinity;
-                            } 
-                            if (currentBonusContribution >= maxBonusCap) isBonusCapped = true;
+                        if (componentRecipe.effects && componentRecipe.effects.maxBonusPercent) {
+                            const effectPerUnit = getEffectPerUnit(componentRecipe.effects);
+                            if (effectPerUnit > 0) {
+                                const maxCap = Math.floor(componentRecipe.effects.maxBonusPercent / effectPerUnit);
+                                if ((newFactoryProducedComponents[slot.targetComponentId] || 0) >= maxCap) {
+                                    isBonusCapped = true;
+                                }
+                            }
                         }
 
                         const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
@@ -2154,6 +2170,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                                 if (tempNewFactoryProductionProgress[progressKey].remainingSeconds <= 0) {
                                     newFactoryProducedComponents[slot.targetComponentId!] = (newFactoryProducedComponents[slot.targetComponentId!] || 0) + 1;
+                                    const newCount = newFactoryProducedComponents[slot.targetComponentId!];
+                                    if(componentRecipe.effects && componentRecipe.effects.maxBonusPercent){
+                                        const effectPerUnit = getEffectPerUnit(componentRecipe.effects);
+                                        if (effectPerUnit > 0) {
+                                            const maxCap = Math.floor(componentRecipe.effects.maxBonusPercent / effectPerUnit);
+                                            if (newCount >= maxCap) {
+                                                justCappedComponents.add(slot.targetComponentId!);
+                                            }
+                                        }
+                                    }
                                 }
                             } else { 
                                 if (workerIndex !== -1 && updatedWorkers[workerIndex].status === 'working') {
@@ -2177,7 +2203,51 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
             });
           });
-           newFactoryProductionProgressForThisTick = tempNewFactoryProductionProgress;
+          newFactoryProductionProgressForThisTick = tempNewFactoryProductionProgress;
+
+          if (justCappedComponents.size > 0) {
+              let recipesCleared = false;
+              let updatedLinesForCapping = [...(prev.factoryProductionLines || [])];
+              updatedLinesForCapping = updatedLinesForCapping.map(line => {
+                  const newSlots = line.slots.map(slot => {
+                      if (slot.targetComponentId && justCappedComponents.has(slot.targetComponentId)) {
+                          recipesCleared = true;
+                          const workerIdx = updatedWorkers.findIndex(w => w.assignedMachineInstanceId === slot.machineInstanceId);
+                          if (workerIdx !== -1) {
+                              updatedWorkers[workerIdx] = { ...updatedWorkers[workerIdx], status: 'idle' };
+                          }
+                          return { ...slot, targetComponentId: null };
+                      }
+                      return slot;
+                  });
+                  return { ...line, slots: newSlots };
+              });
+              if (recipesCleared) {
+                  const cappedNames = Array.from(justCappedComponents).map(id => currentFactoryComponentsConfig.find(c => c.id === id)?.name || id).join(', ');
+                  setTimeout(() => {
+                      toastRef.current({
+                          title: "Component Cap Reached!",
+                          description: `Recipes for ${cappedNames} have been cleared.`,
+                          variant: 'default',
+                      });
+                  }, 0);
+                  // This is a bit tricky, might need to re-evaluate the state update pattern
+                  // For now, let's just update playerStats directly with this change.
+                  return {
+                      ...prev,
+                      money: newMoney,
+                      totalIncomePerSecond: currentTotalBusinessIncome + currentDividendIncome,
+                      investmentsValue: currentInvestmentsValue,
+                      factoryPowerUnitsGenerated: newFactoryPowerUnitsGenerated,
+                      factoryPowerConsumptionKw: actualPowerConsumedThisTick,
+                      factoryRawMaterials: Math.floor(Math.max(0, newFactoryRawMaterials)),
+                      factoryProducedComponents: Object.fromEntries(Object.entries(newFactoryProducedComponents).map(([key, value]) => [key, Math.floor(Math.max(0, value as number))])),
+                      factoryProductionProgress: newFactoryProductionProgressForThisTick,
+                      factoryWorkers: updatedWorkers,
+                      factoryProductionLines: updatedLinesForCapping,
+                  };
+              }
+          }
         }
 
 
@@ -2314,5 +2384,3 @@ export const useGame = (): GameContextType => {
   return context;
 };
     
-
-

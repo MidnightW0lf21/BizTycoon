@@ -4,7 +4,7 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, Info as InfoIcon, ListChecks as ListChecksIcon, Briefcase, BarChart } from "lucide-react";
+import { Factory, LockKeyhole, ShoppingCart, DollarSign, Zap, Box, Wrench, PackageCheck, Lightbulb, SlidersHorizontal, PackagePlus, FlaskConical, UserPlus, Users, Unlock as UnlockIcon, Pickaxe, PackageSearch, Mountain, Satellite, CloudCog, Sun, Waves, TrendingUp, XIcon, Info as InfoIcon, ListChecks as ListChecksIcon, Briefcase, BarChart, CheckCircle2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG, INITIAL_RESEARCH_ITEMS_CONFIG, REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB, RESEARCH_MANUAL_GENERATION_AMOUNT, RESEARCH_MANUAL_GENERATION_COST_MONEY, WORKER_ENERGY_TIERS, MAX_WORKERS, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST, INITIAL_BUSINESSES, INITIAL_STOCKS, MATERIAL_COLLECTION_AMOUNT } from "@/config/game-config";
 import { FactoryPowerBuildingCard } from "@/components/factory/FactoryPowerBuildingCard";
@@ -493,6 +493,21 @@ export default function MyFactoryPage() {
   const spaceLeftInStorage = playerStats.factoryRawMaterialsCap - playerStats.factoryRawMaterials;
   const amountToCollectManually = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeftInStorage);
 
+  const getEffectPerUnit = (effects: FactoryComponent['effects']) => {
+      if (!effects) return 0;
+      if (effects.globalIncomeBoostPerComponentPercent) return effects.globalIncomeBoostPerComponentPercent;
+      if (effects.businessSpecificIncomeBoostPercent) return effects.businessSpecificIncomeBoostPercent.percent;
+      if (effects.stockSpecificDividendYieldBoostPercent) return effects.stockSpecificDividendYieldBoostPercent.percent;
+      if (effects.factoryGlobalPowerOutputBoostPercent) return effects.factoryGlobalPowerOutputBoostPercent;
+      if (effects.factoryGlobalMaterialCollectionBoostPercent) return effects.factoryGlobalMaterialCollectionBoostPercent;
+      if (effects.globalCostReductionPercent) return effects.globalCostReductionPercent;
+      if (effects.businessSpecificLevelUpCostReductionPercent) return effects.businessSpecificLevelUpCostReductionPercent.percent;
+      if (effects.globalBusinessUpgradeCostReductionPercent) return effects.globalBusinessUpgradeCostReductionPercent;
+      if (effects.businessSpecificUpgradeCostReductionPercent) return effects.businessSpecificUpgradeCostReductionPercent.percent;
+      if (effects.globalDividendYieldBoostPercent) return effects.globalDividendYieldBoostPercent;
+      return 0;
+  };
+  
   const renderProducedComponent = (compConfig: FactoryComponent) => {
     const count = (playerStats.factoryProducedComponents || {})[compConfig.id] || 0;
     if (count === 0 && !Object.keys(playerStats.factoryProducedComponents || {}).includes(compConfig.id)) return null;
@@ -502,66 +517,62 @@ export default function MyFactoryPage() {
     let currentBonusDisplay = "";
     let maxBonusDisplay = "";
     let tooltipDescription = "";
+    
+    let maxCap = Infinity;
+    let isCapped = false;
 
     const { effects } = compConfig;
-
     if (effects) {
+        const effectPerUnit = getEffectPerUnit(effects);
+        if (effects.maxBonusPercent && effectPerUnit > 0) {
+            maxCap = Math.floor(effects.maxBonusPercent / effectPerUnit);
+            isCapped = count >= maxCap;
+        }
+
         const maxBonus = effects.maxBonusPercent ?? Infinity;
         const calculateCappedBonus = (effectPercent?: number) => {
             if (!effectPercent) return 0;
             return Math.min(count * (effectPercent || 0), maxBonus);
         };
-
+        
         let effectValue: number | undefined;
-        let bonusValue: number = 0;
-
         if ((effectValue = effects.globalIncomeBoostPerComponentPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Global Inc.`;
+            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Global Inc.`;
             tooltipDescription = `Each provides +${effectValue.toFixed(4)}% global income.`;
         } else if (effects.businessSpecificIncomeBoostPercent) {
             const { percent, businessId } = effects.businessSpecificIncomeBoostPercent;
-            bonusValue = calculateCappedBonus(percent);
             const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `+${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Inc.`;
+            currentBonusDisplay = `+${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Inc.`;
             tooltipDescription = `Each provides +${percent.toFixed(4)}% income to ${bizInfo?.name || businessId}.`;
         } else if ((effectValue = effects.globalCostReductionPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `-${bonusValue.toFixed(3)}% Global Lvl Cost`;
+            currentBonusDisplay = `-${calculateCappedBonus(effectValue).toFixed(3)}% Global Lvl Cost`;
             tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global level-up costs.`;
         } else if (effects.businessSpecificLevelUpCostReductionPercent) {
             const { percent, businessId } = effects.businessSpecificLevelUpCostReductionPercent;
-            bonusValue = calculateCappedBonus(percent);
             const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `-${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Lvl Cost`;
+            currentBonusDisplay = `-${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Lvl Cost`;
             tooltipDescription = `Each provides -${percent.toFixed(4)}% level-up cost reduction for ${bizInfo?.name || businessId}.`;
         } else if ((effectValue = effects.globalBusinessUpgradeCostReductionPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `-${bonusValue.toFixed(3)}% Global Upg. Cost`;
+            currentBonusDisplay = `-${calculateCappedBonus(effectValue).toFixed(3)}% Global Upg. Cost`;
             tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global upgrade costs.`;
         } else if (effects.businessSpecificUpgradeCostReductionPercent) {
             const { percent, businessId } = effects.businessSpecificUpgradeCostReductionPercent;
-            bonusValue = calculateCappedBonus(percent);
             const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `-${bonusValue.toFixed(3)}% ${bizInfo?.name || businessId} Upg. Cost`;
+            currentBonusDisplay = `-${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Upg. Cost`;
             tooltipDescription = `Each provides -${percent.toFixed(4)}% upgrade cost reduction for ${bizInfo?.name || businessId}.`;
         } else if ((effectValue = effects.factoryGlobalPowerOutputBoostPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Factory Power`;
+            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Factory Power`;
             tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory power output.`;
         } else if ((effectValue = effects.factoryGlobalMaterialCollectionBoostPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `+${bonusValue.toFixed(3)}% Factory Materials`;
+            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Factory Materials`;
             tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory material collection.`;
         } else if ((effectValue = effects.globalDividendYieldBoostPercent) !== undefined) {
-            bonusValue = calculateCappedBonus(effectValue);
-            currentBonusDisplay = `+${bonusValue.toFixed(4)}% Global Dividends`;
+            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(4)}% Global Dividends`;
             tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to global dividend yield.`;
         } else if (effects.stockSpecificDividendYieldBoostPercent) {
             const { percent, stockId } = effects.stockSpecificDividendYieldBoostPercent;
-            bonusValue = calculateCappedBonus(percent);
             const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
-            currentBonusDisplay = `+${bonusValue.toFixed(4)}% ${stockInfo?.ticker || stockId} Dividends`;
+            currentBonusDisplay = `+${calculateCappedBonus(percent).toFixed(4)}% ${stockInfo?.ticker || stockId} Dividends`;
             tooltipDescription = `Each provides +${percent.toFixed(4)}% dividend yield to ${stockInfo?.companyName || stockId}.`;
         }
         
@@ -570,19 +581,30 @@ export default function MyFactoryPage() {
         }
     }
 
-
     return (
-      <Card key={compConfig.id} className={cn("p-3 flex flex-col text-center shadow-md hover:shadow-lg", tierStyling.border, tierStyling.background)}>
+      <Card key={compConfig.id} className={cn("p-3 flex flex-col text-center shadow-md hover:shadow-lg", tierStyling.border, tierStyling.background, isCapped && "border-green-600 ring-2 ring-green-600 dark:border-green-500")}>
         <div className="flex items-center justify-between mb-1">
           <Icon className={cn("h-7 w-7", tierStyling.text)} />
-          <Badge variant="outline" className={cn("text-xs px-1.5 py-0.5", tierStyling.border, tierStyling.text, getTierStyling(compConfig.tier).background.replace(/(\w+-)(\d+)\/(\d+)/, '$1$2/80'))}> {/* Darken bg for badge slightly */}
+          <Badge variant="outline" className={cn("text-xs px-1.5 py-0.5", tierStyling.border, tierStyling.text, getTierStyling(compConfig.tier).background.replace(/(\w+-)(\d+)\/(\d+)/, '$1$2/80'))}>
             Tier {compConfig.tier}
           </Badge>
         </div>
         <p className={cn("font-semibold text-sm", tierStyling.text)}>{compConfig.name}</p>
-        <p className={cn("text-xl font-bold", tierStyling.text, "my-0.5")}>{count.toLocaleString('en-US', {maximumFractionDigits: 0})}</p>
+        <p className={cn("text-xl font-bold", tierStyling.text, "my-0.5")}>
+            {count.toLocaleString('en-US', {maximumFractionDigits: 0})}
+            {isFinite(maxCap) && ` / ${maxCap.toLocaleString('en-US')}`}
+        </p>
+        {isFinite(maxCap) && (
+            <Progress value={(count / maxCap) * 100} className="h-1.5 w-full my-1"/>
+        )}
         <p className="text-xs text-muted-foreground flex-grow min-h-[30px]">{compConfig.description}</p>
-        {currentBonusDisplay && (
+        {isCapped && (
+            <div className="flex items-center justify-center text-green-600 dark:text-green-500 text-xs font-semibold mt-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                Max Bonus Reached
+            </div>
+        )}
+        {currentBonusDisplay && !isCapped && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -604,27 +626,29 @@ export default function MyFactoryPage() {
   };
   
     const BonusItem = ({ icon: Icon, label, value, unit, sources = [] }: { icon: React.ElementType, label: string, value: number, unit: string, sources?: string[] }) => (
-        <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">{label}:</span>
+        <TooltipProvider>
+            <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-primary" />
+                    <span className="text-muted-foreground">{label}:</span>
+                </div>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="font-semibold text-primary cursor-help">
+                            {value > 0 ? '+' : ''}{value.toFixed(2)}{unit}
+                        </span>
+                    </TooltipTrigger>
+                    {sources.length > 0 && (
+                        <TooltipContent>
+                            <p className="font-bold">Contributing Components:</p>
+                            <ul className="list-disc list-inside">
+                                {sources.map((source, i) => <li key={i}>{source}</li>)}
+                            </ul>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
             </div>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <span className="font-semibold text-primary cursor-help">
-                        {value > 0 ? '+' : ''}{value.toFixed(2)}{unit}
-                    </span>
-                </TooltipTrigger>
-                {sources.length > 0 && (
-                    <TooltipContent>
-                        <p className="font-bold">Contributing Components:</p>
-                        <ul className="list-disc list-inside">
-                            {sources.map((source, i) => <li key={i}>{source}</li>)}
-                        </ul>
-                    </TooltipContent>
-                )}
-            </Tooltip>
-        </div>
+        </TooltipProvider>
     );
 
   return (
