@@ -974,7 +974,7 @@ export default function MyFactoryPage() {
                                 <Badge variant={getWorkerStatusBadgeVariant(worker.status)} className="capitalize">
                                   {worker.status}
                                 </Badge>
-                                {worker.status === 'resting' && worker.energy < currentDynamicMaxWorkerEnergy && (
+                                {(worker.status === 'resting' || worker.status === 'idle') && worker.energy < currentDynamicMaxWorkerEnergy && (
                                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                                     ({(() => {
                                       const energyToFull = currentDynamicMaxWorkerEnergy - worker.energy;
