@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -14,6 +14,7 @@ import {
   INITIAL_HQ_UPGRADES,
   INITIAL_UNLOCKED_ARTIFACT_IDS,
   INITIAL_ARTIFACTS,
+  INITIAL_QUARRY_UPGRADES,
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_MACHINE_CONFIGS,
   INITIAL_FACTORY_COMPONENTS_CONFIG,
@@ -109,6 +110,9 @@ interface GameContextType {
   assignWorkerToMachine: (workerId: string | null, machineInstanceId: string) => void;
   unlockProductionLine: (lineId: string) => void;
   purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
+  getQuarryDigPower: () => number;
+  digInQuarry: () => void;
+  purchaseQuarryUpgrade: (upgradeId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -126,6 +130,12 @@ const getInitialPlayerStats = (): PlayerStats => {
     hqUpgradeLevels: { ...INITIAL_HQ_UPGRADE_LEVELS },
     achievedBusinessMilestones: {},
     unlockedArtifactIds: [...INITIAL_UNLOCKED_ARTIFACT_IDS],
+    minerals: 0,
+    quarryDepth: 0,
+    quarryTargetDepth: 1000, // 10m
+    quarryCompletions: 0,
+    purchasedQuarryUpgradeIds: [],
+    lastExcavationTimestamp: 0,
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
     factoryPowerConsumptionKw: 0,
@@ -1416,7 +1426,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseResearch = useCallback((researchId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
 
@@ -1763,6 +1773,122 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const setLastMarketTrends = useCallback((trends: string) => { setLastMarketTrendsInternal(trends); }, []);
   const setLastRiskTolerance = useCallback((tolerance: "low" | "medium" | "high") => { setLastRiskToleranceInternal(tolerance); }, []);
+
+  const getQuarryDigPower = useCallback((): number => {
+    let totalDigPower = 1; // Base power from the player's hands/basic shovel
+
+    const playerStatsNow = playerStatsRef.current;
+    const purchasedIds = playerStatsNow.purchasedQuarryUpgradeIds || [];
+
+    purchasedIds.forEach(upgradeId => {
+        const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
+        if (upgradeConfig && upgradeConfig.effects.digPower) {
+          totalDigPower += upgradeConfig.effects.digPower;
+        }
+    });
+
+    (playerStatsNow.unlockedArtifactIds || []).forEach(artifactId => {
+        const artifact = INITIAL_ARTIFACTS.find(a => a.id === artifactId);
+        if (artifact?.effects.quarryDigPower) {
+            totalDigPower += artifact.effects.quarryDigPower;
+        }
+    });
+
+    return totalDigPower;
+  }, []);
+
+  const digInQuarry = useCallback(() => {
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+    const playerStatsNow = playerStatsRef.current;
+
+    if (playerStatsNow.timesPrestiged < 4) {
+      toastTitle = "Quarry Locked";
+      toastVariant = "destructive";
+    } else {
+      const digAmount = getQuarryDigPower();
+      const mineralsFound = Math.floor(Math.random() * (digAmount / 2) + 1);
+      let foundArtifact: Artifact | undefined = undefined;
+
+      setPlayerStats(prev => {
+        let newDepth = prev.quarryDepth + digAmount;
+        let newTargetDepth = prev.quarryTargetDepth;
+        let newCompletions = prev.quarryCompletions;
+        let newUnlockedArtifactIds = [...(prev.unlockedArtifactIds || [])];
+
+        if (newDepth >= prev.quarryTargetDepth) {
+          newDepth = 0;
+          newCompletions += 1;
+          newTargetDepth = Math.floor(prev.quarryTargetDepth * 1.5);
+          setTimeout(() => toastRef.current({ title: "Quarry Complete!", description: `You reached the bottom! The next quarry is now ${newTargetDepth / 100}m deep.` }), 100);
+        }
+
+        const artifactRoll = Math.random();
+        const potentialArtifacts = INITIAL_ARTIFACTS.filter(a => !newUnlockedArtifactIds.includes(a.id));
+        if (potentialArtifacts.length > 0 && artifactRoll < 0.1) { // 10% chance for now
+          foundArtifact = potentialArtifacts[Math.floor(Math.random() * potentialArtifacts.length)];
+          if (foundArtifact) {
+            newUnlockedArtifactIds.push(foundArtifact.id);
+          }
+        }
+        
+        if (foundArtifact) {
+          setTimeout(() => {
+            toastRef.current({
+              title: `Artifact Found!`,
+              description: `You unearthed the ${foundArtifact?.name}! Check the Quarry for its effects.`,
+              duration: 5000,
+            });
+          }, 100);
+        }
+
+        return {
+          ...prev,
+          quarryDepth: newDepth,
+          quarryTargetDepth: newTargetDepth,
+          quarryCompletions: newCompletions,
+          minerals: prev.minerals + mineralsFound,
+          unlockedArtifactIds: newUnlockedArtifactIds,
+        };
+      });
+
+      toastTitle = `You dug ${digAmount}cm deeper!`;
+      toastDescription = `Found ${mineralsFound} minerals.`;
+    }
+
+    if(toastTitle && !toastDescription.includes("Found")) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+  }, [getQuarryDigPower]);
+
+  const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+    const playerStatsNow = playerStatsRef.current;
+    const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
+
+    if (!upgradeConfig) {
+      toastTitle = "Upgrade Not Found";
+      toastVariant = "destructive";
+    } else if ((playerStatsNow.purchasedQuarryUpgradeIds || []).includes(upgradeId)) {
+      toastTitle = "Already Purchased";
+      toastDescription = "You already own this quarry upgrade.";
+    } else if (playerStatsNow.minerals < upgradeConfig.cost) {
+      toastTitle = "Not Enough Minerals";
+      toastDescription = `You need ${upgradeConfig.cost} minerals to purchase this.`;
+      toastVariant = "destructive";
+    } else {
+      setPlayerStats(prev => ({
+        ...prev,
+        minerals: prev.minerals - upgradeConfig.cost,
+        purchasedQuarryUpgradeIds: [...(prev.purchasedQuarryUpgradeIds || []), upgradeId],
+      }));
+      toastTitle = "Quarry Upgrade Purchased!";
+      toastDescription = `You purchased ${upgradeConfig.name}.`;
+    }
+
+    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+  }, []);
 
   useEffect(() => {
     try {
@@ -2387,7 +2513,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       manualSaveGame, exportGameState, importGameState, wipeGameData,
       purchaseFactoryBuilding, purchaseFactoryPowerBuilding, manuallyCollectRawMaterials, purchaseFactoryMachine,
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
-      hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade
+      hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
+      getQuarryDigPower, digInQuarry, purchaseQuarryUpgrade,
     }}>
       {children}
     </GameContext.Provider>
