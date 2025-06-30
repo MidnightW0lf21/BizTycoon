@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
@@ -8,6 +8,7 @@ import { INITIAL_ARTIFACTS } from './data/artifacts';
 import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_POWER_BUILDINGS_CONFIG, INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG } from './data/factory';
 import { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE } from './data/workers';
+import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 
 
 export const INITIAL_MONEY = 10;
@@ -181,11 +182,11 @@ export const calculateSingleLevelUpgradeCost = (
 export const calculateCostForNLevels = (
   business: Business,
   levelsToAttempt: number,
-  unlockedSkillIds: string[],
-  skillTree: SkillNode[],
+  unlockedSkillIds: string[] = [],
+  skillTree: SkillNode[] = [],
   dynamicMaxLevel: number,
-  purchasedHQUpgradeLevels: Record<string, number>,
-  hqUpgradesConfig: HQUpgrade[],
+  purchasedHQUpgradeLevels: Record<string, number> = {},
+  hqUpgradesConfig: HQUpgrade[] = [],
   unlockedArtifactIds: string[] = [],
   artifactsConfig: Artifact[] = []
 ): { totalCost: number; levelsPurchasable: number } => {
@@ -220,11 +221,11 @@ export const calculateCostForNLevels = (
 export const calculateMaxAffordableLevels = (
   business: Business,
   currentMoney: number,
-  unlockedSkillIds: string[],
-  skillTree: SkillNode[],
+  unlockedSkillIds: string[] = [],
+  skillTree: SkillNode[] = [],
   dynamicMaxLevel: number,
-  purchasedHQUpgradeLevels: Record<string, number>,
-  hqUpgradesConfig: HQUpgrade[],
+  purchasedHQUpgradeLevels: Record<string, number> = {},
+  hqUpgradesConfig: HQUpgrade[] = [],
   unlockedArtifactIds: string[] = [],
   artifactsConfig: Artifact[] = []
 ): { levelsToBuy: number; totalCost: number } => {
@@ -262,11 +263,11 @@ export const calculateMaxAffordableLevels = (
 
 
 export const getStartingMoneyBonus = (
-  unlockedSkillIds: string[], 
-  skillTree: SkillNode[], 
-  purchasedHQUpgradeLevels: Record<string, number>, 
-  hqUpgradesConfig: HQUpgrade[], 
-  unlockedArtifactIds: string[] = [], 
+  unlockedSkillIds: string[] = [],
+  skillTree: SkillNode[] = [],
+  purchasedHQUpgradeLevels: Record<string, number> = {},
+  hqUpgradesConfig: HQUpgrade[] = [],
+  unlockedArtifactIds: string[] = [],
   artifactsConfig: Artifact[] = []
 ): number => {
   let bonus = 0;
@@ -301,11 +302,11 @@ export const getStartingMoneyBonus = (
 };
 
 export const getPrestigePointBoostPercent = (
-  unlockedSkillIds: string[], 
-  skillTree: SkillNode[], 
-  purchasedHQUpgradeLevels: Record<string, number>, 
-  hqUpgradesConfig: HQUpgrade[], 
-  unlockedArtifactIds: string[] = [], 
+  unlockedSkillIds: string[] = [],
+  skillTree: SkillNode[] = [],
+  purchasedHQUpgradeLevels: Record<string, number> = {},
+  hqUpgradesConfig: HQUpgrade[] = [],
+  unlockedArtifactIds: string[] = [],
   artifactsConfig: Artifact[] = []
 ): number => {
   let boostPercent = 0;
@@ -387,6 +388,7 @@ export { INITIAL_STOCKS } from './data/stocks';
 export { INITIAL_SKILL_TREE } from './data/skills';
 export { INITIAL_HQ_UPGRADES } from './data/hq';
 export { INITIAL_ARTIFACTS } from './data/artifacts';
+export { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 export {
   INITIAL_FACTORY_POWER_BUILDINGS_CONFIG,
   INITIAL_FACTORY_COMPONENTS_CONFIG,

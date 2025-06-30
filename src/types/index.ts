@@ -94,6 +94,8 @@ export interface HQUpgrade {
   levels: HQUpgradeLevel[];
 }
 
+export type ArtifactRarity = 'Common' | 'Uncommon' | 'Rare' | 'Legendary' | 'Mythic';
+
 export interface ArtifactEffects {
   globalIncomeBoostPercent?: number;
   globalCostReductionPercent?: number;
@@ -102,6 +104,7 @@ export interface ArtifactEffects {
   globalPrestigePointBoostPercent?: number;
   factoryPowerGenerationBoostPercent?: number;
   increaseManualMaterialCollection?: number;
+  quarryDigPower?: number; // Additive dig power
 }
 
 export interface Artifact {
@@ -110,6 +113,8 @@ export interface Artifact {
   description: string;
   icon: LucideIcon;
   effects: ArtifactEffects;
+  rarity?: ArtifactRarity;
+  dropChance?: number;
 }
 
 export interface FactoryPowerBuildingConfig {
@@ -281,6 +286,17 @@ export interface FactoryProductionProgressData {
   totalSeconds: number;
 }
 
+export interface QuarryUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  cost: number; // Cost in Minerals
+  effects: {
+    digPower?: number; // Additive dig power
+    automationRate?: number; // Passive digging rate in cm/s
+  };
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -296,6 +312,7 @@ export interface PlayerStats {
   }>;
   unlockedArtifactIds?: string[];
 
+  // Factory Stats
   factoryPurchased: boolean;
   factoryPowerUnitsGenerated: number;
   factoryPowerConsumptionKw: number;
@@ -312,11 +329,19 @@ export interface PlayerStats {
   manualResearchBonus?: number;
   unlockedFactoryComponentRecipeIds?: string[]; // New: Track unlocked recipes
   factoryWorkerEnergyRegenModifier?: number;
-
+  
+  // Research Stats
   researchPoints: number;
   unlockedResearchIds: string[];
   lastManualResearchTimestamp: number;
   lastExcavationTimestamp?: number;
+
+  // Quarry Stats
+  minerals: number;
+  quarryDepth: number;
+  quarryTargetDepth: number;
+  quarryCompletions: number;
+  purchasedQuarryUpgradeIds: string[];
 }
 
 export interface SaveData {
