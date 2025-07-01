@@ -1840,22 +1840,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     let weights = { ...ARTIFACT_RARITY_WEIGHTS };
     const bias = playerStatsNow.quarryRarityBias;
+    
+    // Apply bias by doubling the weight of the selected rarity
     if (bias && weights[bias]) {
-        const biasIncrease = weights[bias]; // double the weight
-        weights[bias] += biasIncrease;
-        
-        const totalOtherWeight = Object.entries(weights).reduce((sum, [rarity, weight]) => {
-            return rarity !== bias ? sum + weight : sum;
-        }, 0);
-
-        if (totalOtherWeight > 0) {
-            for (const rarity in weights) {
-                if (rarity !== bias) {
-                    const reduction = (weights[rarity as ArtifactRarity] / totalOtherWeight) * biasIncrease;
-                    weights[rarity as ArtifactRarity] -= reduction;
-                }
-            }
-        }
+        weights[bias] *= 2; 
     }
 
     const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
@@ -1866,6 +1854,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       for (const rarity in weights) {
           if (Object.prototype.hasOwnProperty.call(weights, rarity)) {
               const typedRarity = rarity as ArtifactRarity;
+              // Calculate the final percentage chance for each rarity
               chances[typedRarity] = (totalFindChance * (weights[typedRarity] / totalWeight)) * 100;
           }
       }
