@@ -100,6 +100,22 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Mythic',
     effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 8 }, globalIncomeBoostPercent: 3 }
   },
+  {
+    id: 'yggdrasil_branch',
+    name: 'Branch of Yggdrasil',
+    description: 'A living branch from the World Tree, humming with the life of all nine realms. All businesses generate +12% income.',
+    icon: Trees,
+    rarity: 'Mythic',
+    effects: { globalIncomeBoostPercent: 12 },
+  },
+  {
+    id: 'ouroboros_amulet',
+    name: 'Ouroboros Amulet',
+    description: 'An amulet depicting a serpent eating its own tail, symbolizing eternal cycles and efficiency. All production timers in the factory run 8% faster.',
+    icon: Recycle,
+    rarity: 'Mythic',
+    effects: { factoryGlobalProductionSpeedModifier: 1.08 }
+  },
   
   // Legendary Artifacts
   {
@@ -229,6 +245,38 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Coins,
     rarity: 'Legendary',
     effects: { increaseStartingMoney: 250000 },
+  },
+  {
+    id: 'atlas_support_legendary',
+    name: 'Atlas\'s Support',
+    description: 'A miniature globe that feels impossibly heavy. Reduces level-up costs for all Logistics businesses by 8%.',
+    icon: Globe,
+    rarity: 'Legendary',
+    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 8 } }
+  },
+  {
+    id: 'sirens_lyre_legendary',
+    name: 'Siren\'s Lyre',
+    description: 'The music from this lyre is enthralling and persuasive. Boosts all Media businesses income by 10%.',
+    icon: Music,
+    rarity: 'Legendary',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 10 } }
+  },
+  {
+    id: 'hades_bident_legendary',
+    name: 'Hades\' Bident',
+    description: 'A two-pronged spear that commands the wealth of the underworld. Start with an additional $500,000 after prestige.',
+    icon: Diamond,
+    rarity: 'Legendary',
+    effects: { increaseStartingMoney: 500000 },
+  },
+  {
+    id: 'ares_war_helm_legendary',
+    name: 'Ares\' War Helm',
+    description: 'A battle-worn helmet that inspires aggressive expansion. Reduces the cost of all business upgrades by 6%.',
+    icon: Shield,
+    rarity: 'Legendary',
+    effects: { globalBusinessUpgradeCostReductionPercent: 6 },
   },
 
   // Rare Artifacts
@@ -448,16 +496,104 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Rare',
     effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 5 } }
   },
+  {
+    id: 'king_midass_gauntlet',
+    name: 'King Midas\'s Gauntlet',
+    description: 'A golden gauntlet that turns everything a bit more profitable. Global income +4%.',
+    icon: Hand,
+    rarity: 'Rare',
+    effects: { globalIncomeBoostPercent: 4 }
+  },
+  {
+    id: 'ancient_trade_route_map',
+    name: 'Ancient Trade Route Map',
+    description: 'A faded map showing forgotten trade routes. Boosts Logistics businesses income by 4%.',
+    icon: Map,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 4 } }
+  },
+  {
+    id: 'gordian_knot_solution',
+    name: 'Gordian Knot Solution',
+    description: 'A blueprint showing how to cut the knot. Reduces Tech business upgrade costs by 3%.',
+    icon: FileText,
+    rarity: 'Rare',
+    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'TECH', percent: 3 } }
+  },
+  {
+    id: 'the_alchemists_scale',
+    name: 'The Alchemist\'s Scale',
+    description: 'A perfectly balanced scale for precise measurements. Reduces all business level-up costs by 2.5%.',
+    icon: Scale,
+    rarity: 'Rare',
+    effects: { globalCostReductionPercent: 2.5 }
+  },
+  {
+    id: 'dionysuss_grapevine',
+    name: 'Dionysus\'s Grapevine',
+    description: 'A vine that produces exceptional grapes. Boosts Fast Food Franchise income by 6%.',
+    icon: Sprout,
+    rarity: 'Rare',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 6 } }
+  },
+  {
+    id: 'nemesiss_sword_fragment',
+    name: 'Nemesis\'s Sword Fragment',
+    description: 'A fragment of the sword of retribution. Boosts CyberGuard Solutions income by 5%.',
+    icon: ShieldAlert,
+    rarity: 'Rare',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 5 } }
+  },
+  {
+    id: 'apollos_sunstone',
+    name: 'Apollo\'s Sunstone',
+    description: 'A stone that glows with the light of the sun. Boosts all Energy businesses income by 4%.',
+    icon: Sun,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 4 } }
+  },
+  {
+    id: 'demeters_scythe',
+    name: 'Demeter\'s Scythe',
+    description: 'A scythe that promises a bountiful harvest. Increases manual material collection by 25.',
+    icon: PenTool,
+    rarity: 'Rare',
+    effects: { increaseManualMaterialCollection: 25 },
+  },
+  {
+    id: 'tyches_coin',
+    name: 'Tyche\'s Coin',
+    description: 'A coin that always seems to land on heads. Increases all stock dividend yields by 5%.',
+    icon: Coins,
+    rarity: 'Rare',
+    effects: { globalDividendYieldBoostPercent: 5 }
+  },
+  {
+    id: 'oracle_of_delphi_note',
+    name: 'Oracle\'s Cryptic Note',
+    description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
+    icon: Scroll,
+    rarity: 'Rare',
+    effects: { globalDividendYieldBoostPercent: 3 }
+  },
+  {
+    id: 'the_everything_is_fine_mug',
+    name: 'The "Everything is Fine" Mug',
+    description: 'A coffee mug showing a dog in a burning room. Slightly reduces worker energy drain.',
+    icon: Coffee,
+    rarity: 'Rare',
+    effects: { factoryWorkerEnergyDrainModifier: 0.98 }
+  },
+  {
+    id: 'golden_stapler_of_binding',
+    name: 'Golden Stapler',
+    description: 'A surprisingly effective tool for keeping paperwork (and costs) together. Reduces global business upgrade costs by 1.5%.',
+    icon: Pen,
+    rarity: 'Rare',
+    effects: { globalBusinessUpgradeCostReductionPercent: 1.5 }
+  },
 
   // Uncommon Artifacts
-  {
-    id: 'geode_of_plenty',
-    name: 'Geode of Plenty',
-    description: 'This crystal seems to attract resources. Increases manual material collection amount by 10.',
-    icon: Mountain,
-    rarity: 'Uncommon',
-    effects: { increaseManualMaterialCollection: 10 },
-  },
   {
     id: 'worn_ledger',
     name: 'The First Tycoon\'s Ledger',
@@ -465,14 +601,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: BookOpen,
     rarity: 'Uncommon',
     effects: { increaseStartingMoney: 25000 },
-  },
-  {
-    id: 'miners_canteen',
-    name: 'Miner\'s Canteen',
-    description: 'Always seems to be full of refreshing water. Increases maximum Quarry Energy by 10.',
-    icon: FlaskConical,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 10 },
   },
   {
     id: 'foremans_whistle',
@@ -499,28 +627,12 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { globalDividendYieldBoostPercent: 2 },
   },
   {
-    id: 'sturdy_work_gloves',
-    name: 'Sturdy Work Gloves',
-    description: 'Protects the hands and improves grip. Increases Quarry Dig Power by 5.',
-    icon: Hand,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 5 },
-  },
-  {
     id: 'ancient_abacus',
     name: 'Ancient Abacus',
     description: 'An old but reliable counting tool. Reduces all business level-up costs by 1%.',
     icon: Calculator,
     rarity: 'Uncommon',
     effects: { globalCostReductionPercent: 1 },
-  },
-  {
-    id: 'prospectors_pan',
-    name: 'Prospector\'s Pan',
-    description: 'A pan for sifting through dirt to find valuables. Increases manual material collection by 15.',
-    icon: ShoppingBag,
-    rarity: 'Uncommon',
-    effects: { increaseManualMaterialCollection: 15 },
   },
   {
     id: 'factory_efficiency_manual',
@@ -563,28 +675,12 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { globalCostReductionPercent: 1.5 },
   },
   {
-    id: 'miners_canary',
-    name: 'Miner\'s Canary',
-    description: 'A chirpy, mechanical canary. Its presence makes the quarry feel safer. +6 Dig Power.',
-    rarity: 'Uncommon',
-    icon: Sprout,
-    effects: { quarryDigPower: 6 },
-  },
-  {
     id: 'efficient_power_converter',
     name: 'Efficient Power Converter',
     description: 'A device that reduces energy waste. +2% Factory Power Generation.',
     rarity: 'Uncommon',
     icon: Recycle,
     effects: { factoryPowerGenerationBoostPercent: 2 },
-  },
-  {
-    id: 'extra_large_lunchbox',
-    name: 'Extra-Large Lunchbox',
-    description: 'More food means more energy for digging. +15 Max Quarry Energy.',
-    rarity: 'Uncommon',
-    icon: ShoppingBag,
-    effects: { increaseMaxEnergy: 15 },
   },
   {
     id: 'efficient_blueprints',
@@ -611,28 +707,12 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { quarryDigPower: 8 },
   },
   {
-    id: 'reinforced_mining_helmet',
-    name: 'Reinforced Mining Helmet',
-    description: 'A safer, more comfortable helmet for long digging sessions. Increases maximum Quarry Energy by 10.',
-    icon: HardHat,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 10 },
-  },
-  {
     id: 'ai_personal_assistant',
     name: 'AI Personal Assistant',
     description: 'An AI that helps with scheduling and optimization. Reduces business level-up costs by 1%.',
     icon: Bot,
     rarity: 'Uncommon',
     effects: { globalCostReductionPercent: 1 },
-  },
-  {
-    id: 'golden_trowel',
-    name: 'Golden Trowel',
-    description: 'A gilded trowel for all your groundbreaking ceremonies. Increases starting cash by $15,000.',
-    icon: Gem,
-    rarity: 'Uncommon',
-    effects: { increaseStartingMoney: 15000 },
   },
   {
     id: 'daedalus_wings',
@@ -746,8 +826,288 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Uncommon',
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 3 } }
   },
+  {
+    id: 'valkyries_wing_feather',
+    name: 'Valkyrie\'s Wing Feather',
+    description: 'A feather from a Valkyrie\'s wing. Boosts all Aerospace businesses income by 1.5%.',
+    icon: Feather,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1.5 } }
+  },
+  {
+    id: 'cursed_coin_of_avarice',
+    name: 'Cursed Coin of Avarice',
+    description: 'Looks valuable, but feels... off. +0.5% global income.',
+    icon: HandCoins,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 0.5 }
+  },
+  {
+    id: 'ceos_first_business_card',
+    name: 'CEO\'s First Business Card',
+    description: 'The worn business card of a future titan of industry. Start with an extra $5,000.',
+    icon: Contact,
+    rarity: 'Uncommon',
+    effects: { increaseStartingMoney: 5000 }
+  },
+  {
+    id: 'investors_lucky_tie_clip',
+    name: 'Investor\'s Lucky Tie Clip',
+    description: 'A tie clip worn during a record-breaking trade. Increases global dividend yield by 1.5%.',
+    icon: Briefcase,
+    rarity: 'Uncommon',
+    effects: { globalDividendYieldBoostPercent: 1.5 }
+  },
+  {
+    id: 'robust_server_rack_casing',
+    name: 'Robust Server Rack',
+    description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
+    icon: Server,
+    rarity: 'Uncommon',
+    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 1 } }
+  },
+  {
+    id: 'reinforced_quarry_bucket_system',
+    name: 'Reinforced Quarry Bucket',
+    description: 'A large, sturdy bucket for hauling more from the quarry. Increases manual material collection by 8.',
+    icon: ShoppingBasket,
+    rarity: 'Uncommon',
+    effects: { increaseManualMaterialCollection: 8 }
+  },
+  {
+    id: 'high_efficiency_led_lightbulb',
+    name: 'High-Efficiency Lightbulb',
+    description: 'Reduces passive power draw in the factory. Increases factory power generation by 1%.',
+    icon: Lightbulb,
+    rarity: 'Uncommon',
+    effects: { factoryPowerGenerationBoostPercent: 1 }
+  },
+  {
+    id: 'programmers_rubber_duck_of_clarity',
+    name: 'Programmer\'s Rubber Duck',
+    description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
+    icon: Lightbulb,
+    rarity: 'Uncommon',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 2 } },
+  },
+  {
+    id: 'geologists_rock_hammer',
+    name: 'Geologist\'s Rock Hammer',
+    description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
+    icon: Hammer,
+    rarity: 'Uncommon',
+    effects: { quarryDigPower: 4 },
+  },
+  {
+    id: 'optimized_factory_cooling_fan',
+    name: 'Optimized Cooling Fan',
+    description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
+    icon: Fan,
+    rarity: 'Uncommon',
+    effects: { factoryGlobalPowerConsumptionModifier: 0.995 }
+  },
+  {
+    id: 'trojan_war_souvenir',
+    name: 'Trojan War Souvenir',
+    description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
+    icon: ShieldCheck,
+    rarity: 'Uncommon',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
+  },
+  {
+    id: 'medusas_gaze_reflected',
+    name: 'Medusa\'s Gaze (Reflected)',
+    description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
+    icon: Eye,
+    rarity: 'Uncommon',
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
+  },
+  {
+    id: 'cerberuss_collar',
+    name: 'Cerberus\'s Collar',
+    description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
+    icon: KeyRound,
+    rarity: 'Uncommon',
+    effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'charons_ferry_token',
+    name: 'Charon\'s Ferry Token',
+    description: 'A token for passage. Start with an extra $1,500.',
+    icon: Coins,
+    rarity: 'Uncommon',
+    effects: { increaseStartingMoney: 1500 }
+  },
+  {
+    id: 'echos_last_word',
+    name: 'Echo\'s Last Word',
+    description: 'A soundwave captured in a crystal. Boosts income for all Media businesses by 0.5%.',
+    icon: Speaker,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.5 } }
+  },
+  {
+    id: 'lernaean_hydra_scale',
+    name: 'Lernaean Hydra Scale',
+    description: 'A scale from a many-headed beast. +1 Quarry Dig Power.',
+    icon: Bone,
+    rarity: 'Uncommon',
+    effects: { quarryDigPower: 1 }
+  },
+  {
+    id: 'ambrosia_crumb',
+    name: 'Ambrosia Crumb',
+    description: 'A crumb of the food of the gods. +3 Max Quarry Energy.',
+    icon: Cookie,
+    rarity: 'Uncommon',
+    effects: { increaseMaxEnergy: 3 }
+  },
+  {
+    id: 'worn_mining_gloves',
+    name: 'Worn Mining Gloves',
+    description: 'Leather gloves, perfectly worn in. +4 Dig Power.',
+    icon: Hand,
+    rarity: 'Uncommon',
+    effects: { quarryDigPower: 4 }
+  },
+  {
+    id: 'engineers_pocket_protector',
+    name: 'Engineer\'s Pocket Protector',
+    description: 'Full of pens and tools. Reduces Manufacturing business upgrade costs by 1%.',
+    icon: Pen,
+    rarity: 'Uncommon',
+    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 1 } }
+  },
+  {
+    id: 'faded_stock_ticker_tape',
+    name: 'Faded Stock Ticker Tape',
+    description: 'A piece of history. +1.5% global dividend yield.',
+    icon: FileText,
+    rarity: 'Uncommon',
+    effects: { globalDividendYieldBoostPercent: 1.5 }
+  },
+  {
+    id: 'cracked_monocle',
+    name: 'Cracked Monocle',
+    description: 'Still helps you spot a deal. +1% global income.',
+    icon: Eye,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 1 }
+  },
+  {
+    id: 'a_single_phoenix_down',
+    name: 'A Single Phoenix Down',
+    description: 'Not enough to revive, but feels lucky. +1% Prestige Points.',
+    icon: Feather,
+    rarity: 'Uncommon',
+    effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'bag_of_assorted_nuts_and_bolts',
+    name: 'Bag of Assorted Nuts and Bolts',
+    description: 'Spare parts are always useful. Reduces global business upgrade costs by 0.5%.',
+    icon: Wrench,
+    rarity: 'Uncommon',
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
+  },
+  {
+    id: 'leaky_pen',
+    name: 'Leaky Pen',
+    description: 'It\'s messy, but the ideas that flowed from it were good. +0.5% global income.',
+    icon: PenTool,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 0.5 }
+  },
+  {
+    id: 'slightly_charged_battery',
+    name: 'Slightly Charged Battery',
+    description: 'Has a little juice left. +3 max Quarry Energy.',
+    icon: BatteryCharging,
+    rarity: 'Uncommon',
+    effects: { increaseMaxEnergy: 3 }
+  },
+  {
+    id: 'early_internet_modem',
+    name: 'Early Internet Modem',
+    description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
+    icon: Server,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 1 } }
+  },
+  {
+    id: 'a_worlds_best_boss_mug',
+    name: 'A "World\'s Best Boss" Mug',
+    description: 'It\'s cheesy, but it boosts morale. +0.2% global income.',
+    icon: Coffee,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 0.2 }
+  },
 
   // Common Artifacts
+  {
+    id: 'geode_of_plenty',
+    name: 'Geode of Plenty',
+    description: 'This crystal seems to attract resources. Increases manual material collection amount by 10.',
+    icon: Mountain,
+    rarity: 'Common',
+    effects: { increaseManualMaterialCollection: 10 },
+  },
+  {
+    id: 'miners_canteen',
+    name: 'Miner\'s Canteen',
+    description: 'Always seems to be full of refreshing water. Increases maximum Quarry Energy by 10.',
+    icon: FlaskConical,
+    rarity: 'Common',
+    effects: { increaseMaxEnergy: 10 },
+  },
+  {
+    id: 'sturdy_work_gloves',
+    name: 'Sturdy Work Gloves',
+    description: 'Protects the hands and improves grip. Increases Quarry Dig Power by 5.',
+    icon: Hand,
+    rarity: 'Common',
+    effects: { quarryDigPower: 5 },
+  },
+  {
+    id: 'prospectors_pan',
+    name: 'Prospector\'s Pan',
+    description: 'A pan for sifting through dirt to find valuables. Increases manual material collection by 15.',
+    icon: ShoppingBag,
+    rarity: 'Common',
+    effects: { increaseManualMaterialCollection: 15 },
+  },
+  {
+    id: 'miners_canary',
+    name: 'Miner\'s Canary',
+    description: 'A chirpy, mechanical canary. Its presence makes the quarry feel safer. +6 Dig Power.',
+    rarity: 'Common',
+    icon: Sprout,
+    effects: { quarryDigPower: 6 },
+  },
+  {
+    id: 'extra_large_lunchbox',
+    name: 'Extra-Large Lunchbox',
+    description: 'More food means more energy for digging. +15 Max Quarry Energy.',
+    rarity: 'Common',
+    icon: ShoppingBag,
+    effects: { increaseMaxEnergy: 15 },
+  },
+  {
+    id: 'reinforced_mining_helmet',
+    name: 'Reinforced Mining Helmet',
+    description: 'A safer, more comfortable helmet for long digging sessions. Increases maximum Quarry Energy by 10.',
+    icon: HardHat,
+    rarity: 'Common',
+    effects: { increaseMaxEnergy: 10 },
+  },
+  {
+    id: 'golden_trowel',
+    name: 'Golden Trowel',
+    description: 'A gilded trowel for all your groundbreaking ceremonies. Increases starting cash by $15,000.',
+    icon: Gem,
+    rarity: 'Common',
+    effects: { increaseStartingMoney: 15000 },
+  },
   {
     id: 'ancient_coin',
     name: 'Ancient Coin',
@@ -1119,7 +1479,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
   {
     id: 'polished_river_stone',
     name: 'Polished River Stone',
-    description: 'Smooth and calming to hold. Increases Quarry Dig Power by 1.',
+    description: 'Calming to hold. Increases Quarry Dig Power by 1.',
     icon: Gem,
     rarity: 'Common',
     effects: { quarryDigPower: 1 },
@@ -1163,30 +1523,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: GlassWater,
     rarity: 'Common',
     effects: { increaseMaxEnergy: 1 },
-  },
-  {
-    id: 'oracle_of_delphi_note',
-    name: 'Oracle\'s Cryptic Note',
-    description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
-    icon: Scroll,
-    rarity: 'Rare',
-    effects: { globalDividendYieldBoostPercent: 3 }
-  },
-  {
-    id: 'the_everything_is_fine_mug',
-    name: 'The "Everything is Fine" Mug',
-    description: 'A coffee mug showing a dog in a burning room. Slightly reduces worker energy drain.',
-    icon: Coffee,
-    rarity: 'Rare',
-    effects: { factoryWorkerEnergyDrainModifier: 0.98 }
-  },
-  {
-    id: 'golden_stapler_of_binding',
-    name: 'Golden Stapler',
-    description: 'A surprisingly effective tool for keeping paperwork (and costs) together. Reduces global business upgrade costs by 1.5%.',
-    icon: Pen,
-    rarity: 'Rare',
-    effects: { globalBusinessUpgradeCostReductionPercent: 1.5 }
   },
   {
     id: 'a_smooth_worry_stone',
@@ -1283,558 +1619,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: ShieldAlert,
     rarity: 'Common',
     effects: { quarryDigPower: 1 },
-  },
-  {
-    id: 'valkyries_wing_feather',
-    name: 'Valkyrie\'s Wing Feather',
-    description: 'A feather from a Valkyrie\'s wing. Boosts all Aerospace businesses income by 1.5%.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1.5 } }
-  },
-  {
-    id: 'cursed_coin_of_avarice',
-    name: 'Cursed Coin of Avarice',
-    description: 'Looks valuable, but feels... off. +0.5% global income.',
-    icon: HandCoins,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'ceos_first_business_card',
-    name: 'CEO\'s First Business Card',
-    description: 'The worn business card of a future titan of industry. Start with an extra $5,000.',
-    icon: Contact,
-    rarity: 'Uncommon',
-    effects: { increaseStartingMoney: 5000 }
-  },
-  {
-    id: 'investors_lucky_tie_clip',
-    name: 'Investor\'s Lucky Tie Clip',
-    description: 'A tie clip worn during a record-breaking trade. Increases global dividend yield by 1.5%.',
-    icon: Briefcase,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'robust_server_rack_casing',
-    name: 'Robust Server Rack',
-    description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
-    icon: Server,
-    rarity: 'Uncommon',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 1 } }
-  },
-  {
-    id: 'reinforced_quarry_bucket_system',
-    name: 'Reinforced Quarry Bucket',
-    description: 'A large, sturdy bucket for hauling more from the quarry. Increases manual material collection by 8.',
-    icon: ShoppingBasket,
-    rarity: 'Uncommon',
-    effects: { increaseManualMaterialCollection: 8 }
-  },
-  {
-    id: 'high_efficiency_led_lightbulb',
-    name: 'High-Efficiency Lightbulb',
-    description: 'Reduces passive power draw in the factory. Increases factory power generation by 1%.',
-    icon: Lightbulb,
-    rarity: 'Uncommon',
-    effects: { factoryPowerGenerationBoostPercent: 1 }
-  },
-  {
-    id: 'programmers_rubber_duck_of_clarity',
-    name: 'Programmer\'s Rubber Duck',
-    description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
-    icon: Lightbulb,
-    rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 2 } },
-  },
-  {
-    id: 'geologists_rock_hammer',
-    name: 'Geologist\'s Rock Hammer',
-    description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
-    icon: Hammer,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 4 },
-  },
-  {
-    id: 'optimized_factory_cooling_fan',
-    name: 'Optimized Cooling Fan',
-    description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
-    icon: Fan,
-    rarity: 'Uncommon',
-    effects: { factoryGlobalPowerConsumptionModifier: 0.995 }
-  },
-  {
-    id: 'trojan_war_souvenir',
-    name: 'Trojan War Souvenir',
-    description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
-    icon: ShieldCheck,
-    rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
-  },
-  {
-    id: 'medusas_gaze_reflected',
-    name: 'Medusa\'s Gaze (Reflected)',
-    description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
-    icon: Eye,
-    rarity: 'Uncommon',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'cerberuss_collar',
-    name: 'Cerberus\'s Collar',
-    description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
-    icon: KeyRound,
-    rarity: 'Uncommon',
-    effects: { globalPrestigePointBoostPercent: 1 }
-  },
-  {
-    id: 'charons_ferry_token',
-    name: 'Charon\'s Ferry Token',
-    description: 'A token for passage. Start with an extra $1,500.',
-    icon: Coins,
-    rarity: 'Uncommon',
-    effects: { increaseStartingMoney: 1500 }
-  },
-  {
-    id: 'echos_last_word',
-    name: 'Echo\'s Last Word',
-    description: 'A soundwave captured in a crystal. Boosts income for all Media businesses by 0.5%.',
-    icon: Speaker,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.5 } }
-  },
-  {
-    id: 'lernaean_hydra_scale',
-    name: 'Lernaean Hydra Scale',
-    description: 'A scale from a many-headed beast. +1 Quarry Dig Power.',
-    icon: Bone,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 1 }
-  },
-  {
-    id: 'ambrosia_crumb',
-    name: 'Ambrosia Crumb',
-    description: 'A crumb of the food of the gods. +3 Max Quarry Energy.',
-    icon: Cookie,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 3 }
-  },
-  {
-    id: 'worn_mining_gloves',
-    name: 'Worn Mining Gloves',
-    description: 'Leather gloves, perfectly worn in. +4 Dig Power.',
-    icon: Hand,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 4 }
-  },
-  {
-    id: 'engineers_pocket_protector',
-    name: 'Engineer\'s Pocket Protector',
-    description: 'Full of pens and tools. Reduces Manufacturing business upgrade costs by 1%.',
-    icon: Pen,
-    rarity: 'Uncommon',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 1 } }
-  },
-  {
-    id: 'faded_stock_ticker_tape',
-    name: 'Faded Stock Ticker Tape',
-    description: 'A piece of history. +1.5% global dividend yield.',
-    icon: FileText,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'cracked_monocle',
-    name: 'Cracked Monocle',
-    description: 'Still helps you spot a deal. +1% global income.',
-    icon: Eye,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 1 }
-  },
-  {
-    id: 'a_single_phoenix_down',
-    name: 'A Single Phoenix Down',
-    description: 'Not enough to revive, but feels lucky. +1% Prestige Points.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { globalPrestigePointBoostPercent: 1 }
-  },
-  {
-    id: 'bag_of_assorted_nuts_and_bolts',
-    name: 'Bag of Assorted Nuts and Bolts',
-    description: 'Spare parts are always useful. Reduces global business upgrade costs by 0.5%.',
-    icon: Wrench,
-    rarity: 'Uncommon',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'leaky_pen',
-    name: 'Leaky Pen',
-    description: 'It\'s messy, but the ideas that flowed from it were good. +0.5% global income.',
-    icon: PenTool,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'slightly_charged_battery',
-    name: 'Slightly Charged Battery',
-    description: 'Has a little juice left. +3 max Quarry Energy.',
-    icon: BatteryCharging,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 3 }
-  },
-  {
-    id: 'early_internet_modem',
-    name: 'Early Internet Modem',
-    description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
-    icon: Server,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 1 } }
-  },
-  {
-    id: 'a_worlds_best_boss_mug',
-    name: 'A "World\'s Best Boss" Mug',
-    description: 'It\'s cheesy, but it boosts morale. +0.2% global income.',
-    icon: Coffee,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.2 }
-  },
-  {
-    id: 'yggdrasil_branch',
-    name: 'Branch of Yggdrasil',
-    description: 'A living branch from the World Tree, humming with the life of all nine realms. All businesses generate +12% income.',
-    icon: Trees,
-    rarity: 'Mythic',
-    effects: { globalIncomeBoostPercent: 12 },
-  },
-  {
-    id: 'ouroboros_amulet',
-    name: 'Ouroboros Amulet',
-    description: 'An amulet depicting a serpent eating its own tail, symbolizing eternal cycles and efficiency. All production timers in the factory run 8% faster.',
-    icon: Recycle,
-    rarity: 'Mythic',
-    effects: { factoryGlobalProductionSpeedModifier: 1.08 }
-  },
-  {
-    id: 'atlas_support_legendary',
-    name: 'Atlas\'s Support',
-    description: 'A miniature globe that feels impossibly heavy. Reduces level-up costs for all Logistics businesses by 8%.',
-    icon: Globe,
-    rarity: 'Legendary',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 8 } }
-  },
-  {
-    id: 'sirens_lyre_legendary',
-    name: 'Siren\'s Lyre',
-    description: 'The music from this lyre is enthralling and persuasive. Boosts all Media businesses income by 10%.',
-    icon: Music,
-    rarity: 'Legendary',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 10 } }
-  },
-  {
-    id: 'hades_bident_legendary',
-    name: 'Hades\' Bident',
-    description: 'A two-pronged spear that commands the wealth of the underworld. Start with an additional $500,000 after prestige.',
-    icon: Diamond,
-    rarity: 'Legendary',
-    effects: { increaseStartingMoney: 500000 },
-  },
-  {
-    id: 'ares_war_helm_legendary',
-    name: 'Ares\' War Helm',
-    description: 'A battle-worn helmet that inspires aggressive expansion. Reduces the cost of all business upgrades by 6%.',
-    icon: Shield,
-    rarity: 'Legendary',
-    effects: { globalBusinessUpgradeCostReductionPercent: 6 },
-  },
-  {
-    id: 'king_midass_gauntlet',
-    name: 'King Midas\'s Gauntlet',
-    description: 'A golden gauntlet that turns everything a bit more profitable. Global income +4%.',
-    icon: Hand,
-    rarity: 'Rare',
-    effects: { globalIncomeBoostPercent: 4 }
-  },
-  {
-    id: 'ancient_trade_route_map',
-    name: 'Ancient Trade Route Map',
-    description: 'A faded map showing forgotten trade routes. Boosts Logistics businesses income by 4%.',
-    icon: Map,
-    rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 4 } }
-  },
-  {
-    id: 'gordian_knot_solution',
-    name: 'Gordian Knot Solution',
-    description: 'A blueprint showing how to cut the knot. Reduces Tech business upgrade costs by 3%.',
-    icon: FileText,
-    rarity: 'Rare',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'TECH', percent: 3 } }
-  },
-  {
-    id: 'the_alchemists_scale',
-    name: 'The Alchemist\'s Scale',
-    description: 'A perfectly balanced scale for precise measurements. Reduces all business level-up costs by 2.5%.',
-    icon: Scale,
-    rarity: 'Rare',
-    effects: { globalCostReductionPercent: 2.5 }
-  },
-  {
-    id: 'dionysuss_grapevine',
-    name: 'Dionysus\'s Grapevine',
-    description: 'A vine that produces exceptional grapes. Boosts Fast Food Franchise income by 6%.',
-    icon: Sprout,
-    rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 6 } }
-  },
-  {
-    id: 'nemesiss_sword_fragment',
-    name: 'Nemesis\'s Sword Fragment',
-    description: 'A fragment of the sword of retribution. Boosts CyberGuard Solutions income by 5%.',
-    icon: ShieldAlert,
-    rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 5 } }
-  },
-  {
-    id: 'apollos_sunstone',
-    name: 'Apollo\'s Sunstone',
-    description: 'A stone that glows with the light of the sun. Boosts all Energy businesses income by 4%.',
-    icon: Sun,
-    rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 4 } }
-  },
-  {
-    id: 'demeters_scythe',
-    name: 'Demeter\'s Scythe',
-    description: 'A scythe that promises a bountiful harvest. Increases manual material collection by 25.',
-    icon: PenTool,
-    rarity: 'Rare',
-    effects: { increaseManualMaterialCollection: 25 },
-  },
-  {
-    id: 'tyches_coin',
-    name: 'Tyche\'s Coin',
-    description: 'A coin that always seems to land on heads. Increases all stock dividend yields by 5%.',
-    icon: Coins,
-    rarity: 'Rare',
-    effects: { globalDividendYieldBoostPercent: 5 },
-  },
-  {
-    id: 'valkyries_wing_feather',
-    name: 'Valkyrie\'s Wing Feather',
-    description: 'A feather from a Valkyrie\'s wing. Boosts all Aerospace businesses income by 1.5%.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1.5 } }
-  },
-  {
-    id: 'cursed_coin_of_avarice',
-    name: 'Cursed Coin of Avarice',
-    description: 'Looks valuable, but feels... off. +0.5% global income.',
-    icon: HandCoins,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'ceos_first_business_card',
-    name: 'CEO\'s First Business Card',
-    description: 'The worn business card of a future titan of industry. Start with an extra $5,000.',
-    icon: Contact,
-    rarity: 'Uncommon',
-    effects: { increaseStartingMoney: 5000 }
-  },
-  {
-    id: 'investors_lucky_tie_clip',
-    name: 'Investor\'s Lucky Tie Clip',
-    description: 'A tie clip worn during a record-breaking trade. Increases global dividend yield by 1.5%.',
-    icon: Briefcase,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'robust_server_rack_casing',
-    name: 'Robust Server Rack',
-    description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
-    icon: Server,
-    rarity: 'Uncommon',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 1 } }
-  },
-  {
-    id: 'reinforced_quarry_bucket_system',
-    name: 'Reinforced Quarry Bucket',
-    description: 'A large, sturdy bucket for hauling more from the quarry. Increases manual material collection by 8.',
-    icon: ShoppingBasket,
-    rarity: 'Uncommon',
-    effects: { increaseManualMaterialCollection: 8 }
-  },
-  {
-    id: 'high_efficiency_led_lightbulb',
-    name: 'High-Efficiency Lightbulb',
-    description: 'Reduces passive power draw in the factory. Increases factory power generation by 1%.',
-    icon: Lightbulb,
-    rarity: 'Uncommon',
-    effects: { factoryPowerGenerationBoostPercent: 1 }
-  },
-  {
-    id: 'programmers_rubber_duck_of_clarity',
-    name: 'Programmer\'s Rubber Duck',
-    description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
-    icon: Lightbulb,
-    rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 2 } },
-  },
-  {
-    id: 'geologists_rock_hammer',
-    name: 'Geologist\'s Rock Hammer',
-    description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
-    icon: Hammer,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 4 },
-  },
-  {
-    id: 'optimized_factory_cooling_fan',
-    name: 'Optimized Cooling Fan',
-    description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
-    icon: Fan,
-    rarity: 'Uncommon',
-    effects: { factoryGlobalPowerConsumptionModifier: 0.995 }
-  },
-  {
-    id: 'trojan_war_souvenir',
-    name: 'Trojan War Souvenir',
-    description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
-    icon: ShieldCheck,
-    rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
-  },
-  {
-    id: 'medusas_gaze_reflected',
-    name: 'Medusa\'s Gaze (Reflected)',
-    description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
-    icon: Eye,
-    rarity: 'Uncommon',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'cerberuss_collar',
-    name: 'Cerberus\'s Collar',
-    description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
-    icon: KeyRound,
-    rarity: 'Uncommon',
-    effects: { globalPrestigePointBoostPercent: 1 }
-  },
-  {
-    id: 'charons_ferry_token',
-    name: 'Charon\'s Ferry Token',
-    description: 'A token for passage. Start with an extra $1,500.',
-    icon: Coins,
-    rarity: 'Uncommon',
-    effects: { increaseStartingMoney: 1500 }
-  },
-  {
-    id: 'echos_last_word',
-    name: 'Echo\'s Last Word',
-    description: 'A soundwave captured in a crystal. Boosts income for all Media businesses by 0.5%.',
-    icon: Speaker,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.5 } }
-  },
-  {
-    id: 'lernaean_hydra_scale',
-    name: 'Lernaean Hydra Scale',
-    description: 'A scale from a many-headed beast. +1 Quarry Dig Power.',
-    icon: Bone,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 1 }
-  },
-  {
-    id: 'ambrosia_crumb',
-    name: 'Ambrosia Crumb',
-    description: 'A crumb of the food of the gods. +3 Max Quarry Energy.',
-    icon: Cookie,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 3 }
-  },
-  {
-    id: 'worn_mining_gloves',
-    name: 'Worn Mining Gloves',
-    description: 'Leather gloves, perfectly worn in. +4 Dig Power.',
-    icon: Hand,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 4 }
-  },
-  {
-    id: 'engineers_pocket_protector',
-    name: 'Engineer\'s Pocket Protector',
-    description: 'Full of pens and tools. Reduces Manufacturing business upgrade costs by 1%.',
-    icon: Pen,
-    rarity: 'Uncommon',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 1 } }
-  },
-  {
-    id: 'faded_stock_ticker_tape',
-    name: 'Faded Stock Ticker Tape',
-    description: 'A piece of history. +1.5% global dividend yield.',
-    icon: FileText,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'cracked_monocle',
-    name: 'Cracked Monocle',
-    description: 'Still helps you spot a deal. +1% global income.',
-    icon: Eye,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 1 }
-  },
-  {
-    id: 'a_single_phoenix_down',
-    name: 'A Single Phoenix Down',
-    description: 'Not enough to revive, but feels lucky. +1% Prestige Points.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { globalPrestigePointBoostPercent: 1 }
-  },
-  {
-    id: 'bag_of_assorted_nuts_and_bolts',
-    name: 'Bag of Assorted Nuts and Bolts',
-    description: 'Spare parts are always useful. Reduces global business upgrade costs by 0.5%.',
-    icon: Wrench,
-    rarity: 'Uncommon',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'leaky_pen',
-    name: 'Leaky Pen',
-    description: 'It\'s messy, but the ideas that flowed from it were good. +0.5% global income.',
-    icon: PenTool,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'slightly_charged_battery',
-    name: 'Slightly Charged Battery',
-    description: 'Has a little juice left. +3 max Quarry Energy.',
-    icon: BatteryCharging,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 3 }
-  },
-  {
-    id: 'early_internet_modem',
-    name: 'Early Internet Modem',
-    description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
-    icon: Server,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 1 } }
-  },
-  {
-    id: 'a_worlds_best_boss_mug',
-    name: 'A "World\'s Best Boss" Mug',
-    description: 'It\'s cheesy, but it boosts morale. +0.2% global income.',
-    icon: Coffee,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.2 }
   },
 ];
   
