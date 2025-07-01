@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight, Zap } from "lucide-react";
 import {
   INITIAL_ARTIFACTS,
+  INITIAL_QUARRY_UPGRADES,
   QUARRY_NAME_PREFIXES,
   QUARRY_NAME_SUFFIXES,
   BASE_QUARRY_DEPTH,
@@ -30,8 +31,8 @@ const rarityStyles: Record<ArtifactRarity, string> = {
   Common: "text-slate-500 dark:text-slate-400",
   Uncommon: "text-green-600 dark:text-green-500",
   Rare: "text-blue-600 dark:text-blue-500",
-  Legendary: "text-amber-600 dark:text-amber-500",
-  Mythic: "text-purple-600 dark:text-purple-500",
+  Legendary: "text-amber-500 dark:text-amber-400",
+  Mythic: "text-purple-500 dark:text-purple-400",
 };
 
 export default function QuarryPage() {
@@ -122,8 +123,14 @@ export default function QuarryPage() {
   const digPower = getQuarryDigPower();
   const artifactChances = getArtifactFindChances();
   const isQuarryComplete = playerStats.quarryDepth >= playerStats.quarryTargetDepth;
-  const canAffordNextQuarry = isQuarryComplete && playerStats.money >= (playerStats.nextQuarryCost || 0);
 
+  // Calculate the base cost for the *next* quarry to correctly enable/disable the button.
+  // The actual cost will be randomized in the dialog, but this is a good threshold.
+  const nextQuarryBaseCost = isQuarryComplete 
+    ? Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, playerStats.quarryLevel + 1)) 
+    : 0;
+    
+  const canAffordNextQuarry = isQuarryComplete && playerStats.money >= nextQuarryBaseCost;
   const canDig = playerStats.quarryEnergy > 0 && secondsRemaining === 0 && !isQuarryComplete;
 
   return (
@@ -261,5 +268,3 @@ export default function QuarryPage() {
     </>
   );
 }
-
-    
