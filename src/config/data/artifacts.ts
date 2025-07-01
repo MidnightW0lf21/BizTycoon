@@ -1,6 +1,6 @@
 
 import type { Artifact } from '@/types';
-import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Zap, Globe } from 'lucide-react';
+import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Globe, Milestone, Scale, Cookie, ShieldCheck, Sparkles, Citrus, Dna, Zap } from 'lucide-react';
 
 export const INITIAL_ARTIFACTS: Artifact[] = [
   // Mythic Artifacts
@@ -67,6 +67,30 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: KeyRound,
     rarity: 'Mythic',
     effects: { globalPrestigePointBoostPercent: 25 },
+  },
+  {
+    id: 'chronos_hourglass',
+    name: 'Chronos\' Hourglass',
+    description: 'A mythical hourglass containing the sands of time itself. All production timers in the factory run 5% faster.',
+    icon: Hourglass,
+    rarity: 'Mythic',
+    effects: { factoryGlobalProductionSpeedModifier: 1.05 }
+  },
+  {
+    id: 'pandoras_box',
+    name: 'Pandora\'s Box (Lid ajar)',
+    description: 'A legendary box, now mostly empty save for a glimmer of hope. Massively boosts dividend yields for the speculative Omega Corp stock by 25%.',
+    icon: BoxIcon,
+    rarity: 'Mythic',
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 25 } }
+  },
+  {
+    id: 'hephaestus_masterpiece',
+    name: 'Hephaestus\'s Masterpiece',
+    description: 'A perfectly balanced automaton that inspires efficiency. Reduces the cost of all business upgrades by an additional 8%.',
+    icon: Milestone,
+    rarity: 'Mythic',
+    effects: { globalBusinessUpgradeCostReductionPercent: 8 },
   },
   
   // Legendary Artifacts
@@ -165,6 +189,46 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Sprout,
     rarity: 'Legendary',
     effects: { globalIncomeBoostPercent: 10 },
+  },
+  {
+    id: 'zeus_lightning_bolt',
+    name: 'Zeus\'s Lightning Bolt',
+    description: 'A fragment of a lightning bolt thrown by Zeus. Dramatically increases the output of all factory power generation buildings by 10%.',
+    icon: Zap,
+    rarity: 'Legendary',
+    effects: { factoryPowerGenerationBoostPercent: 10 },
+  },
+  {
+    id: 'hermes_sandals',
+    name: 'Hermes\' Winged Sandals',
+    description: 'Fleet-footed sandals that speed up all logistics. All Logistics type businesses generate +12% income.',
+    icon: Plane,
+    rarity: 'Legendary',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 12 } }
+  },
+  {
+    id: 'hephaestus_hammer',
+    name: 'Hephaestus\'s Forgehammer',
+    description: 'The hammer of the smith god. Reduces all Manufacturing business upgrade costs by 8%.',
+    icon: Hammer,
+    rarity: 'Legendary',
+    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 8 } }
+  },
+  {
+    id: 'charons_obol',
+    name: 'Charon\'s Obol',
+    description: 'A coin for passage across the river Styx. Grants an additional $250,000 starting cash after prestige.',
+    icon: Coins,
+    rarity: 'Legendary',
+    effects: { increaseStartingMoney: 250000 },
+  },
+  {
+    id: 'nemesis_scale',
+    name: 'Nemesis\'s Scale',
+    description: 'A scale that perfectly balances fortune in your favor. All businesses generate +9% more income.',
+    icon: Scale,
+    rarity: 'Legendary',
+    effects: { globalIncomeBoostPercent: 9 },
   },
 
   // Rare Artifacts
@@ -295,6 +359,62 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Hourglass,
     rarity: 'Rare',
     effects: { factoryPowerGenerationBoostPercent: 5 },
+  },
+  {
+    id: 'achilles_shield',
+    name: 'Achilles\' Shield',
+    description: 'A shield of divine make. Boosts CyberGuard Solutions income by 10%.',
+    icon: Shield,
+    rarity: 'Rare',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 10 } }
+  },
+  {
+    id: 'argonauts_map',
+    name: 'The Argonauts\' Map',
+    description: 'A sea chart from a legendary voyage. Boosts Horizon Logistics income by 15%.',
+    icon: Map,
+    rarity: 'Rare',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 15 } }
+  },
+  {
+    id: 'sirens_call',
+    name: 'The Siren\'s Call',
+    description: 'A conch shell that emits an irresistible melody. Boosts all Media type businesses income by 5%.',
+    icon: Speaker,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 5 } }
+  },
+  {
+    id: 'trojan_horse_blueprint',
+    name: 'Trojan Horse Blueprint',
+    description: 'A clever plan for infiltration. Reduces the level-up cost of CodeCrafters Inc. by 10%.',
+    icon: Binary,
+    rarity: 'Rare',
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'software_agency', percent: 10 } }
+  },
+  {
+    id: 'orpheus_lyre',
+    name: 'Orpheus\'s Lyre',
+    description: 'A beautiful lyre whose music inspires productivity. Boosts income for all Media type businesses by an additional 6%.',
+    icon: Speaker,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 6 } }
+  },
+  {
+    id: 'pandoras_hope',
+    name: 'Pandora\'s Hope',
+    description: 'The last glimmer from the infamous box. Reduces all business level-up costs by 3%.',
+    icon: Sparkles,
+    rarity: 'Rare',
+    effects: { globalCostReductionPercent: 3 }
+  },
+  {
+    id: 'golden_fleece',
+    name: 'Golden Fleece',
+    description: 'A fleece of pure gold. Increases all stock dividend yields by 10%.',
+    icon: ShoppingBag,
+    rarity: 'Rare',
+    effects: { globalDividendYieldBoostPercent: 10 }
   },
 
   // Uncommon Artifacts
@@ -481,6 +601,94 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Gem,
     rarity: 'Uncommon',
     effects: { increaseStartingMoney: 15000 },
+  },
+  {
+    id: 'daedalus_wings',
+    name: 'Daedalus\'s Wax Wings',
+    description: 'A marvel of engineering, if a bit fragile. Boosts Tech Startup income by 5%.',
+    icon: Feather,
+    rarity: 'Uncommon',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 5 } }
+  },
+  {
+    id: 'prometheus_embers',
+    name: 'Prometheus\'s Embers',
+    description: 'Embers from the fire stolen from the gods. Provides a small +3% boost to all Energy type businesses.',
+    icon: Wind,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 3 } }
+  },
+  {
+    id: 'icarus_ambition',
+    name: 'Icarus\'s Ambition',
+    description: 'A reminder to aim high, but not too high. Boosts Green Energy Co. (GEC) dividend yield.',
+    icon: Sun,
+    rarity: 'Uncommon',
+    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.1 } }
+  },
+  {
+    id: 'oracle_of_delphi_note',
+    name: 'Oracle\'s Cryptic Note',
+    description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
+    icon: Scroll,
+    rarity: 'Uncommon',
+    effects: { globalDividendYieldBoostPercent: 3 }
+  },
+  {
+    id: 'atlas_shoulder_pad',
+    name: 'Atlas\'s Shoulder Pad',
+    description: 'A well-worn piece of padding. Reduces the level up cost of GlobalLink Logistics by 8%.',
+    icon: Globe,
+    rarity: 'Uncommon',
+    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_logistics_inc', percent: 8 } }
+  },
+  {
+    id: 'ariadnes_thread',
+    name: 'Ariadne\'s Thread',
+    description: 'A thread to navigate any maze. Reduces level up cost for Tech businesses by 2%.',
+    icon: Route,
+    rarity: 'Uncommon',
+    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 2 } }
+  },
+  {
+    id: 'icaruss_wax',
+    name: 'Icarus\'s Wax',
+    description: 'Unmelted wax from the famous wings. A reminder of ambition. Boosts Aerospace businesses income by 2%.',
+    icon: Plane,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 2 } }
+  },
+  {
+    id: 'dionysuss_chalice',
+    name: 'Dionysus\'s Chalice',
+    description: 'A chalice that\'s always full. Boosts income for Fast Food Franchise by 4%.',
+    icon: HandCoins,
+    rarity: 'Uncommon',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 4 } }
+  },
+  {
+    id: 'sisyphuss_boulder_miniature',
+    name: 'Sisyphus\'s Boulder (miniature)',
+    description: 'A tiny, perfectly spherical boulder. It reminds you of persistence. Increases Quarry Dig Power by 7.',
+    icon: Mountain,
+    rarity: 'Uncommon',
+    effects: { quarryDigPower: 7 }
+  },
+  {
+    id: 'tantaluss_fruit',
+    name: 'Tantalus\'s Fruit',
+    description: 'A piece of fruit forever out of reach, yet its tantalizing aroma boosts worker morale. Increases maximum Quarry Energy by 12.',
+    icon: Citrus,
+    rarity: 'Uncommon',
+    effects: { increaseMaxEnergy: 12 }
+  },
+  {
+    id: 'chimeras_dna',
+    name: 'Chimera\'s DNA',
+    description: 'A spliced strand of DNA from multiple creatures. Boosts income for all BioTech businesses by 3%.',
+    icon: Dna,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 3 } }
   },
 
   // Common Artifacts
@@ -708,119 +916,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Common',
     effects: { globalCostReductionPercent: 0.1 },
   },
-  // --- BATCH 4 START ---
-  {
-    id: 'chronos_hourglass',
-    name: 'Chronos\' Hourglass',
-    description: 'A mythical hourglass containing the sands of time itself. All production timers in the factory run 5% faster.',
-    icon: Hourglass,
-    rarity: 'Mythic',
-    effects: { factoryGlobalProductionSpeedModifier: 1.05 }
-  },
-  {
-    id: 'pandoras_box',
-    name: 'Pandora\'s Box (Lid ajar)',
-    description: 'A legendary box, now mostly empty save for a glimmer of hope. Massively boosts dividend yields for the speculative Omega Corp stock by 25%.',
-    icon: BoxIcon,
-    rarity: 'Mythic',
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 25 } }
-  },
-  {
-    id: 'zeus_lightning_bolt',
-    name: 'Zeus\'s Lightning Bolt',
-    description: 'A fragment of a lightning bolt thrown by Zeus. Dramatically increases the output of all factory power generation buildings by 10%.',
-    icon: Zap,
-    rarity: 'Legendary',
-    effects: { factoryPowerGenerationBoostPercent: 10 },
-  },
-  {
-    id: 'hermes_sandals',
-    name: 'Hermes\' Winged Sandals',
-    description: 'Fleet-footed sandals that speed up all logistics. All Logistics type businesses generate +12% income.',
-    icon: Plane,
-    rarity: 'Legendary',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 12 } }
-  },
-  {
-    id: 'hephaestus_hammer',
-    name: 'Hephaestus\'s Forgehammer',
-    description: 'The hammer of the smith god. Reduces all Manufacturing business upgrade costs by 8%.',
-    icon: Hammer,
-    rarity: 'Legendary',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 8 } }
-  },
-  {
-    id: 'achilles_shield',
-    name: 'Achilles\' Shield',
-    description: 'A shield of divine make. Boosts CyberGuard Solutions income by 10%.',
-    icon: Shield,
-    rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 10 } }
-  },
-  {
-    id: 'argonauts_map',
-    name: 'The Argonauts\' Map',
-    description: 'A sea chart from a legendary voyage. Boosts Horizon Logistics income by 15%.',
-    icon: Map,
-    rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 15 } }
-  },
-  {
-    id: 'sirens_call',
-    name: 'The Siren\'s Call',
-    description: 'A conch shell that emits an irresistible melody. Boosts all Media type businesses income by 5%.',
-    icon: Speaker,
-    rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 5 } }
-  },
-  {
-    id: 'trojan_horse_blueprint',
-    name: 'Trojan Horse Blueprint',
-    description: 'A clever plan for infiltration. Reduces the level-up cost of CodeCrafters Inc. by 10%.',
-    icon: Binary,
-    rarity: 'Rare',
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'software_agency', percent: 10 } }
-  },
-  {
-    id: 'daedalus_wings',
-    name: 'Daedalus\'s Wax Wings',
-    description: 'A marvel of engineering, if a bit fragile. Boosts Tech Startup income by 5%.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 5 } }
-  },
-  {
-    id: 'prometheus_embers',
-    name: 'Prometheus\'s Embers',
-    description: 'Embers from the fire stolen from the gods. Provides a small +3% boost to all Energy type businesses.',
-    icon: Wind,
-    rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 3 } }
-  },
-  {
-    id: 'icarus_ambition',
-    name: 'Icarus\'s Ambition',
-    description: 'A reminder to aim high, but not too high. Boosts Green Energy Co. (GEC) dividend yield.',
-    icon: Sun,
-    rarity: 'Uncommon',
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.1 } }
-  },
-  {
-    id: 'oracle_of_delphi_note',
-    name: 'Oracle\'s Cryptic Note',
-    description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
-    icon: Scroll,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 3 }
-  },
-  {
-    id: 'atlas_shoulder_pad',
-    name: 'Atlas\'s Shoulder Pad',
-    description: 'A well-worn piece of padding. Reduces the level up cost of GlobalLink Logistics by 8%.',
-    icon: Globe,
-    rarity: 'Uncommon',
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_logistics_inc', percent: 8 } }
-  },
   {
     id: 'minotaurs_thread',
     name: 'Minotaur\'s Labyrinth Thread',
@@ -869,6 +964,71 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Common',
     effects: { factoryManualRPGenerationBoost: 0.5 }
   },
+  {
+    id: 'trojan_war_souvenir',
+    name: 'Trojan War Souvenir',
+    description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
+    icon: ShieldCheck,
+    rarity: 'Common',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
+  },
+  {
+    id: 'medusas_gaze_reflected',
+    name: 'Medusa\'s Gaze (Reflected)',
+    description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
+    icon: Eye,
+    rarity: 'Common',
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
+  },
+  {
+    id: 'cerberuss_collar',
+    name: 'Cerberus\'s Collar',
+    description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
+    icon: KeyRound,
+    rarity: 'Common',
+    effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'charons_ferry_token',
+    name: 'Charon\'s Ferry Token',
+    description: 'A token for passage. Start with an extra $1,500.',
+    icon: Coins,
+    rarity: 'Common',
+    effects: { increaseStartingMoney: 1500 }
+  },
+  {
+    id: 'echos_last_word',
+    name: 'Echo\'s Last Word',
+    description: 'A soundwave captured in a crystal. Boosts income for all Media businesses by 0.5%.',
+    icon: Speaker,
+    rarity: 'Common',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.5 } }
+  },
+  {
+    id: 'lernaean_hydra_scale',
+    name: 'Lernaean Hydra Scale',
+    description: 'A scale from a many-headed beast. +1 Quarry Dig Power.',
+    icon: Bone,
+    rarity: 'Common',
+    effects: { quarryDigPower: 1 }
+  },
+  {
+    id: 'ambrosia_crumb',
+    name: 'Ambrosia Crumb',
+    description: 'A crumb of the food of the gods. +3 Max Quarry Energy.',
+    icon: Cookie,
+    rarity: 'Common',
+    effects: { increaseMaxEnergy: 3 }
+  },
+  {
+    id: 'cursed_coin',
+    name: 'Cursed Coin',
+    description: 'Looks valuable, but feels... off. +0.5% global income.',
+    icon: HandCoins,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.5 }
+  },
 ];
-
   
+
+    
