@@ -1681,7 +1681,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const retainedStockHoldings: StockHolding[] = [];
       const {
           factoryPurchased, factoryRawMaterials,
-          factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers, factoryRawMaterialsCap
+          factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers, factoryRawMaterialsCap,
+          minerals, quarryDepth, quarryTargetDepth, quarryLevel, quarryName, quarryRarityBias, purchasedQuarryUpgradeIds, maxQuarryEnergy, lastDigTimestamp
       } = playerStatsNow;
 
 
@@ -1746,6 +1747,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           lastManualResearchTimestamp: 0,
           currentWorkerEnergyTier: prev.currentWorkerEnergyTier,
           manualResearchBonus: prev.manualResearchBonus, 
+          minerals,
+          quarryDepth,
+          quarryTargetDepth,
+          quarryLevel,
+          quarryName,
+          quarryRarityBias,
+          purchasedQuarryUpgradeIds,
+          maxQuarryEnergy,
+          quarryEnergy: maxQuarryEnergy,
+          lastDigTimestamp,
       }));
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
