@@ -3,10 +3,10 @@
 
 import { useMemo, useEffect, useState } from "react";
 import { useGame } from "@/contexts/GameContext";
-import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES, INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
+import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES, INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_ARTIFACTS, INITIAL_QUARRY_UPGRADES } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, Briefcase, Network, BarChart, Building as HQIcon, Factory as FactoryIcon } from "lucide-react";
+import { ListChecks, Briefcase, Network, BarChart, Building as HQIcon, Factory as FactoryIcon, Mountain as QuarryIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ChartConfig } from "@/components/ui/chart";
 import { ChartContainer } from "@/components/ui/chart";
@@ -136,9 +136,27 @@ export default function CompletionPage() {
         factoryCompletion.percentage = factoryCompletion.total > 0 ? (factoryCompletion.current / factoryCompletion.total) * 100 : 0;
     }
     
+    const totalArtifacts = INITIAL_ARTIFACTS.length;
+    const unlockedArtifacts = (playerStats.unlockedArtifactIds || []).length;
+    const totalQuarryUpgrades = INITIAL_QUARRY_UPGRADES.length;
+    const purchasedQuarryUpgrades = (playerStats.purchasedQuarryUpgradeIds || []).length;
+
+    const quarryCompletion = {
+      current: unlockedArtifacts + purchasedQuarryUpgrades,
+      total: totalArtifacts + totalQuarryUpgrades,
+      percentage: 0,
+      active: (playerStats.timesPrestiged || 0) >= 4,
+    };
+    if (quarryCompletion.active) {
+        quarryCompletion.percentage = quarryCompletion.total > 0 ? (quarryCompletion.current / quarryCompletion.total) * 100 : 0;
+    }
+
     const categoriesForAverage = [ businessCompletionPercentage, skillCompletionPercentage, hqCompletionPercentage, stockCompletionPercentage, ];
     if (factoryCompletion.active) {
         categoriesForAverage.push(factoryCompletion.percentage);
+    }
+    if (quarryCompletion.active) {
+        categoriesForAverage.push(quarryCompletion.percentage);
     }
     
     const overallCompletionPercentage = categoriesForAverage.length > 0 ? categoriesForAverage.reduce((sum, val) => sum + val, 0) / categoriesForAverage.length : 0;
@@ -150,6 +168,7 @@ export default function CompletionPage() {
       hq: { current: achievedHQLevels, total: totalPossibleHQLevels, percentage: hqCompletionPercentage },
       stocks: { current: currentOwnedShares, total: totalPossibleSharesToOwn, percentage: stockCompletionPercentage },
       factory: factoryCompletion,
+      quarry: quarryCompletion,
     };
   }, [ playerStats ]);
   
@@ -181,7 +200,7 @@ export default function CompletionPage() {
           </CardContent>
         </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
              <Card key={i}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-5 w-32" />
@@ -278,6 +297,15 @@ export default function CompletionPage() {
             currentValue={completionData.factory.current}
             totalValue={completionData.factory.total}
             unit="objectives"
+            />
+        }
+        { (completionData.quarry.active || (mounted && playerStats.timesPrestiged >=4) ) && 
+            <CategoryProgress 
+            title="Quarry Discoveries"
+            icon={QuarryIcon}
+            currentValue={completionData.quarry.current}
+            totalValue={completionData.quarry.total}
+            unit="discoveries"
             />
         }
       </div>
