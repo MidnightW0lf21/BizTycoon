@@ -2,7 +2,8 @@
 import { SettingsManager } from "@/components/settings/SettingsManager";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SlidersHorizontal, Palette } from "lucide-react";
+import { SlidersHorizontal, Palette, Bell } from "lucide-react";
+import { ToastSettingsManager } from "@/components/settings/ToastSettingsManager";
 
 export default function SettingsPage() {
   return (
@@ -19,6 +20,21 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <SettingsManager />
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Bell className="h-6 w-6 text-primary" />
+            <CardTitle>Notification Settings</CardTitle>
+          </div>
+          <CardDescription>
+            Choose which types of toast notifications to display.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ToastSettingsManager />
         </CardContent>
       </Card>
 

@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
@@ -55,6 +55,15 @@ export const RESEARCH_MANUAL_GENERATION_COST_MONEY = 10000; // Base money cost p
 export const MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST = 10000; // Money cost increase per "manual_rp_boost" stage
 export const RESEARCH_MANUAL_COOLDOWN_MS = 10000; // 10 seconds
 export const REQUIRED_PRESTIGE_LEVEL_FOR_RESEARCH_TAB = 6;
+
+export const defaultToastSettings: ToastSettings = {
+  showAutoBuyUpgrades: true,
+  showManualPurchases: true,
+  showStockTrades: true,
+  showPrestige: true,
+  showFactory: true,
+  showQuarry: true,
+};
 
 
 export const calculateIncome = (

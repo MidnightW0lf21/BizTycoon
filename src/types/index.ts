@@ -309,6 +309,15 @@ export type QuarryChoice = {
   description: string;
 };
 
+export interface ToastSettings {
+  showAutoBuyUpgrades: boolean;
+  showManualPurchases: boolean;
+  showStockTrades: boolean;
+  showPrestige: boolean;
+  showFactory: boolean;
+  showQuarry: boolean;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -359,6 +368,9 @@ export interface PlayerStats {
   lastDigTimestamp: number;
   quarryRarityBias: ArtifactRarity | null;
   quarryName: string;
+
+  // App Settings
+  toastSettings?: ToastSettings;
 }
 
 export interface SaveData {
