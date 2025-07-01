@@ -1970,11 +1970,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastDescription = `You need ${upgradeConfig.cost} minerals to purchase this.`;
       toastVariant = "destructive";
     } else {
-      setPlayerStats(prev => ({
-        ...prev,
-        minerals: prev.minerals - upgradeConfig.cost,
-        purchasedQuarryUpgradeIds: [...(prev.purchasedQuarryUpgradeIds || []), upgradeId],
-      }));
+      setPlayerStats(prev => {
+        const newPurchasedIds = [...(prev.purchasedQuarryUpgradeIds || []), upgradeId];
+        
+        let newMaxEnergy = QUARRY_ENERGY_MAX;
+        newPurchasedIds.forEach(id => {
+          const upg = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
+          if (upg?.effects.increaseMaxEnergy) {
+            newMaxEnergy += upg.effects.increaseMaxEnergy;
+          }
+        });
+
+        return {
+          ...prev,
+          minerals: prev.minerals - upgradeConfig.cost,
+          purchasedQuarryUpgradeIds: newPurchasedIds,
+          maxQuarryEnergy: newMaxEnergy,
+        };
+      });
       toastTitle = "Quarry Upgrade Purchased!";
       toastDescription = `You purchased ${upgradeConfig.name}.`;
     }
@@ -2083,6 +2096,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
         const initialDefaults = getInitialPlayerStats();
+        let loadedMaxEnergy = QUARRY_ENERGY_MAX;
+        (loadedData.playerStats.purchasedQuarryUpgradeIds || []).forEach(id => {
+            const upgrade = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
+            if (upgrade?.effects.increaseMaxEnergy) {
+                loadedMaxEnergy += upgrade.effects.increaseMaxEnergy;
+            }
+        });
+
         const mergedPlayerStats: PlayerStats = {
             ...initialDefaults, ...tempPlayerStats,
             unlockedSkillIds: Array.isArray(tempPlayerStats.unlockedSkillIds) ? tempPlayerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
@@ -2116,7 +2137,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             quarryName: typeof tempPlayerStats.quarryName === 'string' ? tempPlayerStats.quarryName : initialDefaults.quarryName,
             quarryRarityBias: tempPlayerStats.quarryRarityBias || null,
             quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
-            maxQuarryEnergy: typeof tempPlayerStats.maxQuarryEnergy === 'number' ? tempPlayerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
+            maxQuarryEnergy: loadedMaxEnergy,
             lastDigTimestamp: typeof tempPlayerStats.lastDigTimestamp === 'number' ? tempPlayerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
         };
         setPlayerStats(mergedPlayerStats);

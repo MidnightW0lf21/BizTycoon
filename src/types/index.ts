@@ -291,9 +291,11 @@ export interface QuarryUpgrade {
   name: string;
   description: string;
   cost: number; // Cost in Minerals
+  icon?: LucideIcon;
   effects: {
     digPower?: number; // Additive dig power
     automationRate?: number; // Passive digging rate in cm/s
+    increaseMaxEnergy?: number; // Additive max energy
   };
 }
 

@@ -16,12 +16,16 @@ interface QuarryUpgradeCardProps {
 
 export function QuarryUpgradeCard({ upgrade, onPurchase, playerMinerals, isPurchased }: QuarryUpgradeCardProps) {
   const canAfford = playerMinerals >= upgrade.cost;
+  const Icon = upgrade.icon || Pickaxe;
 
   return (
     <Card className={cn("shadow-sm", isPurchased && "bg-primary/10 border-primary")}>
       <CardHeader className="pb-2 pt-3">
         <CardTitle className="text-base flex items-center justify-between">
-          {upgrade.name}
+          <span className="flex items-center gap-2">
+            <Icon className="h-4 w-4 text-primary"/>
+            {upgrade.name}
+          </span>
           {isPurchased && <CheckCircle2 className="h-5 w-5 text-green-500" />}
         </CardTitle>
         <CardDescription className="text-xs">{upgrade.description}</CardDescription>
