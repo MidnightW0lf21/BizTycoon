@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import type { Artifact, ArtifactRarity, QuarryChoice } from "@/types";
 import { useState, useEffect, useMemo } from "react";
 import { QuarrySelectionDialog } from "@/components/quarry/QuarrySelectionDialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const REQUIRED_PRESTIGE_LEVEL_QUARRY = 4;
 
@@ -70,6 +71,8 @@ export default function QuarryPage() {
   
   }, []);
 
+  const defaultAccordionValues = useMemo(() => artifactsByRarity.map(group => group.rarity), [artifactsByRarity]);
+
   useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined;
     const updateCooldown = () => {
@@ -96,8 +99,8 @@ export default function QuarryPage() {
 
   const handleOpenQuarrySelection = () => {
     const nextQuarryLevel = playerStats.quarryLevel + 1;
-    const baseNextDepth = Math.floor(BASE_QUARRY_DEPTH * Math.pow(QUARRY_DEPTH_MULTIPLIER, nextQuarryLevel));
     const baseNextCost = Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, nextQuarryLevel));
+    const baseNextDepth = Math.floor(BASE_QUARRY_DEPTH * Math.pow(QUARRY_DEPTH_MULTIPLIER, nextQuarryLevel));
 
     const availableBiases: ArtifactRarity[] = ['Common', 'Uncommon', 'Rare'];
     
@@ -268,25 +271,29 @@ export default function QuarryPage() {
               <p className="text-center text-muted-foreground py-10">No artifacts are available in the game yet.</p>
             ) : (
               <ScrollArea className="flex-grow h-0 pr-4">
-                <div className="space-y-6">
+                <Accordion type="multiple" defaultValue={defaultAccordionValues} className="w-full">
                   {artifactsByRarity.map(({ rarity, artifacts }) => (
-                    <div key={rarity}>
-                      <div className="flex items-center gap-4 mb-3">
-                        <h3 className={cn("text-lg font-semibold tracking-wider", rarityStyles[rarity])}>{rarity}</h3>
-                        <div className={cn("flex-grow border-t", rarityStyles[rarity])}></div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {artifacts.map(artifact => (
-                          <ArtifactCard
-                            key={artifact.id}
-                            artifact={artifact}
-                            isUnlocked={(playerStats.unlockedArtifactIds || []).includes(artifact.id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
+                    <AccordionItem value={rarity} key={rarity} className="border-b-0">
+                       <AccordionTrigger className="hover:no-underline py-2">
+                          <div className="flex items-center gap-4 flex-grow">
+                              <h3 className={cn("text-lg font-semibold tracking-wider", rarityStyles[rarity])}>{rarity}</h3>
+                              <div className={cn("flex-grow border-t", rarityStyles[rarity])}></div>
+                          </div>
+                       </AccordionTrigger>
+                       <AccordionContent className="pt-2 pb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {artifacts.map(artifact => (
+                              <ArtifactCard
+                                key={artifact.id}
+                                artifact={artifact}
+                                isUnlocked={(playerStats.unlockedArtifactIds || []).includes(artifact.id)}
+                              />
+                            ))}
+                          </div>
+                       </AccordionContent>
+                    </AccordionItem>
                   ))}
-                </div>
+                </Accordion>
               </ScrollArea>
             )}
           </CardContent>
