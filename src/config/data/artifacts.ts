@@ -230,30 +230,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Legendary',
     effects: { increaseStartingMoney: 250000 },
   },
-  {
-    id: 'nemesis_scale',
-    name: 'Nemesis\'s Scale',
-    description: 'A scale that perfectly balances fortune in your favor. All businesses generate +9% more income.',
-    icon: Scale,
-    rarity: 'Legendary',
-    effects: { globalIncomeBoostPercent: 9 },
-  },
-  {
-    id: 'sirens_enchanting_lure',
-    name: 'Siren\'s Enchanting Lure',
-    description: 'A lure that draws in immense capital. Increases all stock dividend yields by a massive 15%.',
-    icon: Music,
-    rarity: 'Legendary',
-    effects: { globalDividendYieldBoostPercent: 15 }
-  },
-  {
-    id: 'mercurys_message',
-    name: 'Mercury\'s Message',
-    description: 'A message delivered at impossible speed. All Logistics-type businesses generate +10% more income.',
-    icon: MessageSquare,
-    rarity: 'Legendary',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 10 } }
-  },
 
   // Rare Artifacts
   {
@@ -439,6 +415,22 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: ShoppingBag,
     rarity: 'Rare',
     effects: { globalDividendYieldBoostPercent: 10 }
+  },
+  {
+    id: 'sirens_enchanting_lure',
+    name: 'Siren\'s Enchanting Lure',
+    description: 'A lure that draws in immense capital. Increases all stock dividend yields by a massive 15%.',
+    icon: Music,
+    rarity: 'Rare',
+    effects: { globalDividendYieldBoostPercent: 15 }
+  },
+  {
+    id: 'mercurys_message',
+    name: 'Mercury\'s Message',
+    description: 'A message delivered at impossible speed. All Logistics-type businesses generate +10% more income.',
+    icon: MessageSquare,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 10 } }
   },
   {
     id: 'daedaluss_labyrinth_blueprint',
@@ -713,22 +705,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: HandCoins,
     rarity: 'Uncommon',
     effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 4 } }
-  },
-  {
-    id: 'sisyphuss_boulder_miniature',
-    name: 'Sisyphus\'s Boulder (miniature)',
-    description: 'A tiny, perfectly spherical boulder. It reminds you of persistence. Increases Quarry Dig Power by 7.',
-    icon: Mountain,
-    rarity: 'Uncommon',
-    effects: { quarryDigPower: 7 }
-  },
-  {
-    id: 'tantaluss_fruit',
-    name: 'Tantalus\'s Fruit',
-    description: 'A piece of fruit forever out of reach, yet its tantalizing aroma boosts worker morale. Increases maximum Quarry Energy by 12.',
-    icon: Citrus,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 12 }
   },
   {
     id: 'chimeras_dna',
