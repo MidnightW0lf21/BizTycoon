@@ -1,10 +1,10 @@
 
 "use client";
 
-import type { Artifact, ArtifactRarity } from "@/types";
+import type { Artifact, ArtifactRarity, ArtifactEffects } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Lock } from "lucide-react";
+import { CheckCircle, Lock, Sparkles } from "lucide-react";
 import { Badge } from "../ui/badge";
 
 interface ArtifactCardProps {
@@ -24,9 +24,24 @@ export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
   const Icon = artifact.icon;
   const styles = rarityStyles[artifact.rarity || 'Common'];
 
+  const renderableEffects: { text: string; key: keyof ArtifactEffects }[] = [];
+  if (isUnlocked) {
+    const effects = artifact.effects;
+    if (effects.globalIncomeBoostPercent) renderableEffects.push({ key: 'globalIncomeBoostPercent', text: `+${effects.globalIncomeBoostPercent}% Global Income` });
+    if (effects.globalCostReductionPercent) renderableEffects.push({ key: 'globalCostReductionPercent', text: `-${effects.globalCostReductionPercent}% Global Lvl Cost` });
+    if (effects.globalBusinessUpgradeCostReductionPercent) renderableEffects.push({ key: 'globalBusinessUpgradeCostReductionPercent', text: `-${effects.globalBusinessUpgradeCostReductionPercent}% Global Upg. Cost` });
+    if (effects.increaseStartingMoney) renderableEffects.push({ key: 'increaseStartingMoney', text: `+$${effects.increaseStartingMoney.toLocaleString()} Starting Cash` });
+    if (effects.globalDividendYieldBoostPercent) renderableEffects.push({ key: 'globalDividendYieldBoostPercent', text: `+${effects.globalDividendYieldBoostPercent}% Dividend Yield` });
+    if (effects.globalPrestigePointBoostPercent) renderableEffects.push({ key: 'globalPrestigePointBoostPercent', text: `+${effects.globalPrestigePointBoostPercent}% Prestige Points` });
+    if (effects.factoryPowerGenerationBoostPercent) renderableEffects.push({ key: 'factoryPowerGenerationBoostPercent', text: `+${effects.factoryPowerGenerationBoostPercent}% Factory Power` });
+    if (effects.increaseManualMaterialCollection) renderableEffects.push({ key: 'increaseManualMaterialCollection', text: `+${effects.increaseManualMaterialCollection} Manual Materials` });
+    if (effects.quarryDigPower) renderableEffects.push({ key: 'quarryDigPower', text: `+${effects.quarryDigPower} Dig Power` });
+    if (effects.increaseMaxEnergy) renderableEffects.push({ key: 'increaseMaxEnergy', text: `+${effects.increaseMaxEnergy} Max Quarry Energy` });
+  }
+
   return (
     <Card className={cn(
-      "shadow-md transition-all",
+      "shadow-md transition-all flex flex-col",
       isUnlocked ? `${styles.border} ${styles.bg}` : "border-dashed bg-muted/50"
     )}>
       <CardHeader className="pb-3 pt-4">
@@ -35,13 +50,24 @@ export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
           {isUnlocked && <Badge variant="outline" className={cn("text-xs", styles.badge, styles.border)}>{artifact.rarity}</Badge>}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow flex flex-col">
         <CardTitle className={cn("text-lg", isUnlocked ? styles.text : "text-muted-foreground")}>
           {isUnlocked ? artifact.name : "Undiscovered Artifact"}
         </CardTitle>
-        <CardDescription className="text-xs min-h-[40px] mt-1">
+        <CardDescription className="text-xs min-h-[40px] mt-1 flex-grow">
           {isUnlocked ? artifact.description : "Excavate in the Quarry to discover this artifact and its powerful bonus."}
         </CardDescription>
+
+        {isUnlocked && renderableEffects.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-border/60 border-dashed space-y-1.5">
+            {renderableEffects.map((effect) => (
+              <div key={effect.key} className="flex items-center text-sm font-medium text-primary">
+                <Sparkles className="h-3.5 w-3.5 mr-2 shrink-0 opacity-80" />
+                <span>{effect.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
