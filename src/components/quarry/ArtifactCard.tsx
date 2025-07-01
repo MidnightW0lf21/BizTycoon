@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn } from "@/lib/utils";
 import { CheckCircle, Lock, Sparkles, TrendingUp, ArrowDownCircle, ShoppingCart, PiggyBank, Star, Zap, Package, Pickaxe, BatteryCharging } from "lucide-react";
 import { Badge } from "../ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ArtifactCardProps {
   artifact: Artifact;
   isUnlocked: boolean;
+  isMiniMode?: boolean;
 }
 
 const rarityStyles: Record<ArtifactRarity, { border: string, bg: string, text: string, badge: string }> = {
@@ -37,9 +39,45 @@ const EffectIcon = ({ effectKey }: { effectKey: keyof ArtifactEffects }) => {
   }
 };
 
-export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
+export function ArtifactCard({ artifact, isUnlocked, isMiniMode = false }: ArtifactCardProps) {
   const Icon = artifact.icon;
   const styles = rarityStyles[artifact.rarity || 'Common'];
+
+  if (isMiniMode) {
+    if (!isUnlocked) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="flex flex-col items-center justify-center gap-1 text-center p-2 border border-dashed bg-muted/50 rounded-md aspect-square h-full">
+                <Lock className="h-6 w-6 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Undiscovered Artifact</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <div className={cn("flex flex-col items-center justify-center gap-1.5 text-center p-2 rounded-md aspect-square h-full cursor-pointer", styles.border, styles.bg)}>
+              <Icon className={cn("h-8 w-8", styles.text)} />
+              <p className={cn("text-xs font-medium leading-tight truncate w-full", styles.text)}>{artifact.name}</p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="font-bold">{artifact.name} <span className={cn("text-xs font-normal", styles.text)}>({artifact.rarity})</span></p>
+            <p className="text-sm text-muted-foreground max-w-xs">{artifact.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
   const renderableEffects: { text: string; key: keyof ArtifactEffects }[] = [];
   if (isUnlocked) {
@@ -54,6 +92,7 @@ export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
     if (effects.increaseManualMaterialCollection) renderableEffects.push({ key: 'increaseManualMaterialCollection', text: `+${effects.increaseManualMaterialCollection} Manual Materials` });
     if (effects.quarryDigPower) renderableEffects.push({ key: 'quarryDigPower', text: `+${effects.quarryDigPower} Dig Power` });
     if (effects.increaseMaxEnergy) renderableEffects.push({ key: 'increaseMaxEnergy', text: `+${effects.increaseMaxEnergy} Max Quarry Energy` });
+    if (effects.mineralBonus) renderableEffects.push({ key: 'mineralBonus', text: `+${effects.mineralBonus} to max minerals per dig` });
   }
 
   return (
