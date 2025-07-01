@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -68,7 +68,8 @@ import {
   QUARRY_ENERGY_MAX,
   QUARRY_ENERGY_COST_PER_DIG,
   QUARRY_ENERGY_REGEN_PER_SECOND,
-  QUARRY_DIG_COOLDOWN_MS
+  QUARRY_DIG_COOLDOWN_MS,
+  defaultToastSettings,
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -126,6 +127,7 @@ interface GameContextType {
   purchaseQuarryUpgrade: (upgradeId: string) => void;
   getArtifactFindChances: () => ArtifactFindChances;
   selectNextQuarry: (choice: QuarryChoice) => void;
+  updateToastSettings: (settings: ToastSettings) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -179,6 +181,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     currentWorkerEnergyTier: INITIAL_WORKER_ENERGY_TIER,
     manualResearchBonus: 0,
     factoryWorkerEnergyRegenModifier: 1,
+    toastSettings: { ...defaultToastSettings },
   };
 };
 
@@ -487,6 +490,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         quarryEnergy: typeof importedData.playerStats.quarryEnergy === 'number' ? importedData.playerStats.quarryEnergy : initialDefaults.quarryEnergy,
         maxQuarryEnergy: typeof importedData.playerStats.maxQuarryEnergy === 'number' ? importedData.playerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
         lastDigTimestamp: typeof importedData.playerStats.lastDigTimestamp === 'number' ? importedData.playerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
+        toastSettings: typeof importedData.playerStats.toastSettings === 'object' && importedData.playerStats.toastSettings !== null ? importedData.playerStats.toastSettings : initialDefaults.toastSettings,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -649,7 +653,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
     }); 
 
-    if (toastTitle && (!isAutoBuy)) {
+    if (toastTitle && (toastVariant === 'destructive' || (isAutoBuy ? (playerStatsRef.current.toastSettings?.showAutoBuyUpgrades ?? true) : (playerStatsRef.current.toastSettings?.showManualPurchases ?? true)))) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant, duration: isAutoBuy ? 1500 : 3000 });
     }
     return success;
@@ -723,7 +727,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showManualPurchases ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, [getDynamicMaxBusinessLevel]);
 
   const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
@@ -792,7 +796,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const sellStock = useCallback((stockId: string, sharesToSell: number) => {
@@ -833,7 +837,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `Sold ${sharesToSell.toLocaleString('en-US')} share(s) of ${stock.companyName}.`;
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const unlockSkillNode = useCallback((skillId: string) => {
@@ -865,7 +869,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Skill Unlocked!";
       toastDescription = `${skill.name} is now active.`;
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showManualPurchases ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseHQUpgrade = useCallback((upgradeId: string) => {
@@ -922,13 +926,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showManualPurchases ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseFactoryBuilding = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
 
     const playerStatsNow = playerStatsRef.current;
 
@@ -944,13 +948,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Factory Purchased!";
       toastDescription = "You can now start building your industrial empire!";
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseFactoryPowerBuilding = useCallback((configId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
 
@@ -988,7 +992,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const manuallyCollectRawMaterials = useCallback(() => {
@@ -1023,7 +1027,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseFactoryMachine = useCallback((configId: string) => {
@@ -1143,7 +1147,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
                 
                 setTimeout(() => { 
-                    if (finalToastTitle) {
+                    if (finalToastTitle && (playerStatsRef.current.toastSettings?.showFactory ?? true)) {
                         toastRef.current({ title: finalToastTitle, description: finalToastDescription, variant: "default" });
                     }
                 }, 0);
@@ -1221,14 +1225,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         }
     }
-    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
 
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     let machineNameForToast = "Machine";
     let productionLineNameForToast = "Production Line";
     
@@ -1356,13 +1360,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { ...prev, factoryProductionLines: updatedProductionLines, factoryProductionProgress: newFactoryProductionProgress, factoryWorkers: updatedWorkers };
     });
 
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
 
@@ -1400,13 +1404,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const manuallyGenerateResearchPoints = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0);
 
@@ -1445,13 +1449,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `+${pointsToGain} Research Point(s) gained for $${currentManualResearchCost.toLocaleString()}.`;
       }
     }
-     if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+     if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const purchaseResearch = useCallback((researchId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
 
@@ -1539,13 +1543,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription += ` Worker rest speed is now ${researchConfig.effects.factoryWorkerEnergyRegenModifier}x.`;
       }
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const unlockProductionLine = useCallback((lineId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
 
     const lineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(l => l.id === lineId);
@@ -1575,7 +1579,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `${line.name} is now operational.`;
       }
     }
-    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const assignWorkerToMachine = useCallback((workerId: string | null, machineInstanceId: string) => {
@@ -1646,7 +1650,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
 
-    if (toastTitle && (toastDescription || toastVariant === "destructive")) {
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) {
       toastRef.current({ title: toastTitle, description: toastDescription || "An unknown error occurred.", variant: toastVariant, duration: 2500 });
     }
   }, []);
@@ -1655,7 +1659,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const performPrestige = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const moneyRequiredForFirstPrestige = 100000;
     const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
@@ -1746,13 +1750,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastTitle = "Prestige Successful!";
       toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     }
-    if(toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showPrestige ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, [getDynamicMaxWorkerEnergy]);
 
   const hireWorker = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const currentWorkerCount = (playerStatsNow.factoryWorkers || []).length;
     const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
@@ -1790,7 +1794,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `${newWorker.name} has been hired for $${costForNextWorker.toLocaleString()} and is now idle.`;
       }
     }
-    if (toastTitle) {
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
     }
   }, [getDynamicMaxWorkerEnergy]);
@@ -1798,6 +1802,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const setLastMarketTrends = useCallback((trends: string) => { setLastMarketTrendsInternal(trends); }, []);
   const setLastRiskTolerance = useCallback((tolerance: "low" | "medium" | "high") => { setLastRiskToleranceInternal(tolerance); }, []);
+
+  const updateToastSettings = useCallback((settings: ToastSettings) => {
+    setPlayerStats(prev => ({
+      ...prev,
+      toastSettings: settings,
+    }));
+  }, []);
 
   const getQuarryDigPower = useCallback((): number => {
     let totalDigPower = 1; // Base power from the player's hands/basic shovel
@@ -1866,7 +1877,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const digInQuarry = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
 
     const now = Date.now();
@@ -1923,11 +1934,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             if (foundArtifact) {
               setTimeout(() => {
-                toastRef.current({
-                  title: `Artifact Found!`,
-                  description: `You unearthed the ${foundArtifact?.name}! Check the Quarry for its effects.`,
-                  duration: 5000,
-                });
+                if (playerStatsRef.current.toastSettings?.showQuarry ?? true) {
+                  toastRef.current({
+                    title: `Artifact Found!`,
+                    description: `You unearthed the ${foundArtifact?.name}! Check the Quarry for its effects.`,
+                    duration: 5000,
+                  });
+                }
               }, 100);
             }
 
@@ -1945,17 +1958,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `Found ${mineralsFound} minerals.`;
     }
 
-    if(toastTitle && toastVariant === "destructive") {
+    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showQuarry ?? true))) {
+      // Don't toast the success of finding an artifact twice
+      if (!toastDescription.includes("Found")) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-    } else if (toastTitle && toastVariant !== "destructive" && !toastDescription.includes("Found")) {
-        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+      }
     }
   }, [getQuarryDigPower, getArtifactFindChances]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
 
@@ -1992,13 +2006,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastDescription = `You purchased ${upgradeConfig.name}.`;
     }
 
-    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showQuarry ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
 
     if (playerStatsNow.quarryDepth < playerStatsNow.quarryTargetDepth) {
@@ -2027,7 +2041,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = `You've started excavating ${choice.name}. Target depth: ${choice.depth / 100}m.`;
     }
 
-    if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showQuarry ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
   useEffect(() => {
@@ -2139,6 +2153,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
             maxQuarryEnergy: loadedMaxEnergy,
             lastDigTimestamp: typeof tempPlayerStats.lastDigTimestamp === 'number' ? tempPlayerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
+            toastSettings: typeof importedData.playerStats.toastSettings === 'object' && importedData.playerStats.toastSettings !== null ? importedData.playerStats.toastSettings : initialDefaults.toastSettings,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -2645,7 +2660,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               let updatedPurchasedUpgradesForAuto = [...existingPurchasedUpgrades];
               if (!existingPurchasedUpgrades.includes(upgrade.id)) {
                 updatedPurchasedUpgradesForAuto.push(upgrade.id);
-                toastRef.current({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
+                if (playerStatsRef.current.toastSettings?.showAutoBuyUpgrades ?? true) {
+                  toastRef.current({ title: "Auto-Upgrade!", description: `${upgrade.name} for ${business.name}`, duration: 1500 });
+                }
               }
               newAchievedBusinessMilestonesForAutoBuy = {
                 ...newAchievedBusinessMilestonesForAutoBuy,
@@ -2688,6 +2705,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
       getQuarryDigPower, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
+      updateToastSettings,
     }}>
       {children}
     </GameContext.Provider>
@@ -2701,5 +2719,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
