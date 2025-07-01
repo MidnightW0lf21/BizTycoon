@@ -1366,7 +1366,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "destructive";
+    let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
 
@@ -2153,7 +2153,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
             maxQuarryEnergy: loadedMaxEnergy,
             lastDigTimestamp: typeof tempPlayerStats.lastDigTimestamp === 'number' ? tempPlayerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
-            toastSettings: typeof importedData.playerStats.toastSettings === 'object' && importedData.playerStats.toastSettings !== null ? importedData.playerStats.toastSettings : initialDefaults.toastSettings,
+            toastSettings: typeof loadedData.playerStats.toastSettings === 'object' && loadedData.playerStats.toastSettings !== null ? loadedData.playerStats.toastSettings : initialDefaults.toastSettings,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
