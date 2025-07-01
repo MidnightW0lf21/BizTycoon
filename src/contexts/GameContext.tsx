@@ -1662,106 +1662,123 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
     const moneyRequiredForFirstPrestige = 100000;
-    const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
-
-
+    
     if (playerStatsNow.money < moneyRequiredForFirstPrestige && playerStatsNow.timesPrestiged === 0) {
-      toastTitle = "Not Enough Money";
-      toastDescription = `Need $${Number(moneyRequiredForFirstPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })} to prestige for the first time.`;
-      toastVariant = "destructive";
+        toastTitle = "Not Enough Money";
+        toastDescription = `Need $${Number(moneyRequiredForFirstPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })} to prestige for the first time.`;
+        toastVariant = "destructive";
     } else {
-      const totalLevels = businessesRef.current.reduce((sum, b) => sum + b.level, 0);
-      let basePointsFromLevels = calculateDiminishingPrestigePoints(totalLevels);
-      const prestigePointBoost = getPrestigePointBoostPercent((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
-      const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStatsNow.prestigePoints) * (1 + prestigePointBoost / 100));
-      const startingMoneyBonus = getStartingMoneyBonus((playerStatsNow.unlockedSkillIds || []), skillTreeRef.current, (playerStatsNow.hqUpgradeLevels || {}), hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
-      const moneyAfterPrestige = INITIAL_MONEY + startingMoneyBonus;
+        const totalLevels = businessesRef.current.reduce((sum, b) => sum + b.level, 0);
+        const basePointsFromLevels = calculateDiminishingPrestigePoints(totalLevels);
+        const prestigePointBoost = getPrestigePointBoostPercent(playerStatsNow.unlockedSkillIds, skillTreeRef.current, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
+        const actualNewPrestigePoints = Math.floor(Math.max(0, basePointsFromLevels - playerStatsNow.prestigePoints) * (1 + prestigePointBoost / 100));
+        const startingMoneyBonus = getStartingMoneyBonus(playerStatsNow.unlockedSkillIds, skillTreeRef.current, playerStatsNow.hqUpgradeLevels, hqUpgradesRef.current, playerStatsNow.unlockedArtifactIds, INITIAL_ARTIFACTS);
+        const moneyAfterPrestige = INITIAL_MONEY + startingMoneyBonus;
 
-      const retainedBusinessLevels: Record<string, number> = {};
-      const retainedStockHoldings: StockHolding[] = [];
-      const {
-          factoryPurchased, factoryRawMaterials,
-          factoryProducedComponents, factoryPowerBuildings, factoryMaterialCollectors, factoryWorkers, factoryRawMaterialsCap,
-          minerals, quarryDepth, quarryTargetDepth, quarryLevel, quarryName, quarryRarityBias, purchasedQuarryUpgradeIds, maxQuarryEnergy, lastDigTimestamp
-      } = playerStatsNow;
+        const retainedBusinessLevels: Record<string, number> = {};
+        const retainedStockHoldings: StockHolding[] = [];
 
+        // Deconstruct all persistent state from before the reset
+        const {
+            unlockedSkillIds, hqUpgradeLevels, unlockedArtifactIds, toastSettings,
+            minerals, purchasedQuarryUpgradeIds, quarryLevel, quarryName, quarryRarityBias, quarryDepth, quarryTargetDepth, maxQuarryEnergy, lastDigTimestamp,
+            factoryPurchased, factoryPowerBuildings, factoryMaterialCollectors, factoryMachines, factoryProductionLines, factoryWorkers,
+            factoryRawMaterials, factoryRawMaterialsCap, factoryProducedComponents, researchPoints, unlockedResearchIds,
+            unlockedFactoryComponentRecipeIds, currentWorkerEnergyTier, manualResearchBonus, factoryWorkerEnergyRegenModifier
+        } = playerStatsNow;
 
-      for (const hqUpgradeId in (playerStatsNow.hqUpgradeLevels || {})) {
-          const purchasedLevel = playerStatsNow.hqUpgradeLevels[hqUpgradeId];
-          if (purchasedLevel > 0) {
-              const hqUpgradeConfig = hqUpgradesRef.current.find(hq => hq.id === hqUpgradeId);
-              if (hqUpgradeConfig && hqUpgradeConfig.levels) {
-                  const levelData = hqUpgradeConfig.levels.find(l => l.level === purchasedLevel);
-                  if (levelData && levelData.effects.retentionPercentage) {
-                      const retentionPercentage = levelData.effects.retentionPercentage;
-                      if (hqUpgradeId.startsWith('retain_level_')) {
-                          const businessId = hqUpgradeId.replace('retain_level_', '');
-                          const business = businessesRef.current.find(b => b.id === businessId);
-                          if (business) { retainedBusinessLevels[businessId] = Math.floor(business.level * (retentionPercentage / 100)); }
-                      } else if (hqUpgradeId.startsWith('retain_shares_')) {
-                          const stockId = hqUpgradeId.replace('retain_shares_', '');
-                          const currentHolding = (playerStatsNow.stockHoldings || []).find(h => h.stockId === stockId);
-                          if (currentHolding) {
-                              const retainedShares = Math.floor(currentHolding.shares * (retentionPercentage / 100));
-                              if (retainedShares > 0) { retainedStockHoldings.push({ stockId, shares: retainedShares, averagePurchasePrice: currentHolding.averagePurchasePrice }); }
-                          }
-                      }
-                  }
-              }
-          }
-      }
-      const newInitialPlayerStats = getInitialPlayerStats();
-      const newBusinessesState = INITIAL_BUSINESSES.map(biz => ({ ...biz, level: retainedBusinessLevels[biz.id] || 0, managerOwned: false, upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [], icon: biz.icon, }));
-      const newMachinesState = (playerStatsNow.factoryMachines || []).map(m => ({ ...m, assignedProductionLineId: null }));
+        for (const hqUpgradeId in hqUpgradeLevels) {
+            const purchasedLevel = hqUpgradeLevels[hqUpgradeId];
+            if (purchasedLevel > 0) {
+                const hqUpgradeConfig = hqUpgradesRef.current.find(hq => hq.id === hqUpgradeId);
+                if (hqUpgradeConfig?.levels) {
+                    const levelData = hqUpgradeConfig.levels.find(l => l.level === purchasedLevel);
+                    if (levelData?.effects.retentionPercentage) {
+                        const retentionPercentage = levelData.effects.retentionPercentage;
+                        if (hqUpgradeId.startsWith('retain_level_')) {
+                            const businessId = hqUpgradeId.replace('retain_level_', '');
+                            const business = businessesRef.current.find(b => b.id === businessId);
+                            if (business) { retainedBusinessLevels[businessId] = Math.floor(business.level * (retentionPercentage / 100)); }
+                        } else if (hqUpgradeId.startsWith('retain_shares_')) {
+                            const stockId = hqUpgradeId.replace('retain_shares_', '');
+                            const currentHolding = playerStatsNow.stockHoldings.find(h => h.stockId === stockId);
+                            if (currentHolding) {
+                                const retainedShares = Math.floor(currentHolding.shares * (retentionPercentage / 100));
+                                if (retainedShares > 0) { retainedStockHoldings.push({ ...currentHolding, shares: retainedShares }); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-      setBusinesses(newBusinessesState);
-      setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
+        const newBusinessesState = INITIAL_BUSINESSES.map(biz => ({
+            ...biz,
+            level: retainedBusinessLevels[biz.id] || 0,
+            managerOwned: false,
+            upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
+            icon: biz.icon,
+        }));
+        setBusinesses(newBusinessesState);
+        setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
 
-      setPlayerStats(prev => ({
-          ...newInitialPlayerStats,
-          money: moneyAfterPrestige,
-          prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
-          timesPrestiged: prev.timesPrestiged + 1,
-          unlockedSkillIds: prev.unlockedSkillIds,
-          hqUpgradeLevels: prev.hqUpgradeLevels,
-          unlockedArtifactIds: prev.unlockedArtifactIds,
-          stockHoldings: retainedStockHoldings,
-          unlockedFactoryComponentRecipeIds: prev.unlockedFactoryComponentRecipeIds, // Keep unlocked recipes through prestige
+        setPlayerStats(prev => ({
+            ...getInitialPlayerStats(), // Start with a clean slate
+            money: moneyAfterPrestige,
+            prestigePoints: prev.prestigePoints + actualNewPrestigePoints,
+            timesPrestiged: prev.timesPrestiged + 1,
+            stockHoldings: retainedStockHoldings,
+            
+            // Re-apply persisted state
+            unlockedSkillIds: unlockedSkillIds || [],
+            hqUpgradeLevels: hqUpgradeLevels || {},
+            unlockedArtifactIds: unlockedArtifactIds || [],
+            toastSettings: toastSettings || defaultToastSettings,
+            
+            // Re-apply Quarry state
+            minerals: minerals || 0,
+            purchasedQuarryUpgradeIds: purchasedQuarryUpgradeIds || [],
+            quarryLevel: quarryLevel || 0,
+            quarryName: quarryName || "Starter's Pit",
+            quarryRarityBias: quarryRarityBias || null,
+            quarryDepth: quarryDepth || 0,
+            quarryTargetDepth: quarryTargetDepth || BASE_QUARRY_DEPTH,
+            maxQuarryEnergy: maxQuarryEnergy || QUARRY_ENERGY_MAX,
+            quarryEnergy: maxQuarryEnergy || QUARRY_ENERGY_MAX, // Refill energy
+            lastDigTimestamp: lastDigTimestamp || 0,
 
-          factoryPurchased,
-          factoryPowerUnitsGenerated: 0,
-          factoryPowerConsumptionKw: 0,
-          factoryRawMaterials,
-          factoryRawMaterialsCap,
-          factoryMachines: newMachinesState,
-          factoryProductionLines: newInitialPlayerStats.factoryProductionLines.map((line, index) => ({
-            ...line,
-            isUnlocked: prev.factoryProductionLines[index]?.isUnlocked || false
-          })),
-          factoryPowerBuildings,
-          factoryProducedComponents,
-          factoryProductionProgress: {},
-          factoryWorkers: (factoryWorkers || []).map(w => ({...w, status: 'idle', energy: currentDynamicMaxEnergy, assignedMachineInstanceId: null })),
-          researchPoints: 0,
-          unlockedResearchIds: prev.unlockedResearchIds,
-          lastManualResearchTimestamp: 0,
-          currentWorkerEnergyTier: prev.currentWorkerEnergyTier,
-          manualResearchBonus: prev.manualResearchBonus, 
-          minerals,
-          quarryDepth,
-          quarryTargetDepth,
-          quarryLevel,
-          quarryName,
-          quarryRarityBias,
-          purchasedQuarryUpgradeIds,
-          maxQuarryEnergy,
-          quarryEnergy: maxQuarryEnergy,
-          lastDigTimestamp,
-      }));
-      toastTitle = "Prestige Successful!";
-      toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
+            // Re-apply Factory state with resets for active work
+            factoryPurchased: factoryPurchased || false,
+            factoryPowerBuildings: factoryPowerBuildings || [],
+            factoryMaterialCollectors: factoryMaterialCollectors || [],
+            factoryMachines: factoryMachines || [],
+            factoryProductionLines: (factoryProductionLines || []).map(line => ({
+                ...line,
+                slots: line.slots.map(() => ({ machineInstanceId: null, targetComponentId: null }))
+            })),
+            factoryWorkers: (factoryWorkers || []).map(w => ({
+                ...w,
+                status: 'idle',
+                energy: getDynamicMaxWorkerEnergy(),
+                assignedMachineInstanceId: null,
+            })),
+            factoryProducedComponents: factoryProducedComponents || {},
+            factoryRawMaterials: factoryRawMaterials || 0,
+            factoryRawMaterialsCap: factoryRawMaterialsCap || INITIAL_FACTORY_RAW_MATERIALS_CAP,
+            researchPoints: researchPoints || 0,
+            unlockedResearchIds: unlockedResearchIds || [],
+            unlockedFactoryComponentRecipeIds: unlockedFactoryComponentRecipeIds || [],
+            currentWorkerEnergyTier: currentWorkerEnergyTier || 0,
+            manualResearchBonus: manualResearchBonus || 0,
+            factoryWorkerEnergyRegenModifier: factoryWorkerEnergyRegenModifier || 1,
+        }));
+        
+        toastTitle = "Prestige Successful!";
+        toastDescription = `Earned ${actualNewPrestigePoints} prestige point(s)! Progress partially reset. Starting money now $${Number(moneyAfterPrestige).toLocaleString('en-US', { maximumFractionDigits: 0 })}.`;
     }
-    if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showPrestige ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showPrestige ?? true))) {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
   }, [getDynamicMaxWorkerEnergy]);
 
   const hireWorker = useCallback(() => {
@@ -2735,3 +2752,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
