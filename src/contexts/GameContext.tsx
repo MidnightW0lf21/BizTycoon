@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, FactoryMaterialCollector, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice } from '@/types';
 import {
   INITIAL_BUSINESSES,
   INITIAL_MONEY,
@@ -64,7 +64,11 @@ import {
   QUARRY_DEPTH_MULTIPLIER,
   BASE_ARTIFACT_CHANCE_PER_DIG,
   ARTIFACT_CHANCE_DEPTH_MULTIPLIER,
-  ARTIFACT_RARITY_WEIGHTS
+  ARTIFACT_RARITY_WEIGHTS,
+  QUARRY_ENERGY_MAX,
+  QUARRY_ENERGY_COST_PER_DIG,
+  QUARRY_ENERGY_REGEN_PER_SECOND,
+  QUARRY_DIG_COOLDOWN_MS
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -121,7 +125,7 @@ interface GameContextType {
   digInQuarry: () => void;
   purchaseQuarryUpgrade: (upgradeId: string) => void;
   getArtifactFindChances: () => ArtifactFindChances;
-  purchaseNextQuarry: () => void;
+  selectNextQuarry: (choice: QuarryChoice) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -143,9 +147,13 @@ const getInitialPlayerStats = (): PlayerStats => {
     quarryDepth: 0,
     quarryTargetDepth: 1000, // 10m
     quarryLevel: 0,
+    quarryName: "Starter's Pit",
+    quarryRarityBias: null,
     nextQuarryCost: BASE_QUARRY_COST,
     purchasedQuarryUpgradeIds: [],
-    lastExcavationTimestamp: 0,
+    quarryEnergy: QUARRY_ENERGY_MAX,
+    maxQuarryEnergy: QUARRY_ENERGY_MAX,
+    lastDigTimestamp: 0,
     factoryPurchased: false,
     factoryPowerUnitsGenerated: 0,
     factoryPowerConsumptionKw: 0,
@@ -474,6 +482,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryWorkerEnergyRegenModifier: typeof importedData.playerStats.factoryWorkerEnergyRegenModifier === 'number' ? importedData.playerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
         quarryLevel: typeof importedData.playerStats.quarryLevel === 'number' ? importedData.playerStats.quarryLevel : initialDefaults.quarryLevel,
         nextQuarryCost: typeof importedData.playerStats.nextQuarryCost === 'number' ? importedData.playerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
+        quarryName: typeof importedData.playerStats.quarryName === 'string' ? importedData.playerStats.quarryName : initialDefaults.quarryName,
+        quarryRarityBias: importedData.playerStats.quarryRarityBias || null,
+        quarryEnergy: typeof importedData.playerStats.quarryEnergy === 'number' ? importedData.playerStats.quarryEnergy : initialDefaults.quarryEnergy,
+        maxQuarryEnergy: typeof importedData.playerStats.maxQuarryEnergy === 'number' ? importedData.playerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
+        lastDigTimestamp: typeof importedData.playerStats.lastDigTimestamp === 'number' ? importedData.playerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -1815,99 +1828,128 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const depthMultiplier = Math.pow(ARTIFACT_CHANCE_DEPTH_MULTIPLIER, playerStatsNow.quarryDepth);
     const totalFindChance = baseChance * depthMultiplier;
 
-    const totalWeight = Object.values(ARTIFACT_RARITY_WEIGHTS).reduce((sum, weight) => sum + weight, 0);
+    let weights = { ...ARTIFACT_RARITY_WEIGHTS };
+    const bias = playerStatsNow.quarryRarityBias;
+    if (bias && weights[bias]) {
+        const biasIncrease = weights[bias]; // double the weight
+        weights[bias] += biasIncrease;
+        
+        const totalOtherWeight = Object.entries(weights).reduce((sum, [rarity, weight]) => {
+            return rarity !== bias ? sum + weight : sum;
+        }, 0);
 
-    const chances: ArtifactFindChances = {
-        Common: 0,
-        Uncommon: 0,
-        Rare: 0,
-        Legendary: 0,
-        Mythic: 0,
-    };
-
-    for (const rarity in ARTIFACT_RARITY_WEIGHTS) {
-        if (Object.prototype.hasOwnProperty.call(ARTIFACT_RARITY_WEIGHTS, rarity)) {
-            const typedRarity = rarity as ArtifactRarity;
-            chances[typedRarity] = (totalFindChance * (ARTIFACT_RARITY_WEIGHTS[typedRarity] / totalWeight)) * 100;
+        if (totalOtherWeight > 0) {
+            for (const rarity in weights) {
+                if (rarity !== bias) {
+                    const reduction = (weights[rarity as ArtifactRarity] / totalOtherWeight) * biasIncrease;
+                    weights[rarity as ArtifactRarity] -= reduction;
+                }
+            }
         }
+    }
+
+    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+
+    const chances: ArtifactFindChances = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0, Mythic: 0 };
+
+    if (totalWeight > 0) {
+      for (const rarity in weights) {
+          if (Object.prototype.hasOwnProperty.call(weights, rarity)) {
+              const typedRarity = rarity as ArtifactRarity;
+              chances[typedRarity] = (totalFindChance * (weights[typedRarity] / totalWeight)) * 100;
+          }
+      }
     }
     return chances;
   }, []);
-
+  
   const digInQuarry = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
 
-    if (playerStatsNow.timesPrestiged < 4) {
-      toastTitle = "Quarry Locked";
-      toastVariant = "destructive";
+    const now = Date.now();
+    if (now < playerStatsNow.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS) {
+        toastTitle = "Too fast!";
+        toastDescription = "Your shovel is still cooling down.";
+        toastVariant = "destructive";
+    } else if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG) {
+        toastTitle = "Out of Energy";
+        toastDescription = "You need to rest before digging more.";
+        toastVariant = "destructive";
+    } else if (playerStatsNow.quarryDepth >= playerStatsNow.quarryTargetDepth) {
+        toastTitle = "Quarry Complete";
+        toastDescription = "Purchase the next quarry to continue digging.";
     } else {
-      const digAmount = getQuarryDigPower();
-      const mineralsFound = Math.floor(Math.random() * (digAmount / 2) + 1);
-      let foundArtifact: Artifact | undefined = undefined;
+        const digAmount = getQuarryDigPower();
+        const mineralsFound = Math.floor(Math.random() * (digAmount / 2) + 1);
+        let foundArtifact: Artifact | undefined = undefined;
 
-      setPlayerStats(prev => {
-        let newDepth = prev.quarryDepth + digAmount;
-        let newTargetDepth = prev.quarryTargetDepth;
-        let newUnlockedArtifactIds = [...(prev.unlockedArtifactIds || [])];
+        setPlayerStats(prev => {
+            let newDepth = prev.quarryDepth + digAmount;
+            let newUnlockedArtifactIds = [...(prev.unlockedArtifactIds || [])];
 
-        const currentChances = getArtifactFindChances();
-        const totalChancePercent = Object.values(currentChances).reduce((sum, chance) => sum + chance, 0);
-        const artifactRoll = Math.random() * 100;
+            const currentChances = getArtifactFindChances();
+            const totalChancePercent = Object.values(currentChances).reduce((sum, chance) => sum + chance, 0);
+            const artifactRoll = Math.random() * 100;
 
-        if (artifactRoll < totalChancePercent) {
-            // We found an artifact, now determine rarity
-            const rarityRoll = Math.random() * 100;
-            let cumulativeChance = 0;
-            let determinedRarity: ArtifactRarity | null = null;
-        
-            for (const rarity in currentChances) {
-                const typedRarity = rarity as ArtifactRarity;
-                cumulativeChance += (currentChances[typedRarity] / totalChancePercent) * 100;
-                if (rarityRoll < cumulativeChance) {
-                    determinedRarity = typedRarity;
-                    break;
+            if (artifactRoll < totalChancePercent) {
+                const rarityRoll = Math.random() * totalChancePercent;
+                let cumulativeChance = 0;
+                let determinedRarity: ArtifactRarity | null = null;
+                
+                for (const rarity in currentChances) {
+                    const typedRarity = rarity as ArtifactRarity;
+                    cumulativeChance += currentChances[typedRarity];
+                    if (rarityRoll < cumulativeChance) {
+                        determinedRarity = typedRarity;
+                        break;
+                    }
                 }
-            }
-        
-            if (determinedRarity) {
-                const potentialArtifactsOfRarity = INITIAL_ARTIFACTS.filter(
-                    a => a.rarity === determinedRarity && !newUnlockedArtifactIds.includes(a.id)
-                );
-                if (potentialArtifactsOfRarity.length > 0) {
-                    foundArtifact = potentialArtifactsOfRarity[Math.floor(Math.random() * potentialArtifactsOfRarity.length)];
-                    if(foundArtifact) {
-                      newUnlockedArtifactIds.push(foundArtifact.id);
+            
+                if (determinedRarity) {
+                    const potentialArtifactsOfRarity = INITIAL_ARTIFACTS.filter(
+                        a => a.rarity === determinedRarity && !newUnlockedArtifactIds.includes(a.id)
+                    );
+                    if (potentialArtifactsOfRarity.length > 0) {
+                        foundArtifact = potentialArtifactsOfRarity[Math.floor(Math.random() * potentialArtifactsOfRarity.length)];
+                        if(foundArtifact) {
+                          newUnlockedArtifactIds.push(foundArtifact.id);
+                        }
                     }
                 }
             }
-        }
-        
-        if (foundArtifact) {
-          setTimeout(() => {
-            toastRef.current({
-              title: `Artifact Found!`,
-              description: `You unearthed the ${foundArtifact?.name}! Check the Quarry for its effects.`,
-              duration: 5000,
-            });
-          }, 100);
-        }
+            
+            if (foundArtifact) {
+              setTimeout(() => {
+                toastRef.current({
+                  title: `Artifact Found!`,
+                  description: `You unearthed the ${foundArtifact?.name}! Check the Quarry for its effects.`,
+                  duration: 5000,
+                });
+              }, 100);
+            }
 
-        return {
-          ...prev,
-          quarryDepth: newDepth,
-          minerals: prev.minerals + mineralsFound,
-          unlockedArtifactIds: newUnlockedArtifactIds,
-        };
-      });
+            return {
+              ...prev,
+              quarryDepth: newDepth,
+              minerals: prev.minerals + mineralsFound,
+              quarryEnergy: prev.quarryEnergy - QUARRY_ENERGY_COST_PER_DIG,
+              lastDigTimestamp: now,
+              unlockedArtifactIds: newUnlockedArtifactIds,
+            };
+        });
 
-      toastTitle = `You dug ${digAmount}cm deeper!`;
-      toastDescription = `Found ${mineralsFound} minerals.`;
+        toastTitle = `You dug ${digAmount}cm deeper!`;
+        toastDescription = `Found ${mineralsFound} minerals.`;
     }
 
-    if(toastTitle && !toastDescription.includes("Found")) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    if(toastTitle && toastVariant === "destructive") {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    } else if (toastTitle && toastVariant !== "destructive" && !toastDescription.includes("Found")) {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
   }, [getQuarryDigPower, getArtifactFindChances]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
@@ -1940,37 +1982,38 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
-  const purchaseNextQuarry = useCallback(() => {
+  const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
-    
-    const cost = playerStatsNow.nextQuarryCost || (BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, playerStatsNow.quarryLevel));
 
     if (playerStatsNow.quarryDepth < playerStatsNow.quarryTargetDepth) {
         toastTitle = "Quarry Not Complete";
         toastDescription = `You must reach the target depth of ${playerStatsNow.quarryTargetDepth / 100}m first.`;
         toastVariant = "destructive";
-    } else if (playerStatsNow.minerals < cost) {
+    } else if (playerStatsNow.minerals < choice.cost) {
         toastTitle = "Not Enough Minerals";
-        toastDescription = `You need ${cost.toLocaleString()} minerals to purchase the next quarry.`;
+        toastDescription = `You need ${choice.cost.toLocaleString()} minerals to purchase the ${choice.name}.`;
         toastVariant = "destructive";
     } else {
         const newQuarryLevel = playerStatsNow.quarryLevel + 1;
-        const newTargetDepth = Math.floor(BASE_QUARRY_DEPTH * Math.pow(QUARRY_DEPTH_MULTIPLIER, newQuarryLevel));
+        const nextQuarryCost = Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, newQuarryLevel));
 
         setPlayerStats(prev => ({
             ...prev,
-            minerals: prev.minerals - cost,
+            minerals: prev.minerals - choice.cost,
             quarryDepth: 0,
             quarryLevel: newQuarryLevel,
-            quarryTargetDepth: newTargetDepth,
+            quarryTargetDepth: choice.depth,
+            quarryName: choice.name,
+            quarryRarityBias: choice.rarityBias,
+            nextQuarryCost,
         }));
         toastTitle = "New Quarry Purchased!";
-        toastDescription = `You've started excavating Quarry #${newQuarryLevel + 1}. Target depth: ${newTargetDepth / 100}m.`;
+        toastDescription = `You've started excavating ${choice.name}. Target depth: ${choice.depth / 100}m.`;
     }
-    
+
     if (toastTitle) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
   }, []);
 
@@ -2070,6 +2113,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryWorkerEnergyRegenModifier: typeof tempPlayerStats.factoryWorkerEnergyRegenModifier === 'number' ? tempPlayerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
             quarryLevel: typeof tempPlayerStats.quarryLevel === 'number' ? tempPlayerStats.quarryLevel : initialDefaults.quarryLevel,
             nextQuarryCost: typeof tempPlayerStats.nextQuarryCost === 'number' ? tempPlayerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
+            quarryName: typeof tempPlayerStats.quarryName === 'string' ? tempPlayerStats.quarryName : initialDefaults.quarryName,
+            quarryRarityBias: tempPlayerStats.quarryRarityBias || null,
+            quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
+            maxQuarryEnergy: typeof tempPlayerStats.maxQuarryEnergy === 'number' ? tempPlayerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
+            lastDigTimestamp: typeof tempPlayerStats.lastDigTimestamp === 'number' ? tempPlayerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
         };
         setPlayerStats(mergedPlayerStats);
         setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
@@ -2479,6 +2527,19 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               }
           }
         }
+        
+        let newQuarryEnergy = Math.min(prev.maxQuarryEnergy, prev.quarryEnergy + QUARRY_ENERGY_REGEN_PER_SECOND);
+        let newQuarryDepth = prev.quarryDepth;
+        let automationRate = 0;
+        (prev.purchasedQuarryUpgradeIds || []).forEach(id => {
+            const upgrade = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
+            if (upgrade?.effects.automationRate) {
+                automationRate += upgrade.effects.automationRate;
+            }
+        });
+        if (automationRate > 0 && newQuarryDepth < prev.quarryTargetDepth) {
+            newQuarryDepth += automationRate;
+        }
 
         const newTotalIncomePerSecondDisplay = currentTotalBusinessIncome + currentDividendIncome;
         const newQuarryLevel = prev.quarryLevel || 0;
@@ -2499,6 +2560,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProductionProgress: newFactoryProductionProgressForThisTick,
           factoryWorkers: updatedWorkers,
           nextQuarryCost: newNextQuarryCost,
+          quarryEnergy: newQuarryEnergy,
+          quarryDepth: Math.min(prev.quarryTargetDepth, newQuarryDepth),
         };
       });
     }, GAME_TICK_INTERVAL);
@@ -2603,7 +2666,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       purchaseFactoryBuilding, purchaseFactoryPowerBuilding, manuallyCollectRawMaterials, purchaseFactoryMachine,
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
-      getQuarryDigPower, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, purchaseNextQuarry,
+      getQuarryDigPower, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
     }}>
       {children}
     </GameContext.Provider>

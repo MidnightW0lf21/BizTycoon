@@ -5,7 +5,7 @@ import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight, Zap } from "lucide-react";
-import { INITIAL_ARTIFACTS, INITIAL_QUARRY_UPGRADES } from "@/config/game-config";
+import { INITIAL_ARTIFACTS } from "@/config/game-config";
 import { ArtifactCard } from "@/components/quarry/ArtifactCard";
 import { QuarryUpgradeCard } from "@/components/quarry/QuarryUpgradeCard";
 import { Progress } from "@/components/ui/progress";
@@ -126,7 +126,7 @@ export default function QuarryPage() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Mountain className="h-7 w-7 text-primary" />
-                <CardTitle>Quarry #{playerStats.quarryLevel + 1}</CardTitle>
+                <CardTitle>{playerStats.quarryName}</CardTitle>
               </div>
               <CardDescription>
                 Manually dig to unearth valuable Minerals and have a chance to find powerful Artifacts.

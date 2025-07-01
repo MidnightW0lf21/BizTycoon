@@ -355,7 +355,8 @@ export interface PlayerStats {
   quarryEnergy: number;
   maxQuarryEnergy: number;
   lastDigTimestamp: number;
-  quarryRarityBias: Partial<Record<ArtifactRarity, number>> | null;
+  quarryRarityBias: ArtifactRarity | null;
+  quarryName: string;
 }
 
 export interface SaveData {
