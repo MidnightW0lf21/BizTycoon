@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight, Zap } from "lucide-react";
 import {
   INITIAL_ARTIFACTS,
-  INITIAL_QUARRY_UPGRADES,
   QUARRY_NAME_PREFIXES,
   QUARRY_NAME_SUFFIXES,
   BASE_QUARRY_DEPTH,
@@ -123,7 +122,7 @@ export default function QuarryPage() {
   const digPower = getQuarryDigPower();
   const artifactChances = getArtifactFindChances();
   const isQuarryComplete = playerStats.quarryDepth >= playerStats.quarryTargetDepth;
-  const canAffordNextQuarry = isQuarryComplete && playerStats.minerals >= (playerStats.nextQuarryCost || 0);
+  const canAffordNextQuarry = isQuarryComplete && playerStats.money >= (playerStats.nextQuarryCost || 0);
 
   const canDig = playerStats.quarryEnergy > 0 && secondsRemaining === 0 && !isQuarryComplete;
 
@@ -257,8 +256,10 @@ export default function QuarryPage() {
       onClose={() => setIsSelectionDialogOpen(false)}
       quarryChoices={quarryChoices}
       onSelect={handleSelectQuarry}
-      playerMinerals={playerStats.minerals}
+      playerMoney={playerStats.money}
     />
     </>
   );
 }
+
+    

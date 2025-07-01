@@ -5,17 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { QuarryChoice } from "@/types";
-import { Gem, ArrowRight, TrendingUp, TrendingDown, Diamond, Shield } from "lucide-react";
+import { Gem, ArrowRight, TrendingUp, TrendingDown, Diamond, Shield, DollarSign } from "lucide-react";
 
 interface QuarrySelectionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   quarryChoices: QuarryChoice[];
   onSelect: (choice: QuarryChoice) => void;
-  playerMinerals: number;
+  playerMoney: number;
 }
 
-export function QuarrySelectionDialog({ isOpen, onClose, quarryChoices, onSelect, playerMinerals }: QuarrySelectionDialogProps) {
+export function QuarrySelectionDialog({ isOpen, onClose, quarryChoices, onSelect, playerMoney }: QuarrySelectionDialogProps) {
 
   const getRarityIcon = (rarity: string) => {
     switch(rarity) {
@@ -37,7 +37,7 @@ export function QuarrySelectionDialog({ isOpen, onClose, quarryChoices, onSelect
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
           {quarryChoices.map((choice, index) => {
-            const canAfford = playerMinerals >= choice.cost;
+            const canAfford = playerMoney >= choice.cost;
             return (
               <Card key={index} className="flex flex-col">
                 <CardHeader>
@@ -51,8 +51,8 @@ export function QuarrySelectionDialog({ isOpen, onClose, quarryChoices, onSelect
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Cost:</span>
                     <div className="flex items-center gap-1 font-semibold text-primary">
-                      <Gem className="h-4 w-4" />
-                      {choice.cost.toLocaleString()}
+                      <DollarSign className="h-4 w-4" />
+                      {choice.cost.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </div>
                   </div>
                   <div className="flex items-start gap-2 pt-2">
@@ -77,3 +77,5 @@ export function QuarrySelectionDialog({ isOpen, onClose, quarryChoices, onSelect
     </Dialog>
   );
 }
+
+    

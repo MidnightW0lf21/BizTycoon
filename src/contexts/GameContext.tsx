@@ -928,7 +928,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseFactoryBuilding = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
 
     const playerStatsNow = playerStatsRef.current;
 
@@ -950,7 +950,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseFactoryPowerBuilding = useCallback((configId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
 
@@ -1228,7 +1228,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     let machineNameForToast = "Machine";
     let productionLineNameForToast = "Production Line";
     
@@ -1406,7 +1406,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const manuallyGenerateResearchPoints = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0);
 
@@ -1451,7 +1451,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseResearch = useCallback((researchId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
 
@@ -1545,7 +1545,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const unlockProductionLine = useCallback((lineId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
 
     const lineIndex = (playerStatsNow.factoryProductionLines || []).findIndex(l => l.id === lineId);
@@ -1655,7 +1655,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const performPrestige = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const moneyRequiredForFirstPrestige = 100000;
     const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
@@ -1752,7 +1752,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const hireWorker = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const currentWorkerCount = (playerStatsNow.factoryWorkers || []).length;
     const currentDynamicMaxEnergy = getDynamicMaxWorkerEnergy();
@@ -1866,7 +1866,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const digInQuarry = useCallback(() => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
 
     const now = Date.now();
@@ -1955,7 +1955,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
     const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
 
@@ -1998,16 +1998,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     let toastTitle = "";
     let toastDescription = "";
-    let toastVariant: "default" | "destructive" = "default";
+    let toastVariant: "default" | "destructive" = "destructive";
     const playerStatsNow = playerStatsRef.current;
 
     if (playerStatsNow.quarryDepth < playerStatsNow.quarryTargetDepth) {
         toastTitle = "Quarry Not Complete";
         toastDescription = `You must reach the target depth of ${playerStatsNow.quarryTargetDepth / 100}m first.`;
         toastVariant = "destructive";
-    } else if (playerStatsNow.minerals < choice.cost) {
-        toastTitle = "Not Enough Minerals";
-        toastDescription = `You need ${choice.cost.toLocaleString()} minerals to purchase the ${choice.name}.`;
+    } else if (playerStatsNow.money < choice.cost) {
+        toastTitle = "Not Enough Money";
+        toastDescription = `You need ${choice.cost.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })} to purchase the ${choice.name}.`;
         toastVariant = "destructive";
     } else {
         const newQuarryLevel = playerStatsNow.quarryLevel + 1;
@@ -2015,7 +2015,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         setPlayerStats(prev => ({
             ...prev,
-            minerals: prev.minerals - choice.cost,
+            money: prev.money - choice.cost,
             quarryDepth: 0,
             quarryLevel: newQuarryLevel,
             quarryTargetDepth: choice.depth,
@@ -2701,3 +2701,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
