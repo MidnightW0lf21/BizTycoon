@@ -4,7 +4,7 @@
 import type { Artifact, ArtifactRarity, ArtifactEffects } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Lock, Sparkles } from "lucide-react";
+import { CheckCircle, Lock, Sparkles, TrendingUp, ArrowDownCircle, ShoppingCart, PiggyBank, Star, Zap, Package, Pickaxe, BatteryCharging } from "lucide-react";
 import { Badge } from "../ui/badge";
 
 interface ArtifactCardProps {
@@ -18,6 +18,23 @@ const rarityStyles: Record<ArtifactRarity, { border: string, bg: string, text: s
   Rare: { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-700 dark:text-blue-400", badge: "bg-blue-500/20 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300" },
   Legendary: { border: "border-amber-500", bg: "bg-amber-500/5", text: "text-amber-700 dark:text-amber-400", badge: "bg-amber-500/20 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
   Mythic: { border: "border-purple-500", bg: "bg-purple-500/5", text: "text-purple-700 dark:text-purple-400", badge: "bg-purple-500/20 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300" },
+};
+
+const EffectIcon = ({ effectKey }: { effectKey: keyof ArtifactEffects }) => {
+  const iconProps = { className: "h-3.5 w-3.5 mr-2 shrink-0 opacity-80" };
+  switch (effectKey) {
+    case 'globalIncomeBoostPercent': return <TrendingUp {...iconProps} />;
+    case 'globalDividendYieldBoostPercent': return <TrendingUp {...iconProps} />;
+    case 'globalCostReductionPercent': return <ArrowDownCircle {...iconProps} />;
+    case 'globalBusinessUpgradeCostReductionPercent': return <ShoppingCart {...iconProps} />;
+    case 'increaseStartingMoney': return <PiggyBank {...iconProps} />;
+    case 'globalPrestigePointBoostPercent': return <Star {...iconProps} />;
+    case 'factoryPowerGenerationBoostPercent': return <Zap {...iconProps} />;
+    case 'increaseManualMaterialCollection': return <Package {...iconProps} />;
+    case 'quarryDigPower': return <Pickaxe {...iconProps} />;
+    case 'increaseMaxEnergy': return <BatteryCharging {...iconProps} />;
+    default: return <Sparkles {...iconProps} />;
+  }
 };
 
 export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
@@ -62,7 +79,7 @@ export function ArtifactCard({ artifact, isUnlocked }: ArtifactCardProps) {
           <div className="mt-3 pt-3 border-t border-border/60 border-dashed space-y-1.5">
             {renderableEffects.map((effect) => (
               <div key={effect.key} className="flex items-center text-sm font-medium text-primary">
-                <Sparkles className="h-3.5 w-3.5 mr-2 shrink-0 opacity-80" />
+                <EffectIcon effectKey={effect.key} />
                 <span>{effect.text}</span>
               </div>
             ))}
