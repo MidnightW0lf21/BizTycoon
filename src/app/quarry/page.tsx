@@ -5,7 +5,17 @@ import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight, Zap } from "lucide-react";
-import { INITIAL_ARTIFACTS } from "@/config/game-config";
+import {
+  INITIAL_ARTIFACTS,
+  INITIAL_QUARRY_UPGRADES,
+  QUARRY_NAME_PREFIXES,
+  QUARRY_NAME_SUFFIXES,
+  BASE_QUARRY_DEPTH,
+  QUARRY_DEPTH_MULTIPLIER,
+  BASE_QUARRY_COST,
+  QUARRY_COST_MULTIPLIER,
+  QUARRY_DIG_COOLDOWN_MS
+} from "@/config/game-config";
 import { ArtifactCard } from "@/components/quarry/ArtifactCard";
 import { QuarryUpgradeCard } from "@/components/quarry/QuarryUpgradeCard";
 import { Progress } from "@/components/ui/progress";
@@ -14,7 +24,6 @@ import { cn } from "@/lib/utils";
 import type { ArtifactRarity, QuarryChoice } from "@/types";
 import { useState, useEffect } from "react";
 import { QuarrySelectionDialog } from "@/components/quarry/QuarrySelectionDialog";
-import { QUARRY_NAME_PREFIXES, QUARRY_NAME_SUFFIXES, BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_QUARRY_COST, QUARRY_COST_MULTIPLIER, QUARRY_DIG_COOLDOWN_MS } from "@/config/game-config";
 
 const REQUIRED_PRESTIGE_LEVEL_QUARRY = 4;
 
