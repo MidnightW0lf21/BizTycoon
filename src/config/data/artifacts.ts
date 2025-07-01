@@ -1,6 +1,6 @@
 
 import type { Artifact } from '@/types';
-import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Globe, Milestone, Scale, Cookie, ShieldCheck, Sparkles, Citrus, Dna, Zap } from 'lucide-react';
+import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Globe, Milestone, Scale, Cookie, ShieldCheck, Sparkles, Citrus, Dna, Zap, Flame, Music, MessageSquare, ShieldAlert, Ship } from 'lucide-react';
 
 export const INITIAL_ARTIFACTS: Artifact[] = [
   // Mythic Artifacts
@@ -91,6 +91,14 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Milestone,
     rarity: 'Mythic',
     effects: { globalBusinessUpgradeCostReductionPercent: 8 },
+  },
+  {
+    id: 'prometheus_flame',
+    name: 'Prometheus\'s Flame',
+    description: 'The very flame stolen from the gods. Provides a monumental +8% boost to all Energy-type businesses and +3% global income.',
+    icon: Flame,
+    rarity: 'Mythic',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 8 }, globalIncomeBoostPercent: 3 }
   },
   
   // Legendary Artifacts
@@ -229,6 +237,22 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Scale,
     rarity: 'Legendary',
     effects: { globalIncomeBoostPercent: 9 },
+  },
+  {
+    id: 'sirens_enchanting_lure',
+    name: 'Siren\'s Enchanting Lure',
+    description: 'A lure that draws in immense capital. Increases all stock dividend yields by a massive 15%.',
+    icon: Music,
+    rarity: 'Legendary',
+    effects: { globalDividendYieldBoostPercent: 15 }
+  },
+  {
+    id: 'mercurys_message',
+    name: 'Mercury\'s Message',
+    description: 'A message delivered at impossible speed. All Logistics-type businesses generate +10% more income.',
+    icon: MessageSquare,
+    rarity: 'Legendary',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 10 } }
   },
 
   // Rare Artifacts
@@ -415,6 +439,30 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: ShoppingBag,
     rarity: 'Rare',
     effects: { globalDividendYieldBoostPercent: 10 }
+  },
+  {
+    id: 'daedaluss_labyrinth_blueprint',
+    name: 'Daedalus\'s Labyrinth Blueprint',
+    description: 'A complex blueprint that inspires innovative solutions. Boosts income for all Tech-type businesses by 4%.',
+    icon: DraftingCompass,
+    rarity: 'Rare',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 4 } }
+  },
+  {
+    id: 'atlass_burden',
+    name: 'Atlas\'s Burden',
+    description: 'A miniature globe that feels impossibly heavy. Reduces level-up costs for all Logistics businesses by 5%.',
+    icon: Globe,
+    rarity: 'Rare',
+    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 5 } }
+  },
+  {
+    id: 'king_midass_gauntlet',
+    name: 'King Midas\'s Gauntlet',
+    description: 'A golden gauntlet that turns everything a bit more profitable. Global income +4%.',
+    icon: Hand,
+    rarity: 'Rare',
+    effects: { globalIncomeBoostPercent: 4 }
   },
 
   // Uncommon Artifacts
@@ -689,6 +737,54 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Dna,
     rarity: 'Uncommon',
     effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 3 } }
+  },
+  {
+    id: 'odins_eye',
+    name: 'Odin\'s Eye',
+    description: 'An eye that sees all. Boosts dividend yield for all stocks by +2%.',
+    icon: Eye,
+    rarity: 'Uncommon',
+    effects: { globalDividendYieldBoostPercent: 2 }
+  },
+  {
+    id: 'thors_hammer_shard',
+    name: 'Thor\'s Hammer Shard',
+    description: 'A small shard of Mjolnir. Boosts all Manufacturing businesses income by 3%.',
+    icon: Hammer,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 3 } }
+  },
+  {
+    id: 'lokis_trick',
+    name: 'Loki\'s Trick',
+    description: 'A clever trick that reduces costs. All business upgrade costs are reduced by 1.5%.',
+    icon: Dices,
+    rarity: 'Uncommon',
+    effects: { globalBusinessUpgradeCostReductionPercent: 1.5 }
+  },
+  {
+    id: 'freya_necklace_fragment',
+    name: 'Freya\'s Necklace Fragment',
+    description: 'A fragment of Brísingamen. Increases starting cash by $20,000.',
+    icon: Diamond,
+    rarity: 'Uncommon',
+    effects: { increaseStartingMoney: 20000 }
+  },
+  {
+    id: 'heimdalls_horn_splinter',
+    name: 'Heimdall\'s Horn Splinter',
+    description: 'A splinter from Gjallarhorn. Boosts CyberGuard Solutions income by 3%.',
+    icon: ShieldAlert,
+    rarity: 'Uncommon',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 3 } }
+  },
+  {
+    id: 'valkyries_wing_feather',
+    name: 'Valkyrie\'s Wing Feather',
+    description: 'A feather from a Valkyrie\'s wing. Boosts all Aerospace businesses income by 1.5%.',
+    icon: Feather,
+    rarity: 'Uncommon',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1.5 } }
   },
 
   // Common Artifacts
@@ -1028,7 +1124,73 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Common',
     effects: { globalIncomeBoostPercent: 0.5 }
   },
+  {
+    id: 'runestone_fragment',
+    name: 'Runestone Fragment',
+    description: 'A fragment of an ancient runestone. +1% Prestige Points.',
+    icon: Milestone,
+    rarity: 'Common',
+    effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'viking_longship_model',
+    name: 'Viking Longship Model',
+    description: 'A model of a sturdy ship. Boosts Horizon Logistics income by 0.5%.',
+    icon: Ship,
+    rarity: 'Common',
+    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.5 } }
+  },
+  {
+    id: 'yggdrasil_leaf',
+    name: 'Yggdrasil Leaf',
+    description: 'A leaf from the world tree. +0.4% global income boost.',
+    icon: Sprout,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.4 }
+  },
+  {
+    id: 'dwarven_mining_pick',
+    name: 'Dwarven Mining Pick',
+    description: 'A well-crafted pickaxe. +3 Dig Power.',
+    icon: Pickaxe,
+    rarity: 'Common',
+    effects: { quarryDigPower: 3 }
+  },
+  {
+    id: 'elfin_arrowhead',
+    name: 'Elfin Arrowhead',
+    description: 'A perfectly crafted arrowhead. Boosts all Media businesses income by 0.3%.',
+    icon: Target,
+    rarity: 'Common',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.3 } }
+  },
+  {
+    id: 'giants_toe_nail',
+    name: 'Giant\'s Toe Nail',
+    description: 'A surprisingly sturdy material. +6 Max Quarry Energy.',
+    icon: MountainSnow,
+    rarity: 'Common',
+    effects: { increaseMaxEnergy: 6 }
+  },
+  {
+    id: 'mead_horn_chip',
+    name: 'Mead Horn Chip',
+    description: 'A chip from a legendary mead horn. +0.2% global income.',
+    icon: Coffee,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.2 }
+  },
+  {
+    id: 'fenrir_tooth',
+    name: 'Fenrir\'s Tooth',
+    description: 'A tooth from the legendary wolf. Boosts income for all BioTech businesses by 0.4%.',
+    icon: Bone,
+    rarity: 'Common',
+    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.4 } }
+  },
 ];
   
+
+    
 
     
