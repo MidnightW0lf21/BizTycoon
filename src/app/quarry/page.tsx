@@ -21,19 +21,20 @@ import { QuarryUpgradeCard } from "@/components/quarry/QuarryUpgradeCard";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { ArtifactRarity, QuarryChoice } from "@/types";
-import { useState, useEffect } from "react";
+import type { Artifact, ArtifactRarity, QuarryChoice } from "@/types";
+import { useState, useEffect, useMemo } from "react";
 import { QuarrySelectionDialog } from "@/components/quarry/QuarrySelectionDialog";
 
 const REQUIRED_PRESTIGE_LEVEL_QUARRY = 4;
 
 const rarityStyles: Record<ArtifactRarity, string> = {
-  Common: "text-slate-500 dark:text-slate-400",
-  Uncommon: "text-green-600 dark:text-green-500",
-  Rare: "text-blue-600 dark:text-blue-500",
-  Legendary: "text-amber-500 dark:text-amber-400",
-  Mythic: "text-purple-500 dark:text-purple-400",
+  Common: "text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700",
+  Uncommon: "text-green-600 dark:text-green-500 border-green-500/50",
+  Rare: "text-blue-600 dark:text-blue-500 border-blue-500/50",
+  Legendary: "text-amber-500 dark:text-amber-400 border-amber-500/50",
+  Mythic: "text-purple-500 dark:text-purple-400 border-purple-500/50",
 };
+
 
 export default function QuarryPage() {
   const { playerStats, digInQuarry, purchaseQuarryUpgrade, getQuarryDigPower, getArtifactFindChances, selectNextQuarry } = useGame();
@@ -41,6 +42,33 @@ export default function QuarryPage() {
   const [isSelectionDialogOpen, setIsSelectionDialogOpen] = useState(false);
   const [quarryChoices, setQuarryChoices] = useState<QuarryChoice[]>([]);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
+
+  const artifactsByRarity = useMemo(() => {
+    const rarities: ArtifactRarity[] = ['Mythic', 'Legendary', 'Rare', 'Uncommon', 'Common'];
+    const grouped: Record<ArtifactRarity, Artifact[]> = {
+      Common: [],
+      Uncommon: [],
+      Rare: [],
+      Legendary: [],
+      Mythic: [],
+    };
+  
+    INITIAL_ARTIFACTS.forEach(artifact => {
+      grouped[artifact.rarity].push(artifact);
+    });
+  
+    for (const rarity of rarities) {
+      grouped[rarity].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return rarities
+      .map(rarity => ({
+        rarity,
+        artifacts: grouped[rarity]
+      }))
+      .filter(group => group.artifacts.length > 0);
+  
+  }, []);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined;
@@ -124,8 +152,6 @@ export default function QuarryPage() {
   const artifactChances = getArtifactFindChances();
   const isQuarryComplete = playerStats.quarryDepth >= playerStats.quarryTargetDepth;
 
-  // Calculate the base cost for the *next* quarry to correctly enable/disable the button.
-  // The actual cost will be randomized in the dialog, but this is a good threshold.
   const nextQuarryBaseCost = isQuarryComplete 
     ? Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, playerStats.quarryLevel + 1)) 
     : 0;
@@ -135,7 +161,7 @@ export default function QuarryPage() {
 
   return (
     <>
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid md:grid-cols-3 gap-6 h-full">
       <div className="md:col-span-1 flex flex-col gap-4">
         <Card>
             <CardHeader>
@@ -214,7 +240,7 @@ export default function QuarryPage() {
               <CardDescription>Spend Minerals to improve your digging operations. Upgrades persist through prestige.</CardDescription>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-[calc(100vh-620px)] pr-2">
+                <ScrollArea className="flex-grow h-auto min-h-0 pr-2">
                     <div className="space-y-3">
                         {INITIAL_QUARRY_UPGRADES.map(upgrade => (
                             <QuarryUpgradeCard
@@ -232,23 +258,33 @@ export default function QuarryPage() {
       </div>
 
       <div className="md:col-span-2 flex flex-col gap-4">
-        <Card className="flex-grow">
+        <Card className="flex-grow flex flex-col">
           <CardHeader>
             <CardTitle>Discovered Artifacts ({playerStats.unlockedArtifactIds?.length || 0} / {INITIAL_ARTIFACTS.length})</CardTitle>
             <CardDescription>Your collection of powerful relics. Their bonuses are always active.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow flex flex-col">
             {INITIAL_ARTIFACTS.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">No artifacts are available in the game yet.</p>
             ) : (
-              <ScrollArea className="h-[calc(100vh-240px)] pr-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {INITIAL_ARTIFACTS.map(artifact => (
-                    <ArtifactCard
-                      key={artifact.id}
-                      artifact={artifact}
-                      isUnlocked={(playerStats.unlockedArtifactIds || []).includes(artifact.id)}
-                    />
+              <ScrollArea className="flex-grow h-0 pr-4">
+                <div className="space-y-6">
+                  {artifactsByRarity.map(({ rarity, artifacts }) => (
+                    <div key={rarity}>
+                      <div className="flex items-center gap-4 mb-3">
+                        <h3 className={cn("text-lg font-semibold tracking-wider", rarityStyles[rarity])}>{rarity}</h3>
+                        <div className={cn("flex-grow border-t", rarityStyles[rarity])}></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {artifacts.map(artifact => (
+                          <ArtifactCard
+                            key={artifact.id}
+                            artifact={artifact}
+                            isUnlocked={(playerStats.unlockedArtifactIds || []).includes(artifact.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </ScrollArea>
