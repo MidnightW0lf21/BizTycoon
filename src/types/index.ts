@@ -107,6 +107,7 @@ export interface ArtifactEffects {
   increaseManualMaterialCollection?: number;
   quarryDigPower?: number; // Additive dig power
   increaseMaxEnergy?: number;
+  mineralBonus?: number;
 }
 
 export interface Artifact {
@@ -298,6 +299,7 @@ export interface QuarryUpgrade {
     digPower?: number; // Additive dig power
     automationRate?: number; // Passive digging rate in cm/s
     increaseMaxEnergy?: number; // Additive max energy
+    mineralBonus?: number;
   };
 }
 

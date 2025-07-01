@@ -123,6 +123,7 @@ interface GameContextType {
   unlockProductionLine: (lineId: string) => void;
   purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
   getQuarryDigPower: () => number;
+  getMineralBonus: () => number;
   digInQuarry: () => void;
   purchaseQuarryUpgrade: (upgradeId: string) => void;
   getArtifactFindChances: () => ArtifactFindChances;
@@ -1832,6 +1833,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return totalDigPower;
   }, []);
 
+  const getMineralBonus = useCallback((): number => {
+    let bonus = 0;
+    const playerStatsNow = playerStatsRef.current;
+    
+    (playerStatsNow.purchasedQuarryUpgradeIds || []).forEach(upgradeId => {
+      const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
+      if (upgradeConfig?.effects.mineralBonus) {
+        bonus += upgradeConfig.effects.mineralBonus;
+      }
+    });
+
+    (playerStatsNow.unlockedArtifactIds || []).forEach(artifactId => {
+      const artifact = INITIAL_ARTIFACTS.find(a => a.id === artifactId);
+      if (artifact?.effects.mineralBonus) {
+        bonus += artifact.effects.mineralBonus;
+      }
+    });
+
+    return bonus;
+  }, []);
+
+
   const getArtifactFindChances = useCallback((): ArtifactFindChances => {
     const playerStatsNow = playerStatsRef.current;
     const baseChance = BASE_ARTIFACT_CHANCE_PER_DIG;
@@ -1882,7 +1905,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastDescription = "Purchase the next quarry to continue digging.";
     } else {
         const digAmount = getQuarryDigPower();
-        const mineralsFound = Math.floor(Math.random() * (digAmount / 2) + 1);
+        const mineralBonus = getMineralBonus();
+        const mineralsFound = Math.floor(Math.random() * ((digAmount / 2) + mineralBonus) + 1);
         let foundArtifact: Artifact | undefined = undefined;
 
         setPlayerStats(prev => {
@@ -1952,7 +1976,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
       }
     }
-  }, [getQuarryDigPower, getArtifactFindChances]);
+  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     let toastTitle = "";
@@ -2685,7 +2709,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       purchaseFactoryBuilding, purchaseFactoryPowerBuilding, manuallyCollectRawMaterials, purchaseFactoryMachine,
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
-      getQuarryDigPower, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
+      getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings,
     }}>
       {children}

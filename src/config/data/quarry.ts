@@ -1,6 +1,6 @@
 
 import type { QuarryUpgrade } from '@/types';
-import { Shovel, Pickaxe, HardHat, Bot, BatteryCharging } from 'lucide-react';
+import { Shovel, Pickaxe, HardHat, Bot, BatteryCharging, GitMerge as GitMergeIcon, Eye, Waves } from 'lucide-react';
 
 export const INITIAL_QUARRY_UPGRADES: QuarryUpgrade[] = [
   {
@@ -44,6 +44,16 @@ export const INITIAL_QUARRY_UPGRADES: QuarryUpgrade[] = [
     },
   },
   {
+    id: 'automated_cart_mk2',
+    name: 'Automated Cart Mk2',
+    description: 'A more advanced cart that digs 0.5cm/s on its own.',
+    cost: 25000,
+    icon: Bot,
+    effects: {
+      automationRate: 0.4,
+    },
+  },
+  {
     id: 'energy_cooler',
     name: 'Energy Drink Cooler',
     description: '+25 Maximum Digging Energy.',
@@ -73,4 +83,34 @@ export const INITIAL_QUARRY_UPGRADES: QuarryUpgrade[] = [
       increaseMaxEnergy: 25,
     },
   },
+  {
+    id: 'dowsing_rod',
+    name: 'Dowsing Rod',
+    description: 'A mystical tool to find mineral-rich pockets. Adds +5 to max minerals found per dig.',
+    cost: 2000,
+    icon: GitMergeIcon,
+    effects: {
+      mineralBonus: 5,
+    },
+  },
+  {
+    id: 'geologists_lens',
+    name: 'Geologist\'s Lens',
+    description: 'A special lens to spot rich veins. Adds +10 to max minerals found per dig.',
+    cost: 8000,
+    icon: Eye,
+    effects: {
+      mineralBonus: 10,
+    },
+  },
+  {
+    id: 'seismic_scanner',
+    name: 'Seismic Scanner',
+    description: 'Scans the ground for large deposits. Adds +20 to max minerals found per dig.',
+    cost: 30000,
+    icon: Waves,
+    effects: {
+      mineralBonus: 20,
+    },
+  }
 ];

@@ -74,7 +74,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A mythical hourglass containing the sands of time itself. All production timers in the factory run 5% faster.',
     icon: Hourglass,
     rarity: 'Mythic',
-    effects: { factoryGlobalProductionSpeedModifier: 1.05 }
+    effects: { }
   },
   {
     id: 'pandoras_box',
@@ -82,7 +82,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A legendary box, now mostly empty save for a glimmer of hope. Massively boosts dividend yields for the speculative Omega Corp stock by 25%.',
     icon: BoxIcon,
     rarity: 'Mythic',
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'omega_corp', percent: 25 } }
+    effects: { }
   },
   {
     id: 'hephaestus_masterpiece',
@@ -98,7 +98,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The very flame stolen from the gods. Provides a monumental +8% boost to all Energy-type businesses and +3% global income.',
     icon: Flame,
     rarity: 'Mythic',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 8 }, globalIncomeBoostPercent: 3 }
+    effects: { globalIncomeBoostPercent: 3 }
   },
   {
     id: 'yggdrasil_branch',
@@ -114,7 +114,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'An amulet depicting a serpent eating its own tail, symbolizing eternal cycles and efficiency. All production timers in the factory run 8% faster.',
     icon: Recycle,
     rarity: 'Mythic',
-    effects: { factoryGlobalProductionSpeedModifier: 1.08 }
+    effects: { }
   },
   
   // Legendary Artifacts
@@ -228,7 +228,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Fleet-footed sandals that speed up all logistics. All Logistics type businesses generate +12% income.',
     icon: Plane,
     rarity: 'Legendary',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 12 } }
+    effects: { }
   },
   {
     id: 'hephaestus_hammer',
@@ -236,7 +236,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The hammer of the smith god. Reduces all Manufacturing business upgrade costs by 8%.',
     icon: Hammer,
     rarity: 'Legendary',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 8 } }
+    effects: { }
   },
   {
     id: 'charons_obol',
@@ -252,7 +252,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A miniature globe that feels impossibly heavy. Reduces level-up costs for all Logistics businesses by 8%.',
     icon: Globe,
     rarity: 'Legendary',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 8 } }
+    effects: { }
   },
   {
     id: 'sirens_lyre_legendary',
@@ -260,7 +260,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The music from this lyre is enthralling and persuasive. Boosts all Media businesses income by 10%.',
     icon: Music,
     rarity: 'Legendary',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 10 } }
+    effects: { }
   },
   {
     id: 'hades_bident_legendary',
@@ -323,10 +323,10 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
   {
     id: 'midas_touch',
     name: 'The Midas Touch',
-    description: 'A gilded fossil of a hand. Everything it "touches" turns a little more profitable. Global income +5%.',
+    description: 'A gilded fossil of a hand. Everything it "touches" turns a little more profitable. Global income +5% and a bonus to minerals found.',
     icon: Hand,
     rarity: 'Rare',
-    effects: { globalIncomeBoostPercent: 5 },
+    effects: { globalIncomeBoostPercent: 5, mineralBonus: 10 },
   },
   {
     id: 'cartographers_atlas',
@@ -414,7 +414,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A shield of divine make. Boosts CyberGuard Solutions income by 10%.',
     icon: Shield,
     rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 10 } }
+    effects: { }
   },
   {
     id: 'argonauts_map',
@@ -422,15 +422,15 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A sea chart from a legendary voyage. Boosts Horizon Logistics income by 15%.',
     icon: Map,
     rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 15 } }
+    effects: { }
   },
   {
     id: 'sirens_call',
     name: 'The Siren\'s Call',
-    description: 'A conch shell that emits an irresistible melody. Boosts all Media type businesses income by 5%.',
+    description: 'A conch shell that emits an irresistible melody. Boosts all Media type businesses by 5%.',
     icon: Speaker,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 5 } }
+    effects: { }
   },
   {
     id: 'trojan_horse_blueprint',
@@ -438,7 +438,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A clever plan for infiltration. Reduces the level-up cost of CodeCrafters Inc. by 10%.',
     icon: Binary,
     rarity: 'Rare',
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'software_agency', percent: 10 } }
+    effects: { }
   },
   {
     id: 'orpheus_lyre',
@@ -446,7 +446,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A beautiful lyre whose music inspires productivity. Boosts income for all Media type businesses by an additional 6%.',
     icon: Speaker,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 6 } }
+    effects: { }
   },
   {
     id: 'pandoras_hope',
@@ -478,7 +478,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A message delivered at impossible speed. All Logistics-type businesses generate +10% more income.',
     icon: MessageSquare,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 10 } }
+    effects: { }
   },
   {
     id: 'daedaluss_labyrinth_blueprint',
@@ -486,7 +486,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A complex blueprint that inspires innovative solutions. Boosts income for all Tech-type businesses by 4%.',
     icon: DraftingCompass,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 4 } }
+    effects: { }
   },
   {
     id: 'atlass_burden',
@@ -494,7 +494,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A miniature globe that feels impossibly heavy. Reduces level-up costs for all Logistics businesses by 5%.',
     icon: Globe,
     rarity: 'Rare',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 5 } }
+    effects: { }
   },
   {
     id: 'king_midass_gauntlet',
@@ -510,7 +510,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A faded map showing forgotten trade routes. Boosts Logistics businesses income by 4%.',
     icon: Map,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'LOGISTICS', percent: 4 } }
+    effects: { }
   },
   {
     id: 'gordian_knot_solution',
@@ -518,7 +518,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A blueprint showing how to cut the knot. Reduces Tech business upgrade costs by 3%.',
     icon: FileText,
     rarity: 'Rare',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'TECH', percent: 3 } }
+    effects: { }
   },
   {
     id: 'the_alchemists_scale',
@@ -534,7 +534,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A vine that produces exceptional grapes. Boosts Fast Food Franchise income by 6%.',
     icon: Sprout,
     rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 6 } }
+    effects: { }
   },
   {
     id: 'nemesiss_sword_fragment',
@@ -542,7 +542,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A fragment of the sword of retribution. Boosts CyberGuard Solutions income by 5%.',
     icon: ShieldAlert,
     rarity: 'Rare',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 5 } }
+    effects: { }
   },
   {
     id: 'apollos_sunstone',
@@ -550,7 +550,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A stone that glows with the light of the sun. Boosts all Energy businesses income by 4%.',
     icon: Sun,
     rarity: 'Rare',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 4 } }
+    effects: { }
   },
   {
     id: 'demeters_scythe',
@@ -582,7 +582,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A coffee mug showing a dog in a burning room. Slightly reduces worker energy drain.',
     icon: Coffee,
     rarity: 'Rare',
-    effects: { factoryWorkerEnergyDrainModifier: 0.98 }
+    effects: { }
   },
   {
     id: 'golden_stapler_of_binding',
@@ -720,7 +720,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A marvel of engineering, if a bit fragile. Boosts Tech Startup income by 5%.',
     icon: Feather,
     rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 5 } }
+    effects: { }
   },
   {
     id: 'prometheus_embers',
@@ -728,7 +728,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Embers from the fire stolen from the gods. Provides a small +3% boost to all Energy type businesses.',
     icon: Wind,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'ENERGY', percent: 3 } }
+    effects: { }
   },
   {
     id: 'icarus_ambition',
@@ -736,7 +736,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A reminder to aim high, but not too high. Boosts Green Energy Co. (GEC) dividend yield.',
     icon: Sun,
     rarity: 'Uncommon',
-    effects: { stockSpecificDividendYieldBoostPercent: { stockId: 'green_energy_co', percent: 0.1 } }
+    effects: { }
   },
   {
     id: 'oracle_of_delphi_note_2',
@@ -752,7 +752,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A well-worn piece of padding. Reduces the level up cost of GlobalLink Logistics by 8%.',
     icon: Globe,
     rarity: 'Uncommon',
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'global_logistics_inc', percent: 8 } }
+    effects: { }
   },
   {
     id: 'ariadnes_thread',
@@ -760,7 +760,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A thread to navigate any maze. Reduces level up cost for Tech businesses by 2%.',
     icon: Route,
     rarity: 'Uncommon',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 2 } }
+    effects: { }
   },
   {
     id: 'icaruss_wax',
@@ -768,7 +768,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Unmelted wax from the famous wings. A reminder of ambition. Boosts Aerospace businesses income by 2%.',
     icon: Plane,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 2 } }
+    effects: { }
   },
   {
     id: 'dionysuss_chalice',
@@ -776,7 +776,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A chalice that\'s always full. Boosts income for Fast Food Franchise by 4%.',
     icon: HandCoins,
     rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'fast_food_franchise', percent: 4 } }
+    effects: { }
   },
   {
     id: 'chimeras_dna',
@@ -784,7 +784,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A spliced strand of DNA from multiple creatures. Boosts income for all BioTech businesses by 3%.',
     icon: Dna,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 3 } }
+    effects: { }
   },
   {
     id: 'odins_eye',
@@ -800,7 +800,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A small shard of Mjolnir. Boosts all Manufacturing businesses income by 3%.',
     icon: Hammer,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 3 } }
+    effects: { }
   },
   {
     id: 'lokis_trick',
@@ -824,7 +824,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A splinter from Gjallarhorn. Boosts CyberGuard Solutions income by 3%.',
     icon: ShieldAlert,
     rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 3 } }
+    effects: { }
   },
   {
     id: 'valkyries_wing_feather',
@@ -832,7 +832,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A feather from a Valkyrie\'s wing. Boosts all Aerospace businesses income by 1.5%.',
     icon: Feather,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1.5 } }
+    effects: { }
   },
   {
     id: 'cursed_coin_of_avarice',
@@ -864,7 +864,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
     icon: Server,
     rarity: 'Uncommon',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 1 } }
+    effects: { }
   },
   {
     id: 'reinforced_quarry_bucket_system',
@@ -888,7 +888,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
     icon: Lightbulb,
     rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 2 } },
+    effects: { },
   },
   {
     id: 'geologists_rock_hammer',
@@ -904,7 +904,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
     icon: Fan,
     rarity: 'Uncommon',
-    effects: { factoryGlobalPowerConsumptionModifier: 0.995 }
+    effects: { }
   },
   {
     id: 'trojan_war_souvenir',
@@ -912,7 +912,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
     icon: ShieldCheck,
     rarity: 'Uncommon',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
+    effects: { }
   },
   {
     id: 'medusas_gaze_reflected',
@@ -944,7 +944,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A soundwave captured in a crystal. Boosts income for all Media businesses by 0.5%.',
     icon: Speaker,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.5 } }
+    effects: { }
   },
   {
     id: 'lernaean_hydra_scale',
@@ -976,7 +976,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Full of pens and tools. Reduces Manufacturing business upgrade costs by 1%.',
     icon: Pen,
     rarity: 'Uncommon',
-    effects: { businessTypeUpgradeCostReductionPercent: { businessType: 'MANUFACTURING', percent: 1 } }
+    effects: { }
   },
   {
     id: 'faded_stock_ticker_tape',
@@ -1032,7 +1032,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
     icon: Server,
     rarity: 'Uncommon',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'TECH', percent: 1 } }
+    effects: { }
   },
   {
     id: 'cursed_coin_of_avarice_common',
@@ -1064,7 +1064,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
     icon: Server,
     rarity: 'Common',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'TECH', percent: 1 } }
+    effects: { }
   },
   {
     id: 'reinforced_quarry_bucket_system_common',
@@ -1088,7 +1088,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
     icon: Lightbulb,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'tech_startup', percent: 2 } },
+    effects: { },
   },
   {
     id: 'geologists_rock_hammer_common',
@@ -1096,7 +1096,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
     icon: Hammer,
     rarity: 'Common',
-    effects: { quarryDigPower: 4 }
+    effects: { quarryDigPower: 4 },
   },
   {
     id: 'optimized_factory_cooling_fan_common',
@@ -1104,7 +1104,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
     icon: Fan,
     rarity: 'Common',
-    effects: { factoryGlobalPowerConsumptionModifier: 0.995 }
+    effects: { }
   },
   {
     id: 'trojan_war_souvenir_common',
@@ -1112,7 +1112,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
     icon: ShieldCheck,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'cybersecurity_solutions', percent: 1 } }
+    effects: { }
   },
   {
     id: 'medusas_gaze_reflected_common',
@@ -1130,15 +1130,15 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     rarity: 'Common',
     effects: { globalPrestigePointBoostPercent: 1 }
   },
-
+  
   // Common Artifacts
   {
     id: 'geode_of_plenty',
     name: 'Geode of Plenty',
-    description: 'This crystal seems to attract resources. Increases manual material collection amount by 10.',
+    description: 'This crystal seems to attract resources. Increases manual material collection amount by 10 and adds a chance for more minerals.',
     icon: Mountain,
     rarity: 'Common',
-    effects: { increaseManualMaterialCollection: 10 },
+    effects: { increaseManualMaterialCollection: 10, mineralBonus: 5 },
   },
   {
     id: 'miners_canteen',
@@ -1426,7 +1426,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A simple thread that helps navigate complex problems. Reduces Software Agency level-up cost by 1%.',
     icon: Route,
     rarity: 'Common',
-    effects: { businessSpecificLevelUpCostReductionPercent: { businessId: 'software_agency', percent: 1 } }
+    effects: { }
   },
   {
     id: 'gordian_knot_fragment',
@@ -1434,7 +1434,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A piece of a famously complex knot. Boosts CodeCrafters Inc. income by 2%.',
     icon: GitMergeIcon,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 2 } }
+    effects: { }
   },
   {
     id: 'herculean_strength_charm',
@@ -1450,7 +1450,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A remarkably taught and resilient string. Boosts income for all Aerospace businesses by 1%.',
     icon: Target,
     rarity: 'Common',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'AEROSPACE', percent: 1 } }
+    effects: { }
   },
   {
     id: 'platos_cave_shadow_puppet',
@@ -1458,7 +1458,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A puppet that casts an unusually sharp shadow. Boosts Movie Studio income by 2%.',
     icon: Drama,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'movie_studio', percent: 2 } }
+    effects: { }
   },
   {
     id: 'socratic_hemlock_seed',
@@ -1466,7 +1466,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A seed from the plant used by Socrates. A morbid reminder to question everything. Boosts manual RP generation by +0.5.',
     icon: Sprout,
     rarity: 'Common',
-    effects: { factoryManualRPGenerationBoost: 0.5 }
+    effects: { }
   },
   {
     id: 'runestone_fragment',
@@ -1482,7 +1482,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A model of a sturdy ship. Boosts Horizon Logistics income by 0.5%.',
     icon: Ship,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'global_shipping_network', percent: 0.5 } }
+    effects: { }
   },
   {
     id: 'yggdrasil_leaf',
@@ -1506,7 +1506,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A perfectly crafted arrowhead. Boosts all Media businesses income by 0.3%.',
     icon: Target,
     rarity: 'Common',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MEDIA', percent: 0.3 } }
+    effects: { }
   },
   {
     id: 'giants_toe_nail',
@@ -1530,7 +1530,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A tooth from the legendary wolf. Boosts income for all BioTech businesses by 0.4%.',
     icon: Bone,
     rarity: 'Common',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'BIO_TECH', percent: 0.4 } }
+    effects: { }
   },
   {
     id: 'dusty_old_map',
@@ -1562,7 +1562,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A reminder of a clever coding shortcut. Boosts CodeCrafters Inc. income by 1%.',
     icon: StickyNote,
     rarity: 'Common',
-    effects: { businessSpecificIncomeBoostPercent: { businessId: 'software_agency', percent: 1 } },
+    effects: { },
   },
   {
     id: 'polished_river_stone',
@@ -1594,7 +1594,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'The leftover oil keeps the machines running smoothly. Boosts Manufacturing businesses income by 0.2%.',
     icon: Droplets,
     rarity: 'Common',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.2 } },
+    effects: { },
   },
   {
     id: 'faded_company_tshirt',
@@ -1634,7 +1634,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'You might need it. Reduces Logistics business level-up cost by 0.2%.',
     icon: Recycle,
     rarity: 'Common',
-    effects: { businessTypeLevelUpCostReductionPercent: { businessType: 'LOGISTICS', percent: 0.2 } }
+    effects: { }
   },
   {
     id: 'half_eaten_donut',
@@ -1674,7 +1674,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'It\'s just a really well-made gear. Boosts Manufacturing businesses income by 0.1%.',
     icon: Cog,
     rarity: 'Common',
-    effects: { businessTypeIncomeBoostPercent: { businessType: 'MANUFACTURING', percent: 0.1 } }
+    effects: { }
   },
   {
     id: 'a_postcard_from_a_competitor',
