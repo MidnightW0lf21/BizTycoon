@@ -151,7 +151,6 @@ const getInitialPlayerStats = (): PlayerStats => {
     quarryLevel: 0,
     quarryName: "Starter's Pit",
     quarryRarityBias: null,
-    nextQuarryCost: BASE_QUARRY_COST,
     purchasedQuarryUpgradeIds: [],
     quarryEnergy: QUARRY_ENERGY_MAX,
     maxQuarryEnergy: QUARRY_ENERGY_MAX,
@@ -452,49 +451,49 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     try {
-      const importedData: SaveData = JSON.parse(jsonString);
-      if (!importedData.playerStats || !importedData.businesses) throw new Error("Invalid save data structure.");
+      const loadedData: SaveData = JSON.parse(jsonString);
+      if (!loadedData.playerStats || !loadedData.businesses) throw new Error("Invalid save data structure.");
       const initialDefaults = getInitialPlayerStats();
       const mergedPlayerStats: PlayerStats = {
-        ...initialDefaults, ...importedData.playerStats,
-        unlockedSkillIds: Array.isArray(importedData.playerStats.unlockedSkillIds) ? importedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
-        unlockedArtifactIds: Array.isArray(importedData.playerStats.unlockedArtifactIds) ? importedData.playerStats.unlockedArtifactIds : initialDefaults.unlockedArtifactIds,
-        hqUpgradeLevels: typeof importedData.playerStats.hqUpgradeLevels === 'object' && importedData.playerStats.hqUpgradeLevels !== null ? importedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
-        stockHoldings: Array.isArray(importedData.playerStats.stockHoldings) ? importedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
-        achievedBusinessMilestones: typeof importedData.playerStats.achievedBusinessMilestones === 'object' && importedData.playerStats.achievedBusinessMilestones !== null ? importedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
-        factoryPurchased: typeof importedData.playerStats.factoryPurchased === 'boolean' ? importedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
-        factoryPowerUnitsGenerated: typeof importedData.playerStats.factoryPowerUnitsGenerated === 'number' ? importedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
-        factoryPowerConsumptionKw: typeof importedData.playerStats.factoryPowerConsumptionKw === 'number' ? importedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
-        factoryRawMaterials: typeof importedData.playerStats.factoryRawMaterials === 'number' ? importedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
-        factoryRawMaterialsCap: typeof importedData.playerStats.factoryRawMaterialsCap === 'number' ? importedData.playerStats.factoryRawMaterialsCap : initialDefaults.factoryRawMaterialsCap,
-        factoryMachines: Array.isArray(importedData.playerStats.factoryMachines) ? importedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
-        factoryProductionLines: Array.isArray(importedData.playerStats.factoryProductionLines) && importedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
-            ? (importedData.playerStats.factoryProductionLines.length === 5 ? importedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
+        ...initialDefaults, ...loadedData.playerStats,
+        unlockedSkillIds: Array.isArray(loadedData.playerStats.unlockedSkillIds) ? loadedData.playerStats.unlockedSkillIds : initialDefaults.unlockedSkillIds,
+        unlockedArtifactIds: Array.isArray(loadedData.playerStats.unlockedArtifactIds) ? loadedData.playerStats.unlockedArtifactIds : initialDefaults.unlockedArtifactIds,
+        hqUpgradeLevels: typeof loadedData.playerStats.hqUpgradeLevels === 'object' && loadedData.playerStats.hqUpgradeLevels !== null ? loadedData.playerStats.hqUpgradeLevels : initialDefaults.hqUpgradeLevels,
+        stockHoldings: Array.isArray(loadedData.playerStats.stockHoldings) ? loadedData.playerStats.stockHoldings : initialDefaults.stockHoldings,
+        achievedBusinessMilestones: typeof loadedData.playerStats.achievedBusinessMilestones === 'object' && loadedData.playerStats.achievedBusinessMilestones !== null ? loadedData.playerStats.achievedBusinessMilestones : initialDefaults.achievedBusinessMilestones,
+        factoryPurchased: typeof loadedData.playerStats.factoryPurchased === 'boolean' ? loadedData.playerStats.factoryPurchased : initialDefaults.factoryPurchased,
+        factoryPowerUnitsGenerated: typeof loadedData.playerStats.factoryPowerUnitsGenerated === 'number' ? loadedData.playerStats.factoryPowerUnitsGenerated : initialDefaults.factoryPowerUnitsGenerated,
+        factoryPowerConsumptionKw: typeof loadedData.playerStats.factoryPowerConsumptionKw === 'number' ? loadedData.playerStats.factoryPowerConsumptionKw : initialDefaults.factoryPowerConsumptionKw,
+        factoryRawMaterials: typeof loadedData.playerStats.factoryRawMaterials === 'number' ? loadedData.playerStats.factoryRawMaterials : initialDefaults.factoryRawMaterials,
+        factoryRawMaterialsCap: typeof loadedData.playerStats.factoryRawMaterialsCap === 'number' ? loadedData.playerStats.factoryRawMaterialsCap : initialDefaults.factoryRawMaterialsCap,
+        factoryMachines: Array.isArray(loadedData.playerStats.factoryMachines) ? loadedData.playerStats.factoryMachines : initialDefaults.factoryMachines,
+        factoryProductionLines: Array.isArray(loadedData.playerStats.factoryProductionLines) && loadedData.playerStats.factoryProductionLines.every(line => line.slots && Array.isArray(line.slots) && typeof line.isUnlocked === 'boolean')
+            ? (loadedData.playerStats.factoryProductionLines.length === 5 ? loadedData.playerStats.factoryProductionLines : initialDefaults.factoryProductionLines)
             : initialDefaults.factoryProductionLines,
-        factoryPowerBuildings: Array.isArray(importedData.playerStats.factoryPowerBuildings) ? importedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
-        factoryProducedComponents: typeof importedData.playerStats.factoryProducedComponents === 'object' && importedData.playerStats.factoryProducedComponents !== null ? importedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
-        factoryMaterialCollectors: Array.isArray(importedData.playerStats.factoryMaterialCollectors) ? importedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
-        factoryProductionProgress: typeof importedData.playerStats.factoryProductionProgress === 'object' && importedData.playerStats.factoryProductionProgress !== null ? importedData.playerStats.factoryProductionProgress : {},
-        factoryWorkers: Array.isArray(importedData.playerStats.factoryWorkers) ? importedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
-        researchPoints: typeof importedData.playerStats.researchPoints === 'number' ? importedData.playerStats.researchPoints : initialDefaults.researchPoints,
-        unlockedResearchIds: Array.isArray(importedData.playerStats.unlockedResearchIds) ? importedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
-        unlockedFactoryComponentRecipeIds: Array.isArray(importedData.playerStats.unlockedFactoryComponentRecipeIds) ? importedData.playerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds, // New
-        lastManualResearchTimestamp: typeof importedData.playerStats.lastManualResearchTimestamp === 'number' ? importedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
-        currentWorkerEnergyTier: typeof importedData.playerStats.currentWorkerEnergyTier === 'number' ? importedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
-        manualResearchBonus: typeof importedData.playerStats.manualResearchBonus === 'number' ? importedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
-        factoryWorkerEnergyRegenModifier: typeof importedData.playerStats.factoryWorkerEnergyRegenModifier === 'number' ? importedData.playerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
-        quarryLevel: typeof importedData.playerStats.quarryLevel === 'number' ? importedData.playerStats.quarryLevel : initialDefaults.quarryLevel,
-        nextQuarryCost: typeof importedData.playerStats.nextQuarryCost === 'number' ? importedData.playerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
-        quarryName: typeof importedData.playerStats.quarryName === 'string' ? importedData.playerStats.quarryName : initialDefaults.quarryName,
-        quarryRarityBias: importedData.playerStats.quarryRarityBias || null,
-        quarryEnergy: typeof importedData.playerStats.quarryEnergy === 'number' ? importedData.playerStats.quarryEnergy : initialDefaults.quarryEnergy,
-        maxQuarryEnergy: typeof importedData.playerStats.maxQuarryEnergy === 'number' ? importedData.playerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
-        lastDigTimestamp: typeof importedData.playerStats.lastDigTimestamp === 'number' ? importedData.playerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
-        toastSettings: typeof importedData.playerStats.toastSettings === 'object' && importedData.playerStats.toastSettings !== null ? importedData.playerStats.toastSettings : initialDefaults.toastSettings,
+        factoryPowerBuildings: Array.isArray(loadedData.playerStats.factoryPowerBuildings) ? loadedData.playerStats.factoryPowerBuildings : initialDefaults.factoryPowerBuildings,
+        factoryProducedComponents: typeof loadedData.playerStats.factoryProducedComponents === 'object' && loadedData.playerStats.factoryProducedComponents !== null ? loadedData.playerStats.factoryProducedComponents : initialDefaults.factoryProducedComponents,
+        factoryMaterialCollectors: Array.isArray(loadedData.playerStats.factoryMaterialCollectors) ? loadedData.playerStats.factoryMaterialCollectors : initialDefaults.factoryMaterialCollectors,
+        factoryProductionProgress: typeof loadedData.playerStats.factoryProductionProgress === 'object' && loadedData.playerStats.factoryProductionProgress !== null ? loadedData.playerStats.factoryProductionProgress : {},
+        factoryWorkers: Array.isArray(loadedData.playerStats.factoryWorkers) ? loadedData.playerStats.factoryWorkers : initialDefaults.factoryWorkers,
+        researchPoints: typeof loadedData.playerStats.researchPoints === 'number' ? loadedData.playerStats.researchPoints : initialDefaults.researchPoints,
+        unlockedResearchIds: Array.isArray(loadedData.playerStats.unlockedResearchIds) ? loadedData.playerStats.unlockedResearchIds : initialDefaults.unlockedResearchIds,
+        unlockedFactoryComponentRecipeIds: Array.isArray(loadedData.playerStats.unlockedFactoryComponentRecipeIds) ? loadedData.playerStats.unlockedFactoryComponentRecipeIds : initialDefaults.unlockedFactoryComponentRecipeIds, // New
+        lastManualResearchTimestamp: typeof loadedData.playerStats.lastManualResearchTimestamp === 'number' ? loadedData.playerStats.lastManualResearchTimestamp : initialDefaults.lastManualResearchTimestamp,
+        currentWorkerEnergyTier: typeof loadedData.playerStats.currentWorkerEnergyTier === 'number' ? loadedData.playerStats.currentWorkerEnergyTier : initialDefaults.currentWorkerEnergyTier,
+        manualResearchBonus: typeof loadedData.playerStats.manualResearchBonus === 'number' ? loadedData.playerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
+        factoryWorkerEnergyRegenModifier: typeof loadedData.playerStats.factoryWorkerEnergyRegenModifier === 'number' ? loadedData.playerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
+        quarryLevel: typeof loadedData.playerStats.quarryLevel === 'number' ? loadedData.playerStats.quarryLevel : initialDefaults.quarryLevel,
+        nextQuarryCost: typeof loadedData.playerStats.nextQuarryCost === 'number' ? loadedData.playerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
+        quarryName: typeof loadedData.playerStats.quarryName === 'string' ? loadedData.playerStats.quarryName : initialDefaults.quarryName,
+        quarryRarityBias: loadedData.playerStats.quarryRarityBias || null,
+        quarryEnergy: typeof loadedData.playerStats.quarryEnergy === 'number' ? loadedData.playerStats.quarryEnergy : initialDefaults.quarryEnergy,
+        maxQuarryEnergy: typeof loadedData.playerStats.maxQuarryEnergy === 'number' ? loadedData.playerStats.maxQuarryEnergy : initialDefaults.maxQuarryEnergy,
+        lastDigTimestamp: typeof loadedData.playerStats.lastDigTimestamp === 'number' ? loadedData.playerStats.lastDigTimestamp : initialDefaults.lastDigTimestamp,
+        toastSettings: typeof loadedData.playerStats.toastSettings === 'object' && loadedData.playerStats.toastSettings !== null ? loadedData.playerStats.toastSettings : initialDefaults.toastSettings,
       };
       setPlayerStats(mergedPlayerStats);
       setBusinesses(() => INITIAL_BUSINESSES.map(initialBiz => {
-            const savedBusinessState = importedData.businesses.find(b => b.id === initialBiz.id);
+            const savedBusinessState = loadedData.businesses.find(b => b.id === initialBiz.id);
             return {
                 ...initialBiz, level: savedBusinessState ? savedBusinessState.level : 0,
                 managerOwned: savedBusinessState ? savedBusinessState.managerOwned : false,
@@ -505,7 +504,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 icon: initialBiz.icon,
               };
           }));
-      setLastSavedTimestamp(importedData.lastSaved || Date.now());
+      setLastSavedTimestamp(loadedData.lastSaved || Date.now());
       materialCollectionCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + MATERIAL_COLLECTION_COOLDOWN_MS : 0;
       manualResearchCooldownEndRef.current = mergedPlayerStats.lastManualResearchTimestamp ? mergedPlayerStats.lastManualResearchTimestamp + RESEARCH_MANUAL_COOLDOWN_MS : 0;
       setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
@@ -2025,8 +2024,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastVariant = "destructive";
     } else {
         const newQuarryLevel = playerStatsNow.quarryLevel + 1;
-        const nextQuarryCost = Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, newQuarryLevel));
-
+        
         setPlayerStats(prev => ({
             ...prev,
             money: prev.money - choice.cost,
@@ -2035,7 +2033,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             quarryTargetDepth: choice.depth,
             quarryName: choice.name,
             quarryRarityBias: choice.rarityBias,
-            nextQuarryCost,
         }));
         toastTitle = "New Quarry Purchased!";
         toastDescription = `You've started excavating ${choice.name}. Target depth: ${choice.depth / 100}m.`;
@@ -2147,7 +2144,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             manualResearchBonus: typeof tempPlayerStats.manualResearchBonus === 'number' ? tempPlayerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
             factoryWorkerEnergyRegenModifier: typeof tempPlayerStats.factoryWorkerEnergyRegenModifier === 'number' ? tempPlayerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
             quarryLevel: typeof tempPlayerStats.quarryLevel === 'number' ? tempPlayerStats.quarryLevel : initialDefaults.quarryLevel,
-            nextQuarryCost: typeof tempPlayerStats.nextQuarryCost === 'number' ? tempPlayerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
             quarryName: typeof tempPlayerStats.quarryName === 'string' ? tempPlayerStats.quarryName : initialDefaults.quarryName,
             quarryRarityBias: tempPlayerStats.quarryRarityBias || null,
             quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
@@ -2578,10 +2574,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const newTotalIncomePerSecondDisplay = currentTotalBusinessIncome + currentDividendIncome;
-        const newQuarryLevel = prev.quarryLevel || 0;
-        const newNextQuarryCost = Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, newQuarryLevel));
-
-
+        
         return {
           ...prev,
           money: newMoney,
@@ -2595,7 +2588,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           ),
           factoryProductionProgress: newFactoryProductionProgressForThisTick,
           factoryWorkers: updatedWorkers,
-          nextQuarryCost: newNextQuarryCost,
           quarryEnergy: newQuarryEnergy,
           quarryDepth: Math.min(prev.quarryTargetDepth, newQuarryDepth),
         };

@@ -99,12 +99,14 @@ export type ArtifactRarity = 'Common' | 'Uncommon' | 'Rare' | 'Legendary' | 'Myt
 export interface ArtifactEffects {
   globalIncomeBoostPercent?: number;
   globalCostReductionPercent?: number;
+  globalBusinessUpgradeCostReductionPercent?: number;
   increaseStartingMoney?: number;
   globalDividendYieldBoostPercent?: number;
   globalPrestigePointBoostPercent?: number;
   factoryPowerGenerationBoostPercent?: number;
   increaseManualMaterialCollection?: number;
   quarryDigPower?: number; // Additive dig power
+  increaseMaxEnergy?: number;
 }
 
 export interface Artifact {
@@ -362,7 +364,6 @@ export interface PlayerStats {
   quarryTargetDepth: number;
   quarryLevel: number;
   purchasedQuarryUpgradeIds: string[];
-  nextQuarryCost?: number;
   quarryEnergy: number;
   maxQuarryEnergy: number;
   lastDigTimestamp: number;
