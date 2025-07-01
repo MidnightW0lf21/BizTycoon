@@ -4,14 +4,17 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight } from "lucide-react";
-import { INITIAL_ARTIFACTS, INITIAL_QUARRY_UPGRADES, ARTIFACT_RARITY_WEIGHTS } from "@/config/game-config";
+import { Mountain, LockKeyhole, Pickaxe, Gem, ChevronsRight, Zap } from "lucide-react";
+import { INITIAL_ARTIFACTS } from "@/config/game-config";
 import { ArtifactCard } from "@/components/quarry/ArtifactCard";
 import { QuarryUpgradeCard } from "@/components/quarry/QuarryUpgradeCard";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { ArtifactRarity } from "@/types";
+import type { ArtifactRarity, QuarryChoice } from "@/types";
+import { useState, useEffect } from "react";
+import { QuarrySelectionDialog } from "@/components/quarry/QuarrySelectionDialog";
+import { QUARRY_NAME_PREFIXES, QUARRY_NAME_SUFFIXES, BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_QUARRY_COST, QUARRY_COST_MULTIPLIER, QUARRY_DIG_COOLDOWN_MS } from "@/config/game-config";
 
 const REQUIRED_PRESTIGE_LEVEL_QUARRY = 4;
 
@@ -24,7 +27,67 @@ const rarityStyles: Record<ArtifactRarity, string> = {
 };
 
 export default function QuarryPage() {
-  const { playerStats, digInQuarry, purchaseQuarryUpgrade, getQuarryDigPower, getArtifactFindChances, purchaseNextQuarry } = useGame();
+  const { playerStats, digInQuarry, purchaseQuarryUpgrade, getQuarryDigPower, getArtifactFindChances, selectNextQuarry } = useGame();
+  
+  const [isSelectionDialogOpen, setIsSelectionDialogOpen] = useState(false);
+  const [quarryChoices, setQuarryChoices] = useState<QuarryChoice[]>([]);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined;
+    const updateCooldown = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((playerStats.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS - now) / 1000));
+      setSecondsRemaining(remaining);
+      if (remaining === 0 && intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+
+    if (playerStats.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS > Date.now()) {
+      updateCooldown();
+      intervalId = setInterval(updateCooldown, 1000);
+    } else {
+      setSecondsRemaining(0);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [playerStats.lastDigTimestamp]);
+
+
+  const handleOpenQuarrySelection = () => {
+    const nextQuarryLevel = playerStats.quarryLevel + 1;
+    const baseNextDepth = Math.floor(BASE_QUARRY_DEPTH * Math.pow(QUARRY_DEPTH_MULTIPLIER, nextQuarryLevel));
+    const baseNextCost = Math.floor(BASE_QUARRY_COST * Math.pow(QUARRY_COST_MULTIPLIER, nextQuarryLevel));
+
+    const availableBiases: ArtifactRarity[] = ['Common', 'Uncommon', 'Rare'];
+    
+    const choices: QuarryChoice[] = availableBiases.map(bias => {
+      const depthVariance = (Math.random() - 0.5) * 0.2; // +/- 10%
+      const costVariance = (Math.random() - 0.5) * 0.2; // +/- 10%
+      
+      const name = `${QUARRY_NAME_PREFIXES[Math.floor(Math.random() * QUARRY_NAME_PREFIXES.length)]} ${QUARRY_NAME_SUFFIXES[Math.floor(Math.random() * QUARRY_NAME_SUFFIXES.length)]}`;
+      
+      return {
+        name,
+        depth: Math.floor(baseNextDepth * (1 + depthVariance)),
+        cost: Math.floor(baseNextCost * (1 + costVariance)),
+        rarityBias: bias,
+        description: `This quarry is known for a slightly higher chance of finding ${bias} artifacts.`
+      };
+    });
+
+    setQuarryChoices(choices);
+    setIsSelectionDialogOpen(true);
+  };
+  
+  const handleSelectQuarry = (choice: QuarryChoice) => {
+    selectNextQuarry(choice);
+    setIsSelectionDialogOpen(false);
+  };
+
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_QUARRY) {
     return (
@@ -47,12 +110,16 @@ export default function QuarryPage() {
   }
   
   const progressPercentage = (playerStats.quarryDepth / playerStats.quarryTargetDepth) * 100;
+  const energyPercentage = (playerStats.quarryEnergy / playerStats.maxQuarryEnergy) * 100;
   const digPower = getQuarryDigPower();
   const artifactChances = getArtifactFindChances();
   const isQuarryComplete = playerStats.quarryDepth >= playerStats.quarryTargetDepth;
-  const canAffordNextQuarry = playerStats.minerals >= (playerStats.nextQuarryCost || 0);
+  const canAffordNextQuarry = isQuarryComplete && playerStats.minerals >= (playerStats.nextQuarryCost || 0);
+
+  const canDig = playerStats.quarryEnergy > 0 && secondsRemaining === 0 && !isQuarryComplete;
 
   return (
+    <>
     <div className="grid md:grid-cols-3 gap-6">
       <div className="md:col-span-1 flex flex-col gap-4">
         <Card>
@@ -73,7 +140,15 @@ export default function QuarryPage() {
                     {playerStats.minerals.toLocaleString()}
                 </p>
               </div>
-              
+
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                    <span className="flex items-center gap-1"><Zap className="h-4 w-4 text-yellow-400"/> Digging Energy</span>
+                    <span className="font-medium">{Math.floor(playerStats.quarryEnergy)} / {playerStats.maxQuarryEnergy}</span>
+                </div>
+                <Progress value={energyPercentage} indicatorClassName="bg-yellow-400" />
+              </div>
+
               <Card className="p-3 bg-muted/50">
                 <p className="text-xs font-semibold text-muted-foreground mb-2 text-center">Artifact Find Chance (per dig)</p>
                 <ul className="space-y-1 text-xs">
@@ -99,19 +174,20 @@ export default function QuarryPage() {
                   size="lg"
                   className="w-full"
                   onClick={digInQuarry}
+                  disabled={!canDig}
                 >
                   <Pickaxe className="mr-2 h-5 w-5" />
-                  Dig (+{digPower}cm)
+                  {secondsRemaining > 0 ? `Wait (${secondsRemaining}s)` : `Dig (+${digPower}cm)`}
                 </Button>
               ) : (
                 <Button
                   size="lg"
                   className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={purchaseNextQuarry}
+                  onClick={handleOpenQuarrySelection}
                   disabled={!canAffordNextQuarry}
                 >
                   <ChevronsRight className="mr-2 h-5 w-5" />
-                  Buy Next Quarry ({playerStats.nextQuarryCost?.toLocaleString()} Minerals)
+                  Buy Next Quarry
                 </Button>
               )}
             </CardContent>
@@ -166,5 +242,14 @@ export default function QuarryPage() {
         </Card>
       </div>
     </div>
+    
+    <QuarrySelectionDialog 
+      isOpen={isSelectionDialogOpen}
+      onClose={() => setIsSelectionDialogOpen(false)}
+      quarryChoices={quarryChoices}
+      onSelect={handleSelectQuarry}
+      playerMinerals={playerStats.minerals}
+    />
+    </>
   );
 }

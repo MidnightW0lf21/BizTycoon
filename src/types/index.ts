@@ -299,6 +299,14 @@ export interface QuarryUpgrade {
 
 export type ArtifactFindChances = Record<ArtifactRarity, number>;
 
+export type QuarryChoice = {
+  name: string;
+  depth: number;
+  cost: number;
+  rarityBias: ArtifactRarity;
+  description: string;
+};
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -336,8 +344,7 @@ export interface PlayerStats {
   researchPoints: number;
   unlockedResearchIds: string[];
   lastManualResearchTimestamp: number;
-  lastExcavationTimestamp?: number;
-
+  
   // Quarry Stats
   minerals: number;
   quarryDepth: number;
@@ -345,6 +352,10 @@ export interface PlayerStats {
   quarryLevel: number;
   purchasedQuarryUpgradeIds: string[];
   nextQuarryCost?: number;
+  quarryEnergy: number;
+  maxQuarryEnergy: number;
+  lastDigTimestamp: number;
+  quarryRarityBias: Partial<Record<ArtifactRarity, number>> | null;
 }
 
 export interface SaveData {

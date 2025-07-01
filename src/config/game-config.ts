@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
@@ -38,8 +38,14 @@ export const BASE_QUARRY_DEPTH = 1000; // 10m in cm
 export const QUARRY_DEPTH_MULTIPLIER = 1.2;
 export const BASE_ARTIFACT_CHANCE_PER_DIG = 0.005; // 0.5%
 export const ARTIFACT_CHANCE_DEPTH_MULTIPLIER = 1.0001; // Small increase per cm
-export const ARTIFACT_RARITY_WEIGHTS = { Common: 60, Uncommon: 25, Rare: 10, Legendary: 4, Mythic: 1 };
+export const ARTIFACT_RARITY_WEIGHTS: Record<ArtifactRarity, number> = { Common: 60, Uncommon: 25, Rare: 10, Legendary: 4, Mythic: 1 };
 export const INITIAL_QUARRY_LEVEL = 0;
+export const QUARRY_ENERGY_MAX = 100;
+export const QUARRY_ENERGY_COST_PER_DIG = 10;
+export const QUARRY_ENERGY_REGEN_PER_SECOND = 1;
+export const QUARRY_DIG_COOLDOWN_MS = 2000; // 2 seconds
+export const QUARRY_NAME_PREFIXES = ["Stone", "Deep", "Crystal", "Gem", "Forgotten", "Lost", "Ancient", "Glimmering", "Echoing"];
+export const QUARRY_NAME_SUFFIXES = ["Mine", "Quarry", "Cavern", "Chasm", "Pit", "Delve", "Excavation", "Hollow", "Depths"];
 
 
 export const INITIAL_RESEARCH_POINTS = 0;

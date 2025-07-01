@@ -1,5 +1,6 @@
 
 import type { QuarryUpgrade } from '@/types';
+import { Shovel, Pickaxe, HardHat, Bot } from 'lucide-react';
 
 export const INITIAL_QUARRY_UPGRADES: QuarryUpgrade[] = [
   {
