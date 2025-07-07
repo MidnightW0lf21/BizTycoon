@@ -36,21 +36,31 @@ export const INITIAL_QUARRY_UPGRADES: QuarryUpgrade[] = [
   {
     id: 'automated_cart_mk1',
     name: 'Automated Cart Mk1',
-    description: 'A small automated cart that digs 0.1cm/s on its own.',
-    cost: 5000,
+    description: 'A small automated cart that digs 0.01cm/s on its own.',
+    cost: 2500,
     icon: Bot,
     effects: {
-      automationRate: 0.1,
+      automationRate: 0.01,
     },
   },
   {
     id: 'automated_cart_mk2',
     name: 'Automated Cart Mk2',
-    description: 'A more advanced cart that digs 0.5cm/s on its own.',
+    description: 'A more advanced cart that adds another 0.4cm/s of digging speed.',
     cost: 25000,
     icon: Bot,
     effects: {
       automationRate: 0.4,
+    },
+  },
+  {
+    id: 'automated_cart_mk3',
+    name: 'Automated Cart Mk3',
+    description: 'A highly advanced cart that adds another 4.08cm/s of digging speed.',
+    cost: 120000,
+    icon: Bot,
+    effects: {
+      automationRate: 4.08,
     },
   },
   {
