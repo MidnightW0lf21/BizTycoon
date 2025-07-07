@@ -1,6 +1,6 @@
 
 import type { Artifact } from '@/types';
-import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Globe, Milestone, Scale, Cookie, ShieldCheck, ShieldAlert, Music, Mouse, Keyboard, StickyNote, Footprints, FileText, Droplets, Shirt, GlassWater, Contact, Server, Ship, ShoppingBasket, Lightbulb, Fan, Pen, Sparkles, Citrus, Dna, Flame, MessageSquare, Zap, BatteryCharging, Briefcase } from 'lucide-react';
+import { Gem, Compass, BookOpen, Scaling, PiggyBank, Factory as FactoryIcon, Mountain, Pickaxe, Cog, FlaskConical, Building, Calculator, TrendingUp, HeartPulse, Hand, Crown, Scroll, Wrench, Wheat, InfinityIcon as Infinity, Clock, Diamond, Feather, DraftingCompass, Sigma, Dices, Hammer, Archive, Map, Eye, ShoppingBag, Sprout, PenTool, HandCoins, Coins, Castle, KeyRound, Brain, Telescope, Pyramid, Gavel, Recycle, Trees, Unplug, PersonStanding, MountainSnow, Combine, Hourglass, Bot, HardHat, Coffee, Award, Handshake, BoxIcon, Plane, Speaker, Binary, GitMerge as GitMergeIcon, Drama, Target, Shield, Sun, Wind, Route, Bone, Globe, Milestone, Scale, Cookie, ShieldCheck, ShieldAlert, Music, Mouse, Keyboard, StickyNote, Footprints, FileText, Droplets, Shirt, GlassWater, Contact, Server, Ship, ShoppingBasket, Lightbulb, Fan, Pen, Sparkles, Citrus, Dna, Flame, MessageSquare, Zap, BatteryCharging, Briefcase } from 'lucide-react';
 
 export const INITIAL_ARTIFACTS: Artifact[] = [
   // Mythic Artifacts
@@ -284,7 +284,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     id: 'perpetual_motion_gear',
     name: 'Perpetual Motion Gear',
     description: 'A feat of impossible engineering that hums with energy. Increases factory power generation by 2%.',
-    icon: Factory,
+    icon: FactoryIcon,
     rarity: 'Rare',
     effects: { factoryPowerGenerationBoostPercent: 2 },
   },
@@ -835,15 +835,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { }
   },
   {
-    id: 'cursed_coin_of_avarice',
-    name: 'Cursed Coin of Avarice',
-    description: 'Looks valuable, but feels... off. +0.5% global income.',
-    icon: HandCoins,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'ceos_first_business_card',
+    id: 'ceos_first_business_card_common',
     name: 'CEO\'s First Business Card',
     description: 'The worn business card of a future titan of industry. Start with an extra $5,000.',
     icon: Contact,
@@ -851,7 +843,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { increaseStartingMoney: 5000 }
   },
   {
-    id: 'investors_lucky_tie_clip',
+    id: 'investors_lucky_tie_clip_common',
     name: 'Investor\'s Lucky Tie Clip',
     description: 'A tie clip worn during a record-breaking trade. Increases global dividend yield by 1.5%.',
     icon: Briefcase,
@@ -859,7 +851,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { globalDividendYieldBoostPercent: 1.5 }
   },
   {
-    id: 'robust_server_rack_casing',
+    id: 'robust_server_rack_casing_common',
     name: 'Robust Server Rack',
     description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
     icon: Server,
@@ -867,7 +859,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { }
   },
   {
-    id: 'reinforced_quarry_bucket_system',
+    id: 'reinforced_quarry_bucket_system_common',
     name: 'Reinforced Quarry Bucket',
     description: 'A large, sturdy bucket for hauling more from the quarry. Increases manual material collection by 8.',
     icon: ShoppingBasket,
@@ -875,7 +867,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { increaseManualMaterialCollection: 8 }
   },
   {
-    id: 'high_efficiency_led_lightbulb',
+    id: 'high_efficiency_led_lightbulb_common',
     name: 'High-Efficiency Lightbulb',
     description: 'Reduces passive power draw in the factory. Increases factory power generation by 1%.',
     icon: Lightbulb,
@@ -883,7 +875,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { factoryPowerGenerationBoostPercent: 1 }
   },
   {
-    id: 'programmers_rubber_duck_of_clarity',
+    id: 'programmers_rubber_duck_of_clarity_common',
     name: 'Programmer\'s Rubber Duck',
     description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
     icon: Lightbulb,
@@ -891,7 +883,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { },
   },
   {
-    id: 'geologists_rock_hammer',
+    id: 'geologists_rock_hammer_common',
     name: 'Geologist\'s Rock Hammer',
     description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
     icon: Hammer,
@@ -899,7 +891,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { quarryDigPower: 4 },
   },
   {
-    id: 'optimized_factory_cooling_fan',
+    id: 'optimized_factory_cooling_fan_common',
     name: 'Optimized Cooling Fan',
     description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
     icon: Fan,
@@ -907,7 +899,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { }
   },
   {
-    id: 'trojan_war_souvenir',
+    id: 'trojan_war_souvenir_common',
     name: 'Trojan War Souvenir',
     description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
     icon: ShieldCheck,
@@ -915,7 +907,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { }
   },
   {
-    id: 'medusas_gaze_reflected',
+    id: 'medusas_gaze_reflected_common',
     name: 'Medusa\'s Gaze (Reflected)',
     description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
     icon: Eye,
@@ -923,12 +915,60 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
   },
   {
-    id: 'cerberuss_collar',
+    id: 'cerberuss_collar_common',
     name: 'Cerberus\'s Collar',
     description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
     icon: KeyRound,
     rarity: 'Uncommon',
     effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'leaky_pen',
+    name: 'Leaky Pen',
+    description: 'It\'s messy, but the ideas that flowed from it were good. +0.5% global income.',
+    icon: PenTool,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 0.5 }
+  },
+  {
+    id: 'slightly_charged_battery',
+    name: 'Slightly Charged Battery',
+    description: 'Has a little juice left. +3 max Quarry Energy.',
+    icon: BatteryCharging,
+    rarity: 'Uncommon',
+    effects: { increaseMaxEnergy: 3 }
+  },
+  {
+    id: 'early_internet_modem',
+    name: 'Early Internet Modem',
+    description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
+    icon: Server,
+    rarity: 'Uncommon',
+    effects: { }
+  },
+  {
+    id: 'cracked_monocle',
+    name: 'Cracked Monocle',
+    description: 'Still helps you spot a deal. +1% global income.',
+    icon: Eye,
+    rarity: 'Uncommon',
+    effects: { globalIncomeBoostPercent: 1 }
+  },
+  {
+    id: 'a_single_phoenix_down',
+    name: 'A Single Phoenix Down',
+    description: 'Not enough to revive, but feels lucky. +1% Prestige Points.',
+    icon: Feather,
+    rarity: 'Uncommon',
+    effects: { globalPrestigePointBoostPercent: 1 }
+  },
+  {
+    id: 'bag_of_assorted_nuts_and_bolts',
+    name: 'Bag of Assorted Nuts and Bolts',
+    description: 'Spare parts are always useful. Reduces global business upgrade costs by 0.5%.',
+    icon: Wrench,
+    rarity: 'Uncommon',
+    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
   },
   {
     id: 'charons_ferry_token',
@@ -985,150 +1025,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: FileText,
     rarity: 'Uncommon',
     effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'cracked_monocle',
-    name: 'Cracked Monocle',
-    description: 'Still helps you spot a deal. +1% global income.',
-    icon: Eye,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 1 }
-  },
-  {
-    id: 'a_single_phoenix_down',
-    name: 'A Single Phoenix Down',
-    description: 'Not enough to revive, but feels lucky. +1% Prestige Points.',
-    icon: Feather,
-    rarity: 'Uncommon',
-    effects: { globalPrestigePointBoostPercent: 1 }
-  },
-  {
-    id: 'bag_of_assorted_nuts_and_bolts',
-    name: 'Bag of Assorted Nuts and Bolts',
-    description: 'Spare parts are always useful. Reduces global business upgrade costs by 0.5%.',
-    icon: Wrench,
-    rarity: 'Uncommon',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'leaky_pen',
-    name: 'Leaky Pen',
-    description: 'It\'s messy, but the ideas that flowed from it were good. +0.5% global income.',
-    icon: PenTool,
-    rarity: 'Uncommon',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'slightly_charged_battery',
-    name: 'Slightly Charged Battery',
-    description: 'Has a little juice left. +3 max Quarry Energy.',
-    icon: BatteryCharging,
-    rarity: 'Uncommon',
-    effects: { increaseMaxEnergy: 3 }
-  },
-  {
-    id: 'early_internet_modem',
-    name: 'Early Internet Modem',
-    description: 'The sound is nostalgic. Boosts Tech businesses by 1%.',
-    icon: Server,
-    rarity: 'Uncommon',
-    effects: { }
-  },
-  {
-    id: 'cursed_coin_of_avarice_common',
-    name: 'Cursed Coin of Avarice',
-    description: 'Looks valuable, but feels... off. +0.5% global income.',
-    icon: HandCoins,
-    rarity: 'Common',
-    effects: { globalIncomeBoostPercent: 0.5 }
-  },
-  {
-    id: 'ceos_first_business_card_common',
-    name: 'CEO\'s First Business Card',
-    description: 'The worn business card of a future titan of industry. Start with an extra $5,000.',
-    icon: Contact,
-    rarity: 'Common',
-    effects: { increaseStartingMoney: 5000 }
-  },
-  {
-    id: 'investors_lucky_tie_clip_common',
-    name: 'Investor\'s Lucky Tie Clip',
-    description: 'A tie clip worn during a record-breaking trade. Increases global dividend yield by 1.5%.',
-    icon: Briefcase,
-    rarity: 'Common',
-    effects: { globalDividendYieldBoostPercent: 1.5 }
-  },
-  {
-    id: 'robust_server_rack_casing_common',
-    name: 'Robust Server Rack',
-    description: 'A well-built server rack that simplifies maintenance. Reduces all TECH business level up costs by 1%.',
-    icon: Server,
-    rarity: 'Common',
-    effects: { }
-  },
-  {
-    id: 'reinforced_quarry_bucket_system_common',
-    name: 'Reinforced Quarry Bucket',
-    description: 'A large, sturdy bucket for hauling more from the quarry. Increases manual material collection by 8.',
-    icon: ShoppingBasket,
-    rarity: 'Common',
-    effects: { increaseManualMaterialCollection: 8 }
-  },
-  {
-    id: 'high_efficiency_led_lightbulb_common',
-    name: 'High-Efficiency Lightbulb',
-    description: 'Reduces passive power draw in the factory. Increases factory power generation by 1%.',
-    icon: Lightbulb,
-    rarity: 'Common',
-    effects: { factoryPowerGenerationBoostPercent: 1 }
-  },
-  {
-    id: 'programmers_rubber_duck_of_clarity_common',
-    name: 'Programmer\'s Rubber Duck',
-    description: 'Explain your problems to it and find solutions. Boosts Tech Startup income by 2%.',
-    icon: Lightbulb,
-    rarity: 'Common',
-    effects: { },
-  },
-  {
-    id: 'geologists_rock_hammer_common',
-    name: 'Geologist\'s Rock Hammer',
-    description: 'The perfect tool for splitting rocks and finding seams. Increases Quarry Dig Power by 4.',
-    icon: Hammer,
-    rarity: 'Common',
-    effects: { quarryDigPower: 4 },
-  },
-  {
-    id: 'optimized_factory_cooling_fan_common',
-    name: 'Optimized Cooling Fan',
-    description: 'An efficient fan that reduces factory power consumption. Reduces factory power consumption by 0.5%.',
-    icon: Fan,
-    rarity: 'Common',
-    effects: { }
-  },
-  {
-    id: 'trojan_war_souvenir_common',
-    name: 'Trojan War Souvenir',
-    description: 'A small wooden horse figurine. Boosts CyberGuard Solutions income by 1%.',
-    icon: ShieldCheck,
-    rarity: 'Common',
-    effects: { }
-  },
-  {
-    id: 'medusas_gaze_reflected_common',
-    name: 'Medusa\'s Gaze (Reflected)',
-    description: 'A reflection captured in a polished shield. Reduces all business upgrade costs by 0.5%.',
-    icon: Eye,
-    rarity: 'Common',
-    effects: { globalBusinessUpgradeCostReductionPercent: 0.5 }
-  },
-  {
-    id: 'cerberuss_collar_common',
-    name: 'Cerberus\'s Collar',
-    description: 'A spiked collar from the guardian of the underworld. +1% Prestige Points.',
-    icon: KeyRound,
-    rarity: 'Common',
-    effects: { globalPrestigePointBoostPercent: 1 }
   },
   
   // Common Artifacts
@@ -1447,7 +1343,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
   {
     id: 'odysseus_bowstring',
     name: 'Odysseus\'s Bowstring',
-    description: 'A remarkably taught and resilient string. Boosts income for all Aerospace businesses by 1%.',
+    description: 'A remarkably taught and resilient string. Boosts all Aerospace businesses income by 1%.',
     icon: Target,
     rarity: 'Common',
     effects: { }
@@ -1466,7 +1362,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     description: 'A seed from the plant used by Socrates. A morbid reminder to question everything. Boosts manual RP generation by +0.5.',
     icon: Sprout,
     rarity: 'Common',
-    effects: { }
+    effects: { factoryManualRPGenerationBoost: 0.5 }
   },
   {
     id: 'runestone_fragment',
@@ -1707,6 +1603,30 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: ShieldAlert,
     rarity: 'Common',
     effects: { quarryDigPower: 1 },
+  },
+  {
+    id: 'cursed_coin_of_avarice_common',
+    name: 'Cursed Coin of Avarice',
+    description: 'Looks valuable, but feels... off. +0.5% global income.',
+    icon: HandCoins,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.5 }
+  },
+  {
+    id: 'a_worlds_best_boss_mug',
+    name: 'World\'s Best Boss Mug',
+    description: 'A slightly chipped mug. Makes you feel important. +0.3% global income.',
+    icon: Coffee,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.3 },
+  },
+  {
+    id: 'lucky_cat_figurine',
+    name: 'Lucky Cat Figurine',
+    description: 'A small, waving cat figurine. Beckons wealth. +0.4% global income.',
+    icon: Hand,
+    rarity: 'Common',
+    effects: { globalIncomeBoostPercent: 0.4 },
   },
 ];
   

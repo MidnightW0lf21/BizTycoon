@@ -233,6 +233,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return WORKER_ENERGY_TIERS[tier] || WORKER_ENERGY_TIERS[0];
   }, []);
 
+  const calculateMaxEnergy = useCallback((stats: PlayerStats): number => {
+    let newMaxEnergy = QUARRY_ENERGY_MAX;
+    (stats.purchasedQuarryUpgradeIds || []).forEach(id => {
+        const upgrade = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
+        if (upgrade?.effects.increaseMaxEnergy) {
+            newMaxEnergy += upgrade.effects.increaseMaxEnergy;
+        }
+    });
+    (stats.unlockedArtifactIds || []).forEach(id => {
+        const artifact = INITIAL_ARTIFACTS.find(a => a.id === id);
+        if (artifact?.effects.increaseMaxEnergy) {
+            newMaxEnergy += artifact.effects.increaseMaxEnergy;
+        }
+    });
+    return newMaxEnergy;
+  }, []);
+
 
   const unlockedStocks = useMemo(() => {
     const filtered = stocksWithDynamicPrices.filter(currentDynamicStock => {
@@ -1412,11 +1429,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
     const playerStatsNow = playerStatsRef.current;
-    const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0);
+    
+    let componentBonus = 0;
+    for (const componentId in playerStatsNow.factoryProducedComponents) {
+        const count = playerStatsNow.factoryProducedComponents[componentId];
+        if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.factoryManualRPGenerationBoost) {
+                const potentialBonus = count * componentConfig.effects.factoryManualRPGenerationBoost;
+                const cappedBonus = componentConfig.effects.maxBonusPercent ? Math.min(potentialBonus, componentConfig.effects.maxBonusPercent) : potentialBonus;
+                componentBonus += cappedBonus;
+            }
+        }
+    }
 
+    let artifactBonus = 0;
+    (playerStatsNow.unlockedArtifactIds || []).forEach(id => {
+        const artifact = INITIAL_ARTIFACTS.find(a => a.id === id);
+        if (artifact?.effects.factoryManualRPGenerationBoost) {
+            artifactBonus += artifact.effects.factoryManualRPGenerationBoost;
+        }
+    });
+
+    const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (playerStatsNow.manualResearchBonus || 0) + componentBonus + artifactBonus;
     const numBoostStagesCompleted = (playerStatsNow.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
     const currentManualResearchCost = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numBoostStagesCompleted * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
-
 
     if (!playerStatsNow.factoryPurchased) {
       toastTitle = "Factory Not Owned";
@@ -1446,7 +1483,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         manualResearchCooldownEndRef.current = now + RESEARCH_MANUAL_COOLDOWN_MS;
         setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
         toastTitle = "Research Conducted!";
-        toastDescription = `+${pointsToGain} Research Point(s) gained for $${currentManualResearchCost.toLocaleString()}.`;
+        toastDescription = `+${pointsToGain.toFixed(2)} Research Point(s) gained for $${currentManualResearchCost.toLocaleString()}.`;
       }
     }
      if(toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
@@ -1779,7 +1816,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showPrestige ?? true))) {
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
     }
-  }, [getDynamicMaxWorkerEnergy]);
+  }, [getDynamicMaxWorkerEnergy, calculateMaxEnergy]);
 
   const hireWorker = useCallback(() => {
     let toastTitle = "";
@@ -1972,6 +2009,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
             }
             
+            const newMaxEnergy = calculateMaxEnergy({ ...prev, unlockedArtifactIds: newUnlockedArtifactIds });
+
             if (foundArtifact) {
               setTimeout(() => {
                 if (playerStatsRef.current.toastSettings?.showQuarry ?? true) {
@@ -1991,6 +2030,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               quarryEnergy: prev.quarryEnergy - QUARRY_ENERGY_COST_PER_DIG,
               lastDigTimestamp: now,
               unlockedArtifactIds: newUnlockedArtifactIds,
+              maxQuarryEnergy: newMaxEnergy,
             };
         });
 
@@ -2004,7 +2044,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
       }
     }
-  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances]);
+  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     let toastTitle = "";
@@ -2026,15 +2066,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       setPlayerStats(prev => {
         const newPurchasedIds = [...(prev.purchasedQuarryUpgradeIds || []), upgradeId];
+        const newMaxEnergy = calculateMaxEnergy({ ...prev, purchasedQuarryUpgradeIds: newPurchasedIds });
         
-        let newMaxEnergy = QUARRY_ENERGY_MAX;
-        newPurchasedIds.forEach(id => {
-          const upg = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
-          if (upg?.effects.increaseMaxEnergy) {
-            newMaxEnergy += upg.effects.increaseMaxEnergy;
-          }
-        });
-
         return {
           ...prev,
           minerals: prev.minerals - upgradeConfig.cost,
@@ -2047,7 +2080,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showQuarry ?? true))) toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
-  }, []);
+  }, [calculateMaxEnergy]);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     let toastTitle = "";
@@ -2148,13 +2181,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
         const initialDefaults = getInitialPlayerStats();
-        let loadedMaxEnergy = QUARRY_ENERGY_MAX;
-        (loadedData.playerStats.purchasedQuarryUpgradeIds || []).forEach(id => {
-            const upgrade = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
-            if (upgrade?.effects.increaseMaxEnergy) {
-                loadedMaxEnergy += upgrade.effects.increaseMaxEnergy;
-            }
-        });
+        const loadedMaxEnergy = calculateMaxEnergy(loadedData.playerStats);
 
         const mergedPlayerStats: PlayerStats = {
             ...initialDefaults, ...tempPlayerStats,
@@ -2185,6 +2212,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             manualResearchBonus: typeof tempPlayerStats.manualResearchBonus === 'number' ? tempPlayerStats.manualResearchBonus : initialDefaults.manualResearchBonus,
             factoryWorkerEnergyRegenModifier: typeof tempPlayerStats.factoryWorkerEnergyRegenModifier === 'number' ? tempPlayerStats.factoryWorkerEnergyRegenModifier : initialDefaults.factoryWorkerEnergyRegenModifier,
             quarryLevel: typeof tempPlayerStats.quarryLevel === 'number' ? tempPlayerStats.quarryLevel : initialDefaults.quarryLevel,
+            nextQuarryCost: typeof tempPlayerStats.nextQuarryCost === 'number' ? tempPlayerStats.nextQuarryCost : initialDefaults.nextQuarryCost,
             quarryName: typeof tempPlayerStats.quarryName === 'string' ? tempPlayerStats.quarryName : initialDefaults.quarryName,
             quarryRarityBias: tempPlayerStats.quarryRarityBias || null,
             quarryEnergy: typeof tempPlayerStats.quarryEnergy === 'number' ? tempPlayerStats.quarryEnergy : initialDefaults.quarryEnergy,
@@ -2218,7 +2246,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toastRef.current({ title: "Load Error", description: "Could not load previous save. Starting a new game.", variant: "destructive"});
       setPlayerStats(getInitialPlayerStats());
     }
-  }, []);
+  }, [calculateMaxEnergy, localCalculateIncome]);
 
   useEffect(() => {
     const autoSaveTimer = setInterval(() => {
@@ -2635,7 +2663,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(gameTickIntervalId);
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy]);
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy]);
 
   useEffect(() => {
     const pStats = playerStatsRef.current;
@@ -2752,5 +2780,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    

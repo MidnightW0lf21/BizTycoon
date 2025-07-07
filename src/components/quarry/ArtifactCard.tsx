@@ -4,7 +4,7 @@
 import type { Artifact, ArtifactRarity, ArtifactEffects } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Lock, Sparkles, TrendingUp, ArrowDownCircle, ShoppingCart, PiggyBank, Star, Zap, Package, Pickaxe, BatteryCharging } from "lucide-react";
+import { CheckCircle, Lock, Sparkles, TrendingUp, ArrowDownCircle, ShoppingCart, PiggyBank, Star, Zap, Package, Pickaxe, BatteryCharging, FlaskConical } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -35,6 +35,7 @@ const EffectIcon = ({ effectKey }: { effectKey: keyof ArtifactEffects }) => {
     case 'increaseManualMaterialCollection': return <Package {...iconProps} />;
     case 'quarryDigPower': return <Pickaxe {...iconProps} />;
     case 'increaseMaxEnergy': return <BatteryCharging {...iconProps} />;
+    case 'factoryManualRPGenerationBoost': return <FlaskConical {...iconProps} />;
     default: return <Sparkles {...iconProps} />;
   }
 };
@@ -93,6 +94,7 @@ export function ArtifactCard({ artifact, isUnlocked, isMiniMode = false }: Artif
     if (effects.quarryDigPower) renderableEffects.push({ key: 'quarryDigPower', text: `+${effects.quarryDigPower} Dig Power` });
     if (effects.increaseMaxEnergy) renderableEffects.push({ key: 'increaseMaxEnergy', text: `+${effects.increaseMaxEnergy} Max Quarry Energy` });
     if (effects.mineralBonus) renderableEffects.push({ key: 'mineralBonus', text: `+${effects.mineralBonus} to max minerals per dig` });
+    if (effects.factoryManualRPGenerationBoost) renderableEffects.push({ key: 'factoryManualRPGenerationBoost', text: `+${effects.factoryManualRPGenerationBoost} Manual RP Gen` });
   }
 
   return (

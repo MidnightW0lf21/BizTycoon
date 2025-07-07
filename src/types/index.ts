@@ -108,6 +108,7 @@ export interface ArtifactEffects {
   quarryDigPower?: number; // Additive dig power
   increaseMaxEnergy?: number;
   mineralBonus?: number;
+  factoryManualRPGenerationBoost?: number;
 }
 
 export interface Artifact {
