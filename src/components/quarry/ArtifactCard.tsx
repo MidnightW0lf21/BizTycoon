@@ -66,9 +66,8 @@ export function ArtifactCard({ artifact, isUnlocked, isMiniMode = false }: Artif
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger>
-            <div className={cn("flex flex-col items-center justify-center gap-1.5 text-center p-2 rounded-md aspect-square h-full cursor-pointer", styles.border, styles.bg)}>
+            <div className={cn("flex flex-col items-center justify-center text-center p-2 rounded-md aspect-square h-full cursor-pointer", styles.border, styles.bg)}>
               <Icon className={cn("h-8 w-8", styles.text)} />
-              <p className={cn("text-xs font-medium leading-tight truncate w-full", styles.text)}>{artifact.name}</p>
             </div>
           </TooltipTrigger>
           <TooltipContent>
