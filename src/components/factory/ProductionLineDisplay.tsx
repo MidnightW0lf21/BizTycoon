@@ -3,7 +3,7 @@
 
 import type { FactoryProductionLine, FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, WorkerStatus, ResearchItemConfig, PlayerStats, FactoryProductionProgressData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon, Timer, Zap } from "lucide-react";
+import { PlusCircle, Wrench, Loader2, Settings, Cog, User, Zap as EnergyIcon, ShieldAlert as NoPowerIcon, LockKeyhole, PackagePlus, DollarSign, Unlock as UnlockIcon, Timer, Zap, SlidersHorizontal } from "lucide-react";
 import { INITIAL_FACTORY_MACHINE_CONFIGS, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,6 +16,7 @@ interface ProductionLineDisplayProps {
   allWorkers: Worker[];
   lineIndex: number;
   onOpenRecipeDialog: (productionLineId: string, slotIndex: number) => void;
+  onOpenSetLineRecipeDialog: (lineId: string) => void;
   onUnlockLine: (lineId: string) => void;
   playerMoney: number;
   researchRequiredName?: string | null;
@@ -37,6 +38,7 @@ export function ProductionLineDisplay({
   allWorkers,
   lineIndex,
   onOpenRecipeDialog,
+  onOpenSetLineRecipeDialog,
   onUnlockLine,
   playerMoney,
   researchRequiredName,
@@ -61,6 +63,9 @@ export function ProductionLineDisplay({
     if(!machineInstanceId) return null;
     return allWorkers.find(w => w.assignedMachineInstanceId === machineInstanceId) || null;
   };
+  
+  const setAllResearchUnlocked = (playerStats.unlockedResearchIds || []).includes(`unlock_set_all_${productionLine.id}`);
+
 
   if (!productionLine.isUnlocked) {
     const canAffordUnlock = productionLine.unlockCost ? playerMoney >= productionLine.unlockCost : false;
@@ -99,7 +104,18 @@ export function ProductionLineDisplay({
   return (
     <Card className="border-border shadow-sm">
       <CardHeader className="pb-2 pt-3">
-        <CardTitle className="text-lg">{productionLine.name}</CardTitle>
+        <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{productionLine.name}</CardTitle>
+            {setAllResearchUnlocked && (
+                <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => onOpenSetLineRecipeDialog(productionLine.id)}
+                >
+                    <SlidersHorizontal className="mr-2 h-4 w-4"/> Set All
+                </Button>
+            )}
+        </div>
         <CardDescription className="text-xs">
           Click a machine to set its recipe or assign a worker. Production starts if power, materials, a worker, and input components are sufficient.
         </CardDescription>
@@ -279,7 +295,7 @@ export function ProductionLineDisplay({
                         )} />
                       <p className={cn(
                           "text-muted-foreground/70",
-                          "text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-xl @[15rem]:text-2xl"
+                          "text-xs @[6rem]:text-sm @[8rem]:text-base @[10rem]:text-lg @[12rem]:text-2xl"
                         )}>Empty Slot</p>
                     </div>
                   )}
@@ -297,5 +313,3 @@ export function ProductionLineDisplay({
     </Card>
   );
 }
-
-    

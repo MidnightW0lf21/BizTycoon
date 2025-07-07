@@ -129,6 +129,7 @@ interface GameContextType {
   getArtifactFindChances: () => ArtifactFindChances;
   selectNextQuarry: (choice: QuarryChoice) => void;
   updateToastSettings: (settings: ToastSettings) => void;
+  setRecipeForEntireLine: (lineId: string, componentId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -1692,6 +1693,67 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const setRecipeForEntireLine = useCallback((lineId: string, componentId: string) => {
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+    let lineName = "Production Line";
+
+    setPlayerStats(prev => {
+        const lineIndex = (prev.factoryProductionLines || []).findIndex(line => line.id === lineId);
+        if (lineIndex === -1) {
+            toastTitle = "Error";
+            toastDescription = "Production line not found.";
+            toastVariant = "destructive";
+            return prev;
+        }
+
+        const lineToUpdate = prev.factoryProductionLines[lineIndex];
+        lineName = lineToUpdate.name;
+
+        const componentRecipe = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+        if (!componentRecipe) {
+            toastTitle = "Error";
+            toastDescription = "Selected component recipe not found.";
+            toastVariant = "destructive";
+            return prev;
+        }
+
+        const updatedSlots = lineToUpdate.slots.map(slot => {
+            if (slot.machineInstanceId) {
+                const machineInstance = (prev.factoryMachines || []).find(m => m.instanceId === slot.machineInstanceId);
+                const machineConfig = machineInstance ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machineInstance.configId) : null;
+                if (machineConfig && machineConfig.maxCraftableTier >= componentRecipe.tier) {
+                    return { ...slot, targetComponentId: componentId };
+                }
+            }
+            return slot; // Keep original if no machine or cannot craft
+        });
+
+        const updatedLines = [...prev.factoryProductionLines];
+        updatedLines[lineIndex] = { ...lineToUpdate, slots: updatedSlots };
+        
+        // This is a simplified progress update. A more robust solution might be needed.
+        // For now, it just ensures the progress object is clean.
+        let newProgress = { ...prev.factoryProductionProgress };
+        lineToUpdate.slots.forEach((slot, slotIndex) => {
+            if(slot.targetComponentId){
+              const oldProgressKey = `${lineToUpdate.id}-${slotIndex}-${slot.targetComponentId}`;
+              delete newProgress[oldProgressKey];
+            }
+        });
+        
+        toastTitle = "Line Recipe Set!";
+        toastDescription = `${lineName} is now set to produce ${componentRecipe.name}.`;
+
+        return { ...prev, factoryProductionLines: updatedLines, factoryProductionProgress: newProgress };
+    });
+
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showFactory ?? true))) {
+        toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
+  }, []);
+
 
   const performPrestige = useCallback(() => {
     let toastTitle = "";
@@ -1784,20 +1846,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             quarryEnergy: maxQuarryEnergy || QUARRY_ENERGY_MAX, // Refill energy
             lastDigTimestamp: lastDigTimestamp || 0,
 
-            // Re-apply Factory state with resets for active work
+            // Re-apply Factory state (fully persistent now)
             factoryPurchased: factoryPurchased || false,
             factoryPowerBuildings: factoryPowerBuildings || [],
             factoryMaterialCollectors: factoryMaterialCollectors || [],
             factoryMachines: factoryMachines || [],
-            factoryProductionLines: (factoryProductionLines || []).map(line => ({
-                ...line,
-                slots: line.slots.map(() => ({ machineInstanceId: null, targetComponentId: null }))
-            })),
+            factoryProductionLines: factoryProductionLines || [],
             factoryWorkers: (factoryWorkers || []).map(w => ({
-                ...w,
-                status: 'idle',
-                energy: getDynamicMaxWorkerEnergy(),
-                assignedMachineInstanceId: null,
+              ...w,
+              status: 'idle',
+              energy: getDynamicMaxWorkerEnergy(),
             })),
             factoryProducedComponents: factoryProducedComponents || {},
             factoryRawMaterials: factoryRawMaterials || 0,
@@ -2766,7 +2824,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setRecipeForProductionSlot, purchaseFactoryMaterialCollector, manuallyGenerateResearchPoints, purchaseResearch,
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
-      updateToastSettings,
+      updateToastSettings, setRecipeForEntireLine,
     }}>
       {children}
     </GameContext.Provider>

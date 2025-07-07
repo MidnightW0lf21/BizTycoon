@@ -17,6 +17,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RecipeSelectionDialog } from "@/components/factory/RecipeSelectionDialog";
+import { SetLineRecipeDialog } from "@/components/factory/SetLineRecipeDialog";
 import type { FactoryMachine, Worker, ResearchItemConfig as ResearchItemType, FactoryComponent, FactoryProductionProgressData } from "@/types";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
@@ -59,10 +60,13 @@ export default function MyFactoryPage() {
     assignWorkerToMachine,
     unlockProductionLine,
     purchaseFactoryMachineUpgrade,
+    setRecipeForEntireLine,
   } = useGame();
 
   const [isFactoryIntroVisible, setIsFactoryIntroVisible] = useState(true);
   const [isBonusSummaryOpen, setIsBonusSummaryOpen] = useState(false);
+  const [isSetLineRecipeDialogOpen, setIsSetLineRecipeDialogOpen] = useState(false);
+  const [lineRecipeContext, setLineRecipeContext] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -257,9 +261,19 @@ export default function MyFactoryPage() {
     }
   };
 
+  const handleOpenSetLineRecipeDialog = (lineId: string) => {
+    setLineRecipeContext(lineId);
+    setIsSetLineRecipeDialogOpen(true);
+  };
+
   const handleCloseRecipeDialog = () => {
     setIsRecipeDialogOpen(false);
     setCurrentDialogContext(null);
+  };
+  
+  const handleCloseSetLineRecipeDialog = () => {
+    setIsSetLineRecipeDialogOpen(false);
+    setLineRecipeContext(null);
   };
 
   const sortedAndFilteredResearchItems = useMemo(() => {
@@ -919,6 +933,7 @@ export default function MyFactoryPage() {
                       allWorkers={playerStats.factoryWorkers || []}
                       lineIndex={index}
                       onOpenRecipeDialog={handleOpenRecipeDialog}
+                      onOpenSetLineRecipeDialog={handleOpenSetLineRecipeDialog}
                       onUnlockLine={unlockProductionLine}
                       playerMoney={playerStats.money}
                       researchRequiredName={researchForLine?.name}
@@ -1132,6 +1147,18 @@ export default function MyFactoryPage() {
         purchaseFactoryMachineUpgrade={purchaseFactoryMachineUpgrade}
         currentDynamicMaxWorkerEnergy={currentDynamicMaxWorkerEnergy}
       />
+    )}
+
+    {lineRecipeContext && (
+        <SetLineRecipeDialog
+            isOpen={isSetLineRecipeDialogOpen}
+            onClose={handleCloseSetLineRecipeDialog}
+            productionLineId={lineRecipeContext}
+            allComponentConfigs={INITIAL_FACTORY_COMPONENTS_CONFIG}
+            allMachineConfigs={INITIAL_FACTORY_MACHINE_CONFIGS}
+            setRecipeForEntireLine={setRecipeForEntireLine}
+            playerStats={playerStats}
+        />
     )}
 
     <Dialog open={isBuildAssemblerDialogOpen} onOpenChange={setIsBuildAssemblerDialogOpen}>

@@ -148,6 +148,59 @@ export const INITIAL_RESEARCH_ITEMS_CONFIG: ResearchItemConfig[] = [
     effects: { unlocksProductionLineId: 'line_5' }
   },
 
+  // Line-wide Recipe Setting Unlocks
+  {
+    id: 'unlock_set_all_line_1',
+    name: 'Line 1 Batch Production',
+    description: 'Unlocks the ability to set a single recipe for all machines in Production Line 1.',
+    icon: SlidersHorizontal,
+    costRP: 150,
+    costMoney: 1000000,
+    dependencies: ['unlock_prod_line_2'],
+    effects: { unlocksSetAllForLine: 'line_1' }
+  },
+  {
+    id: 'unlock_set_all_line_2',
+    name: 'Line 2 Unified Production',
+    description: 'Unlocks the ability to set a single recipe for all machines in Production Line 2.',
+    icon: SlidersHorizontal,
+    costRP: 200,
+    costMoney: 2500000,
+    dependencies: ['unlock_prod_line_3'],
+    effects: { unlocksSetAllForLine: 'line_2' }
+  },
+  {
+    id: 'unlock_set_all_line_3',
+    name: 'Line 3 Mass Assembly',
+    description: 'Unlocks the ability to set a single recipe for all machines in Production Line 3.',
+    icon: SlidersHorizontal,
+    costRP: 250,
+    costMoney: 5000000,
+    dependencies: ['unlock_prod_line_4'],
+    effects: { unlocksSetAllForLine: 'line_3' }
+  },
+  {
+    id: 'unlock_set_all_line_4',
+    name: 'Line 4 Coordinated Manufacturing',
+    description: 'Unlocks the ability to set a single recipe for all machines in Production Line 4.',
+    icon: SlidersHorizontal,
+    costRP: 300,
+    costMoney: 10000000,
+    dependencies: ['unlock_prod_line_5'],
+    effects: { unlocksSetAllForLine: 'line_4' }
+  },
+  {
+    id: 'unlock_set_all_line_5',
+    name: 'Line 5 Singular Focus Production',
+    description: 'Unlocks the ability to set a single recipe for all machines in Production Line 5.',
+    icon: SlidersHorizontal,
+    costRP: 350,
+    costMoney: 20000000,
+    dependencies: ['unlock_prod_line_5', 'unlock_basic_assembler_mk5'],
+    effects: { unlocksSetAllForLine: 'line_5' }
+  },
+
+
   // Material Collector Unlocks
   {
     id: 'unlock_drone_swarm_mk1',

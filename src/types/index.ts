@@ -272,6 +272,7 @@ export interface ResearchItemEffects {
   increaseManualResearchBonus?: number;
   increaseFactoryRawMaterialsCap?: number;
   factoryWorkerEnergyRegenModifier?: number;
+  unlocksSetAllForLine?: string;
 }
 
 export interface ResearchItemConfig {
