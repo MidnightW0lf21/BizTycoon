@@ -569,7 +569,7 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     effects: { globalDividendYieldBoostPercent: 5 }
   },
   {
-    id: 'oracle_of_delphi_note',
+    id: 'oracle_of_delphi_note_2',
     name: 'Oracle\'s Cryptic Note',
     description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
     icon: Scroll,
@@ -737,14 +737,6 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     icon: Sun,
     rarity: 'Uncommon',
     effects: { }
-  },
-  {
-    id: 'oracle_of_delphi_note_2',
-    name: 'Oracle\'s Cryptic Note',
-    description: 'A puzzling note that seems to hint at future market movements. +3% dividend yield for all stocks.',
-    icon: Scroll,
-    rarity: 'Uncommon',
-    effects: { globalDividendYieldBoostPercent: 3 }
   },
   {
     id: 'atlas_shoulder_pad',
@@ -1408,8 +1400,8 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
     id: 'giants_toe_nail',
     name: 'Giant\'s Toe Nail',
     description: 'A surprisingly sturdy material. +6 Max Quarry Energy.',
-    icon: MountainSnow,
     rarity: 'Common',
+    icon: MountainSnow,
     effects: { increaseMaxEnergy: 6 }
   },
   {
@@ -1641,3 +1633,4 @@ export const INITIAL_ARTIFACTS: Artifact[] = [
 
 
     
+
