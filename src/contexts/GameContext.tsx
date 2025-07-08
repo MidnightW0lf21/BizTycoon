@@ -2689,6 +2689,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         let newQuarryEnergy = Math.min(prev.maxQuarryEnergy, prev.quarryEnergy + QUARRY_ENERGY_REGEN_PER_SECOND);
         let newQuarryDepth = prev.quarryDepth;
+        let newMinerals = prev.minerals;
         let automationRate = 0;
         (prev.purchasedQuarryUpgradeIds || []).forEach(id => {
             const upgrade = INITIAL_QUARRY_UPGRADES.find(u => u.id === id);
@@ -2696,9 +2697,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 automationRate += upgrade.effects.automationRate;
             }
         });
+
         if (automationRate > 0 && newQuarryDepth < prev.quarryTargetDepth) {
             newQuarryDepth += automationRate;
+            const mineralsFromAutomation = automationRate * 0.25; 
+            newMinerals += mineralsFromAutomation;
         }
+
 
         const newTotalIncomePerSecondDisplay = currentTotalBusinessIncome + currentDividendIncome;
         
@@ -2717,6 +2722,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryWorkers: updatedWorkers,
           quarryEnergy: newQuarryEnergy,
           quarryDepth: Math.min(prev.quarryTargetDepth, newQuarryDepth),
+          minerals: newMinerals,
         };
       });
     }, GAME_TICK_INTERVAL);
