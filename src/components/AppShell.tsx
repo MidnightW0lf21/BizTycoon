@@ -37,6 +37,7 @@ interface NavItem {
   icon: LucideIcon;
   requiredTimesPrestiged?: number;
   action?: 'prestige';
+  items?: NavItem[];
 }
 
 const navItems: NavItem[] = [
@@ -47,9 +48,16 @@ const navItems: NavItem[] = [
   { href: '/quarry', label: 'Quarry', icon: Mountain, requiredTimesPrestiged: 4 },
   { href: '/my-factory', label: 'My Factory', icon: Factory, requiredTimesPrestiged: 5 },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 8 },
-  { href: '/farm', label: 'Farm', icon: Sprout, requiredTimesPrestiged: 15 },
-  { href: '/warehouse', label: 'Warehouse', icon: Truck, requiredTimesPrestiged: 15 },
-  { href: '/shop', label: 'Shop', icon: ShoppingCart, requiredTimesPrestiged: 15 },
+  { 
+    label: 'Retail Chain', 
+    icon: Gem, 
+    requiredTimesPrestiged: 15,
+    items: [
+      { href: '/farm', label: 'Farm', icon: Sprout, requiredTimesPrestiged: 15 },
+      { href: '/warehouse', label: 'Warehouse', icon: Truck, requiredTimesPrestiged: 15 },
+      { href: '/shop', label: 'Shop', icon: ShoppingCart, requiredTimesPrestiged: 15 },
+    ]
+  },
   { href: '/completion', label: 'Completion', icon: ListChecks, requiredTimesPrestiged: 0 },
   { href: '/stats', label: 'Statistics', icon: LineChart, requiredTimesPrestiged: 0 },
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
@@ -247,11 +255,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    const activeItem = navItems.find(item => {
-      if (item.action) return false;
+    let activeItem = navItems.find(item => {
+      if (item.action || item.items) return false;
       if (item.href === '/') return pathname === '/';
       return item.href && item.href !== '/' && pathname.startsWith(item.href);
     });
+
+    if (!activeItem) {
+        for(const item of navItems) {
+            if (item.items) {
+                const foundSubItem = item.items.find(sub => sub.href && pathname.startsWith(sub.href));
+                if (foundSubItem) {
+                    activeItem = foundSubItem;
+                    break;
+                }
+            }
+        }
+    }
 
     if (pathname === '/') setCurrentPageTitle('Dashboard');
     else if (pathname === '/settings') setCurrentPageTitle('Settings');
@@ -314,20 +334,67 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mountedMobileNavClasses = "overflow-y-auto";
   const finalMobileNavClasses = mounted ? `${baseMobileNavClasses} ${mountedMobileNavClasses}` : baseMobileNavClasses;
 
+  const renderNavItems = (isMobile: boolean) => (
+    navItems.map(item => {
+      if (item.items) {
+        const isLocked = playerStats.timesPrestiged < (item.requiredTimesPrestiged || 0);
+        const groupContent = (
+          <div className={cn("space-y-1", isLocked && "opacity-50")}>
+            <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-primary/90">
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
+              {isLocked && <LockKeyhole className="h-3 w-3 ml-auto" />}
+            </div>
+            <div className="pl-4 border-l ml-5 flex flex-col gap-1">
+              {item.items.map(subItem => (
+                <NavLink
+                  key={subItem.label}
+                  {...subItem}
+                  currentTimesPrestiged={playerStats.timesPrestiged}
+                  onMobileClick={isMobile ? handleCloseMobileSheet : undefined}
+                />
+              ))}
+            </div>
+          </div>
+        );
+
+        if (isLocked) {
+          return (
+            <TooltipProvider delayDuration={100} key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-not-allowed">{groupContent}</div>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Requires prestige level {item.requiredTimesPrestiged} to unlock.</p>
+                  <p className="text-xs">(Currently: {playerStats.timesPrestiged})</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        }
+        return <div key={item.label}>{groupContent}</div>;
+      }
+
+      return (
+        <NavLink
+          key={item.label}
+          {...item}
+          currentTimesPrestiged={playerStats.timesPrestiged}
+          onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
+          onMobileClick={isMobile ? handleCloseMobileSheet : undefined}
+        />
+      );
+    })
+  );
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className={finalSidebarClasses}>
         <div className="flex h-full max-h-screen flex-col gap-0">
           <AppLogo />
           <nav className={finalSidebarNavClasses}>
-            {navItems.map(item => (
-              <NavLink
-                key={item.label}
-                {...item}
-                currentTimesPrestiged={playerStats.timesPrestiged}
-                onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
-              />
-            ))}
+            {renderNavItems(false)}
           </nav>
         </div>
       </div>
@@ -346,15 +413,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SheetTitle className="sr-only">Main Navigation</SheetTitle> 
               <AppLogo />
               <nav className={finalMobileNavClasses}>
-                {navItems.map(item => (
-                  <NavLink
-                    key={item.label}
-                    {...item}
-                    currentTimesPrestiged={playerStats.timesPrestiged}
-                    onMobileClick={handleCloseMobileSheet}
-                    onPrestigeClick={item.action === 'prestige' ? handlePrestigeNavClick : undefined}
-                  />
-                ))}
+                {renderNavItems(true)}
               </nav>
             </SheetContent>
           </Sheet>
