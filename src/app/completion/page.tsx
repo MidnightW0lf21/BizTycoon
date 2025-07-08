@@ -290,7 +290,7 @@ export default function CompletionPage() {
           totalValue={completionData.stocks.total}
           unit="shares owned"
         />
-        { (completionData.factory.active || mounted ) && 
+        { completionData.factory.active && 
             <CategoryProgress 
             title="Factory Progress"
             icon={FactoryIcon}
@@ -299,7 +299,7 @@ export default function CompletionPage() {
             unit="objectives"
             />
         }
-        { (completionData.quarry.active || (mounted && playerStats.timesPrestiged >=4) ) && 
+        { completionData.quarry.active && 
             <CategoryProgress 
             title="Quarry Discoveries"
             icon={QuarryIcon}
