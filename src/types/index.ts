@@ -400,6 +400,10 @@ export interface PlayerStats {
 
   // App Settings
   toastSettings?: ToastSettings;
+  
+  // Lifetime Stats
+  timePlayedSeconds?: number;
+  totalMoneyEarned?: number;
 }
 
 export interface SaveData {

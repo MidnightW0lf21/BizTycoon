@@ -139,6 +139,8 @@ const getInitialPlayerStats = (): PlayerStats => {
     manualResearchBonus: 0,
     factoryWorkerEnergyRegenModifier: 1,
     toastSettings: { ...defaultToastSettings },
+    timePlayedSeconds: 0,
+    totalMoneyEarned: INITIAL_MONEY,
   };
 };
 
@@ -685,8 +687,73 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   useEffect(() => {
-    // Game tick logic... (needs to be updated for new ETF income)
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy]);
+    const tick = setInterval(() => {
+      const allBusinesses = businessesRef.current;
+      const allStocks = stocksRef.current;
+      const allEtfs = etfsState; // Use the static state here for calculation
+      const prevStats = playerStatsRef.current;
+      
+      const newTotalIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
+        biz, 
+        prevStats.unlockedSkillIds, 
+        skillTreeRef.current, 
+        prevStats.hqUpgradeLevels, 
+        hqUpgradesRef.current,
+        prevStats.factoryProducedComponents || {},
+        INITIAL_FACTORY_COMPONENTS_CONFIG
+      ), 0);
+
+      const newInvestmentsValue = allStocks.reduce((sum, stock) => {
+        const holding = prevStats.stockHoldings.find(h => h.stockId === stock.id);
+        return sum + (holding ? holding.shares * stock.price : 0);
+      }, 0) + allEtfs.reduce((sum, etf) => {
+          const holding = prevStats.etfHoldings.find(h => h.etfId === etf.id);
+          // Simplified price calculation for the investment value; detailed price is elsewhere
+          const etfPrice = allStocks.filter(s => {
+            if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
+            if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
+            if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(s.ticker);
+            if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(s.ticker);
+            if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(s.ticker);
+            if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(s.ticker);
+            return false;
+          }).reduce((priceSum, stock) => priceSum + stock.price, 0) / (allStocks.filter(s => {
+             if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
+             return false;
+          }).length || 1);
+          
+          return sum + (holding ? holding.shares * etfPrice : 0);
+      }, 0);
+
+      const newMaxQuarryEnergy = calculateMaxEnergy(prevStats);
+      let newQuarryEnergy = prevStats.quarryEnergy;
+      if (newQuarryEnergy < newMaxQuarryEnergy) {
+          const energyToRegen = QUARRY_ENERGY_REGEN_PER_SECOND * (prevStats.factoryWorkerEnergyRegenModifier || 1);
+          newQuarryEnergy = Math.min(newMaxQuarryEnergy, prevStats.quarryEnergy + energyToRegen);
+      }
+      
+      const autoDigRate = (prevStats.purchasedQuarryUpgradeIds || [])
+          .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
+          .reduce((sum, rate) => sum + rate, 0);
+      
+      const mineralsFromAutomation = autoDigRate * 0.25;
+
+      setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money + newTotalIncome,
+        minerals: prev.minerals + mineralsFromAutomation,
+        quarryDepth: prev.quarryDepth + autoDigRate,
+        totalIncomePerSecond: newTotalIncome,
+        investmentsValue: newInvestmentsValue,
+        maxQuarryEnergy: newMaxQuarryEnergy,
+        quarryEnergy: newQuarryEnergy,
+        timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
+        totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
+      }));
+
+    }, GAME_TICK_INTERVAL);
+    return () => clearInterval(tick);
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy, etfsState]);
 
   useEffect(() => {
     // Auto-buy logic... (remains the same)
