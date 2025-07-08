@@ -141,6 +141,10 @@ const getInitialPlayerStats = (): PlayerStats => {
     toastSettings: { ...defaultToastSettings },
     timePlayedSeconds: 0,
     totalMoneyEarned: INITIAL_MONEY,
+    totalBusinessLevelsPurchased: 0,
+    totalDividendsEarned: 0,
+    totalMineralsDug: 0,
+    totalFactoryComponentsProduced: 0,
   };
 };
 
@@ -440,8 +444,43 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
-    // ... (This function remains the same)
-  }, [getDynamicMaxBusinessLevel]);
+    setBusinesses(prevBusinesses => {
+        const businessIndex = prevBusinesses.findIndex(b => b.id === businessId);
+        if (businessIndex === -1) return prevBusinesses;
+
+        const business = prevBusinesses[businessIndex];
+        const dynamicMaxLevel = getDynamicMaxBusinessLevel();
+
+        if (business.level >= dynamicMaxLevel) return prevBusinesses;
+
+        const levelsToBuy = levelsToAttempt;
+        const { totalCost, levelsPurchasable } = calculateCostForNLevelsForDisplay(businessId, levelsToBuy);
+
+        if (levelsPurchasable > 0 && playerStatsRef.current.money >= totalCost) {
+            const newBusinesses = [...prevBusinesses];
+            newBusinesses[businessIndex] = {
+                ...business,
+                level: business.level + levelsPurchasable,
+            };
+
+            setPlayerStats(prev => ({
+                ...prev,
+                money: prev.money - totalCost,
+                totalBusinessLevelsPurchased: (prev.totalBusinessLevelsPurchased || 0) + levelsPurchasable,
+            }));
+
+            if (playerStatsRef.current.toastSettings?.showManualPurchases) {
+              toastRef.current({
+                title: `${business.name} Leveled Up!`,
+                description: `Purchased ${levelsPurchasable} level(s) for ${business.name}.`,
+              });
+            }
+
+            return newBusinesses;
+        }
+        return prevBusinesses;
+    });
+  }, [getDynamicMaxBusinessLevel, calculateCostForNLevelsForDisplay]);
 
   const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
     let toastTitle = "";
@@ -565,7 +604,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   const performPrestige = useCallback(() => {
-    // ... (This function remains largely the same, but needs to handle etfHoldings reset)
+    // ... (This function remains largely the same, but needs to handle etfHoldings reset and new lifetime stat persistence)
   }, [getDynamicMaxWorkerEnergy, calculateMaxEnergy]);
 
   const hireWorker = useCallback(() => {
@@ -657,7 +696,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
   
   const digInQuarry = useCallback(() => {
-    // ... (This function remains the same)
+    const playerStatsNow = playerStatsRef.current;
+    if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG) return;
+
+    const digPower = getQuarryDigPower();
+    const mineralsFound = Math.floor(Math.random() * (digPower + getMineralBonus())) + 1;
+    const digDepth = Math.max(1, Math.floor(digPower / 2)); // Dig at least 1cm
+
+    const now = Date.now();
+    materialCollectionCooldownEndRef.current = now + QUARRY_DIG_COOLDOWN_MS;
+    setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
+
+    let foundArtifact: Artifact | null = null;
+    const totalFindChance = Object.values(getArtifactFindChances()).reduce((s, c) => s + c, 0) / 100;
+
+    if (Math.random() < totalFindChance) {
+        // Logic to select an artifact based on weighted chances
+    }
+
+    setPlayerStats(prev => ({
+        ...prev,
+        minerals: prev.minerals + mineralsFound,
+        totalMineralsDug: (prev.totalMineralsDug || 0) + mineralsFound,
+        quarryDepth: prev.quarryDepth + digDepth,
+        quarryEnergy: prev.quarryEnergy - QUARRY_ENERGY_COST_PER_DIG,
+        lastDigTimestamp: now,
+    }));
   }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
@@ -693,7 +757,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const allEtfs = etfsState; // Use the static state here for calculation
       const prevStats = playerStatsRef.current;
       
-      const newTotalIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
+      const businessIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
         biz, 
         prevStats.unlockedSkillIds, 
         skillTreeRef.current, 
@@ -703,12 +767,64 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         INITIAL_FACTORY_COMPONENTS_CONFIG
       ), 0);
 
+      const stockDividendIncome = allStocks.reduce((sum, stock) => {
+          const holding = prevStats.stockHoldings.find(h => h.stockId === stock.id);
+          if (!holding) return sum;
+          
+          let componentBoostPercent = 0;
+          for (const componentId in prevStats.factoryProducedComponents) {
+              const count = prevStats.factoryProducedComponents[componentId];
+              const config = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+              if (config?.effects?.stockSpecificDividendYieldBoostPercent?.stockId === stock.id) {
+                  const potentialBoost = count * config.effects.stockSpecificDividendYieldBoostPercent.percent;
+                  componentBoostPercent += config.effects.maxBonusPercent ? Math.min(potentialBoost, config.effects.maxBonusPercent) : potentialBoost;
+              }
+          }
+          const effectiveYield = stock.dividendYield * (1 + (componentBoostPercent / 100));
+          return sum + (holding.shares * stock.price * effectiveYield);
+      }, 0);
+
+      const etfDividendIncome = allEtfs.reduce((sum, etf) => {
+          const holding = prevStats.etfHoldings.find(h => h.etfId === etf.id);
+          if(!holding) return sum;
+          
+          const underlyingStocks = allStocks.filter(stock => {
+            if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(stock.ticker);
+            if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(stock.ticker);
+            if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(stock.ticker);
+            if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(stock.ticker);
+            if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(stock.ticker);
+            if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(stock.ticker);
+            return false;
+          });
+
+          if(underlyingStocks.length === 0) return sum;
+
+          const totalUnderlyingDividend = underlyingStocks.reduce((divSum, stock) => divSum + (stock.price * stock.dividendYield), 0);
+          
+          let dividendBoost = 1;
+          businessSynergiesState.forEach(synergy => {
+            if (synergy.effect.type === 'ETF_DIVIDEND_BOOST' && synergy.effect.targetId === etf.id) {
+                const business = prevStats.businesses.find(b => b.id === synergy.businessId);
+                if(business && business.level > 0) {
+                    const boostTiers = Math.floor(business.level / synergy.perLevels);
+                    dividendBoost += (boostTiers * synergy.effect.value) / 100;
+                }
+            }
+          });
+
+          const avgDividend = (totalUnderlyingDividend / underlyingStocks.length) * dividendBoost;
+          return sum + (holding.shares * avgDividend);
+      }, 0);
+
+      const totalDividendIncome = stockDividendIncome + etfDividendIncome;
+      const newTotalIncome = businessIncome + totalDividendIncome;
+
       const newInvestmentsValue = allStocks.reduce((sum, stock) => {
         const holding = prevStats.stockHoldings.find(h => h.stockId === stock.id);
         return sum + (holding ? holding.shares * stock.price : 0);
       }, 0) + allEtfs.reduce((sum, etf) => {
           const holding = prevStats.etfHoldings.find(h => h.etfId === etf.id);
-          // Simplified price calculation for the investment value; detailed price is elsewhere
           const etfPrice = allStocks.filter(s => {
             if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
             if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
@@ -741,6 +857,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPlayerStats(prev => ({
         ...prev,
         money: prev.money + newTotalIncome,
+        totalDividendsEarned: (prev.totalDividendsEarned || 0) + totalDividendIncome,
         minerals: prev.minerals + mineralsFromAutomation,
         quarryDepth: prev.quarryDepth + autoDigRate,
         totalIncomePerSecond: newTotalIncome,
@@ -753,7 +870,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(tick);
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy, etfsState]);
+  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy, etfsState, businessSynergiesState]);
 
   useEffect(() => {
     // Auto-buy logic... (remains the same)

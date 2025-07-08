@@ -381,11 +381,6 @@ export interface PlayerStats {
   unlockedFactoryComponentRecipeIds?: string[];
   factoryWorkerEnergyRegenModifier?: number;
   
-  // Research Stats
-  researchPoints: number;
-  unlockedResearchIds: string[];
-  lastManualResearchTimestamp: number;
-  
   // Quarry Stats
   minerals: number;
   quarryDepth: number;
@@ -404,6 +399,10 @@ export interface PlayerStats {
   // Lifetime Stats
   timePlayedSeconds?: number;
   totalMoneyEarned?: number;
+  totalBusinessLevelsPurchased?: number;
+  totalDividendsEarned?: number;
+  totalMineralsDug?: number;
+  totalFactoryComponentsProduced?: number;
 }
 
 export interface SaveData {

@@ -3,7 +3,7 @@
 
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Clock, DollarSign, Star, Sparkles, Gem, Network, Building } from "lucide-react";
+import { LineChart, Clock, DollarSign, Star, Sparkles, Gem, Network, Building, TrendingUp, Banknote, Factory as FactoryIcon } from "lucide-react";
 import { useEffect, useState } from 'react';
 
 const formatDuration = (totalSeconds: number) => {
@@ -69,7 +69,7 @@ export default function StatisticsPage() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <h3 className="text-lg font-semibold col-span-full">Lifetime Statistics</h3>
+                <h3 className="text-lg font-semibold col-span-full">General Lifetime Stats</h3>
                 <StatDisplay 
                     icon={Clock}
                     label="Time Played"
@@ -91,6 +91,34 @@ export default function StatisticsPage() {
             </div>
             
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <h3 className="text-lg font-semibold col-span-full">Lifetime Production Stats</h3>
+                <StatDisplay 
+                    icon={TrendingUp}
+                    label="Total Business Levels Purchased"
+                    value={(playerStats.totalBusinessLevelsPurchased || 0).toLocaleString()}
+                    description="Sum of all business levels ever bought."
+                />
+                <StatDisplay 
+                    icon={Banknote}
+                    label="Total Dividends Earned"
+                    value={`$${(playerStats.totalDividendsEarned || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                    description="Passive income earned from stocks & ETFs."
+                />
+                 <StatDisplay 
+                    icon={Gem}
+                    label="Total Minerals Dug"
+                    value={`${(playerStats.totalMineralsDug || 0).toLocaleString()} kg`}
+                    description="Total raw minerals excavated from the Quarry."
+                />
+                <StatDisplay 
+                    icon={FactoryIcon}
+                    label="Total Factory Components Produced"
+                    value={(playerStats.totalFactoryComponentsProduced || 0).toLocaleString()}
+                    description="Total number of components made by your factory."
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <h3 className="text-lg font-semibold col-span-full">Current Prestige Highlights</h3>
                 <StatDisplay 
                     icon={Sparkles}
