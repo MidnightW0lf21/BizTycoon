@@ -51,22 +51,18 @@ export default function CompletionPage() {
   }, []);
 
   const completionData = useMemo(() => {
+    // Business Milestones
     let achievedBusinessMaxLevelPoints = 0;
     let achievedBusinessUpgradePoints = 0;
-    
     const totalBusinessMaxLevelPoints = INITIAL_BUSINESSES.length;
     const totalBusinessUpgradePoints = INITIAL_BUSINESSES.reduce((sum, biz) => sum + (biz.upgrades?.length || 0), 0);
-    
     if (playerStats.achievedBusinessMilestones) {
       INITIAL_BUSINESSES.forEach(initialBusinessConfig => {
         const unlockIndex = INITIAL_BUSINESSES.findIndex(ib => ib.id === initialBusinessConfig.id);
         const isBusinessVisibleForCompletion = playerStats.timesPrestiged >= unlockIndex;
-
         if (isBusinessVisibleForCompletion) {
           const milestones = playerStats.achievedBusinessMilestones?.[initialBusinessConfig.id];
-          if (milestones?.maxLevelReached) {
-            achievedBusinessMaxLevelPoints++;
-          }
+          if (milestones?.maxLevelReached) achievedBusinessMaxLevelPoints++;
           if (milestones?.purchasedUpgradeIds) {
             const totalUpgradesForThisBiz = initialBusinessConfig.upgrades?.length || 0;
             const purchasedCountForThisBiz = milestones.purchasedUpgradeIds.length;
@@ -79,10 +75,12 @@ export default function CompletionPage() {
     const currentTotalBusinessCompletionPoints = achievedBusinessMaxLevelPoints + achievedBusinessUpgradePoints;
     const businessCompletionPercentage = maxTotalBusinessCompletionPoints > 0 ? (currentTotalBusinessCompletionPoints / maxTotalBusinessCompletionPoints) * 100 : 0;
 
+    // Skill Tree
     const totalSkills = INITIAL_SKILL_TREE.length;
     const unlockedSkills = playerStats.unlockedSkillIds.length;
     const skillCompletionPercentage = totalSkills > 0 ? (unlockedSkills / totalSkills) * 100 : 0;
 
+    // HQ Upgrades
     let totalPossibleHQLevels = 0;
     let achievedHQLevels = 0;
     INITIAL_HQ_UPGRADES.forEach(hqUpgrade => {
@@ -91,6 +89,7 @@ export default function CompletionPage() {
     });
     const hqCompletionPercentage = totalPossibleHQLevels > 0 ? (achievedHQLevels / totalPossibleHQLevels) * 100 : 0;
     
+    // Stock Ownership
     const totalPossibleSharesToOwn = INITIAL_STOCKS.reduce((sum, stock) => sum + stock.totalOutstandingShares, 0);
     let currentOwnedShares = 0;
     playerStats.stockHoldings.forEach(holding => {
@@ -98,66 +97,81 @@ export default function CompletionPage() {
     });
     const stockCompletionPercentage = totalPossibleSharesToOwn > 0 ? (currentOwnedShares / totalPossibleSharesToOwn) * 100 : 0;
 
-    let factoryCompletion = { current: 0, total: 0, percentage: 0, active: false };
-    if (playerStats.factoryPurchased) {
-        factoryCompletion.active = true;
-        const totalResearchableItems = INITIAL_RESEARCH_ITEMS_CONFIG.length;
-        const unlockedResearchItems = (playerStats.unlockedResearchIds || []).length;
-        const totalUniqueComponents = INITIAL_FACTORY_COMPONENTS_CONFIG.length;
-        let producedUniqueComponentCount = 0;
-        let achievedMaxedComponents = 0;
-        let totalMaxableComponents = 0;
+    // Factory Completion
+    let factoryCurrent = 0;
+    let factoryTotal = 0;
+    const totalResearchableItems = INITIAL_RESEARCH_ITEMS_CONFIG.length;
+    const totalUniqueComponents = INITIAL_FACTORY_COMPONENTS_CONFIG.length;
+    const totalProductionLines = (playerStats.factoryProductionLines || []).length || 5;
+    let totalMaxableComponents = 0;
 
-        INITIAL_FACTORY_COMPONENTS_CONFIG.forEach(compConfig => {
-            if ((playerStats.factoryProducedComponents?.[compConfig.id] || 0) > 0) {
-                producedUniqueComponentCount++;
+    INITIAL_FACTORY_COMPONENTS_CONFIG.forEach(compConfig => {
+      if (compConfig.effects && compConfig.effects.maxBonusPercent) {
+        let effectPerUnit = 0;
+        if (compConfig.effects.globalIncomeBoostPerComponentPercent) effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
+        else if (compConfig.effects.businessSpecificIncomeBoostPercent) effectPerUnit = compConfig.effects.businessSpecificIncomeBoostPercent.percent;
+        else if (compConfig.effects.stockSpecificDividendYieldBoostPercent) effectPerUnit = compConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
+        else if (compConfig.effects.factoryGlobalPowerOutputBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalPowerOutputBoostPercent;
+        else if (compConfig.effects.factoryGlobalMaterialCollectionBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+        if (effectPerUnit > 0) totalMaxableComponents++;
+      }
+    });
+
+    factoryTotal = totalResearchableItems + totalUniqueComponents + totalProductionLines + totalMaxableComponents;
+
+    if (playerStats.factoryPurchased) {
+      const unlockedResearchItems = (playerStats.unlockedResearchIds || []).length;
+      let producedUniqueComponentCount = 0;
+      let achievedMaxedComponents = 0;
+      INITIAL_FACTORY_COMPONENTS_CONFIG.forEach(compConfig => {
+        if ((playerStats.factoryProducedComponents?.[compConfig.id] || 0) > 0) {
+          producedUniqueComponentCount++;
+        }
+        if (compConfig.effects && compConfig.effects.maxBonusPercent) {
+          let effectPerUnit = 0;
+          if (compConfig.effects.globalIncomeBoostPerComponentPercent) effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
+          else if (compConfig.effects.businessSpecificIncomeBoostPercent) effectPerUnit = compConfig.effects.businessSpecificIncomeBoostPercent.percent;
+          else if (compConfig.effects.stockSpecificDividendYieldBoostPercent) effectPerUnit = compConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
+          else if (compConfig.effects.factoryGlobalPowerOutputBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalPowerOutputBoostPercent;
+          else if (compConfig.effects.factoryGlobalMaterialCollectionBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+          
+          if (effectPerUnit > 0) {
+            const count = playerStats.factoryProducedComponents?.[compConfig.id] || 0;
+            if (count * effectPerUnit >= compConfig.effects.maxBonusPercent) {
+              achievedMaxedComponents++;
             }
-            if (compConfig.effects && compConfig.effects.maxBonusPercent) {
-                let effectPerUnit = 0;
-                if (compConfig.effects.globalIncomeBoostPerComponentPercent) effectPerUnit = compConfig.effects.globalIncomeBoostPerComponentPercent;
-                else if (compConfig.effects.businessSpecificIncomeBoostPercent) effectPerUnit = compConfig.effects.businessSpecificIncomeBoostPercent.percent;
-                else if (compConfig.effects.stockSpecificDividendYieldBoostPercent) effectPerUnit = compConfig.effects.stockSpecificDividendYieldBoostPercent.percent;
-                else if (compConfig.effects.factoryGlobalPowerOutputBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalPowerOutputBoostPercent;
-                else if (compConfig.effects.factoryGlobalMaterialCollectionBoostPercent) effectPerUnit = compConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
-                
-                if (effectPerUnit > 0) {
-                    totalMaxableComponents++;
-                    const count = playerStats.factoryProducedComponents?.[compConfig.id] || 0;
-                    if (count * effectPerUnit >= compConfig.effects.maxBonusPercent) {
-                        achievedMaxedComponents++;
-                    }
-                }
-            }
-        });
-        const totalProductionLines = (playerStats.factoryProductionLines || []).length;
-        const unlockedProductionLinesCount = (playerStats.factoryProductionLines || []).filter(line => line.isUnlocked).length;
-        factoryCompletion.current = unlockedResearchItems + producedUniqueComponentCount + unlockedProductionLinesCount + achievedMaxedComponents;
-        factoryCompletion.total = totalResearchableItems + totalUniqueComponents + totalProductionLines + totalMaxableComponents;
-        factoryCompletion.percentage = factoryCompletion.total > 0 ? (factoryCompletion.current / factoryCompletion.total) * 100 : 0;
+          }
+        }
+      });
+      const unlockedProductionLinesCount = (playerStats.factoryProductionLines || []).filter(line => line.isUnlocked).length;
+      factoryCurrent = unlockedResearchItems + producedUniqueComponentCount + unlockedProductionLinesCount + achievedMaxedComponents;
     }
+    const factoryCompletionPercentage = factoryTotal > 0 ? (factoryCurrent / factoryTotal) * 100 : 0;
+    const factoryCompletion = { current: factoryCurrent, total: factoryTotal, percentage: factoryCompletionPercentage };
     
+    // Quarry Completion
     const totalArtifacts = INITIAL_ARTIFACTS.length;
     const unlockedArtifacts = (playerStats.unlockedArtifactIds || []).length;
     const totalQuarryUpgrades = INITIAL_QUARRY_UPGRADES.length;
     const purchasedQuarryUpgrades = (playerStats.purchasedQuarryUpgradeIds || []).length;
-
+    const quarryCurrent = unlockedArtifacts + purchasedQuarryUpgrades;
+    const quarryTotal = totalArtifacts + totalQuarryUpgrades;
+    const quarryCompletionPercentage = quarryTotal > 0 ? (quarryCurrent / quarryTotal) * 100 : 0;
     const quarryCompletion = {
-      current: unlockedArtifacts + purchasedQuarryUpgrades,
-      total: totalArtifacts + totalQuarryUpgrades,
-      percentage: 0,
-      active: (playerStats.timesPrestiged || 0) >= 4,
+      current: quarryCurrent,
+      total: quarryTotal,
+      percentage: quarryCompletionPercentage,
     };
-    if (quarryCompletion.active) {
-        quarryCompletion.percentage = quarryCompletion.total > 0 ? (quarryCompletion.current / quarryCompletion.total) * 100 : 0;
-    }
 
-    const categoriesForAverage = [ businessCompletionPercentage, skillCompletionPercentage, hqCompletionPercentage, stockCompletionPercentage, ];
-    if (factoryCompletion.active) {
-        categoriesForAverage.push(factoryCompletion.percentage);
-    }
-    if (quarryCompletion.active) {
-        categoriesForAverage.push(quarryCompletion.percentage);
-    }
+    // Overall Completion
+    const categoriesForAverage = [
+      businessCompletionPercentage,
+      skillCompletionPercentage,
+      hqCompletionPercentage,
+      stockCompletionPercentage,
+      factoryCompletion.percentage,
+      quarryCompletion.percentage,
+    ];
     
     const overallCompletionPercentage = categoriesForAverage.length > 0 ? categoriesForAverage.reduce((sum, val) => sum + val, 0) / categoriesForAverage.length : 0;
 
@@ -290,24 +304,20 @@ export default function CompletionPage() {
           totalValue={completionData.stocks.total}
           unit="shares owned"
         />
-        { completionData.factory.active && 
-            <CategoryProgress 
-            title="Factory Progress"
-            icon={FactoryIcon}
-            currentValue={completionData.factory.current}
-            totalValue={completionData.factory.total}
-            unit="objectives"
-            />
-        }
-        { completionData.quarry.active && 
-            <CategoryProgress 
-            title="Quarry Discoveries"
-            icon={QuarryIcon}
-            currentValue={completionData.quarry.current}
-            totalValue={completionData.quarry.total}
-            unit="discoveries"
-            />
-        }
+        <CategoryProgress 
+          title="Factory Progress"
+          icon={FactoryIcon}
+          currentValue={completionData.factory.current}
+          totalValue={completionData.factory.total}
+          unit="objectives"
+        />
+        <CategoryProgress 
+          title="Quarry Discoveries"
+          icon={QuarryIcon}
+          currentValue={completionData.quarry.current}
+          totalValue={completionData.quarry.total}
+          unit="discoveries"
+        />
       </div>
     </div>
   );
