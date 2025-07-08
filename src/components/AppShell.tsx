@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks, Factory, Mountain, Gem, LineChart } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Store, Menu, Banknote, BarChart, LockKeyhole, Network, Sparkles, Star, Lightbulb, XIcon, Settings, SlidersHorizontal, Building as HQIcon, ListChecks, Factory, Mountain, Gem, LineChart, Sprout, Truck, ShoppingCart } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +47,9 @@ const navItems: NavItem[] = [
   { href: '/quarry', label: 'Quarry', icon: Mountain, requiredTimesPrestiged: 4 },
   { href: '/my-factory', label: 'My Factory', icon: Factory, requiredTimesPrestiged: 5 },
   { href: '/stocks', label: 'Stocks', icon: BarChart, requiredTimesPrestiged: 8 },
+  { href: '/farm', label: 'Farm', icon: Sprout, requiredTimesPrestiged: 15 },
+  { href: '/warehouse', label: 'Warehouse', icon: Truck, requiredTimesPrestiged: 15 },
+  { href: '/shop', label: 'Shop', icon: ShoppingCart, requiredTimesPrestiged: 15 },
   { href: '/completion', label: 'Completion', icon: ListChecks, requiredTimesPrestiged: 0 },
   { href: '/stats', label: 'Statistics', icon: LineChart, requiredTimesPrestiged: 0 },
   { label: 'Prestige', icon: Star, action: 'prestige', requiredTimesPrestiged: 0 },
