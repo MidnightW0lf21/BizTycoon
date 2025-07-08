@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS } from './data/stocks';
 import { INITIAL_SKILL_TREE } from './data/skills';
@@ -9,6 +9,8 @@ import { INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_FACTORY_MACHINE_CONFIGS, INI
 import { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE } from './data/workers';
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
+import { INITIAL_ETFS } from './data/etfs';
+import { BUSINESS_SYNERGIES } from './data/synergies';
 
 
 export const INITIAL_MONEY = 10;
@@ -129,8 +131,8 @@ export const calculateIncome = (
     const count = producedFactoryComponents[componentId];
     if (count > 0) {
       const componentConfig = factoryComponentsConfig.find(fc => fc.id === componentId);
-      if (componentConfig && componentConfig.effects?.globalIncomeBoostPerComponentPercent) {
-        totalGlobalIncomeBoost += count * componentConfig.effects.globalIncomeBoostPerComponentPercent;
+      if (componentConfig && componentConfig.effects?.globalIncomeBoostPercent) {
+        totalGlobalIncomeBoost += count * componentConfig.effects.globalIncomeBoostPercent;
       }
     }
   }
@@ -410,6 +412,8 @@ export {
 } from './data/businesses';
 
 export { INITIAL_STOCKS } from './data/stocks';
+export { INITIAL_ETFS } from './data/etfs';
+export { BUSINESS_SYNERGIES } from './data/synergies';
 export { INITIAL_SKILL_TREE } from './data/skills';
 export { INITIAL_HQ_UPGRADES } from './data/hq';
 export { INITIAL_ARTIFACTS } from './data/artifacts';

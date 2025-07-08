@@ -7,13 +7,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
 import type { Business, BusinessUpgrade } from "@/types";
-import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole, Factory as FactoryIcon } from "lucide-react";
+import { Zap, DollarSign, ArrowUpCircle, CheckCircle, ShoppingCart, Info, Crown, LockKeyhole, Factory as FactoryIcon, Handshake } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { INITIAL_BUSINESSES, INITIAL_FACTORY_COMPONENTS_CONFIG } from "@/config/game-config"; 
+import { INITIAL_BUSINESSES, INITIAL_FACTORY_COMPONENTS_CONFIG, BUSINESS_SYNERGIES } from "@/config/game-config"; 
 
 type BuyAmountOption = 1 | 10 | 25 | 'MAX';
 
@@ -32,6 +32,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     getDynamicMaxBusinessLevel,
     calculateCostForNLevelsForDisplay,
     calculateMaxAffordableLevelsForDisplay,
+    etfs
   } = useGame();
   const Icon = business.icon;
 
@@ -47,6 +48,21 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
   const unlockIndex = useMemo(() => INITIAL_BUSINESSES.findIndex(b => b.id === business.id), [business.id]);
   const isEffectivelyUnlocked = playerStats.timesPrestiged >= unlockIndex;
+
+  const synergyInfo = useMemo(() => {
+    return BUSINESS_SYNERGIES.find(s => s.businessId === business.id);
+  }, [business.id]);
+
+  const synergyEffectText = useMemo(() => {
+    if (!synergyInfo) return null;
+    const { perLevels, effect } = synergyInfo;
+    const targetName = effect.type === 'ETF_DIVIDEND_BOOST' 
+      ? etfs.find(e => e.id === effect.targetId)?.name || effect.targetId 
+      : INITIAL_STOCKS.find(s => s.id === effect.targetId)?.companyName || effect.targetId;
+    const effectType = effect.type === 'ETF_DIVIDEND_BOOST' ? 'dividend yield' : 'base stock price';
+    
+    return `Every ${perLevels} levels provides a +${effect.value}% boost to ${targetName}'s ${effectType}.`;
+  }, [synergyInfo, etfs]);
 
 
   const bulkBuyUnlockedForThisBusiness = useMemo(() => {
@@ -152,7 +168,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     dynamicMaxLevel,
     isEffectivelyUnlocked,
     bulkBuyUnlockedForThisBusiness,
-    componentBoosts.levelUpCostReductionPercent // Add dependency to re-calc if component boosts change
+    componentBoosts.levelUpCostReductionPercent
   ]);
 
 
@@ -218,7 +234,20 @@ export function BusinessCard({ business }: BusinessCardProps) {
       <CardHeader className={cn("pb-4", !isEffectivelyUnlocked && "opacity-50")}>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">{business.name}</CardTitle>
-          <Icon className="h-8 w-8 text-primary" />
+          <div className="flex items-center gap-2">
+            {synergyInfo && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Handshake className="h-5 w-5 text-purple-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-semibold">Synergy Bonus</p>
+                  <p>{synergyEffectText}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Icon className="h-8 w-8 text-primary" />
+          </div>
         </div>
         <CardDescription>{business.description}</CardDescription>
       </CardHeader>
@@ -414,5 +443,3 @@ export function BusinessCard({ business }: BusinessCardProps) {
     </TooltipProvider>
   );
 }
-
-    

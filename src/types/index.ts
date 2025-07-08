@@ -36,12 +36,35 @@ export interface Stock {
   description: string;
   totalOutstandingShares: number;
   requiredSkillToUnlock?: string;
+  onMarket: boolean; // True if post-IPO
 }
 
 export interface StockHolding {
   stockId: string;
   shares: number;
   averagePurchasePrice: number;
+}
+
+export interface ETF {
+  id: string;
+  ticker: string;
+  name: string;
+  description: string;
+  sector: string; // e.g., 'TECH', 'FINANCE'
+  icon: LucideIcon;
+}
+
+export interface EtfHolding {
+  etfId: string;
+  shares: number;
+  averagePurchasePrice: number;
+}
+
+export interface IPO {
+  stockId: string;
+  ipoPrice: number;
+  sharesRemaining: number;
+  endTime: number;
 }
 
 export interface SkillNodeEffects {
@@ -74,7 +97,7 @@ export interface HQUpgradeEffects {
   globalDividendYieldBoostPercent?: number;
   globalPrestigePointBoostPercent?: number;
   retentionPercentage?: number; // Generic retention for both business levels and stock shares
-  unlocksFactoryComponentRecipeIds?: string[]; // New: For unlocking recipes
+  unlocksFactoryComponentRecipeIds?: string[];
 }
 
 export interface HQUpgradeLevel {
@@ -172,7 +195,6 @@ export interface FactoryComponent {
   productionTimeSeconds: number;
   requiredAssemblerMark: number;
   effects?: FactoryComponentEffects;
-  // requiredHQUpgradeToUnlockRecipe?: string; // Optional: Link component to its HQ unlock
 }
 
 export interface FactoryMachineUpgradeEffect {
@@ -221,8 +243,8 @@ export interface FactoryProductionLine {
   name: string;
   slots: FactoryProductionLineSlot[];
   isUnlocked: boolean;
-  unlockCost?: number; // For line 1
-  requiredResearchId?: string; // For lines 2-5
+  unlockCost?: number;
+  requiredResearchId?: string;
 }
 
 export interface FactoryMaterialCollectorConfig {
@@ -298,9 +320,9 @@ export interface QuarryUpgrade {
   cost: number; // Cost in Minerals
   icon?: LucideIcon;
   effects: {
-    digPower?: number; // Additive dig power
-    automationRate?: number; // Passive digging rate in cm/s
-    increaseMaxEnergy?: number; // Additive max energy
+    digPower?: number;
+    automationRate?: number;
+    increaseMaxEnergy?: number;
     mineralBonus?: number;
   };
 }
@@ -329,6 +351,7 @@ export interface PlayerStats {
   totalIncomePerSecond: number;
   investmentsValue: number;
   stockHoldings: StockHolding[];
+  etfHoldings: EtfHolding[];
   prestigePoints: number;
   timesPrestiged: number;
   unlockedSkillIds: string[];
@@ -338,6 +361,7 @@ export interface PlayerStats {
     purchasedUpgradeIds?: string[];
   }>;
   unlockedArtifactIds?: string[];
+  activeIpo: IPO | null;
 
   // Factory Stats
   factoryPurchased: boolean;
@@ -352,9 +376,9 @@ export interface PlayerStats {
   factoryMaterialCollectors: FactoryMaterialCollector[];
   factoryProductionProgress?: Record<string, FactoryProductionProgressData>;
   factoryWorkers: Worker[];
-  currentWorkerEnergyTier: number; // Index for WORKER_ENERGY_TIERS
+  currentWorkerEnergyTier: number;
   manualResearchBonus?: number;
-  unlockedFactoryComponentRecipeIds?: string[]; // New: Track unlocked recipes
+  unlockedFactoryComponentRecipeIds?: string[];
   factoryWorkerEnergyRegenModifier?: number;
   
   // Research Stats
@@ -381,7 +405,18 @@ export interface PlayerStats {
 export interface SaveData {
   playerStats: PlayerStats;
   businesses: Business[];
-  lastSaved: number; // Timestamp
+  stocks: Stock[]; // Save stock prices and onMarket status
+  lastSaved: number;
 }
 
 export type RiskTolerance = "low" | "medium" | "high";
+
+export interface BusinessSynergy {
+  businessId: string;
+  perLevels: number; // e.g., for every 100 levels
+  effect: {
+    type: 'STOCK_PRICE_BOOST' | 'ETF_DIVIDEND_BOOST';
+    targetId: string; // Stock or ETF ID
+    value: number; // The percentage boost (e.g., 0.5 for 0.5%)
+  };
+}
