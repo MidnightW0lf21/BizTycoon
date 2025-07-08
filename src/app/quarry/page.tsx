@@ -196,7 +196,7 @@ export default function QuarryPage() {
                 <p className="text-sm text-muted-foreground">Current Minerals</p>
                 <p className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
                     <Gem className="h-6 w-6"/>
-                    {playerStats.minerals.toLocaleString()}
+                    {playerStats.minerals.toLocaleString()} kg
                 </p>
               </div>
 

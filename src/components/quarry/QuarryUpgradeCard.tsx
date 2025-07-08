@@ -35,7 +35,7 @@ export function QuarryUpgradeCard({ upgrade, onPurchase, playerMinerals, isPurch
             <span className="text-muted-foreground">Cost:</span>
             <div className="flex items-center gap-1 font-semibold text-primary">
                 <Gem className="h-3.5 w-3.5"/>
-                {upgrade.cost.toLocaleString()} Minerals
+                {upgrade.cost.toLocaleString()} kg
             </div>
         </div>
       </CardContent>
