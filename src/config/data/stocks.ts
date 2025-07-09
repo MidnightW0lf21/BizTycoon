@@ -19,3 +19,20 @@ export const INITIAL_STOCKS: Stock[] = [
   { id: 'stellar_dynamics', ticker: 'STLR', companyName: 'Stellar Dynamics', price: 1200, dividendYield: 0.000035, icon: Rocket, description: 'Pioneering interplanetary colonization and resource extraction.', totalOutstandingShares: 1000000, onMarket: false },
   { id: 'crypto_currency_exchange', ticker: 'CRYPX', companyName: 'CryptoNexus Exchange', price: 50, dividendYield: 0.000001, icon: Bitcoin, description: 'Volatile cryptocurrency trading platform.', totalOutstandingShares: 50000000, onMarket: true },
 ];
+
+export const STOCK_ETF_UNLOCK_ORDER: { id: string; type: 'STOCK' | 'ETF' }[] = [
+  { id: 'global_corp', type: 'STOCK' },
+  { id: 'tech_etf', type: 'ETF' },
+  { id: 'green_energy_co', type: 'STOCK' },
+  { id: 'energy_etf', type: 'ETF' },
+  { id: 'summit_real_estate', type: 'STOCK' },
+  { id: 'finance_etf', type: 'ETF' },
+  { id: 'tech_innovations', type: 'STOCK' },
+  { id: 'industrial_etf', type: 'ETF' },
+  { id: 'momentum_motors', type: 'STOCK' },
+  { id: 'aerospace_etf', type: 'ETF' },
+  { id: 'alpha_pharma', type: 'STOCK' },
+  { id: 'biotech_etf', type: 'ETF' },
+  { id: 'biz_tycoon_holdings', type: 'STOCK' },
+  { id: 'crypto_currency_exchange', type: 'STOCK' },
+];

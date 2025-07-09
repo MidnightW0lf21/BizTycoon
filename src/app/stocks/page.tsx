@@ -12,11 +12,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { LockKeyhole, BarChart, Package, Briefcase, Landmark, Flame } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { STOCK_ETF_UNLOCK_ORDER } from "@/config/game-config";
 
-const REQUIRED_PRESTIGE_LEVEL = 8;
+const REQUIRED_PRESTIGE_LEVEL = 1;
 
 export default function StocksPage() {
   const { playerStats, stocks, etfs, buyIpoShares } = useGame();
+
+  const unlockedItems = STOCK_ETF_UNLOCK_ORDER.slice(0, playerStats.timesPrestiged);
+  const unlockedStockIds = unlockedItems.filter(item => item.type === 'STOCK').map(item => item.id);
+  const unlockedEtfIds = unlockedItems.filter(item => item.type === 'ETF').map(item => item.id);
+
+  const availableStocks = stocks.filter(stock => unlockedStockIds.includes(stock.id));
+  const availableEtfs = etfs.filter(etf => unlockedEtfIds.includes(etf.id));
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
     return (
@@ -55,7 +63,7 @@ export default function StocksPage() {
           <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <BarChart className="h-6 w-6 text-primary" /> Global Exchange
           </h2>
-          <p className="text-sm text-muted-foreground">Buy and sell shares of companies, ETFs, and participate in IPOs.</p>
+          <p className="text-sm text-muted-foreground">Buy and sell shares of companies, ETFs, and participate in IPOs. You unlock one new item per prestige level.</p>
         </div>
         
         <Tabs defaultValue="stocks" className="w-full flex-grow flex flex-col">
@@ -66,14 +74,14 @@ export default function StocksPage() {
           </TabsList>
 
           <TabsContent value="stocks" className="flex-grow mt-4">
-            {stocks.length === 0 ? (
+            {availableStocks.length === 0 ? (
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 min-h-[200px] flex items-center justify-center">
-                <p className="text-center text-muted-foreground">No stocks available in the market currently.</p>
+                <p className="text-center text-muted-foreground">No stocks unlocked yet. Prestige to unlock more!</p>
               </div>
             ) : (
               <ScrollArea className="h-[calc(100vh-280px)] pr-4"> 
                 <div className="space-y-4">
-                  {stocks.map((stock) => (
+                  {availableStocks.map((stock) => (
                     <StockMarketItem key={stock.id} stock={stock} />
                   ))}
                 </div>
@@ -82,14 +90,14 @@ export default function StocksPage() {
           </TabsContent>
 
           <TabsContent value="etfs" className="flex-grow mt-4">
-             {etfs.length === 0 ? (
+             {availableEtfs.length === 0 ? (
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 min-h-[200px] flex items-center justify-center">
-                <p className="text-center text-muted-foreground">No ETFs available in the market currently.</p>
+                <p className="text-center text-muted-foreground">No ETFs unlocked yet. Prestige to unlock more!</p>
               </div>
             ) : (
               <ScrollArea className="h-[calc(100vh-280px)] pr-4"> 
                 <div className="space-y-4">
-                  {etfs.map((etf) => (
+                  {availableEtfs.map((etf) => (
                     <EtfMarketItem key={etf.id} etf={etf} />
                   ))}
                 </div>
