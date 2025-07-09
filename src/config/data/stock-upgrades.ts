@@ -1,5 +1,6 @@
 import type { StockUpgrade } from '@/types';
-import { Building, Cpu, Zap, FlaskConical, Landmark, Briefcase, TrendingUp, Lightbulb, Dna, TelescopeIcon, Package, ShieldAlert, Rocket, Bitcoin } from 'lucide-react';
+import { INITIAL_STOCKS } from './stocks';
+import { Building, Cpu, Zap, FlaskConical, Landmark, Briefcase, TrendingUp, Lightbulb, Dna, TelescopeIcon, Package, ShieldAlert, Rocket, Bitcoin, BrainCircuit, AtomIcon, Building2 } from 'lucide-react';
 
 export const INITIAL_STOCK_UPGRADES: StockUpgrade[] = [
   {
@@ -151,5 +152,55 @@ export const INITIAL_STOCK_UPGRADES: StockUpgrade[] = [
     targetStockId: 'stellar_dynamics',
     icon: Rocket,
     effects: { dividendYieldBoost: 0.0000063 },
+  },
+  {
+    id: 'gc_global_synergy_2',
+    name: 'GC Global Synergy',
+    description: 'A massive restructuring improves synergy across all of Global Corp\'s ventures, unlocking significant value. Boosts dividend yield by an additional 18%.',
+    costMoney: 500000000,
+    costPrestigePoints: 50,
+    targetStockId: 'global_corp',
+    icon: TrendingUp,
+    effects: { dividendYieldBoost: 0.0000036 },
+  },
+  {
+    id: 'tinv_ai_integration_2',
+    name: 'TINV AI Integration',
+    description: 'Integrating a new powerful AI across all product lines streamlines R&D and production. Boosts dividend yield by an additional 25%.',
+    costMoney: 750000000,
+    costPrestigePoints: 65,
+    targetStockId: 'tech_innovations',
+    icon: BrainCircuit,
+    effects: { dividendYieldBoost: 0.0000025 },
+  },
+  {
+    id: 'gec_fusion_research_2',
+    name: 'GEC Fusion Research',
+    description: 'A breakthrough in fusion research promises a future of limitless clean energy. Boosts dividend yield by an additional 30%.',
+    costMoney: 600000000,
+    costPrestigePoints: 60,
+    targetStockId: 'green_energy_co',
+    icon: AtomIcon,
+    effects: { dividendYieldBoost: 0.0000045 },
+  },
+  {
+    id: 'aprx_gene_therapy_2',
+    name: 'APRX Gene Therapy',
+    description: 'Successful trials of a revolutionary gene therapy treatment opens up a massive new market. Boosts dividend yield by an additional 20%.',
+    costMoney: 800000000,
+    costPrestigePoints: 70,
+    targetStockId: 'alpha_pharma',
+    icon: Dna,
+    effects: { dividendYieldBoost: 0.000005 },
+  },
+  {
+    id: 'sre_megatower_project_2',
+    name: 'SRE Megatower Project',
+    description: 'Announces plans for a record-breaking skyscraper, generating massive investor interest. Boosts dividend yield by an additional 25%.',
+    costMoney: 550000000,
+    costPrestigePoints: 55,
+    targetStockId: 'summit_real_estate',
+    icon: Building2,
+    effects: { dividendYieldBoost: 0.0000045 },
   },
 ];
