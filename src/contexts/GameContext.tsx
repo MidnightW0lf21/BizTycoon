@@ -429,19 +429,118 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const importGameState = useCallback((jsonString: string): boolean => {
-    // ... (This function will need to be updated to handle the new ETF state if we persist it)
-    return false; // Placeholder
+    try {
+      const data = JSON.parse(jsonString);
+
+      // Basic validation
+      if (!data.playerStats || !data.businesses || !data.stocks) {
+        throw new Error("Invalid or corrupted save file format.");
+      }
+
+      // Merge imported stats with defaults to prevent errors from missing properties
+      const defaultStats = getInitialPlayerStats();
+      const mergedPlayerStats: PlayerStats = {
+        ...defaultStats,
+        ...data.playerStats,
+        stockHoldings: data.playerStats.stockHoldings || [],
+        etfHoldings: data.playerStats.etfHoldings || [],
+        hqUpgradeLevels: data.playerStats.hqUpgradeLevels || {},
+        unlockedSkillIds: data.playerStats.unlockedSkillIds || [],
+        purchasedQuarryUpgradeIds: data.playerStats.purchasedQuarryUpgradeIds || [],
+        unlockedArtifactIds: data.playerStats.unlockedArtifactIds || [],
+        unlockedResearchIds: data.playerStats.unlockedResearchIds || [],
+        unlockedFactoryComponentRecipeIds: data.playerStats.unlockedFactoryComponentRecipeIds || [],
+        factoryWorkers: data.playerStats.factoryWorkers || [],
+        factoryMachines: data.playerStats.factoryMachines || [],
+        factoryPowerBuildings: data.playerStats.factoryPowerBuildings || [],
+        factoryMaterialCollectors: data.playerStats.factoryMaterialCollectors || [],
+        factoryProductionLines: data.playerStats.factoryProductionLines || defaultStats.factoryProductionLines,
+        toastSettings: { ...defaultStats.toastSettings, ...data.playerStats.toastSettings },
+        activeIpo: data.playerStats.activeIpo || null,
+      };
+
+      setPlayerStats(mergedPlayerStats);
+      setBusinesses(data.businesses);
+      setStocksWithDynamicPrices(data.stocks);
+
+      localStorage.setItem(SAVE_DATA_KEY, JSON.stringify({
+        playerStats: mergedPlayerStats,
+        businesses: data.businesses,
+        stocks: data.stocks,
+        lastSaved: Date.now(),
+      }));
+
+      toastRef.current({
+        title: "Import Successful!",
+        description: "Game state has been loaded. The page will now reload.",
+      });
+
+      setTimeout(() => window.location.reload(), 1500);
+
+      return true;
+    } catch (error) {
+      console.error("Import error:", error);
+      toastRef.current({
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : "Could not import save data.",
+        variant: "destructive",
+      });
+      return false;
+    }
   }, []);
 
   const wipeGameData = useCallback(() => {
-    // ... (This function remains largely the same but will also reset new state like etfHoldings)
+    localStorage.removeItem(SAVE_DATA_KEY);
+    toastRef.current({
+      title: "Game Data Wiped",
+      description: "All progress has been reset. The game will now reload.",
+    });
+    setTimeout(() => window.location.reload(), 1500);
   }, []);
 
   const purchaseBusinessUpgrade = useCallback((businessId: string, upgradeId: string, isAutoBuy: boolean = false): boolean => {
-    // ... (This function remains the same)
-    return false; // Placeholder
-  }, []);
+    let success = false;
+    setBusinesses(prevBusinesses => {
+        const businessIndex = prevBusinesses.findIndex(b => b.id === businessId);
+        if (businessIndex === -1) return prevBusinesses;
 
+        const business = { ...prevBusinesses[businessIndex] };
+        if (!business.upgrades) return prevBusinesses;
+
+        const upgradeIndex = business.upgrades.findIndex(u => u.id === upgradeId);
+        if (upgradeIndex === -1) return prevBusinesses;
+
+        const upgrade = { ...business.upgrades[upgradeIndex] };
+        if (upgrade.isPurchased || playerStatsRef.current.money < upgrade.cost || business.level < upgrade.requiredLevel) {
+            return prevBusinesses;
+        }
+
+        const newBusinesses = [...prevBusinesses];
+        business.upgrades[upgradeIndex] = { ...upgrade, isPurchased: true };
+        newBusinesses[businessIndex] = business;
+
+        setPlayerStats(prev => ({
+            ...prev,
+            money: prev.money - upgrade.cost,
+        }));
+        
+        if (playerStatsRef.current.toastSettings?.showManualPurchases && !isAutoBuy) {
+            toastRef.current({
+                title: "Upgrade Purchased!",
+                description: `${business.name} - ${upgrade.name}`,
+            });
+        }
+        if (playerStatsRef.current.toastSettings?.showAutoBuyUpgrades && isAutoBuy) {
+            toastRef.current({
+                title: "Auto-Upgrade Purchased!",
+                description: `${business.name} - ${upgrade.name}`,
+            });
+        }
+        success = true;
+        return newBusinesses;
+    });
+    return success;
+  }, []);
 
   const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
     setBusinesses(prevBusinesses => {
@@ -604,8 +703,108 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   const performPrestige = useCallback(() => {
-    // ... (This function remains largely the same, but needs to handle etfHoldings reset and new lifetime stat persistence)
-  }, [getDynamicMaxWorkerEnergy, calculateMaxEnergy]);
+    const currentStats = playerStatsRef.current;
+    const currentBusinesses = businessesRef.current;
+
+    const totalLevels = currentBusinesses.reduce((sum, b) => sum + b.level, 0);
+    const newlyGainedPoints = calculateDiminishingPrestigePoints(totalLevels);
+
+    const boostPercent = getPrestigePointBoostPercent(currentStats.unlockedSkillIds, skillTreeRef.current, currentStats.hqUpgradeLevels, hqUpgradesRef.current, currentStats.unlockedArtifactIds, INITIAL_ARTIFACTS);
+    const finalPointsToAdd = Math.floor(newlyGainedPoints * (1 + boostPercent / 100));
+
+    const newPlayerStats = getInitialPlayerStats();
+    
+    // Carry over prestige-related stats
+    newPlayerStats.prestigePoints = currentStats.prestigePoints + finalPointsToAdd;
+    newPlayerStats.timesPrestiged = currentStats.timesPrestiged + 1;
+    newPlayerStats.unlockedSkillIds = [...currentStats.unlockedSkillIds];
+    newPlayerStats.hqUpgradeLevels = { ...currentStats.hqUpgradeLevels };
+    newPlayerStats.unlockedArtifactIds = [...(currentStats.unlockedArtifactIds || [])];
+    newPlayerStats.purchasedQuarryUpgradeIds = [...(currentStats.purchasedQuarryUpgradeIds || [])];
+
+    // Carry over factory state as it's persistent
+    newPlayerStats.factoryPurchased = currentStats.factoryPurchased;
+    newPlayerStats.factoryMachines = [...currentStats.factoryMachines];
+    newPlayerStats.factoryPowerBuildings = [...currentStats.factoryPowerBuildings];
+    newPlayerStats.factoryMaterialCollectors = [...currentStats.factoryMaterialCollectors];
+    newPlayerStats.factoryProductionLines = [...currentStats.factoryProductionLines];
+    newPlayerStats.factoryWorkers = [...currentStats.factoryWorkers];
+    newPlayerStats.factoryProducedComponents = { ...currentStats.factoryProducedComponents };
+    newPlayerStats.researchPoints = currentStats.researchPoints;
+    newPlayerStats.unlockedResearchIds = [...currentStats.unlockedResearchIds];
+    newPlayerStats.unlockedFactoryComponentRecipeIds = [...currentStats.unlockedFactoryComponentRecipeIds];
+
+    // Carry over settings & lifetime stats
+    newPlayerStats.toastSettings = { ...currentStats.toastSettings };
+    newPlayerStats.timePlayedSeconds = currentStats.timePlayedSeconds;
+    newPlayerStats.totalMoneyEarned = currentStats.totalMoneyEarned;
+    newPlayerStats.totalBusinessLevelsPurchased = currentStats.totalBusinessLevelsPurchased;
+    newPlayerStats.totalDividendsEarned = currentStats.totalDividendsEarned;
+    newPlayerStats.totalMineralsDug = currentStats.totalMineralsDug;
+    newPlayerStats.totalFactoryComponentsProduced = currentStats.totalFactoryComponentsProduced;
+
+    // Reset money but with starting bonus
+    const startingMoneyBonus = getStartingMoneyBonus(newPlayerStats.unlockedSkillIds, skillTreeRef.current, newPlayerStats.hqUpgradeLevels, hqUpgradesRef.current, newPlayerStats.unlockedArtifactIds, INITIAL_ARTIFACTS);
+    newPlayerStats.money = INITIAL_MONEY + startingMoneyBonus;
+
+    // Reset businesses but respect retention HQ upgrades
+    const newBusinesses = INITIAL_BUSINESSES.map(biz => {
+        const retentionUpgradeId = `retain_level_${biz.id}`;
+        const retentionLevel = newPlayerStats.hqUpgradeLevels[retentionUpgradeId] || 0;
+        let retainedLevels = 0;
+        if (retentionLevel > 0) {
+            const hqUpgrade = hqUpgradesRef.current.find(h => h.id === retentionUpgradeId);
+            const levelData = hqUpgrade?.levels.find(l => l.level === retentionLevel);
+            const retentionPercent = levelData?.effects.retentionPercentage || 0;
+            const originalBusiness = currentBusinesses.find(b => b.id === biz.id);
+            if (originalBusiness) {
+                retainedLevels = Math.floor(originalBusiness.level * (retentionPercent / 100));
+            }
+        }
+        return {
+            ...biz,
+            level: retainedLevels,
+            managerOwned: false,
+            upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
+            icon: biz.icon,
+        };
+    });
+
+    // Reset stocks but respect retention HQ upgrades
+    const newStockHoldings = currentStats.stockHoldings.map(holding => {
+        const retentionUpgradeId = `retain_shares_${holding.stockId}`;
+        const retentionLevel = newPlayerStats.hqUpgradeLevels[retentionUpgradeId] || 0;
+        let retainedShares = 0;
+        if (retentionLevel > 0) {
+             const hqUpgrade = hqUpgradesRef.current.find(h => h.id === retentionUpgradeId);
+            const levelData = hqUpgrade?.levels.find(l => l.level === retentionLevel);
+            const retentionPercent = levelData?.effects.retentionPercentage || 0;
+            retainedShares = Math.floor(holding.shares * (retentionPercent / 100));
+        }
+        return { ...holding, shares: retainedShares };
+    }).filter(h => h.shares > 0);
+    newPlayerStats.stockHoldings = newStockHoldings;
+    
+    // Reset ETFs (no retention for now)
+    newPlayerStats.etfHoldings = [];
+
+    // Reset quarry energy to max
+    newPlayerStats.maxQuarryEnergy = calculateMaxEnergy(newPlayerStats);
+    newPlayerStats.quarryEnergy = newPlayerStats.maxQuarryEnergy;
+
+    setPlayerStats(newPlayerStats);
+    setBusinesses(newBusinesses);
+    setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
+
+    if(playerStatsRef.current.toastSettings?.showPrestige ?? true) {
+        toastRef.current({
+            title: 'Prestige Successful!',
+            description: `You gained ${finalPointsToAdd.toLocaleString()} prestige points.`,
+        });
+    }
+
+    saveStateToLocalStorage();
+  }, [getDynamicMaxWorkerEnergy, calculateMaxEnergy, saveStateToLocalStorage]);
 
   const hireWorker = useCallback(() => {
     // ... (This function remains the same)
