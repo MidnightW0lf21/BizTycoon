@@ -35,8 +35,16 @@ export interface Stock {
   icon: LucideIcon;
   description: string;
   totalOutstandingShares: number;
-  requiredSkillToUnlock?: string;
+  onMarket?: boolean;
 }
+
+export interface IPO {
+    stockId: string;
+    ipoPrice: number;
+    sharesRemaining: number;
+    endTime: number;
+}
+
 
 export interface StockHolding {
   stockId: string;
@@ -149,7 +157,6 @@ export interface Artifact {
   icon: LucideIcon;
   effects: ArtifactEffects;
   rarity: ArtifactRarity;
-  dropChance?: number;
 }
 
 export interface FactoryPowerBuildingConfig {
@@ -167,7 +174,6 @@ export interface FactoryPowerBuildingConfig {
 export interface FactoryPowerBuilding {
   instanceId: string; // Unique ID for this specific building instance
   configId: string;   // ID of the FactoryPowerBuildingConfig
-  level: number;      // For future upgrades of individual buildings
 }
 
 export interface FactoryComponentEffects {
@@ -354,6 +360,76 @@ export interface ToastSettings {
   showQuarry: boolean;
 }
 
+export type CropId = 'Wheat' | 'Corn' | 'Potatoes';
+
+export interface Crop {
+  id: CropId;
+  name: string;
+  icon: LucideIcon;
+  growthTimeSeconds: number;
+  yieldPerHa: number;
+}
+
+export type FarmFieldStatus = 'NotOwned' | 'Empty' | 'Sowing' | 'Growing' | 'Harvesting' | 'Cultivating';
+export type FarmActivityType = 'Sowing' | 'Harvesting' | 'Cultivating' | 'Repairing' | 'FuelDelivery';
+
+export interface FarmActivity {
+  type: FarmActivityType;
+  startTime: number;
+  durationSeconds: number;
+  vehicleId?: string;
+  cropId?: CropId;
+}
+
+export interface FarmField {
+  id: string;
+  name: string;
+  sizeHa: number;
+  purchaseCost: number;
+  isOwned: boolean;
+  status: FarmFieldStatus;
+  currentCropId?: CropId;
+  activity?: FarmActivity;
+}
+
+export type FarmVehicleType = 'Tractor' | 'Harvester';
+export type FarmVehicleStatus = 'Idle' | 'Working' | 'Repairing';
+
+export interface FarmVehicleConfig {
+  id: string;
+  name: string;
+  type: FarmVehicleType;
+  icon: LucideIcon;
+  speedHaPerHr: number;
+  fuelCapacity: number;
+  fuelUsageLtrPerHr: number;
+  wearPerHr: number;
+  purchaseCost: number;
+}
+
+export interface FarmVehicle extends FarmVehicleConfig {
+  instanceId: string;
+  fuel: number;
+  wear: number; // 0 (perfect) to 100 (broken)
+  status: FarmVehicleStatus;
+  activity?: FarmActivity;
+}
+
+export interface SiloItem {
+  cropId: CropId;
+  quantity: number;
+}
+
+export interface KitchenRecipe {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  ingredients: { cropId: CropId; quantity: number }[];
+  outputItemId: string; // e.g., 'bread'
+  outputQuantity: number;
+  craftTimeSeconds: number;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -370,6 +446,7 @@ export interface PlayerStats {
     purchasedUpgradeIds?: string[];
   }>;
   unlockedArtifactIds?: string[];
+  activeIpo?: IPO | null;
 
   // Factory Stats
   factoryPurchased: boolean;
@@ -400,6 +477,17 @@ export interface PlayerStats {
   lastDigTimestamp: number;
   quarryRarityBias: ArtifactRarity | null;
   quarryName: string;
+
+  // Farm Stats
+  farmPurchased?: boolean;
+  farmFields?: FarmField[];
+  farmVehicles?: FarmVehicle[];
+  siloStorage?: SiloItem[];
+  siloCapacity?: number;
+  fuelStorage?: number;
+  fuelCapacity?: number;
+  pendingFuelDelivery?: { amount: number; arrivalTime: number };
+  kitchenQueue?: { recipeId: string; completionTime: number }[];
 
   // App Settings
   toastSettings?: ToastSettings;

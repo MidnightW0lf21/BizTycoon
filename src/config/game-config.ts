@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
 import { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
@@ -12,6 +12,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
+import { Bread, Combine, Sprout, Tractor, Wheat } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -26,7 +27,6 @@ export const INITIAL_FACTORY_WORKERS: Worker[] = [];
 export const INITIAL_WORKER_ENERGY_TIER = 0;
 export const INITIAL_UNLOCKED_FACTORY_COMPONENT_RECIPE_IDS: string[] = [];
 export const INITIAL_FACTORY_RAW_MATERIALS_CAP = 500;
-
 
 export const PRESTIGE_BASE_LEVEL_COST = 75;
 export const PRESTIGE_LEVEL_COST_INCREMENT = 25;
@@ -50,6 +50,45 @@ export const QUARRY_ENERGY_REGEN_PER_SECOND = 1;
 export const QUARRY_DIG_COOLDOWN_MS = 2000; // 2 seconds
 export const QUARRY_NAME_PREFIXES = ["Stone", "Deep", "Crystal", "Gem", "Forgotten", "Lost", "Ancient", "Glimmering", "Echoing"];
 export const QUARRY_NAME_SUFFIXES = ["Mine", "Quarry", "Cavern", "Chasm", "Pit", "Delve", "Excavation", "Hollow", "Depths"];
+
+// Farm Config
+export const FARM_PURCHASE_COST = 50000000;
+export const INITIAL_SILO_CAPACITY = 1000;
+export const INITIAL_FUEL_CAPACITY = 500;
+export const FUEL_ORDER_AMOUNT = 250;
+export const FUEL_ORDER_COST_PER_LTR = 1000;
+export const FUEL_DELIVERY_TIME_SECONDS = 300; // 5 minutes
+export const VEHICLE_REPAIR_COST_PER_PERCENT = 50000;
+export const VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS = 10;
+export const SILO_UPGRADE_COST_BASE = 1000000;
+export const SILO_UPGRADE_COST_MULTIPLIER = 1.8;
+export const FUEL_DEPOT_UPGRADE_COST_BASE = 750000;
+export const FUEL_DEPOT_UPGRADE_COST_MULTIPLIER = 1.6;
+
+
+export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i) => ({
+  id: `field_${i + 1}`,
+  name: `Field ${i + 1}`,
+  sizeHa: 5 + i * 2, // 5, 7, 9, ..., 23
+  purchaseCost: 10000000 * Math.pow(1.5, i),
+  isOwned: i < 2, // First 2 fields are owned by default
+  status: 'Empty',
+}));
+
+export const FARM_CROPS: Crop[] = [
+  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 60, yieldPerHa: 100 },
+  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 120, yieldPerHa: 150 },
+  { id: 'Potatoes', name: 'Potatoes', icon: Sprout, growthTimeSeconds: 90, yieldPerHa: 200 },
+];
+
+export const FARM_VEHICLES: FarmVehicleConfig[] = [
+  { id: 'tractor_basic', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
+  { id: 'harvester_basic', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 25000000 },
+];
+
+export const KITCHEN_RECIPES: KitchenRecipe[] = [
+  { id: 'bread', name: 'Bread', icon: Bread, ingredients: [{ cropId: 'Wheat', quantity: 10 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
+];
 
 
 export const INITIAL_RESEARCH_POINTS = 0;
