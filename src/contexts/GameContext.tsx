@@ -1080,7 +1080,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           let dividendBoost = 1;
           businessSynergiesState.forEach(synergy => {
             if (synergy.effect.type === 'ETF_DIVIDEND_BOOST' && synergy.effect.targetId === etf.id) {
-                const business = prevStats.businesses.find(b => b.id === synergy.businessId);
+                const business = businessesRef.current.find(b => b.id === synergy.businessId);
                 if(business && business.level > 0) {
                     const boostTiers = Math.floor(business.level / synergy.perLevels);
                     dividendBoost += (boostTiers * synergy.effect.value) / 100;

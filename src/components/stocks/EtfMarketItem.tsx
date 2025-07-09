@@ -16,7 +16,7 @@ interface EtfMarketItemProps {
 }
 
 export function EtfMarketItem({ etf }: EtfMarketItemProps) {
-  const { playerStats, stocks, buyEtf, sellEtf, businessSynergies } = useGame();
+  const { playerStats, stocks, buyEtf, sellEtf, businessSynergies, businesses } = useGame();
   const [sharesAmount, setSharesAmount] = useState<number>(1);
   const Icon = etf.icon;
 
@@ -51,7 +51,7 @@ export function EtfMarketItem({ etf }: EtfMarketItemProps) {
     let dividendBoost = 1;
     businessSynergies.forEach(synergy => {
       if (synergy.effect.type === 'ETF_DIVIDEND_BOOST' && synergy.effect.targetId === etf.id) {
-        const business = playerStats.businesses.find(b => b.id === synergy.businessId);
+        const business = businesses.find(b => b.id === synergy.businessId);
         if (business && business.level > 0) {
           const boostTiers = Math.floor(business.level / synergy.perLevels);
           dividendBoost += (boostTiers * synergy.effect.value) / 100;
@@ -60,7 +60,7 @@ export function EtfMarketItem({ etf }: EtfMarketItemProps) {
     });
 
     return { price: Math.floor(etfPrice), dividendPerSharePerSec: (totalDividend / underlyingStocks.length) * dividendBoost };
-  }, [stocks, etf.id, etf.sector, businessSynergies, playerStats.businesses]);
+  }, [stocks, etf.id, etf.sector, businessSynergies, businesses, playerStats.businesses]);
 
   const handleBuy = () => {
     if (sharesAmount > 0) {
