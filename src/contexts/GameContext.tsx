@@ -480,6 +480,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         farmPurchased: data.playerStats.farmPurchased || false,
         farmFields: data.playerStats.farmFields || INITIAL_FARM_FIELDS,
         farmVehicles: data.playerStats.farmVehicles || [],
+        siloStorage: data.playerStats.siloStorage || [],
+        fuelStorage: data.playerStats.fuelStorage || 0,
+        pendingFuelDelivery: data.playerStats.pendingFuelDelivery,
+        kitchenInventory: data.playerStats.kitchenInventory || [],
+        kitchenQueue: data.playerStats.kitchenQueue || [],
       };
 
       const hydratedBusinesses = data.businesses.map((savedBusiness: Business) => {
@@ -498,10 +503,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return savedStock;
       });
 
-      const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
-        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
-        return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
-      });
+      const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: any) => {
+        const configId = savedVehicle.configId || savedVehicle.id; // Compatibility for old saves
+        const config = FARM_VEHICLES.find(v => v.id === configId);
+        if (config) {
+          return {
+            ...savedVehicle,
+            configId: config.id, // Ensure the new field is present
+            icon: config.icon,   // Re-hydrate the icon function
+            name: config.name,
+            type: config.type,
+            speedHaPerHr: config.speedHaPerHr,
+            fuelCapacity: config.fuelCapacity,
+            fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+            wearPerHr: config.wearPerHr,
+            purchaseCost: config.purchaseCost,
+          };
+        }
+        return null;
+      }).filter(Boolean) as FarmVehicle[];
       mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
   
       setPlayerStats(mergedPlayerStats);
@@ -1141,7 +1161,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         farmPurchased: true,
         farmFields: INITIAL_FARM_FIELDS,
         farmVehicles: [
-          { ...FARM_VEHICLES[0], instanceId: `tractor_${Date.now()}`, fuel: 100, wear: 0, status: 'Idle' }
+          { ...FARM_VEHICLES[0], configId: FARM_VEHICLES[0].id, instanceId: `tractor_${Date.now()}`, fuel: 100, wear: 0, status: 'Idle' }
         ],
       };
     });
@@ -1258,8 +1278,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const newVehicle: FarmVehicle = {
-        ...config,
         instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
+        configId: config.id,
+        name: config.name,
+        type: config.type,
+        icon: config.icon,
+        speedHaPerHr: config.speedHaPerHr,
+        fuelCapacity: config.fuelCapacity,
+        fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+        wearPerHr: config.wearPerHr,
+        purchaseCost: config.purchaseCost,
         fuel: config.fuelCapacity,
         wear: 0,
         status: 'Idle',
@@ -1450,10 +1478,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return savedStock;
           });
 
-          const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
-            const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
-            return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
-          });
+          const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: any) => {
+            const configId = savedVehicle.configId || savedVehicle.id; // Compatibility for old saves
+            const config = FARM_VEHICLES.find(v => v.id === configId);
+            if (config) {
+              return {
+                ...savedVehicle,
+                configId: config.id, // Ensure the new field is present
+                icon: config.icon,   // Re-hydrate the icon function
+                name: config.name,
+                type: config.type,
+                speedHaPerHr: config.speedHaPerHr,
+                fuelCapacity: config.fuelCapacity,
+                fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+                wearPerHr: config.wearPerHr,
+                purchaseCost: config.purchaseCost,
+              };
+            }
+            return null;
+          }).filter(Boolean) as FarmVehicle[];
           mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
   
           setPlayerStats(mergedPlayerStats);
