@@ -2,7 +2,7 @@
 "use client";
 
 import type { FarmField } from "@/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock } from "lucide-react";
