@@ -228,6 +228,16 @@ const NavLink = React.memo(function NavLink({
 });
 NavLink.displayName = 'NavLink';
 
+function NavSkeleton() {
+    return (
+        <div className="flex flex-col gap-2 px-2 py-2 lg:px-4">
+            {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+            ))}
+        </div>
+    );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { playerStats, businesses, performPrestige } = useGame();
   const [currentPageTitle, setCurrentPageTitle] = useState('Dashboard');
@@ -393,7 +403,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-full max-h-screen flex-col gap-0">
           <AppLogo />
           <nav className={finalSidebarNavClasses}>
-            {mounted ? renderNavItems(false) : null}
+            {mounted ? renderNavItems(false) : <NavSkeleton />}
           </nav>
         </div>
       </div>
@@ -412,7 +422,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SheetTitle className="sr-only">Main Navigation</SheetTitle> 
               <AppLogo />
               <nav className={finalMobileNavClasses}>
-                {mounted ? renderNavItems(true) : null}
+                {mounted ? renderNavItems(true) : <NavSkeleton />}
               </nav>
             </SheetContent>
           </Sheet>

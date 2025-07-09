@@ -14,7 +14,7 @@ import { LockKeyhole, BarChart, Package, Briefcase, Landmark, Flame } from "luci
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { STOCK_ETF_UNLOCK_ORDER } from "@/config/game-config";
 
-const REQUIRED_PRESTIGE_LEVEL = 1;
+const REQUIRED_PRESTIGE_LEVEL = 8;
 
 export default function StocksPage() {
   const { playerStats, stocks, etfs, buyIpoShares } = useGame();
