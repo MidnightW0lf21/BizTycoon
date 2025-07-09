@@ -212,6 +212,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const hqUpgradesRef = useRef(hqUpgradesState);
   const researchItemsRef = useRef(researchItemsState);
   const toastRef = useRef(toast);
+  
+  const prevPlayerStatsRef = useRef<PlayerStats>();
+  useEffect(() => {
+    prevPlayerStatsRef.current = playerStats;
+  });
+  const prevPlayerStats = prevPlayerStatsRef.current;
 
   useEffect(() => { playerStatsRef.current = playerStats; }, [playerStats]);
   useEffect(() => { businessesRef.current = businesses; }, [businesses]);
@@ -1478,22 +1484,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return savedStock;
           });
 
-          const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: any) => {
-            const configId = savedVehicle.configId || savedVehicle.id; // Compatibility for old saves
-            const config = FARM_VEHICLES.find(v => v.id === configId);
+          const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: FarmVehicle) => {
+            const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
             if (config) {
-              return {
-                ...savedVehicle,
-                configId: config.id, // Ensure the new field is present
-                icon: config.icon,   // Re-hydrate the icon function
-                name: config.name,
-                type: config.type,
-                speedHaPerHr: config.speedHaPerHr,
-                fuelCapacity: config.fuelCapacity,
-                fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
-                wearPerHr: config.wearPerHr,
-                purchaseCost: config.purchaseCost,
-              };
+              return { ...savedVehicle, icon: config.icon };
             }
             return null;
           }).filter(Boolean) as FarmVehicle[];
@@ -1552,6 +1546,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // ... (This function remains the same)
   };
 
+  useEffect(() => {
+    if (!prevPlayerStats || !toast) return;
+
+    // Fuel Delivery Toast
+    if (playerStats.pendingFuelDelivery === undefined && prevPlayerStats.pendingFuelDelivery) {
+        toast({ title: "Fuel Delivered!", description: `${prevPlayerStats.pendingFuelDelivery.amount}L of fuel has been added to your depot.` });
+    }
+
+    // Vehicle Repair Toast
+    playerStats.farmVehicles?.forEach((vehicle) => {
+        const prevVehicle = prevPlayerStats.farmVehicles?.find(pv => pv.instanceId === vehicle.instanceId);
+        if (prevVehicle && prevVehicle.status === 'Repairing' && vehicle.status === 'Idle') {
+            toast({ title: "Repair Complete", description: `${vehicle.name} is fully repaired.`});
+        }
+    });
+
+  }, [playerStats, prevPlayerStats, toast]);
 
   useEffect(() => {
     const tick = setInterval(() => {
@@ -1594,8 +1605,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const totalSiloContent = siloStorage.reduce((sum, item) => sum + item.quantity, 0);
                     if (totalSiloContent > (prev.siloCapacity || 0)) {
                         const overflow = totalSiloContent - (prev.siloCapacity || 0);
-                        siloStorage.find(i=> i.cropId === cropConfig.id)!.quantity -= overflow;
-                        toastRef.current({ title: "Silo Full", description: `Some ${cropConfig.name} was lost due to lack of space.`, variant: "destructive" });
+                        const cropItem = siloStorage.find(i=> i.cropId === cropConfig.id);
+                        if(cropItem) cropItem.quantity -= overflow;
                     }
                   }
                   updatedFarmFields[index] = { ...field, status: 'Cultivating', currentCropId: undefined, activity: undefined };
@@ -1622,7 +1633,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (vehicle.status === 'Repairing' && vehicle.activity && now >= vehicle.activity.startTime + vehicle.activity.durationSeconds * 1000) {
                 vehicleStateChanged = true;
                 newUpdatedVehicles[index] = { ...vehicle, wear: 0, status: 'Idle', activity: undefined };
-                toastRef.current({ title: "Repair Complete", description: `${vehicle.name} is fully repaired.`});
             }
         });
         if(vehicleStateChanged) updatedFarmVehicles = newUpdatedVehicles;
@@ -1631,14 +1641,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let fuelDeliveryCompleted = false;
         if (prev.pendingFuelDelivery && now >= prev.pendingFuelDelivery.arrivalTime) {
             newFuelStorage = Math.min(prev.fuelCapacity, (prev.fuelStorage || 0) + prev.pendingFuelDelivery.amount);
-            toastRef.current({ title: "Fuel Delivered!", description: `${prev.pendingFuelDelivery.amount}L of fuel has been added to your depot.` });
             fuelDeliveryCompleted = true;
         }
 
-        // Other income calculations...
         const allBusinesses = businessesRef.current;
         const allStocks = stocksRef.current;
-        const allEtfs = etfsState; // Use the static state here for calculation
+        const allEtfs = etfsState; 
         
         const businessIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
           biz, 
