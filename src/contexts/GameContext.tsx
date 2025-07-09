@@ -457,14 +457,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         activeIpo: data.playerStats.activeIpo || null,
       };
 
+      const hydratedBusinesses = data.businesses.map((savedBusiness: Business) => {
+        const initialBusiness = INITIAL_BUSINESSES.find(b => b.id === savedBusiness.id);
+        if (initialBusiness) {
+          return { ...savedBusiness, icon: initialBusiness.icon };
+        }
+        return savedBusiness;
+      });
+
+      const hydratedStocks = data.stocks.map((savedStock: Stock) => {
+        const initialStock = INITIAL_STOCKS.find(s => s.id === savedStock.id);
+        if (initialStock) {
+          return { ...savedStock, icon: initialStock.icon };
+        }
+        return savedStock;
+      });
+
       setPlayerStats(mergedPlayerStats);
-      setBusinesses(data.businesses);
-      setStocksWithDynamicPrices(data.stocks);
+      setBusinesses(hydratedBusinesses);
+      setStocksWithDynamicPrices(hydratedStocks);
 
       localStorage.setItem(SAVE_DATA_KEY, JSON.stringify({
         playerStats: mergedPlayerStats,
-        businesses: data.businesses,
-        stocks: data.stocks,
+        businesses: hydratedBusinesses,
+        stocks: hydratedStocks,
         lastSaved: Date.now(),
       }));
 
@@ -962,10 +978,26 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             toastSettings: { ...defaultStats.toastSettings, ...loadedData.playerStats.toastSettings },
             activeIpo: loadedData.playerStats.activeIpo || null,
           };
+
+          const hydratedBusinesses = loadedData.businesses.map((savedBusiness: Business) => {
+            const initialBusiness = INITIAL_BUSINESSES.find(b => b.id === savedBusiness.id);
+            if (initialBusiness) {
+              return { ...savedBusiness, icon: initialBusiness.icon };
+            }
+            return savedBusiness;
+          });
+
+          const hydratedStocks = loadedData.stocks.map((savedStock: Stock) => {
+            const initialStock = INITIAL_STOCKS.find(s => s.id === savedStock.id);
+            if (initialStock) {
+              return { ...savedStock, icon: initialStock.icon };
+            }
+            return savedStock;
+          });
   
           setPlayerStats(mergedPlayerStats);
-          setBusinesses(loadedData.businesses);
-          setStocksWithDynamicPrices(loadedData.stocks);
+          setBusinesses(hydratedBusinesses);
+          setStocksWithDynamicPrices(hydratedStocks);
           setLastSavedTimestamp(loadedData.lastSaved);
         }
       } catch (error) {
