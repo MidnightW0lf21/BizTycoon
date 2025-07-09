@@ -13,6 +13,7 @@ interface VehicleCardProps {
 }
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
+  const Icon = vehicle.icon;
   const fuelPercent = (vehicle.fuel / vehicle.fuelCapacity) * 100;
   const wearPercent = vehicle.wear; // Wear is already 0-100
 
@@ -22,7 +23,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         <div className="flex justify-between items-start">
             <div>
                 <CardTitle className="flex items-center gap-2">
-                    <vehicle.icon className="h-6 w-6 text-primary" />
+                    <Icon className="h-6 w-6 text-primary" />
                     {vehicle.name}
                 </CardTitle>
                 <CardDescription>

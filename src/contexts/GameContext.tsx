@@ -17,7 +17,8 @@ import {
   WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_ENERGY_TIER, INITIAL_FACTORY_RAW_MATERIALS_CAP, BASE_QUARRY_COST, QUARRY_COST_MULTIPLIER,
   BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_ARTIFACT_CHANCE_PER_DIG, ARTIFACT_CHANCE_DEPTH_MULTIPLIER, ARTIFACT_RARITY_WEIGHTS,
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
-  INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES
+  INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
+  INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -149,6 +150,13 @@ const getInitialPlayerStats = (): PlayerStats => {
     totalDividendsEarned: 0,
     totalMineralsDug: 0,
     totalFactoryComponentsProduced: 0,
+    farmPurchased: false,
+    farmFields: INITIAL_FARM_FIELDS,
+    farmVehicles: [],
+    siloCapacity: INITIAL_SILO_CAPACITY,
+    fuelCapacity: INITIAL_FUEL_CAPACITY,
+    siloStorage: [],
+    fuelStorage: 0,
   };
 };
 
@@ -480,6 +488,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return savedStock;
       });
 
+      const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
+        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
+        if (config) {
+          return { ...savedVehicle, icon: config.icon };
+        }
+        return savedVehicle;
+      });
+      mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
+  
       setPlayerStats(mergedPlayerStats);
       setBusinesses(hydratedBusinesses);
       setStocksWithDynamicPrices(hydratedStocks);
@@ -1209,6 +1226,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return savedStock;
           });
+
+          const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
+            const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
+            return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
+          });
+          mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
   
           setPlayerStats(mergedPlayerStats);
           setBusinesses(hydratedBusinesses);

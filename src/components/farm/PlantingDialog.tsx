@@ -61,16 +61,18 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
             <h3 className="text-lg font-semibold mb-2">2. Select Tractor</h3>
             <RadioGroup onValueChange={setSelectedTractorId}>
               <div className="space-y-2">
-                {availableTractors.length > 0 ? availableTractors.map(tractor => (
+                {availableTractors.length > 0 ? availableTractors.map(tractor => {
+                   const Icon = tractor.icon;
+                   return (
                    <Label key={tractor.instanceId} htmlFor={tractor.instanceId} className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent hover:text-accent-foreground has-[:checked]:border-primary">
                     <RadioGroupItem value={tractor.instanceId} id={tractor.instanceId} />
-                    <tractor.icon className="h-5 w-5"/>
+                    <Icon className="h-5 w-5"/>
                     <div className="flex-1">
                       <p className="font-semibold">{tractor.name}</p>
                       <p className="text-xs text-muted-foreground">Fuel: {Math.floor(tractor.fuel)}L, Wear: {tractor.wear.toFixed(1)}%</p>
                     </div>
                   </Label>
-                )) : (
+                )}) : (
                     <p className="text-sm text-muted-foreground text-center p-4 border rounded-md">No available tractors.</p>
                 )}
               </div>
