@@ -432,12 +432,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const data = JSON.parse(jsonString);
 
-      // Basic validation
       if (!data.playerStats || !data.businesses || !data.stocks) {
         throw new Error("Invalid or corrupted save file format.");
       }
 
-      // Merge imported stats with defaults to prevent errors from missing properties
       const defaultStats = getInitialPlayerStats();
       const mergedPlayerStats: PlayerStats = {
         ...defaultStats,
@@ -932,11 +930,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    // Initial game load logic... (needs to be updated for new state)
-  }, [calculateMaxEnergy, localCalculateIncome]);
+    const loadGame = () => {
+      try {
+        const savedDataString = localStorage.getItem(SAVE_DATA_KEY);
+        if (savedDataString) {
+          const loadedData = JSON.parse(savedDataString);
+  
+          if (!loadedData.playerStats || !loadedData.businesses || !loadedData.stocks) {
+            console.warn("Loaded save data is missing key properties. Starting new game.");
+            return;
+          }
+  
+          const defaultStats = getInitialPlayerStats();
+          const mergedPlayerStats: PlayerStats = {
+            ...defaultStats,
+            ...loadedData.playerStats,
+            stockHoldings: loadedData.playerStats.stockHoldings || [],
+            etfHoldings: loadedData.playerStats.etfHoldings || [],
+            hqUpgradeLevels: loadedData.playerStats.hqUpgradeLevels || {},
+            unlockedSkillIds: loadedData.playerStats.unlockedSkillIds || [],
+            purchasedQuarryUpgradeIds: loadedData.playerStats.purchasedQuarryUpgradeIds || [],
+            unlockedArtifactIds: loadedData.playerStats.unlockedArtifactIds || [],
+            unlockedResearchIds: loadedData.playerStats.unlockedResearchIds || [],
+            unlockedFactoryComponentRecipeIds: loadedData.playerStats.unlockedFactoryComponentRecipeIds || [],
+            factoryWorkers: loadedData.playerStats.factoryWorkers || [],
+            factoryMachines: loadedData.playerStats.factoryMachines || [],
+            factoryPowerBuildings: loadedData.playerStats.factoryPowerBuildings || [],
+            factoryMaterialCollectors: loadedData.playerStats.factoryMaterialCollectors || [],
+            factoryProductionLines: loadedData.playerStats.factoryProductionLines || defaultStats.factoryProductionLines,
+            factoryProducedComponents: loadedData.playerStats.factoryProducedComponents || {},
+            toastSettings: { ...defaultStats.toastSettings, ...loadedData.playerStats.toastSettings },
+            activeIpo: loadedData.playerStats.activeIpo || null,
+          };
+  
+          setPlayerStats(mergedPlayerStats);
+          setBusinesses(loadedData.businesses);
+          setStocksWithDynamicPrices(loadedData.stocks);
+          setLastSavedTimestamp(loadedData.lastSaved);
+        }
+      } catch (error) {
+        console.error("Failed to load game state from local storage:", error);
+      }
+    };
+  
+    loadGame();
+  }, []);
 
   useEffect(() => {
-    // Auto-save logic... (needs to be updated for new state)
+    const autoSaveTimer = setInterval(() => {
+        saveStateToLocalStorage();
+    }, AUTO_SAVE_INTERVAL);
+    return () => clearInterval(autoSaveTimer);
   }, [saveStateToLocalStorage]);
 
 
