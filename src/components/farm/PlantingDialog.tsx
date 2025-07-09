@@ -19,7 +19,7 @@ interface PlantingDialogProps {
 }
 
 export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) {
-  const { playerStats } = useGame(); // For future use with tractors
+  const { playerStats, plantCrop } = useGame();
   const [selectedCropId, setSelectedCropId] = useState<string | null>(null);
   const [selectedTractorId, setSelectedTractorId] = useState<string | null>(null);
 
@@ -27,8 +27,7 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
 
   const handlePlant = () => {
     if (selectedCropId && selectedTractorId) {
-      // Call game context function here
-      console.log(`Planting ${selectedCropId} on ${field.id} with ${selectedTractorId}`);
+      plantCrop(field.id, selectedCropId, selectedTractorId);
       onClose();
     }
   };

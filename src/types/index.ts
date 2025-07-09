@@ -370,8 +370,8 @@ export interface Crop {
   yieldPerHa: number;
 }
 
-export type FarmFieldStatus = 'NotOwned' | 'Empty' | 'Sowing' | 'Growing' | 'Harvesting' | 'Cultivating';
-export type FarmActivityType = 'Sowing' | 'Harvesting' | 'Cultivating' | 'Repairing' | 'FuelDelivery';
+export type FarmFieldStatus = 'NotOwned' | 'Empty' | 'Sowing' | 'Growing' | 'ReadyToHarvest' | 'Harvesting' | 'Cultivating';
+export type FarmActivityType = 'Sowing' | 'Growing' | 'Harvesting' | 'Cultivating' | 'Repairing' | 'FuelDelivery';
 
 export interface FarmActivity {
   type: FarmActivityType;

@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicle, FarmVehicleConfig, CropId } from '@/types';
 import {
   INITIAL_BUSINESSES, INITIAL_MONEY, INITIAL_STOCKS, INITIAL_PRESTIGE_POINTS, INITIAL_TIMES_PRESTIGED, INITIAL_SKILL_TREE,
   INITIAL_UNLOCKED_SKILL_IDS, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES, INITIAL_UNLOCKED_ARTIFACT_IDS, INITIAL_ARTIFACTS,
@@ -17,7 +17,7 @@ import {
   WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_ENERGY_TIER, INITIAL_FACTORY_RAW_MATERIALS_CAP, BASE_QUARRY_COST, QUARRY_COST_MULTIPLIER,
   BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_ARTIFACT_CHANCE_PER_DIG, ARTIFACT_CHANCE_DEPTH_MULTIPLIER, ARTIFACT_RARITY_WEIGHTS,
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
-  INITIAL_ETFS, BUSINESS_SYNERGIES,
+  INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +84,10 @@ interface GameContextType {
   selectNextQuarry: (choice: QuarryChoice) => void;
   updateToastSettings: (settings: ToastSettings) => void;
   setRecipeForEntireLine: (lineId: string, componentId: string) => void;
+  purchaseFarm: () => void;
+  plantCrop: (fieldId: string, cropId: string, vehicleInstanceId: string) => void;
+  harvestField: (fieldId: string, vehicleInstanceId: string) => void;
+  cultivateField: (fieldId: string, vehicleInstanceId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -332,7 +336,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
             if (componentConfig?.effects?.businessSpecificLevelUpCostReductionPercent && componentConfig.effects.businessSpecificLevelUpCostReductionPercent.businessId === businessId) {
                 const potentialReduction = count * componentConfig.effects.businessSpecificLevelUpCostReductionPercent.percent;
-                const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                 const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
                 totalCostReductionFromComponents += cappedReduction;
             }
         }
@@ -455,6 +459,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         factoryProductionLines: data.playerStats.factoryProductionLines || defaultStats.factoryProductionLines,
         toastSettings: { ...defaultStats.toastSettings, ...data.playerStats.toastSettings },
         activeIpo: data.playerStats.activeIpo || null,
+        farmPurchased: data.playerStats.farmPurchased || false,
+        farmFields: data.playerStats.farmFields || INITIAL_FARM_FIELDS,
+        farmVehicles: data.playerStats.farmVehicles || [],
       };
 
       const hydratedBusinesses = data.businesses.map((savedBusiness: Business) => {
@@ -957,6 +964,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     newPlayerStats.maxQuarryEnergy = calculateMaxEnergy(newPlayerStats);
     newPlayerStats.quarryEnergy = newPlayerStats.maxQuarryEnergy;
 
+    // Reset farm
+    newPlayerStats.farmPurchased = currentStats.farmPurchased;
+    newPlayerStats.farmFields = currentStats.farmFields || INITIAL_FARM_FIELDS;
+    newPlayerStats.farmVehicles = currentStats.farmVehicles || [];
+
     setPlayerStats(newPlayerStats);
     setBusinesses(newBusinesses);
     setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
@@ -1096,6 +1108,55 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // ... (This function remains the same)
   }, []);
 
+  const purchaseFarm = useCallback(() => {
+    setPlayerStats(prev => {
+      if (prev.money < FARM_PURCHASE_COST || prev.farmPurchased) return prev;
+      return {
+        ...prev,
+        money: prev.money - FARM_PURCHASE_COST,
+        farmPurchased: true,
+        farmFields: INITIAL_FARM_FIELDS,
+        farmVehicles: [
+          { ...FARM_VEHICLES[0], instanceId: `tractor_${Date.now()}`, fuel: 100, wear: 0, status: 'Idle' }
+        ],
+      };
+    });
+  }, []);
+
+  const plantCrop = useCallback((fieldId: string, cropId: string, vehicleInstanceId: string) => {
+    setPlayerStats(prev => {
+      const farmFields = prev.farmFields ? [...prev.farmFields] : [];
+      const fieldIndex = farmFields.findIndex(f => f.id === fieldId);
+      if (fieldIndex === -1 || farmFields[fieldIndex].status !== 'Empty') return prev;
+
+      const farmVehicles = prev.farmVehicles ? [...prev.farmVehicles] : [];
+      const vehicleIndex = farmVehicles.findIndex(v => v.instanceId === vehicleInstanceId);
+      if (vehicleIndex === -1) return prev;
+
+      const vehicle = farmVehicles[vehicleIndex];
+      const cropConfig = FARM_CROPS.find(c => c.id === cropId);
+      if (!cropConfig || vehicle.status !== 'Idle' || vehicle.fuel <= 0 || vehicle.type !== 'Tractor') return prev;
+
+      const field = farmFields[fieldIndex];
+      const sowingTimeHours = field.sizeHa / vehicle.speedHaPerHr;
+      const sowingTimeSeconds = sowingTimeHours * 3600;
+
+      farmFields[fieldIndex] = {
+        ...field,
+        status: 'Sowing',
+        currentCropId: cropId as CropId,
+        activity: { type: 'Sowing', startTime: Date.now(), durationSeconds: sowingTimeSeconds, vehicleId: vehicle.instanceId, cropId: cropId as CropId }
+      };
+
+      farmVehicles[vehicleIndex] = { ...vehicle, status: 'Working', activity: farmFields[fieldIndex].activity };
+
+      return { ...prev, farmFields, farmVehicles };
+    });
+  }, []);
+
+  const harvestField = useCallback((fieldId: string, vehicleInstanceId: string) => {}, []);
+  const cultivateField = useCallback((fieldId: string, vehicleInstanceId: string) => {}, []);
+
   useEffect(() => {
     const loadGame = () => {
       try {
@@ -1128,6 +1189,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             factoryProducedComponents: loadedData.playerStats.factoryProducedComponents || {},
             toastSettings: { ...defaultStats.toastSettings, ...loadedData.playerStats.toastSettings },
             activeIpo: loadedData.playerStats.activeIpo || null,
+            farmPurchased: loadedData.playerStats.farmPurchased || false,
+            farmFields: loadedData.playerStats.farmFields || INITIAL_FARM_FIELDS,
+            farmVehicles: loadedData.playerStats.farmVehicles || [],
           };
 
           const hydratedBusinesses = loadedData.businesses.map((savedBusiness: Business) => {
@@ -1202,121 +1266,160 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const tick = setInterval(() => {
-      const allBusinesses = businessesRef.current;
-      const allStocks = stocksRef.current;
-      const allEtfs = etfsState; // Use the static state here for calculation
-      const prevStats = playerStatsRef.current;
-      
-      const businessIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
-        biz, 
-        prevStats.unlockedSkillIds, 
-        skillTreeRef.current, 
-        prevStats.hqUpgradeLevels, 
-        hqUpgradesRef.current,
-        prevStats.factoryProducedComponents || {},
-        INITIAL_FACTORY_COMPONENTS_CONFIG
-      ), 0);
-
-      const stockDividendIncome = allStocks.reduce((sum, stock) => {
-          const holding = prevStats.stockHoldings.find(h => h.stockId === stock.id);
-          if (!holding) return sum;
-          
-          let componentBoostPercent = 0;
-          for (const componentId in prevStats.factoryProducedComponents) {
-              const count = prevStats.factoryProducedComponents[componentId];
-              const config = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
-              if (config?.effects?.stockSpecificDividendYieldBoostPercent?.stockId === stock.id) {
-                  const potentialBoost = count * config.effects.stockSpecificDividendYieldBoostPercent.percent;
-                  componentBoostPercent += config.effects.maxBonusPercent ? Math.min(potentialBoost, config.effects.maxBonusPercent) : potentialBoost;
-              }
-          }
-          const effectiveYield = stock.dividendYield * (1 + (componentBoostPercent / 100));
-          return sum + (holding.shares * stock.price * effectiveYield);
-      }, 0);
-
-      const etfDividendIncome = allEtfs.reduce((sum, etf) => {
-          const holding = prevStats.etfHoldings.find(h => h.etfId === etf.id);
-          if(!holding) return sum;
-          
-          const underlyingStocks = allStocks.filter(stock => {
-            if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(stock.ticker);
-            if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(stock.ticker);
-            if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(stock.ticker);
-            if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(stock.ticker);
-            if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(stock.ticker);
-            if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(stock.ticker);
-            return false;
-          });
-
-          if(underlyingStocks.length === 0) return sum;
-
-          const totalUnderlyingDividend = underlyingStocks.reduce((divSum, stock) => divSum + (stock.price * stock.dividendYield), 0);
-          
-          let dividendBoost = 1;
-          businessSynergiesState.forEach(synergy => {
-            if (synergy.effect.type === 'ETF_DIVIDEND_BOOST' && synergy.effect.targetId === etf.id) {
-                const business = businessesRef.current.find(b => b.id === synergy.businessId);
-                if(business && business.level > 0) {
-                    const boostTiers = Math.floor(business.level / synergy.perLevels);
-                    dividendBoost += (boostTiers * synergy.effect.value) / 100;
+      setPlayerStats(prev => {
+        // ... other logic for income, etc.
+        const allBusinesses = businessesRef.current;
+        const allStocks = stocksRef.current;
+        const allEtfs = etfsState; // Use the static state here for calculation
+        const prevStats = playerStatsRef.current;
+        
+        const businessIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
+          biz, 
+          prev.unlockedSkillIds, 
+          skillTreeRef.current, 
+          prev.hqUpgradeLevels, 
+          hqUpgradesRef.current,
+          prev.factoryProducedComponents || {},
+          INITIAL_FACTORY_COMPONENTS_CONFIG
+        ), 0);
+  
+        const stockDividendIncome = allStocks.reduce((sum, stock) => {
+            const holding = prev.stockHoldings.find(h => h.stockId === stock.id);
+            if (!holding) return sum;
+            
+            let componentBoostPercent = 0;
+            for (const componentId in prev.factoryProducedComponents) {
+                const count = prev.factoryProducedComponents[componentId];
+                const config = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+                if (config?.effects?.stockSpecificDividendYieldBoostPercent?.stockId === stock.id) {
+                    const potentialBoost = count * config.effects.stockSpecificDividendYieldBoostPercent.percent;
+                    componentBoostPercent += config.effects.maxBonusPercent ? Math.min(potentialBoost, config.effects.maxBonusPercent) : potentialBoost;
                 }
             }
-          });
+            const effectiveYield = stock.dividendYield * (1 + (componentBoostPercent / 100));
+            return sum + (holding.shares * stock.price * effectiveYield);
+        }, 0);
+  
+        const etfDividendIncome = allEtfs.reduce((sum, etf) => {
+            const holding = prev.etfHoldings.find(h => h.etfId === etf.id);
+            if(!holding) return sum;
+            
+            const underlyingStocks = allStocks.filter(stock => {
+              if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(stock.ticker);
+              if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(stock.ticker);
+              if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(stock.ticker);
+              if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(stock.ticker);
+              if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(stock.ticker);
+              if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(stock.ticker);
+              return false;
+            });
+  
+            if(underlyingStocks.length === 0) return sum;
+  
+            const totalUnderlyingDividend = underlyingStocks.reduce((divSum, stock) => divSum + (stock.price * stock.dividendYield), 0);
+            
+            let dividendBoost = 1;
+            businessSynergiesState.forEach(synergy => {
+              if (synergy.effect.type === 'ETF_DIVIDEND_BOOST' && synergy.effect.targetId === etf.id) {
+                  const business = businessesRef.current.find(b => b.id === synergy.businessId);
+                  if(business && business.level > 0) {
+                      const boostTiers = Math.floor(business.level / synergy.perLevels);
+                      dividendBoost += (boostTiers * synergy.effect.value) / 100;
+                  }
+              }
+            });
+  
+            const avgDividend = (totalUnderlyingDividend / underlyingStocks.length) * dividendBoost;
+            return sum + (holding.shares * avgDividend);
+        }, 0);
+  
+        const totalDividendIncome = stockDividendIncome + etfDividendIncome;
+        const newTotalIncome = businessIncome + totalDividendIncome;
+  
+        const newInvestmentsValue = allStocks.reduce((sum, stock) => {
+          const holding = prev.stockHoldings.find(h => h.stockId === stock.id);
+          return sum + (holding ? holding.shares * stock.price : 0);
+        }, 0) + allEtfs.reduce((sum, etf) => {
+            const holding = prev.etfHoldings.find(h => h.etfId === etf.id);
+            const etfPrice = allStocks.filter(s => {
+              if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
+              if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
+              if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(s.ticker);
+              if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(s.ticker);
+              if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(s.ticker);
+              if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(s.ticker);
+              return false;
+            }).reduce((priceSum, stock) => priceSum + stock.price, 0) / (allStocks.filter(s => {
+               if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
+               return false;
+            }).length || 1);
+            
+            return sum + (holding ? holding.shares * etfPrice : 0);
+        }, 0);
+  
+        const newMaxQuarryEnergy = calculateMaxEnergy(prev);
+        let newQuarryEnergy = prev.quarryEnergy;
+        if (newQuarryEnergy < newMaxQuarryEnergy) {
+            const energyToRegen = QUARRY_ENERGY_REGEN_PER_SECOND * (prev.factoryWorkerEnergyRegenModifier || 1);
+            newQuarryEnergy = Math.min(newMaxQuarryEnergy, prev.quarryEnergy + energyToRegen);
+        }
+        
+        const autoDigRate = (prev.purchasedQuarryUpgradeIds || [])
+            .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
+            .reduce((sum, rate) => sum + rate, 0);
+        
+        const mineralsFromAutomation = autoDigRate * 0.25;
 
-          const avgDividend = (totalUnderlyingDividend / underlyingStocks.length) * dividendBoost;
-          return sum + (holding.shares * avgDividend);
-      }, 0);
+        // FARM LOGIC
+        const now = Date.now();
+        const updatedFarmFields = [...(prev.farmFields || [])];
+        const updatedFarmVehicles = [...(prev.farmVehicles || [])];
+        let farmStateChanged = false;
 
-      const totalDividendIncome = stockDividendIncome + etfDividendIncome;
-      const newTotalIncome = businessIncome + totalDividendIncome;
+        updatedFarmFields.forEach((field, index) => {
+          if (field.activity) {
+            const activityEndTime = field.activity.startTime + (field.activity.durationSeconds * 1000);
+            if (now >= activityEndTime) {
+              farmStateChanged = true;
+              const vehicleIndex = updatedFarmVehicles.findIndex(v => v.instanceId === field.activity?.vehicleId);
+              
+              switch (field.activity.type) {
+                case 'Sowing': {
+                  const cropConfig = FARM_CROPS.find(c => c.id === field.currentCropId);
+                  updatedFarmFields[index] = { ...field, status: 'Growing', activity: { type: 'Growing', startTime: now, durationSeconds: cropConfig?.growthTimeSeconds || 0, cropId: field.currentCropId } };
+                  if (vehicleIndex > -1) {
+                    const vehicle = updatedFarmVehicles[vehicleIndex];
+                    const fuelUsed = (vehicle.fuelUsageLtrPerHr / 3600) * field.activity.durationSeconds;
+                    const wearAdded = (vehicle.wearPerHr / 3600) * field.activity.durationSeconds;
+                    updatedFarmVehicles[vehicleIndex] = { ...vehicle, status: 'Idle', activity: undefined, fuel: Math.max(0, vehicle.fuel - fuelUsed), wear: Math.min(100, vehicle.wear + wearAdded) };
+                  }
+                  break;
+                }
+                case 'Growing': {
+                  updatedFarmFields[index] = { ...field, status: 'ReadyToHarvest', activity: undefined };
+                  break;
+                }
+              }
+            }
+          }
+        });
 
-      const newInvestmentsValue = allStocks.reduce((sum, stock) => {
-        const holding = prevStats.stockHoldings.find(h => h.stockId === stock.id);
-        return sum + (holding ? holding.shares * stock.price : 0);
-      }, 0) + allEtfs.reduce((sum, etf) => {
-          const holding = prevStats.etfHoldings.find(h => h.etfId === etf.id);
-          const etfPrice = allStocks.filter(s => {
-            if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
-            if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
-            if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(s.ticker);
-            if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(s.ticker);
-            if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(s.ticker);
-            if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(s.ticker);
-            return false;
-          }).reduce((priceSum, stock) => priceSum + stock.price, 0) / (allStocks.filter(s => {
-             if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
-             return false;
-          }).length || 1);
-          
-          return sum + (holding ? holding.shares * etfPrice : 0);
-      }, 0);
-
-      const newMaxQuarryEnergy = calculateMaxEnergy(prevStats);
-      let newQuarryEnergy = prevStats.quarryEnergy;
-      if (newQuarryEnergy < newMaxQuarryEnergy) {
-          const energyToRegen = QUARRY_ENERGY_REGEN_PER_SECOND * (prevStats.factoryWorkerEnergyRegenModifier || 1);
-          newQuarryEnergy = Math.min(newMaxQuarryEnergy, prevStats.quarryEnergy + energyToRegen);
-      }
-      
-      const autoDigRate = (prevStats.purchasedQuarryUpgradeIds || [])
-          .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
-          .reduce((sum, rate) => sum + rate, 0);
-      
-      const mineralsFromAutomation = autoDigRate * 0.25;
-
-      setPlayerStats(prev => ({
-        ...prev,
-        money: prev.money + newTotalIncome,
-        totalDividendsEarned: (prev.totalDividendsEarned || 0) + totalDividendIncome,
-        minerals: prev.minerals + mineralsFromAutomation,
-        quarryDepth: prev.quarryDepth + autoDigRate,
-        totalIncomePerSecond: newTotalIncome,
-        investmentsValue: newInvestmentsValue,
-        maxQuarryEnergy: newMaxQuarryEnergy,
-        quarryEnergy: newQuarryEnergy,
-        timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
-        totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
-      }));
+        return {
+          ...prev,
+          money: prev.money + newTotalIncome,
+          totalDividendsEarned: (prev.totalDividendsEarned || 0) + totalDividendIncome,
+          minerals: prev.minerals + mineralsFromAutomation,
+          quarryDepth: prev.quarryDepth + autoDigRate,
+          totalIncomePerSecond: newTotalIncome,
+          investmentsValue: newInvestmentsValue,
+          maxQuarryEnergy: newMaxQuarryEnergy,
+          quarryEnergy: newQuarryEnergy,
+          timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
+          totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
+          farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
+          farmVehicles: farmStateChanged ? updatedFarmVehicles : prev.farmVehicles,
+        };
+      });
 
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(tick);
@@ -1341,6 +1444,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
+      purchaseFarm, plantCrop, harvestField, cultivateField,
     }}>
       {children}
     </GameContext.Provider>

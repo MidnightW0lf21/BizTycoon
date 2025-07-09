@@ -21,6 +21,7 @@ export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
     switch (field.status) {
       case 'Sowing': return <Tractor className="h-5 w-5 text-yellow-500" />;
       case 'Growing': return <Sprout className="h-5 w-5 text-green-500" />;
+      case 'ReadyToHarvest': return <Combine className="h-5 w-5 text-lime-500" />;
       case 'Harvesting': return <Combine className="h-5 w-5 text-orange-500" />;
       case 'Cultivating': return <Tractor className="h-5 w-5 text-amber-700" />;
       case 'Empty': return <CheckCircle className="h-5 w-5 text-gray-500" />;
@@ -58,7 +59,7 @@ export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
         </div>
         <div className="flex items-center gap-2">
             {getStatusIcon()}
-            <p className="text-sm font-semibold capitalize">{field.status}</p>
+            <p className="text-sm font-semibold capitalize">{field.status.replace(/([A-Z])/g, ' $1').trim()}</p>
         </div>
       </CardHeader>
       <CardContent>
@@ -68,7 +69,7 @@ export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
                 <span>Currently Planted: {field.currentCropId}</span>
             </div>
         )}
-        {(field.status === 'Sowing' || field.status === 'Growing' || field.status === 'Harvesting' || field.status === 'Cultivating') && (
+        {(field.status === 'Sowing' || field.status === 'Growing' || field.status === 'Harvesting' || field.status === 'Cultivating') && field.activity && (
           <Progress value={getProgress()} className="h-2" />
         )}
       </CardContent>
@@ -78,9 +79,14 @@ export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
                 <Sprout className="mr-2 h-4 w-4"/> Plant Crop
             </Button>
         )}
-        {field.status === 'Growing' && field.activity && Date.now() > field.activity.startTime + (field.activity.durationSeconds * 1000) && (
+        {field.status === 'ReadyToHarvest' && (
             <Button size="sm" className="w-full" disabled>
                 <Combine className="mr-2 h-4 w-4"/> Harvest
+            </Button>
+        )}
+         {field.status === 'Cultivating' && (
+            <Button size="sm" className="w-full" disabled>
+                <Tractor className="mr-2 h-4 w-4"/> Cultivate
             </Button>
         )}
       </CardFooter>
