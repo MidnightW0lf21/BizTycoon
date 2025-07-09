@@ -3,7 +3,7 @@
 
 import { useMemo, useEffect, useState } from "react";
 import { useGame } from "@/contexts/GameContext";
-import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES, INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_ARTIFACTS, INITIAL_QUARRY_UPGRADES } from "@/config/game-config";
+import { INITIAL_BUSINESSES, INITIAL_SKILL_TREE, INITIAL_STOCKS, INITIAL_HQ_UPGRADES, INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_FACTORY_COMPONENTS_CONFIG, INITIAL_ARTIFACTS, INITIAL_QUARRY_UPGRADES, INITIAL_ETFS } from "@/config/game-config";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, Briefcase, Network, BarChart, Building as HQIcon, Factory as FactoryIcon, Mountain as QuarryIcon } from "lucide-react";
@@ -89,13 +89,22 @@ export default function CompletionPage() {
     });
     const hqCompletionPercentage = totalPossibleHQLevels > 0 ? (achievedHQLevels / totalPossibleHQLevels) * 100 : 0;
     
-    // Stock Ownership
-    const totalPossibleSharesToOwn = INITIAL_STOCKS.reduce((sum, stock) => sum + stock.totalOutstandingShares, 0);
-    let currentOwnedShares = 0;
+    // Market Ownership
+    const totalPossibleStockShares = INITIAL_STOCKS.reduce((sum, stock) => sum + stock.totalOutstandingShares, 0);
+    const totalPossibleEtfShares = INITIAL_ETFS.reduce((sum, etf) => sum + (etf.totalOutstandingShares || 0), 0);
+    const totalMarketAssets = totalPossibleStockShares + totalPossibleEtfShares;
+
+    let currentOwnedStockShares = 0;
     playerStats.stockHoldings.forEach(holding => {
-        currentOwnedShares += holding.shares;
+        currentOwnedStockShares += holding.shares;
     });
-    const stockCompletionPercentage = totalPossibleSharesToOwn > 0 ? (currentOwnedShares / totalPossibleSharesToOwn) * 100 : 0;
+    let currentOwnedEtfShares = 0;
+    (playerStats.etfHoldings || []).forEach(holding => {
+        currentOwnedEtfShares += holding.shares;
+    });
+    const currentOwnedAssets = currentOwnedStockShares + currentOwnedEtfShares;
+
+    const marketCompletionPercentage = totalMarketAssets > 0 ? (currentOwnedAssets / totalMarketAssets) * 100 : 0;
 
     // Factory Completion
     let factoryCurrent = 0;
@@ -168,7 +177,7 @@ export default function CompletionPage() {
       businessCompletionPercentage,
       skillCompletionPercentage,
       hqCompletionPercentage,
-      stockCompletionPercentage,
+      marketCompletionPercentage,
       factoryCompletion.percentage,
       quarryCompletion.percentage,
     ];
@@ -180,7 +189,7 @@ export default function CompletionPage() {
       businesses: { current: currentTotalBusinessCompletionPoints, total: maxTotalBusinessCompletionPoints, percentage: businessCompletionPercentage },
       skills: { current: unlockedSkills, total: totalSkills, percentage: skillCompletionPercentage },
       hq: { current: achievedHQLevels, total: totalPossibleHQLevels, percentage: hqCompletionPercentage },
-      stocks: { current: currentOwnedShares, total: totalPossibleSharesToOwn, percentage: stockCompletionPercentage },
+      stocks: { current: currentOwnedAssets, total: totalMarketAssets, percentage: marketCompletionPercentage },
       factory: factoryCompletion,
       quarry: quarryCompletion,
     };
@@ -298,11 +307,11 @@ export default function CompletionPage() {
           unit="levels"
         />
         <CategoryProgress 
-          title="Total Share Ownership"
+          title="Market Ownership"
           icon={BarChart}
           currentValue={completionData.stocks.current}
           totalValue={completionData.stocks.total}
-          unit="shares owned"
+          unit="shares & units owned"
         />
         <CategoryProgress 
           title="Factory Progress"

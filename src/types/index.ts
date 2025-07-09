@@ -52,6 +52,7 @@ export interface ETF {
   description: string;
   sector: string; // e.g., 'TECH', 'FINANCE'
   icon: LucideIcon;
+  totalOutstandingShares: number;
 }
 
 export interface EtfHolding {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGame } from "@/contexts/GameContext";
 import { useState, useMemo } from "react";
-import { DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Info, Package } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface EtfMarketItemProps {
@@ -108,12 +108,19 @@ export function EtfMarketItem({ etf }: EtfMarketItemProps) {
               </TooltipContent>
             </Tooltip>
           </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Total Units Outstanding:</span>
+            <span className="font-semibold flex items-center gap-1">
+              <Package className="h-3 w-3" />
+              {etf.totalOutstandingShares.toLocaleString('en-US')}
+            </span>
+          </div>
            <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Shares Owned:</span>
+            <span className="text-muted-foreground">Units Owned:</span>
             <span className="font-semibold">{sharesOwned.toLocaleString('en-US')}</span>
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`shares-${etf.id}`} className="text-xs">Shares to trade:</Label>
+            <Label htmlFor={`shares-${etf.id}`} className="text-xs">Units to trade:</Label>
             <Input
               id={`shares-${etf.id}`}
               type="number"

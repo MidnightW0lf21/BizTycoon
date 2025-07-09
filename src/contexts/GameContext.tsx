@@ -676,7 +676,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
   
-  const buyEtf = useCallback((etfId: string, sharesToBuy: number, currentPrice: number) => {
+  const buyEtf = useCallback((etfId: string, sharesToBuyInput: number, currentPrice: number) => {
     let toastTitle = "";
     let toastDescription = "";
     let toastVariant: "default" | "destructive" = "default";
@@ -690,24 +690,34 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else if (playerStatsNow.timesPrestiged < 8) {
       toastTitle = "Stocks Locked";
       toastVariant = "destructive";
-    } else if (sharesToBuy <= 0) {
+    } else if (sharesToBuyInput <= 0) {
       toastTitle = "Invalid Amount";
       toastVariant = "destructive";
     } else {
-      const cost = currentPrice * sharesToBuy;
-      if (playerStatsNow.money < cost) {
-        toastTitle = "Not Enough Money";
+      const existingHolding = playerStatsNow.etfHoldings.find(h => h.etfId === etfId);
+      const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
+      const sharesAvailableToBuy = etf.totalOutstandingShares - sharesAlreadyOwnedByPlayer;
+
+      if (sharesAvailableToBuy <= 0) {
+        toastTitle = "No Shares Available";
         toastVariant = "destructive";
       } else {
-        setPlayerStats(prev => ({
-          ...prev,
-          money: prev.money - cost,
-          etfHoldings: prev.etfHoldings.find(h => h.etfId === etfId)
-            ? prev.etfHoldings.map(h => h.etfId === etfId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (currentPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
-            : [...prev.etfHoldings, { etfId, shares: sharesToBuy, averagePurchasePrice: currentPrice }]
-        }));
-        toastTitle = "ETF Purchased!";
-        toastDescription = `Bought ${sharesToBuy.toLocaleString()} shares of ${etf.ticker}.`;
+        const sharesToBuy = Math.min(sharesToBuyInput, sharesAvailableToBuy);
+        const cost = currentPrice * sharesToBuy;
+        if (playerStatsNow.money < cost) {
+          toastTitle = "Not Enough Money";
+          toastVariant = "destructive";
+        } else {
+          setPlayerStats(prev => ({
+            ...prev,
+            money: prev.money - cost,
+            etfHoldings: prev.etfHoldings.find(h => h.etfId === etfId)
+              ? prev.etfHoldings.map(h => h.etfId === etfId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (currentPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+              : [...prev.etfHoldings, { etfId, shares: sharesToBuy, averagePurchasePrice: currentPrice }]
+          }));
+          toastTitle = "ETF Purchased!";
+          toastDescription = `Bought ${sharesToBuy.toLocaleString()} shares of ${etf.ticker}.`;
+        }
       }
     }
   
