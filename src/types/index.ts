@@ -36,7 +36,6 @@ export interface Stock {
   description: string;
   totalOutstandingShares: number;
   requiredSkillToUnlock?: string;
-  onMarket: boolean; // True if post-IPO
 }
 
 export interface StockHolding {
@@ -61,11 +60,19 @@ export interface EtfHolding {
   averagePurchasePrice: number;
 }
 
-export interface IPO {
-  stockId: string;
-  ipoPrice: number;
-  sharesRemaining: number;
-  endTime: number;
+export interface StockUpgradeEffect {
+  dividendYieldBoost?: number; // Additive boost, e.g., 0.0001
+}
+
+export interface StockUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  costMoney: number;
+  costPrestigePoints?: number;
+  targetStockId: string;
+  icon: LucideIcon;
+  effects: StockUpgradeEffect;
 }
 
 export interface SkillNodeEffects {
@@ -356,13 +363,13 @@ export interface PlayerStats {
   prestigePoints: number;
   timesPrestiged: number;
   unlockedSkillIds: string[];
+  purchasedStockUpgradeIds: string[];
   hqUpgradeLevels: Record<string, number>;
   achievedBusinessMilestones?: Record<string, {
     maxLevelReached?: boolean;
     purchasedUpgradeIds?: string[];
   }>;
   unlockedArtifactIds?: string[];
-  activeIpo: IPO | null;
 
   // Factory Stats
   factoryPurchased: boolean;
@@ -409,7 +416,7 @@ export interface PlayerStats {
 export interface SaveData {
   playerStats: PlayerStats;
   businesses: Business[];
-  stocks: Stock[]; // Save stock prices and onMarket status
+  stocks: Stock[]; // Save stock prices
   lastSaved: number;
 }
 

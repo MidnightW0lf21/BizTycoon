@@ -1,7 +1,8 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
+import { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
 import { INITIAL_SKILL_TREE } from './data/skills';
 import { INITIAL_HQ_UPGRADES } from './data/hq';
 import { INITIAL_ARTIFACTS } from './data/artifacts';
@@ -18,6 +19,7 @@ export const MAX_BUSINESS_LEVEL = 100;
 export const INITIAL_PRESTIGE_POINTS = 0;
 export const INITIAL_TIMES_PRESTIGED = 0;
 export const INITIAL_UNLOCKED_SKILL_IDS: string[] = [];
+export const INITIAL_PURCHASED_STOCK_UPGRADE_IDS: string[] = [];
 export const INITIAL_HQ_UPGRADE_LEVELS: Record<string, number> = {};
 export const INITIAL_UNLOCKED_ARTIFACT_IDS: string[] = [];
 export const INITIAL_FACTORY_WORKERS: Worker[] = [];
@@ -412,6 +414,7 @@ export {
 } from './data/businesses';
 
 export { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
+export { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
 export { INITIAL_ETFS } from './data/etfs';
 export { BUSINESS_SYNERGIES } from './data/synergies';
 export { INITIAL_SKILL_TREE } from './data/skills';

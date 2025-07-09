@@ -6,18 +6,18 @@ import { StockMarketItem } from "@/components/stocks/StockMarketItem";
 import { PortfolioItem } from "@/components/stocks/PortfolioItem";
 import { EtfMarketItem } from "@/components/stocks/EtfMarketItem";
 import { EtfPortfolioItem } from "@/components/stocks/EtfPortfolioItem";
-import { IpoOfferingCard } from "@/components/stocks/IpoOfferingCard";
+import { StockUpgradeCard } from "@/components/stocks/StockUpgradeCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { LockKeyhole, BarChart, Package, Briefcase, Landmark, Flame } from "lucide-react";
+import { LockKeyhole, BarChart, Package, Briefcase, Landmark, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { STOCK_ETF_UNLOCK_ORDER } from "@/config/game-config";
+import { STOCK_ETF_UNLOCK_ORDER, INITIAL_STOCK_UPGRADES } from "@/config/game-config";
 
 const REQUIRED_PRESTIGE_LEVEL = 8;
 
 export default function StocksPage() {
-  const { playerStats, stocks, etfs, buyIpoShares } = useGame();
+  const { playerStats, stocks, etfs, purchaseStockUpgrade } = useGame();
 
   const unlockedItems = STOCK_ETF_UNLOCK_ORDER.slice(0, playerStats.timesPrestiged);
   const unlockedStockIds = unlockedItems.filter(item => item.type === 'STOCK').map(item => item.id);
@@ -25,6 +25,8 @@ export default function StocksPage() {
 
   const availableStocks = stocks.filter(stock => unlockedStockIds.includes(stock.id));
   const availableEtfs = etfs.filter(etf => unlockedEtfIds.includes(etf.id));
+  
+  const availableStockUpgrades = INITIAL_STOCK_UPGRADES.filter(upgrade => unlockedStockIds.includes(upgrade.targetStockId));
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL) {
     return (
@@ -63,14 +65,14 @@ export default function StocksPage() {
           <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <BarChart className="h-6 w-6 text-primary" /> Global Exchange
           </h2>
-          <p className="text-sm text-muted-foreground">Buy and sell shares of companies, ETFs, and participate in IPOs. You unlock one new item per prestige level.</p>
+          <p className="text-sm text-muted-foreground">Buy and sell shares of companies, ETFs, and purchase powerful upgrades. You unlock one new item per prestige level.</p>
         </div>
         
         <Tabs defaultValue="stocks" className="w-full flex-grow flex flex-col">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="stocks"><Briefcase className="mr-2 h-4 w-4"/>Stocks</TabsTrigger>
             <TabsTrigger value="etfs"><Package className="mr-2 h-4 w-4"/>ETFs</TabsTrigger>
-            <TabsTrigger value="ipos"><Flame className="mr-2 h-4 w-4"/>IPOs</TabsTrigger>
+            <TabsTrigger value="upgrades"><TrendingUp className="mr-2 h-4 w-4"/>Upgrades</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stocks" className="flex-grow mt-4">
@@ -105,17 +107,26 @@ export default function StocksPage() {
             )}
           </TabsContent>
 
-           <TabsContent value="ipos" className="flex-grow mt-4">
-             {playerStats.activeIpo ? (
-                <IpoOfferingCard 
-                  ipo={playerStats.activeIpo}
-                  onBuyShares={buyIpoShares}
-                  playerMoney={playerStats.money}
-                />
-             ) : (
+           <TabsContent value="upgrades" className="flex-grow mt-4">
+             {availableStockUpgrades.length === 0 ? (
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 min-h-[200px] flex items-center justify-center">
-                <p className="text-center text-muted-foreground">No active IPOs at the moment. Check back later!</p>
+                <p className="text-center text-muted-foreground">No stock upgrades available yet. Unlock more stocks to see their upgrades.</p>
               </div>
+             ) : (
+              <ScrollArea className="h-[calc(100vh-280px)] pr-4"> 
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {availableStockUpgrades.map((upgrade) => (
+                    <StockUpgradeCard
+                      key={upgrade.id}
+                      upgrade={upgrade}
+                      playerMoney={playerStats.money}
+                      playerPrestigePoints={playerStats.prestigePoints}
+                      isPurchased={(playerStats.purchasedStockUpgradeIds || []).includes(upgrade.id)}
+                      onPurchase={purchaseStockUpgrade}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </TabsContent>
         </Tabs>
