@@ -642,19 +642,160 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const sellStock = useCallback((stockId: string, sharesToSell: number) => {
-    // ... (This function remains the same)
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+  
+    const playerStatsNow = playerStatsRef.current;
+    const stock = stocksRef.current.find(s => s.id === stockId);
+  
+    if (!stock) {
+      toastTitle = "Stock Not Found";
+      toastVariant = "destructive";
+    } else {
+      const holding = playerStatsNow.stockHoldings.find(h => h.stockId === stockId);
+      if (!holding || holding.shares < sharesToSell) {
+        toastTitle = "Not Enough Shares";
+        toastVariant = "destructive";
+      } else {
+        const earnings = stock.price * sharesToSell;
+        setPlayerStats(prev => ({
+          ...prev,
+          money: prev.money + earnings,
+          stockHoldings: prev.stockHoldings.map(h =>
+            h.stockId === stockId ? { ...h, shares: h.shares - sharesToSell } : h
+          ).filter(h => h.shares > 0)
+        }));
+        toastTitle = "Stock Sold!";
+        toastDescription = `Sold ${sharesToSell.toLocaleString()} shares of ${stock.ticker}.`;
+      }
+    }
+  
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) {
+      toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
   }, []);
   
   const buyEtf = useCallback((etfId: string, sharesToBuy: number, currentPrice: number) => {
-    // ... (Implementation for buying ETFs)
-  }, []);
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+  
+    const playerStatsNow = playerStatsRef.current;
+    const etf = etfsState.find(e => e.id === etfId);
+  
+    if (!etf) {
+      toastTitle = "ETF Not Found";
+      toastVariant = "destructive";
+    } else if (playerStatsNow.timesPrestiged < 8) {
+      toastTitle = "Stocks Locked";
+      toastVariant = "destructive";
+    } else if (sharesToBuy <= 0) {
+      toastTitle = "Invalid Amount";
+      toastVariant = "destructive";
+    } else {
+      const cost = currentPrice * sharesToBuy;
+      if (playerStatsNow.money < cost) {
+        toastTitle = "Not Enough Money";
+        toastVariant = "destructive";
+      } else {
+        setPlayerStats(prev => ({
+          ...prev,
+          money: prev.money - cost,
+          etfHoldings: prev.etfHoldings.find(h => h.etfId === etfId)
+            ? prev.etfHoldings.map(h => h.etfId === etfId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (currentPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+            : [...prev.etfHoldings, { etfId, shares: sharesToBuy, averagePurchasePrice: currentPrice }]
+        }));
+        toastTitle = "ETF Purchased!";
+        toastDescription = `Bought ${sharesToBuy.toLocaleString()} shares of ${etf.ticker}.`;
+      }
+    }
+  
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) {
+      toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
+  }, [etfsState]);
   
   const sellEtf = useCallback((etfId: string, sharesToSell: number, currentPrice: number) => {
-    // ... (Implementation for selling ETFs)
-  }, []);
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+  
+    const playerStatsNow = playerStatsRef.current;
+    const etf = etfsState.find(e => e.id === etfId);
+  
+    if (!etf) {
+      toastTitle = "ETF Not Found";
+      toastVariant = "destructive";
+    } else {
+      const holding = playerStatsNow.etfHoldings.find(h => h.etfId === etfId);
+      if (!holding || holding.shares < sharesToSell) {
+        toastTitle = "Not Enough Shares";
+        toastVariant = "destructive";
+      } else {
+        const earnings = currentPrice * sharesToSell;
+        setPlayerStats(prev => ({
+          ...prev,
+          money: prev.money + earnings,
+          etfHoldings: prev.etfHoldings.map(h =>
+            h.etfId === etfId ? { ...h, shares: h.shares - sharesToSell } : h
+          ).filter(h => h.shares > 0)
+        }));
+        toastTitle = "ETF Sold!";
+        toastDescription = `Sold ${sharesToSell.toLocaleString()} shares of ${etf.ticker}.`;
+      }
+    }
+  
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) {
+      toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
+  }, [etfsState]);
   
   const buyIpoShares = useCallback((stockId: string, sharesToBuy: number) => {
-    // ... (Implementation for buying IPO shares)
+    let toastTitle = "";
+    let toastDescription = "";
+    let toastVariant: "default" | "destructive" = "default";
+  
+    const playerStatsNow = playerStatsRef.current;
+    const activeIpo = playerStatsNow.activeIpo;
+  
+    if (!activeIpo || activeIpo.stockId !== stockId) {
+      toastTitle = "IPO Not Active";
+      toastVariant = "destructive";
+    } else if (sharesToBuy <= 0) {
+      toastTitle = "Invalid Amount";
+      toastVariant = "destructive";
+    } else if (sharesToBuy > activeIpo.sharesRemaining) {
+      toastTitle = "Not Enough Shares in IPO";
+      toastVariant = "destructive";
+    } else {
+      const cost = activeIpo.ipoPrice * sharesToBuy;
+      if (playerStatsNow.money < cost) {
+        toastTitle = "Not Enough Money";
+        toastVariant = "destructive";
+      } else {
+        setPlayerStats(prev => {
+          const existingHolding = prev.stockHoldings.find(h => h.stockId === stockId);
+          const newStockHoldings = existingHolding
+            ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (activeIpo.ipoPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+            : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: activeIpo.ipoPrice }];
+          
+          return {
+            ...prev,
+            money: prev.money - cost,
+            stockHoldings: newStockHoldings,
+            activeIpo: { ...activeIpo, sharesRemaining: activeIpo.sharesRemaining - sharesToBuy },
+          };
+        });
+        toastTitle = "IPO Shares Purchased!";
+        const stock = stocksRef.current.find(s => s.id === stockId);
+        toastDescription = `Bought ${sharesToBuy.toLocaleString()} shares of ${stock?.ticker}.`;
+      }
+    }
+  
+    if (toastTitle && (toastVariant === 'destructive' || (playerStatsRef.current.toastSettings?.showStockTrades ?? true))) {
+      toastRef.current({ title: toastTitle, description: toastDescription, variant: toastVariant });
+    }
   }, []);
 
 
