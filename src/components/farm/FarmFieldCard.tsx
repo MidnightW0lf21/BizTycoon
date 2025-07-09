@@ -12,9 +12,11 @@ import { cn } from "@/lib/utils";
 interface FarmFieldCardProps {
   field: FarmField;
   onPlantClick: (field: FarmField) => void;
+  onHarvestClick: (fieldId: string) => void;
+  onCultivateClick: (fieldId: string) => void;
 }
 
-export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
+export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivateClick }: FarmFieldCardProps) {
   const { playerStats } = useGame(); // Use context for more complex actions later
 
   const getStatusIcon = () => {
@@ -80,12 +82,12 @@ export function FarmFieldCard({ field, onPlantClick }: FarmFieldCardProps) {
             </Button>
         )}
         {field.status === 'ReadyToHarvest' && (
-            <Button size="sm" className="w-full" disabled>
+            <Button onClick={() => onHarvestClick(field.id)} size="sm" className="w-full">
                 <Combine className="mr-2 h-4 w-4"/> Harvest
             </Button>
         )}
-         {field.status === 'Cultivating' && (
-            <Button size="sm" className="w-full" disabled>
+         {field.status === 'Cultivating' && !field.activity && (
+            <Button onClick={() => onCultivateClick(field.id)} size="sm" className="w-full">
                 <Tractor className="mr-2 h-4 w-4"/> Cultivate
             </Button>
         )}

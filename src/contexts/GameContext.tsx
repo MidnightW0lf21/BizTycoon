@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicle, FarmVehicleConfig, CropId } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity } from '@/types';
 import {
   INITIAL_BUSINESSES, INITIAL_MONEY, INITIAL_STOCKS, INITIAL_PRESTIGE_POINTS, INITIAL_TIMES_PRESTIGED, INITIAL_SKILL_TREE,
   INITIAL_UNLOCKED_SKILL_IDS, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES, INITIAL_UNLOCKED_ARTIFACT_IDS, INITIAL_ARTIFACTS,
@@ -87,8 +87,8 @@ interface GameContextType {
   setRecipeForEntireLine: (lineId: string, componentId: string) => void;
   purchaseFarm: () => void;
   plantCrop: (fieldId: string, cropId: string, vehicleInstanceId: string) => void;
-  harvestField: (fieldId: string, vehicleInstanceId: string) => void;
-  cultivateField: (fieldId: string, vehicleInstanceId: string) => void;
+  harvestField: (fieldId: string) => void;
+  cultivateField: (fieldId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -489,11 +489,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
-        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
-        if (config) {
-          return { ...savedVehicle, icon: config.icon };
-        }
-        return savedVehicle;
+        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
+        return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
       });
       mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
   
@@ -1158,11 +1155,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const sowingTimeHours = field.sizeHa / vehicle.speedHaPerHr;
       const sowingTimeSeconds = sowingTimeHours * 3600;
 
+      const activity: FarmActivity = { type: 'Sowing', startTime: Date.now(), durationSeconds: sowingTimeSeconds, vehicleId: vehicle.instanceId, cropId: cropId as CropId };
+
       farmFields[fieldIndex] = {
         ...field,
         status: 'Sowing',
         currentCropId: cropId as CropId,
-        activity: { type: 'Sowing', startTime: Date.now(), durationSeconds: sowingTimeSeconds, vehicleId: vehicle.instanceId, cropId: cropId as CropId }
+        activity
       };
 
       farmVehicles[vehicleIndex] = { ...vehicle, status: 'Working', activity: farmFields[fieldIndex].activity };
@@ -1171,8 +1170,69 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const harvestField = useCallback((fieldId: string, vehicleInstanceId: string) => {}, []);
-  const cultivateField = useCallback((fieldId: string, vehicleInstanceId: string) => {}, []);
+  const harvestField = useCallback((fieldId: string) => {
+    setPlayerStats(prev => {
+      const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
+      if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'ReadyToHarvest') return prev;
+
+      const availableHarvesterIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Harvester' && v.status === 'Idle');
+      if (availableHarvesterIndex === -1) {
+        toastRef.current({ title: "No Harvester Available", variant: "destructive" });
+        return prev;
+      }
+
+      const farmFields = [...prev.farmFields!];
+      const farmVehicles = [...prev.farmVehicles!];
+      const field = farmFields[fieldIndex];
+      const harvester = farmVehicles[availableHarvesterIndex];
+
+      if (harvester.fuel <= 0) {
+        toastRef.current({ title: "Harvester Out of Fuel", variant: "destructive" });
+        return prev;
+      }
+      
+      const harvestTimeHours = field.sizeHa / harvester.speedHaPerHr;
+      const harvestTimeSeconds = harvestTimeHours * 3600;
+      const activity: FarmActivity = { type: 'Harvesting', startTime: Date.now(), durationSeconds: harvestTimeSeconds, vehicleId: harvester.instanceId, cropId: field.currentCropId };
+      
+      farmFields[fieldIndex] = { ...field, status: 'Harvesting', activity };
+      farmVehicles[availableHarvesterIndex] = { ...harvester, status: 'Working', activity };
+
+      return { ...prev, farmFields, farmVehicles };
+    });
+  }, []);
+
+  const cultivateField = useCallback((fieldId: string) => {
+    setPlayerStats(prev => {
+      const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
+      if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'Cultivating' || prev.farmFields![fieldIndex].activity) return prev;
+
+      const availableTractorIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Tractor' && v.status === 'Idle');
+      if (availableTractorIndex === -1) {
+        toastRef.current({ title: "No Tractor Available", variant: "destructive" });
+        return prev;
+      }
+
+      const farmFields = [...prev.farmFields!];
+      const farmVehicles = [...prev.farmVehicles!];
+      const field = farmFields[fieldIndex];
+      const tractor = farmVehicles[availableTractorIndex];
+
+      if (tractor.fuel <= 0) {
+        toastRef.current({ title: "Tractor Out of Fuel", variant: "destructive" });
+        return prev;
+      }
+      
+      const cultivateTimeHours = field.sizeHa / tractor.speedHaPerHr;
+      const cultivateTimeSeconds = cultivateTimeHours * 3600;
+      const activity: FarmActivity = { type: 'Cultivating', startTime: Date.now(), durationSeconds: cultivateTimeSeconds, vehicleId: tractor.instanceId };
+      
+      farmFields[fieldIndex] = { ...field, status: 'Cultivating', activity };
+      farmVehicles[availableTractorIndex] = { ...tractor, status: 'Working', activity };
+
+      return { ...prev, farmFields, farmVehicles };
+    });
+  }, []);
 
   useEffect(() => {
     const loadGame = () => {
@@ -1290,11 +1350,70 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const tick = setInterval(() => {
       setPlayerStats(prev => {
-        // ... other logic for income, etc.
+        const now = Date.now();
+        const updatedFarmFields = [...(prev.farmFields || [])];
+        const updatedFarmVehicles = [...(prev.farmVehicles || [])];
+        let siloStorage = [...(prev.siloStorage || [])];
+        let farmStateChanged = false;
+        
+        updatedFarmFields.forEach((field, index) => {
+          if (field.activity) {
+            const activityEndTime = field.activity.startTime + (field.activity.durationSeconds * 1000);
+            if (now >= activityEndTime) {
+              farmStateChanged = true;
+              const vehicleIndex = updatedFarmVehicles.findIndex(v => v.instanceId === field.activity?.vehicleId);
+              let vehicle: FarmVehicle | undefined;
+              if(vehicleIndex > -1) vehicle = updatedFarmVehicles[vehicleIndex];
+
+              switch (field.activity.type) {
+                case 'Sowing': {
+                  const cropConfig = FARM_CROPS.find(c => c.id === field.currentCropId);
+                  updatedFarmFields[index] = { ...field, status: 'Growing', activity: { type: 'Growing', startTime: now, durationSeconds: cropConfig?.growthTimeSeconds || 0, cropId: field.currentCropId } };
+                  break;
+                }
+                case 'Growing': {
+                  updatedFarmFields[index] = { ...field, status: 'ReadyToHarvest', activity: undefined };
+                  break;
+                }
+                case 'Harvesting': {
+                  const cropConfig = FARM_CROPS.find(c => c.id === field.currentCropId);
+                  if (cropConfig) {
+                    const yieldAmount = field.sizeHa * cropConfig.yieldPerHa;
+                    const existingItemIndex = siloStorage.findIndex(item => item.cropId === cropConfig.id);
+                    if (existingItemIndex > -1) {
+                        siloStorage[existingItemIndex].quantity += yieldAmount;
+                    } else {
+                        siloStorage.push({ cropId: cropConfig.id, quantity: yieldAmount });
+                    }
+                    const totalSiloContent = siloStorage.reduce((sum, item) => sum + item.quantity, 0);
+                    if (totalSiloContent > (prev.siloCapacity || 0)) {
+                        const overflow = totalSiloContent - (prev.siloCapacity || 0);
+                        siloStorage.find(i=> i.cropId === cropConfig.id)!.quantity -= overflow;
+                        toastRef.current({ title: "Silo Full", description: `Some ${cropConfig.name} was lost due to lack of space.`, variant: "destructive" });
+                    }
+                  }
+                  updatedFarmFields[index] = { ...field, status: 'Cultivating', currentCropId: undefined, activity: undefined };
+                  break;
+                }
+                case 'Cultivating': {
+                  updatedFarmFields[index] = { ...field, status: 'Empty', activity: undefined };
+                  break;
+                }
+              }
+
+              if (vehicle && vehicleIndex > -1) {
+                const fuelUsed = (vehicle.fuelUsageLtrPerHr / 3600) * field.activity.durationSeconds;
+                const wearAdded = (vehicle.wearPerHr / 3600) * field.activity.durationSeconds;
+                updatedFarmVehicles[vehicleIndex] = { ...vehicle, status: 'Idle', activity: undefined, fuel: Math.max(0, vehicle.fuel - fuelUsed), wear: Math.min(100, vehicle.wear + wearAdded) };
+              }
+            }
+          }
+        });
+
+        // Other income calculations...
         const allBusinesses = businessesRef.current;
         const allStocks = stocksRef.current;
         const allEtfs = etfsState; // Use the static state here for calculation
-        const prevStats = playerStatsRef.current;
         
         const businessIncome = allBusinesses.reduce((sum, biz) => sum + localCalculateIncome(
           biz, 
@@ -1366,16 +1485,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const holding = prev.etfHoldings.find(h => h.etfId === etf.id);
             const etfPrice = allStocks.filter(s => {
               if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
-              if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
-              if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(s.ticker);
-              if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(s.ticker);
-              if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(s.ticker);
-              if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(s.ticker);
-              return false;
-            }).reduce((priceSum, stock) => priceSum + stock.price, 0) / (allStocks.filter(s => {
-               if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(s.ticker);
+               if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(s.ticker);
+               if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(s.ticker);
+               if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(s.ticker);
+               if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(s.ticker);
+               if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(s.ticker);
                return false;
-            }).length || 1);
+            }).reduce((priceSum, stock, _, arr) => priceSum + stock.price / arr.length, 0);
             
             return sum + (holding ? holding.shares * etfPrice : 0);
         }, 0);
@@ -1393,40 +1509,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         const mineralsFromAutomation = autoDigRate * 0.25;
 
-        // FARM LOGIC
-        const now = Date.now();
-        const updatedFarmFields = [...(prev.farmFields || [])];
-        const updatedFarmVehicles = [...(prev.farmVehicles || [])];
-        let farmStateChanged = false;
-
-        updatedFarmFields.forEach((field, index) => {
-          if (field.activity) {
-            const activityEndTime = field.activity.startTime + (field.activity.durationSeconds * 1000);
-            if (now >= activityEndTime) {
-              farmStateChanged = true;
-              const vehicleIndex = updatedFarmVehicles.findIndex(v => v.instanceId === field.activity?.vehicleId);
-              
-              switch (field.activity.type) {
-                case 'Sowing': {
-                  const cropConfig = FARM_CROPS.find(c => c.id === field.currentCropId);
-                  updatedFarmFields[index] = { ...field, status: 'Growing', activity: { type: 'Growing', startTime: now, durationSeconds: cropConfig?.growthTimeSeconds || 0, cropId: field.currentCropId } };
-                  if (vehicleIndex > -1) {
-                    const vehicle = updatedFarmVehicles[vehicleIndex];
-                    const fuelUsed = (vehicle.fuelUsageLtrPerHr / 3600) * field.activity.durationSeconds;
-                    const wearAdded = (vehicle.wearPerHr / 3600) * field.activity.durationSeconds;
-                    updatedFarmVehicles[vehicleIndex] = { ...vehicle, status: 'Idle', activity: undefined, fuel: Math.max(0, vehicle.fuel - fuelUsed), wear: Math.min(100, vehicle.wear + wearAdded) };
-                  }
-                  break;
-                }
-                case 'Growing': {
-                  updatedFarmFields[index] = { ...field, status: 'ReadyToHarvest', activity: undefined };
-                  break;
-                }
-              }
-            }
-          }
-        });
-
         return {
           ...prev,
           money: prev.money + newTotalIncome,
@@ -1441,6 +1523,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
           farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
           farmVehicles: farmStateChanged ? updatedFarmVehicles : prev.farmVehicles,
+          siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
         };
       });
 

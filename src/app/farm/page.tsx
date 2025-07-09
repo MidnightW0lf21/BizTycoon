@@ -9,14 +9,14 @@ import { FARM_PURCHASE_COST } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PlantingDialog } from "@/components/farm/PlantingDialog";
 import type { FarmField } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<FarmField | null>(null);
 
@@ -24,6 +24,10 @@ export default function FarmPage() {
     setSelectedField(field);
     setIsPlantingDialogOpen(true);
   };
+
+  const totalSiloContent = useMemo(() => {
+    return (playerStats.siloStorage || []).reduce((sum, item) => sum + item.quantity, 0);
+  }, [playerStats.siloStorage]);
   
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FARM) {
     return (
@@ -98,8 +102,7 @@ export default function FarmPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">
-                    {/* Placeholder for silo content */}
-                    0 / {playerStats.siloCapacity || 0} units
+                    {totalSiloContent.toLocaleString()} / {(playerStats.siloCapacity || 0).toLocaleString()} units
                   </p>
                   <Button size="sm" variant="outline" className="mt-2" disabled>Upgrade Silo</Button>
                 </CardContent>
@@ -127,7 +130,13 @@ export default function FarmPage() {
           <TabsContent value="fields" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {(playerStats.farmFields || []).map(field => (
-                <FarmFieldCard key={field.id} field={field} onPlantClick={() => handleOpenPlantingDialog(field)} />
+                <FarmFieldCard
+                  key={field.id}
+                  field={field}
+                  onPlantClick={() => handleOpenPlantingDialog(field)}
+                  onHarvestClick={() => harvestField(field.id)}
+                  onCultivateClick={() => cultivateField(field.id)}
+                />
               ))}
             </div>
           </TabsContent>
