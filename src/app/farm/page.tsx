@@ -11,6 +11,7 @@ import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
 import { useState, useMemo, useEffect } from "react";
 import { PlantingDialog } from "@/components/farm/PlantingDialog";
+import { VehicleShopDialog } from "@/components/farm/VehicleShopDialog";
 import type { FarmField } from "@/types";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
@@ -18,6 +19,7 @@ const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 export default function FarmPage() {
   const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
+  const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<FarmField | null>(null);
   const [fuelDeliveryTimeLeft, setFuelDeliveryTimeLeft] = useState(0);
 
@@ -193,13 +195,15 @@ export default function FarmPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(playerStats.farmVehicles || []).map(vehicle => (
-                  <VehicleCard key={vehicle.instanceId} vehicle={vehicle} onRefuel={refuelVehicle} onRepair={repairVehicle} playerFuel={playerStats.fuelStorage} playerMoney={playerStats.money}/>
+                  <VehicleCard key={vehicle.instanceId} vehicle={vehicle} onRefuel={refuelVehicle} onRepair={repairVehicle} playerFuel={playerStats.fuelStorage || 0} playerMoney={playerStats.money}/>
                 ))}
-                {/* Placeholder to buy vehicles */}
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Vehicle Shop</CardTitle></CardHeader>
-                  <CardContent><p className="text-sm text-muted-foreground">Purchase new vehicles here.</p></CardContent>
-                  <CardFooter><Button disabled><PlusCircle className="mr-2 h-4 w-4"/>Buy Vehicle</Button></CardFooter>
+                <Card className="flex flex-col justify-center items-center text-center p-4 border-dashed">
+                    <PlusCircle className="h-10 w-10 text-muted-foreground mb-2"/>
+                    <CardTitle className="text-lg">Buy New Vehicle</CardTitle>
+                    <CardDescription className="mb-4">Expand your fleet.</CardDescription>
+                    <Button onClick={() => setIsVehicleShopOpen(true)}>
+                        <ShoppingCart className="mr-2 h-4 w-4"/>Open Vehicle Shop
+                    </Button>
                 </Card>
               </CardContent>
             </Card>
@@ -225,6 +229,10 @@ export default function FarmPage() {
           field={selectedField}
         />
       )}
+      <VehicleShopDialog
+        isOpen={isVehicleShopOpen}
+        onClose={() => setIsVehicleShopOpen(false)}
+      />
     </>
   );
 }

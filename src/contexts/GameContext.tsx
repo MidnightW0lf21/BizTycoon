@@ -18,7 +18,7 @@ import {
   BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_ARTIFACT_CHANCE_PER_DIG, ARTIFACT_CHANCE_DEPTH_MULTIPLIER, ARTIFACT_RARITY_WEIGHTS,
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
-  INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY
+  INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +89,12 @@ interface GameContextType {
   plantCrop: (fieldId: string, cropId: string, vehicleInstanceId: string) => void;
   harvestField: (fieldId: string) => void;
   cultivateField: (fieldId: string) => void;
+  purchaseVehicle: (vehicleConfigId: string) => void;
+  refuelVehicle: (vehicleInstanceId: string) => void;
+  repairVehicle: (vehicleInstanceId: string) => void;
+  orderFuel: () => void;
+  upgradeSilo: () => void;
+  upgradeFuelDepot: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -489,7 +495,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
-        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
+        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
         return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
       });
       mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
@@ -1137,7 +1143,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const plantCrop = useCallback((fieldId: string, cropId: string, vehicleInstanceId: string) => {
+  const plantCrop = useCallback((fieldId: string, cropId: CropId, vehicleInstanceId: string) => {
     setPlayerStats(prev => {
       const farmFields = prev.farmFields ? [...prev.farmFields] : [];
       const fieldIndex = farmFields.findIndex(f => f.id === fieldId);
@@ -1155,12 +1161,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const sowingTimeHours = field.sizeHa / vehicle.speedHaPerHr;
       const sowingTimeSeconds = sowingTimeHours * 3600;
 
-      const activity: FarmActivity = { type: 'Sowing', startTime: Date.now(), durationSeconds: sowingTimeSeconds, vehicleId: vehicle.instanceId, cropId: cropId as CropId };
+      const activity: FarmActivity = { type: 'Sowing', startTime: Date.now(), durationSeconds: sowingTimeSeconds, vehicleId: vehicle.instanceId, cropId: cropId };
 
       farmFields[fieldIndex] = {
         ...field,
         status: 'Sowing',
-        currentCropId: cropId as CropId,
+        currentCropId: cropId,
         activity
       };
 
@@ -1233,6 +1239,77 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return { ...prev, farmFields, farmVehicles };
     });
   }, []);
+
+  const purchaseVehicle = useCallback((vehicleConfigId: string) => {
+    const config = FARM_VEHICLES.find(v => v.id === vehicleConfigId);
+    if (!config) {
+      toastRef.current({ title: "Vehicle not found", variant: "destructive" });
+      return;
+    }
+
+    setPlayerStats(prev => {
+      if (prev.money < config.purchaseCost) {
+        toastRef.current({ title: "Not enough money", variant: "destructive" });
+        return prev;
+      }
+
+      const newVehicle: FarmVehicle = {
+        ...config,
+        instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
+        fuel: config.fuelCapacity,
+        wear: 0,
+        status: 'Idle',
+      };
+      
+      const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
+
+      toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
+
+      return {
+        ...prev,
+        money: prev.money - config.purchaseCost,
+        farmVehicles: updatedVehicles
+      };
+    });
+  }, []);
+
+  const refuelVehicle = useCallback((vehicleInstanceId: string) => {
+    setPlayerStats(prev => {
+      const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
+      if (vehicleIndex === -1) return prev;
+      
+      const vehicle = prev.farmVehicles![vehicleIndex];
+      const fuelNeeded = vehicle.fuelCapacity - vehicle.fuel;
+      if (fuelNeeded <= 0 || prev.fuelStorage < 1) return prev;
+
+      const fuelToTransfer = Math.min(fuelNeeded, prev.fuelStorage);
+      const newVehicles = [...prev.farmVehicles!];
+      newVehicles[vehicleIndex] = { ...vehicle, fuel: vehicle.fuel + fuelToTransfer };
+
+      return {
+        ...prev,
+        fuelStorage: prev.fuelStorage - fuelToTransfer,
+        farmVehicles: newVehicles
+      };
+    });
+  }, []);
+  
+  const repairVehicle = useCallback((vehicleInstanceId: string) => {
+    // ... logic for repair (coming soon)
+  }, []);
+
+  const orderFuel = useCallback(() => {
+    // ... logic for ordering fuel (coming soon)
+  }, []);
+
+  const upgradeSilo = useCallback(() => {
+    // ... logic for silo upgrade (coming soon)
+  }, []);
+
+  const upgradeFuelDepot = useCallback(() => {
+    // ... logic for fuel depot upgrade (coming soon)
+  }, []);
+
 
   useEffect(() => {
     const loadGame = () => {
@@ -1448,12 +1525,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             const underlyingStocks = allStocks.filter(stock => {
               if (etf.sector === 'TECH') return ['TINV', 'QLC', 'OMG'].includes(stock.ticker);
-              if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(stock.ticker);
-              if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(stock.ticker);
-              if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(stock.ticker);
-              if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(stock.ticker);
-              if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(stock.ticker);
-              return false;
+               if (etf.sector === 'ENERGY') return ['GEC', 'STLR'].includes(stock.ticker);
+               if (etf.sector === 'FINANCE') return ['SRE', 'GC'].includes(stock.ticker);
+               if (etf.sector === 'INDUSTRIAL') return ['MMTR', 'AETL'].includes(stock.ticker);
+               if (etf.sector === 'AEROSPACE') return ['CVNT', 'STLR'].includes(stock.ticker);
+               if (etf.sector === 'BIOTECH') return ['APRX', 'BSG', 'BFM'].includes(stock.ticker);
+               return false;
             });
   
             if(underlyingStocks.length === 0) return sum;
@@ -1550,7 +1627,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
-      purchaseFarm, plantCrop, harvestField, cultivateField,
+      purchaseFarm, plantCrop, harvestField, cultivateField, purchaseVehicle,
+      refuelVehicle, repairVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
     }}>
       {children}
     </GameContext.Provider>

@@ -408,8 +408,17 @@ export interface FarmVehicleConfig {
   purchaseCost: number;
 }
 
-export interface FarmVehicle extends FarmVehicleConfig {
+export interface FarmVehicle {
   instanceId: string;
+  configId: string;
+  name: string;
+  type: FarmVehicleType;
+  icon: LucideIcon;
+  speedHaPerHr: number;
+  fuelCapacity: number;
+  fuelUsageLtrPerHr: number;
+  wearPerHr: number;
+  purchaseCost: number;
   fuel: number;
   wear: number; // 0 (perfect) to 100 (broken)
   status: FarmVehicleStatus;
