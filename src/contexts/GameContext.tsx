@@ -1168,8 +1168,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   useEffect(() => {
-    // Stock price update logic... (This will now also apply synergies)
-  }, []);
+    const stockUpdateTimer = setInterval(() => {
+        setStocksWithDynamicPrices(prevStocks => {
+            return prevStocks.map(stock => {
+                const businesses = businessesRef.current;
+                let synergyBoost = 0;
+                businessSynergiesState.forEach(synergy => {
+                    if (synergy.effect.type === 'STOCK_PRICE_BOOST' && synergy.effect.targetId === stock.id) {
+                        const business = businesses.find(b => b.id === synergy.businessId);
+                        if (business && business.level > 0) {
+                            const boostTiers = Math.floor(business.level / synergy.perLevels);
+                            synergyBoost += (boostTiers * synergy.effect.value) / 100;
+                        }
+                    }
+                });
+                
+                const volatility = 0.1; // +/- 5%
+                const randomChange = (Math.random() - 0.5) * volatility;
+                const newPrice = stock.price * (1 + randomChange + synergyBoost);
+
+                return { ...stock, price: Math.max(1, Math.floor(newPrice)) };
+            });
+        });
+    }, STOCK_PRICE_UPDATE_INTERVAL);
+
+    return () => clearInterval(stockUpdateTimer);
+  }, [businessSynergiesState]);
   
   const getEffectPerUnit = (effects: FactoryComponent['effects']) => {
     // ... (This function remains the same)
