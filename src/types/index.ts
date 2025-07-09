@@ -379,6 +379,7 @@ export interface FarmActivity {
   durationSeconds: number;
   vehicleId?: string;
   cropId?: CropId;
+  repairAmount?: number; // For repairs
 }
 
 export interface FarmField {
@@ -483,9 +484,9 @@ export interface PlayerStats {
   farmFields?: FarmField[];
   farmVehicles?: FarmVehicle[];
   siloStorage?: SiloItem[];
-  siloCapacity?: number;
-  fuelStorage?: number;
-  fuelCapacity?: number;
+  siloCapacity: number;
+  fuelStorage: number;
+  fuelCapacity: number;
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
   kitchenQueue?: { recipeId: string; completionTime: number }[];
 
