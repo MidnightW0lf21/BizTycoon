@@ -60,7 +60,7 @@ export function EtfMarketItem({ etf }: EtfMarketItemProps) {
     });
 
     return { price: Math.floor(etfPrice), dividendPerSharePerSec: (totalDividend / underlyingStocks.length) * dividendBoost };
-  }, [stocks, etf.id, etf.sector, businessSynergies, businesses, playerStats.businesses]);
+  }, [stocks, etf.id, etf.sector, businessSynergies, businesses]);
 
   const handleBuy = () => {
     if (sharesAmount > 0) {
@@ -98,7 +98,7 @@ export function EtfMarketItem({ etf }: EtfMarketItemProps) {
               <TooltipTrigger asChild>
                   <span className="font-semibold text-green-500 flex items-center gap-1">
                       <DollarSign className="h-3 w-3 mr-0.5" />
-                      {dividendPerSharePerSec.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                      {dividendPerSharePerSec.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                       <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                   </span>
               </TooltipTrigger>

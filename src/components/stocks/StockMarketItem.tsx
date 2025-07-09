@@ -94,7 +94,7 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
                       <FactoryIcon className="h-3 w-3 text-blue-500" />
                     )}
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {dividendPerSharePerSec.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                    {dividendPerSharePerSec.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                     <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
@@ -154,5 +154,3 @@ export function StockMarketItem({ stock }: StockMarketItemProps) {
     </TooltipProvider>
   );
 }
-
-    

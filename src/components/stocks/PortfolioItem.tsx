@@ -89,7 +89,7 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
                       <FactoryIcon className="h-3 w-3 text-blue-500" />
                     )}
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {dividendPerSecondFromHolding.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                    {dividendPerSecondFromHolding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                      <Info className="h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                 </span>
             </TooltipTrigger>
@@ -127,5 +127,3 @@ export function PortfolioItem({ holding, stock }: PortfolioItemProps) {
     </TooltipProvider>
   );
 }
-
-    
