@@ -440,6 +440,11 @@ export interface KitchenRecipe {
   craftTimeSeconds: number;
 }
 
+export interface KitchenItem {
+  itemId: string;
+  quantity: number;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -497,6 +502,7 @@ export interface PlayerStats {
   fuelStorage: number;
   fuelCapacity: number;
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
+  kitchenInventory?: KitchenItem[];
   kitchenQueue?: { recipeId: string; completionTime: number }[];
 
   // App Settings

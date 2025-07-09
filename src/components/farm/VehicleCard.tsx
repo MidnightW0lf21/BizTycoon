@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Fuel, Wrench, Ban, CheckCircle, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS } from "@/config/game-config";
+import { useState, useEffect } from "react";
 
 interface VehicleCardProps {
   vehicle: FarmVehicle;
@@ -23,9 +24,31 @@ export function VehicleCard({ vehicle, onRefuel, onRepair, playerFuel, playerMon
   const wearPercent = vehicle.wear; // Wear is already 0-100
 
   const repairCost = Math.ceil(vehicle.wear * VEHICLE_REPAIR_COST_PER_PERCENT);
-  const repairTimeSeconds = Math.ceil(vehicle.wear * VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS);
+  const totalRepairTimeSeconds = Math.ceil(vehicle.wear * VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS);
   const canAffordRepair = playerMoney >= repairCost;
   const isRepairing = vehicle.status === 'Repairing';
+
+  const [repairTimeLeft, setRepairTimeLeft] = useState(0);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined;
+    if (isRepairing && vehicle.activity) {
+      const updateCountdown = () => {
+        const endTime = vehicle.activity!.startTime + vehicle.activity!.durationSeconds * 1000;
+        const timeLeft = Math.max(0, endTime - Date.now());
+        setRepairTimeLeft(timeLeft / 1000);
+        if (timeLeft === 0 && intervalId) {
+          clearInterval(intervalId);
+        }
+      };
+      updateCountdown();
+      intervalId = setInterval(updateCountdown, 1000);
+    } else {
+      setRepairTimeLeft(0);
+    }
+    return () => clearInterval(intervalId);
+  }, [isRepairing, vehicle.activity]);
+
 
   return (
     <Card>
@@ -51,8 +74,8 @@ export function VehicleCard({ vehicle, onRefuel, onRepair, playerFuel, playerMon
         {isRepairing && vehicle.activity ? (
             <div className="text-center space-y-2">
                 <p className="text-sm font-semibold text-blue-500">Repairing...</p>
-                 <Progress value={(1 - (vehicle.activity.durationSeconds - (Date.now() - vehicle.activity.startTime)/1000) / repairTimeSeconds) * 100} indicatorClassName="bg-blue-500" />
-                <p className="text-xs text-muted-foreground">Time Remaining: {Math.ceil(vehicle.activity.durationSeconds - (Date.now() - vehicle.activity.startTime)/1000)}s</p>
+                 <Progress value={(1 - repairTimeLeft / totalRepairTimeSeconds) * 100} indicatorClassName="bg-blue-500" />
+                <p className="text-xs text-muted-foreground">Time Remaining: {Math.ceil(repairTimeLeft)}s</p>
             </div>
         ) : (
           <>
@@ -87,7 +110,7 @@ export function VehicleCard({ vehicle, onRefuel, onRepair, playerFuel, playerMon
             variant="outline" 
             size="sm" 
             className="flex-1" 
-            disabled={wearPercent === 0 || !canAffordRepair || vehicle.status !== 'Idle'}
+            disabled={wearPercent < 1 || !canAffordRepair || vehicle.status !== 'Idle'}
             onClick={() => onRepair(vehicle.instanceId)}
         >
             <Wrench className="mr-2 h-4 w-4"/> Repair (${repairCost.toLocaleString()})

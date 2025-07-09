@@ -18,7 +18,8 @@ import {
   BASE_QUARRY_DEPTH, QUARRY_DEPTH_MULTIPLIER, BASE_ARTIFACT_CHANCE_PER_DIG, ARTIFACT_CHANCE_DEPTH_MULTIPLIER, ARTIFACT_RARITY_WEIGHTS,
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
-  INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER
+  INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
+  FUEL_ORDER_COST_PER_LTR, FUEL_ORDER_AMOUNT, FUEL_DELIVERY_TIME_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -163,6 +164,9 @@ const getInitialPlayerStats = (): PlayerStats => {
     fuelCapacity: INITIAL_FUEL_CAPACITY,
     siloStorage: [],
     fuelStorage: 0,
+    pendingFuelDelivery: undefined,
+    kitchenInventory: [],
+    kitchenQueue: [],
   };
 };
 
@@ -1280,34 +1284,111 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const vehicle = prev.farmVehicles![vehicleIndex];
       const fuelNeeded = vehicle.fuelCapacity - vehicle.fuel;
-      if (fuelNeeded <= 0 || prev.fuelStorage < 1) return prev;
+      if (fuelNeeded <= 0 || (prev.fuelStorage || 0) < 1) {
+        toastRef.current({ title: "Refuel Failed", description: vehicle.fuel >= vehicle.fuelCapacity ? "Vehicle is already full." : "No fuel in depot.", variant: "destructive"});
+        return prev;
+      }
 
-      const fuelToTransfer = Math.min(fuelNeeded, prev.fuelStorage);
+      const fuelToTransfer = Math.min(fuelNeeded, prev.fuelStorage || 0);
       const newVehicles = [...prev.farmVehicles!];
       newVehicles[vehicleIndex] = { ...vehicle, fuel: vehicle.fuel + fuelToTransfer };
 
+      toastRef.current({ title: "Refueled!", description: `Added ${fuelToTransfer.toFixed(0)}L of fuel to ${vehicle.name}.` });
+
       return {
         ...prev,
-        fuelStorage: prev.fuelStorage - fuelToTransfer,
+        fuelStorage: (prev.fuelStorage || 0) - fuelToTransfer,
         farmVehicles: newVehicles
       };
     });
   }, []);
   
   const repairVehicle = useCallback((vehicleInstanceId: string) => {
-    // ... logic for repair (coming soon)
+    setPlayerStats(prev => {
+        const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
+        if (vehicleIndex === -1) return prev;
+        
+        const vehicle = prev.farmVehicles![vehicleIndex];
+        const cost = Math.ceil(vehicle.wear * VEHICLE_REPAIR_COST_PER_PERCENT);
+        if (prev.money < cost || vehicle.status !== 'Idle' || vehicle.wear < 1) {
+            toastRef.current({ title: "Repair Failed", description: "Not enough money or vehicle is busy/not damaged.", variant: "destructive"});
+            return prev;
+        }
+
+        const repairTime = Math.ceil(vehicle.wear * VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS);
+        const newVehicles = [...prev.farmVehicles!];
+        newVehicles[vehicleIndex] = { 
+            ...vehicle, 
+            status: 'Repairing', 
+            activity: { type: 'Repairing', startTime: Date.now(), durationSeconds: repairTime, repairAmount: vehicle.wear }
+        };
+        
+        toastRef.current({ title: "Repair Started", description: `${vehicle.name} will be repaired in ${repairTime}s.`});
+
+        return {
+            ...prev,
+            money: prev.money - cost,
+            farmVehicles: newVehicles
+        };
+    });
   }, []);
 
   const orderFuel = useCallback(() => {
-    // ... logic for ordering fuel (coming soon)
+    setPlayerStats(prev => {
+      if (prev.pendingFuelDelivery) {
+        toastRef.current({ title: "Delivery in Progress", description: "A fuel delivery is already on its way.", variant: "destructive" });
+        return prev;
+      }
+      const cost = FUEL_ORDER_COST_PER_LTR * FUEL_ORDER_AMOUNT;
+      if (prev.money < cost) {
+        toastRef.current({ title: "Order Failed", description: "Not enough money to order fuel.", variant: "destructive" });
+        return prev;
+      }
+      
+      toastRef.current({ title: "Fuel Ordered!", description: `${FUEL_ORDER_AMOUNT}L will arrive in ${FUEL_DELIVERY_TIME_SECONDS}s.` });
+      
+      return {
+        ...prev,
+        money: prev.money - cost,
+        pendingFuelDelivery: { amount: FUEL_ORDER_AMOUNT, arrivalTime: Date.now() + FUEL_DELIVERY_TIME_SECONDS * 1000 }
+      };
+    });
   }, []);
 
   const upgradeSilo = useCallback(() => {
-    // ... logic for silo upgrade (coming soon)
+    setPlayerStats(prev => {
+        const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
+        const cost = SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel);
+        if (prev.money < cost) {
+            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
+            return prev;
+        }
+        const newCapacity = (prev.siloCapacity || 1000) * 2;
+        toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
+        return {
+            ...prev,
+            money: prev.money - cost,
+            siloCapacity: newCapacity
+        };
+    });
   }, []);
 
   const upgradeFuelDepot = useCallback(() => {
-    // ... logic for fuel depot upgrade (coming soon)
+    setPlayerStats(prev => {
+        const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
+        const cost = FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel);
+        if (prev.money < cost) {
+            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
+            return prev;
+        }
+        const newCapacity = (prev.fuelCapacity || 500) * 2;
+        toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
+        return {
+            ...prev,
+            money: prev.money - cost,
+            fuelCapacity: newCapacity
+        };
+    });
   }, []);
 
 
@@ -1346,6 +1427,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             farmPurchased: loadedData.playerStats.farmPurchased || false,
             farmFields: loadedData.playerStats.farmFields || INITIAL_FARM_FIELDS,
             farmVehicles: loadedData.playerStats.farmVehicles || [],
+            siloStorage: loadedData.playerStats.siloStorage || [],
+            fuelStorage: loadedData.playerStats.fuelStorage || 0,
+            pendingFuelDelivery: loadedData.playerStats.pendingFuelDelivery,
+            kitchenInventory: loadedData.playerStats.kitchenInventory || [],
+            kitchenQueue: loadedData.playerStats.kitchenQueue || [],
           };
 
           const hydratedBusinesses = loadedData.businesses.map((savedBusiness: Business) => {
@@ -1365,7 +1451,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
 
           const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map(savedVehicle => {
-            const config = FARM_VEHICLES.find(v => v.id === savedVehicle.id);
+            const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
             return config ? { ...savedVehicle, icon: config.icon } : savedVehicle;
           });
           mergedPlayerStats.farmVehicles = hydratedFarmVehicles;
@@ -1429,7 +1515,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPlayerStats(prev => {
         const now = Date.now();
         const updatedFarmFields = [...(prev.farmFields || [])];
-        const updatedFarmVehicles = [...(prev.farmVehicles || [])];
+        let updatedFarmVehicles = [...(prev.farmVehicles || [])];
         let siloStorage = [...(prev.siloStorage || [])];
         let farmStateChanged = false;
         
@@ -1486,6 +1572,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
           }
         });
+
+        const newUpdatedVehicles = [...updatedFarmVehicles];
+        let vehicleStateChanged = false;
+        newUpdatedVehicles.forEach((vehicle, index) => {
+            if (vehicle.status === 'Repairing' && vehicle.activity && now >= vehicle.activity.startTime + vehicle.activity.durationSeconds * 1000) {
+                vehicleStateChanged = true;
+                newUpdatedVehicles[index] = { ...vehicle, wear: 0, status: 'Idle', activity: undefined };
+                toastRef.current({ title: "Repair Complete", description: `${vehicle.name} is fully repaired.`});
+            }
+        });
+        if(vehicleStateChanged) updatedFarmVehicles = newUpdatedVehicles;
+
+        let newFuelStorage = prev.fuelStorage || 0;
+        let fuelDeliveryCompleted = false;
+        if (prev.pendingFuelDelivery && now >= prev.pendingFuelDelivery.arrivalTime) {
+            newFuelStorage = Math.min(prev.fuelCapacity, (prev.fuelStorage || 0) + prev.pendingFuelDelivery.amount);
+            toastRef.current({ title: "Fuel Delivered!", description: `${prev.pendingFuelDelivery.amount}L of fuel has been added to your depot.` });
+            fuelDeliveryCompleted = true;
+        }
 
         // Other income calculations...
         const allBusinesses = businessesRef.current;
@@ -1599,8 +1704,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
           farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
-          farmVehicles: farmStateChanged ? updatedFarmVehicles : prev.farmVehicles,
+          farmVehicles: farmStateChanged || vehicleStateChanged ? updatedFarmVehicles : prev.farmVehicles,
           siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
+          fuelStorage: newFuelStorage,
+          pendingFuelDelivery: fuelDeliveryCompleted ? undefined : prev.pendingFuelDelivery,
         };
       });
 
