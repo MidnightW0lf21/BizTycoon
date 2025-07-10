@@ -43,6 +43,16 @@ export default function FarmPage() {
     const currentLevel = Math.floor(Math.log((playerStats.fuelCapacity || 500) / 500) / Math.log(2));
     return FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel);
   }, [playerStats.fuelCapacity]);
+  
+  const siloFillPercentage = useMemo(() => {
+    if (!playerStats.siloCapacity) return 0;
+    return (totalSiloContent / playerStats.siloCapacity) * 100;
+  }, [totalSiloContent, playerStats.siloCapacity]);
+
+  const fuelFillPercentage = useMemo(() => {
+    if (!playerStats.fuelCapacity) return 0;
+    return ((playerStats.fuelStorage || 0) / playerStats.fuelCapacity) * 100;
+  }, [playerStats.fuelStorage, playerStats.fuelCapacity]);
 
 
   useEffect(() => {
@@ -131,42 +141,57 @@ export default function FarmPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2"><Warehouse className="h-5 w-5 text-primary"/>Silo Storage</CardTitle>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2"><Warehouse className="h-5 w-5 text-primary"/>Silo Storage</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">
-                    {totalSiloContent.toLocaleString()} / {(playerStats.siloCapacity || 0).toLocaleString()} units
-                  </p>
-                   <Button size="sm" variant="outline" className="mt-2" onClick={upgradeSilo} disabled={playerStats.money < siloUpgradeCost}>
-                    Upgrade (${siloUpgradeCost.toLocaleString()})
-                  </Button>
+                <CardContent className="flex gap-4 items-start">
+                    <div className="flex-grow space-y-2">
+                        <p className="text-2xl font-bold">
+                            {totalSiloContent.toLocaleString()}
+                            <span className="text-lg text-muted-foreground"> / {(playerStats.siloCapacity || 0).toLocaleString()} units</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">Your total storage for harvested crops.</p>
+                        <Button size="sm" variant="outline" className="mt-2" onClick={upgradeSilo} disabled={playerStats.money < siloUpgradeCost}>
+                            Upgrade (${siloUpgradeCost.toLocaleString()})
+                        </Button>
+                    </div>
+                    <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
+                       <Progress value={siloFillPercentage} className="w-full h-full vertical" />
+                    </div>
                 </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2"><Fuel className="h-5 w-5 text-primary"/>Fuel Depot</CardTitle>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2"><Fuel className="h-5 w-5 text-primary"/>Fuel Depot</CardTitle>
                 </CardHeader>
-                <CardContent>
-                   <p className="text-2xl font-bold">
-                    {Math.floor(playerStats.fuelStorage || 0)} / {(playerStats.fuelCapacity || 0).toLocaleString()} L
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button size="sm" variant="outline" onClick={orderFuel} disabled={playerStats.money < FUEL_ORDER_COST_PER_LTR * FUEL_ORDER_AMOUNT || !!playerStats.pendingFuelDelivery}>
-                        Order Fuel
-                    </Button>
-                     <Button size="sm" variant="outline" onClick={upgradeFuelDepot} disabled={playerStats.money < fuelDepotUpgradeCost}>
-                        Upgrade (${fuelDepotUpgradeCost.toLocaleString()})
-                    </Button>
-                  </div>
-                  {playerStats.pendingFuelDelivery && fuelDeliveryTimeLeft > 0 && (
-                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                      <Timer className="h-3 w-3"/> Delivery arriving in: {Math.ceil(fuelDeliveryTimeLeft)}s
-                    </p>
-                  )}
+                <CardContent className="flex gap-4 items-start">
+                    <div className="flex-grow space-y-2">
+                        <p className="text-2xl font-bold">
+                            {Math.floor(playerStats.fuelStorage || 0)}
+                            <span className="text-lg text-muted-foreground"> / {(playerStats.fuelCapacity || 0).toLocaleString()} L</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">Fuel for your farm vehicles.</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Button size="sm" variant="outline" onClick={orderFuel} disabled={playerStats.money < FUEL_ORDER_COST_PER_LTR * FUEL_ORDER_AMOUNT || !!playerStats.pendingFuelDelivery}>
+                                Order Fuel
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={upgradeFuelDepot} disabled={playerStats.money < fuelDepotUpgradeCost}>
+                                Upgrade (${fuelDepotUpgradeCost.toLocaleString()})
+                            </Button>
+                        </div>
+                        {playerStats.pendingFuelDelivery && fuelDeliveryTimeLeft > 0 && (
+                        <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                            <Timer className="h-3 w-3"/> Delivery arriving in: {Math.ceil(fuelDeliveryTimeLeft)}s
+                        </p>
+                        )}
+                    </div>
+                    <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
+                        <Progress value={fuelFillPercentage} className="w-full h-full vertical" indicatorClassName="bg-orange-400" />
+                    </div>
                 </CardContent>
-              </Card>
+            </Card>
           </CardContent>
         </Card>
 
