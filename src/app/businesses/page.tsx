@@ -11,24 +11,23 @@ const HIDE_MAXED_BUSINESSES_KEY = 'bizTycoonHideMaxedBusinesses_v1';
 
 export default function BusinessesPage() {
   const { businesses, playerStats, getDynamicMaxBusinessLevel } = useGame();
+  
+  const [hideMaxed, setHideMaxed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Initialize state directly from localStorage on the client
-  const [showMaxedBusinesses, setShowMaxedBusinesses] = useState(() => {
-    if (typeof window !== 'undefined') { // Ensure this only runs on the client
-      const savedPreference = localStorage.getItem(HIDE_MAXED_BUSINESSES_KEY);
-      if (savedPreference !== null) {
-        return savedPreference === 'true';
-      }
-    }
-    return true; // Default if localStorage is not available or no preference saved
-  });
-
-  // Effect to save preference to localStorage whenever it changes
   useEffect(() => {
-    if (typeof window !== 'undefined') { // Ensure this only runs on the client
-      localStorage.setItem(HIDE_MAXED_BUSINESSES_KEY, String(showMaxedBusinesses));
+    setMounted(true);
+    const savedPreference = localStorage.getItem(HIDE_MAXED_BUSINESSES_KEY);
+    if (savedPreference !== null) {
+      setHideMaxed(savedPreference === 'true');
     }
-  }, [showMaxedBusinesses]);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(HIDE_MAXED_BUSINESSES_KEY, String(hideMaxed));
+    }
+  }, [hideMaxed, mounted]);
 
   const filteredBusinesses = useMemo(() => {
     const dynamicMaxLevel = getDynamicMaxBusinessLevel();
@@ -42,7 +41,7 @@ export default function BusinessesPage() {
         return false;
       }
 
-      if (!showMaxedBusinesses) {
+      if (hideMaxed) {
         const isMaxed = business.level >= dynamicMaxLevel;
         if (isMaxed) {
           return false;
@@ -50,17 +49,17 @@ export default function BusinessesPage() {
       }
       return true;
     });
-  }, [businesses, playerStats.timesPrestiged, showMaxedBusinesses, getDynamicMaxBusinessLevel]);
+  }, [businesses, playerStats.timesPrestiged, hideMaxed, getDynamicMaxBusinessLevel]);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-start">
         <Button
-          onClick={() => setShowMaxedBusinesses(prev => !prev)}
+          onClick={() => setHideMaxed(prev => !prev)}
           variant="outline"
           className="mb-4"
         >
-          {showMaxedBusinesses ? "Hide Maxed Businesses" : "Show Maxed Businesses"}
+          {hideMaxed ? "Show Maxed Businesses" : "Hide Maxed Businesses"}
         </Button>
       </div>
 
