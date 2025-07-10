@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { FARM_CROPS, FARM_VEHICLES } from "@/config/game-config";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGame } from "@/contexts/GameContext";
 import { Sprout } from "lucide-react";
 
@@ -24,12 +24,36 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
   const [selectedTractorId, setSelectedTractorId] = useState<string | null>(null);
 
   const availableTractors = (playerStats.farmVehicles || []).filter(v => v.type === 'Tractor' && v.status === 'Idle');
+  
+  const selectedCrop = useMemo(() => {
+    if (!selectedCropId) return null;
+    return FARM_CROPS.find(c => c.id === selectedCropId) || null;
+  }, [selectedCropId]);
+
+  const selectedTractor = useMemo(() => {
+    if (!selectedTractorId) return null;
+    return availableTractors.find(t => t.instanceId === selectedTractorId) || null;
+  }, [selectedTractorId, availableTractors]);
+
+  const calculatedSowingTimeSeconds = useMemo(() => {
+    if (!selectedTractor) return null;
+    return (field.sizeHa / selectedTractor.speedHaPerHr) * 3600;
+  }, [field.sizeHa, selectedTractor]);
 
   const handlePlant = () => {
     if (selectedCropId && selectedTractorId) {
       plantCrop(field.id, selectedCropId, selectedTractorId);
       onClose();
     }
+  };
+
+  const formatTime = (seconds: number | null) => {
+    if (seconds === null) return '-';
+    if (seconds < 60) return `${Math.ceil(seconds)}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.ceil(seconds % 60);
+    if(remainingSeconds === 0) return `${minutes}m`;
+    return `${minutes}m ${remainingSeconds}s`;
   };
 
   return (
@@ -50,7 +74,7 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
                     <crop.icon className="h-5 w-5"/>
                     <div className="flex-1">
                       <p className="font-semibold">{crop.name}</p>
-                      <p className="text-xs text-muted-foreground">Growth Time: {(crop.growthTimeSeconds / 60).toFixed(0)} min</p>
+                      <p className="text-xs text-muted-foreground">Base Growth Time: {formatTime(crop.growthTimeSeconds)}</p>
                     </div>
                   </Label>
                 ))}
@@ -69,7 +93,7 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
                     <Icon className="h-5 w-5"/>
                     <div className="flex-1">
                       <p className="font-semibold">{tractor.name}</p>
-                      <p className="text-xs text-muted-foreground">Fuel: {Math.floor(tractor.fuel)}L, Wear: {tractor.wear.toFixed(1)}%</p>
+                      <p className="text-xs text-muted-foreground">Fuel: {tractor.fuel.toFixed(1)}L, Wear: {tractor.wear.toFixed(1)}%</p>
                     </div>
                   </Label>
                 )}) : (
@@ -79,6 +103,16 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
             </RadioGroup>
           </div>
         </div>
+        
+        {selectedCrop && selectedTractor && calculatedSowingTimeSeconds !== null && (
+            <div className="text-center bg-muted/50 p-3 rounded-md">
+                <p className="font-semibold">
+                    Planting <span className="text-primary">{selectedCrop.name}</span> with <span className="text-primary">{selectedTractor.name}</span> will take approximately <span className="text-primary">{formatTime(calculatedSowingTimeSeconds)}</span> to sow.
+                </p>
+                <p className="text-xs text-muted-foreground">The crop will then take {formatTime(selectedCrop.growthTimeSeconds)} to grow.</p>
+            </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handlePlant} disabled={!selectedCropId || !selectedTractorId}>
