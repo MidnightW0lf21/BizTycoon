@@ -16,13 +16,127 @@ import { FuelOrderDialog } from "@/components/farm/FuelOrderDialog";
 import type { FarmField } from "@/types";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 const SILO_CAPACITY_MAX = 75000;
 const FUEL_CAPACITY_MAX = 10000;
 
+interface RecipeCardProps {
+  recipe: typeof KITCHEN_RECIPES[0];
+}
+
+function RecipeCard({ recipe }: RecipeCardProps) {
+  const { playerStats, craftKitchenRecipe } = useGame();
+  
+  const [craftAmount, setCraftAmount] = useState(1);
+
+  const maxCraftable = useMemo(() => {
+    let max = Infinity;
+    for (const ing of recipe.ingredients) {
+      const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
+      const available = siloItem?.quantity || 0;
+      if (ing.quantity > 0) {
+          max = Math.min(max, Math.floor(available / ing.quantity));
+      } else {
+        max = 0; // if any ingredient requires 0, it can't be crafted.
+      }
+    }
+    return max === Infinity ? 0 : max;
+  }, [playerStats.siloStorage, recipe.ingredients]);
+
+  useEffect(() => {
+    // Reset craft amount if max craftable changes and current amount is too high
+    if(craftAmount > maxCraftable) {
+      setCraftAmount(maxCraftable > 0 ? 1 : 0);
+    }
+    if (maxCraftable > 0 && craftAmount === 0) {
+      setCraftAmount(1);
+    }
+  }, [maxCraftable, craftAmount]);
+
+  const handleCraft = () => {
+    if (craftAmount > 0) {
+      craftKitchenRecipe(recipe.id, craftAmount);
+    }
+  };
+
+  const existingQueueItem = (playerStats.kitchenQueue || []).find(q => q.recipeId === recipe.id);
+  const progress = existingQueueItem ? (1 - ((existingQueueItem.completionTime - Date.now()) / (recipe.craftTimeSeconds * existingQueueItem.quantity * 1000))) * 100 : 0;
+  const totalCraftTime = recipe.craftTimeSeconds * craftAmount;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <recipe.icon className="h-5 w-5 text-primary" />
+          {recipe.name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div>
+            <p className="text-sm font-semibold mb-2">Ingredients (for {craftAmount}x):</p>
+            <ul className="text-sm space-y-1">
+            {recipe.ingredients.map(ing => {
+                const required = ing.quantity * craftAmount;
+                const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
+                const hasEnough = siloItem && siloItem.quantity >= required;
+                return (
+                <li key={ing.cropId} className="flex items-center justify-between">
+                    <span>{required.toLocaleString()}x {ing.cropId}</span>
+                    {hasEnough ? <Check className="h-4 w-4 text-green-500" /> : <span className="text-destructive">({(siloItem?.quantity || 0).toLocaleString()}/{required.toLocaleString()})</span>}
+                </li>
+                )
+            })}
+            </ul>
+        </div>
+        {!existingQueueItem && maxCraftable > 0 && (
+          <div className="space-y-2 pt-2">
+            <Label htmlFor={`amount-${recipe.id}`}>Amount to Craft</Label>
+            <div className="flex items-center gap-2">
+              <Slider
+                id={`amount-${recipe.id}`}
+                min={1}
+                max={maxCraftable}
+                step={1}
+                value={[craftAmount]}
+                onValueChange={(value) => setCraftAmount(value[0])}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                min="1"
+                max={maxCraftable}
+                value={craftAmount}
+                onChange={(e) => setCraftAmount(Math.max(1, Math.min(maxCraftable, parseInt(e.target.value) || 1)))}
+                className="w-20 h-8"
+              />
+            </div>
+             <p className="text-xs text-muted-foreground">Total time: {totalCraftTime}s</p>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        {existingQueueItem ? (
+          <div className="w-full space-y-1">
+            <Progress value={progress} />
+            <p className="text-xs text-muted-foreground text-center">Crafting {existingQueueItem.quantity.toLocaleString()}x...</p>
+          </div>
+        ) : (
+          <Button onClick={handleCraft} disabled={craftAmount === 0 || maxCraftable === 0} className="w-full">
+            <ChefHat className="mr-2 h-4 w-4" />
+            Craft {craftAmount > 0 ? craftAmount.toLocaleString() : ''} ({totalCraftTime}s)
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, shipKitchenItem } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [isFuelOrderOpen, setIsFuelOrderOpen] = useState(false);
@@ -276,48 +390,9 @@ export default function FarmPage() {
                     <CardDescription>Process harvested crops into valuable goods and ship them to your warehouse.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {KITCHEN_RECIPES.map(recipe => {
-                        const canCraft = recipe.ingredients.every(ing => {
-                            const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
-                            return siloItem && siloItem.quantity >= ing.quantity;
-                        });
-                        const existingQueueItem = (playerStats.kitchenQueue || []).find(q => q.recipeId === recipe.id);
-                        const progress = existingQueueItem ? (1 - ((existingQueueItem.completionTime - Date.now()) / (recipe.craftTimeSeconds * 1000))) * 100 : 0;
-
-                        return (
-                            <Card key={recipe.id}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2"><recipe.icon className="h-5 w-5 text-primary"/>{recipe.name}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm font-semibold mb-2">Ingredients:</p>
-                                    <ul className="text-sm space-y-1">
-                                        {recipe.ingredients.map(ing => {
-                                             const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
-                                             const hasEnough = siloItem && siloItem.quantity >= ing.quantity;
-                                            return (
-                                            <li key={ing.cropId} className="flex items-center justify-between">
-                                                <span>{ing.quantity}x {ing.cropId}</span>
-                                                {hasEnough ? <Check className="h-4 w-4 text-green-500"/> : <span className="text-destructive">({(siloItem?.quantity || 0)}/{ing.quantity})</span>}
-                                            </li>
-                                        )})}
-                                    </ul>
-                                </CardContent>
-                                <CardFooter>
-                                    {existingQueueItem ? (
-                                        <div className="w-full space-y-1">
-                                            <Progress value={progress} />
-                                            <p className="text-xs text-muted-foreground text-center">Crafting...</p>
-                                        </div>
-                                    ) : (
-                                        <Button onClick={() => craftKitchenRecipe(recipe.id)} disabled={!canCraft} className="w-full">
-                                            <ChefHat className="mr-2 h-4 w-4"/>Craft ({recipe.craftTimeSeconds}s)
-                                        </Button>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        );
-                    })}
+                    {KITCHEN_RECIPES.map(recipe => (
+                        <RecipeCard key={recipe.id} recipe={recipe} />
+                    ))}
                 </CardContent>
               </Card>
 

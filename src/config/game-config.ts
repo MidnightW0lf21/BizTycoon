@@ -1,5 +1,4 @@
 
-
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
@@ -13,7 +12,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
-import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot } from 'lucide-react';
+import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -86,13 +85,13 @@ export const FARM_CROPS: Crop[] = [
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
   // Tractors
-  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 20000000 },
+  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
   { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 55000000 },
   { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 150000000 },
   { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 400000000 },
   { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1200000000 },
   // Harvesters
-  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 30000000 },
+  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 20000000 },
   { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 80000000 },
   { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 220000000 },
   { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 600000000 },
@@ -101,6 +100,9 @@ export const FARM_VEHICLES: FarmVehicleConfig[] = [
 
 export const KITCHEN_RECIPES: KitchenRecipe[] = [
   { id: 'bread', name: 'Bread', icon: Sandwich, ingredients: [{ cropId: 'Wheat', quantity: 10 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
+  { id: 'flour', name: 'Flour', icon: Shell, ingredients: [{ cropId: 'Wheat', quantity: 5 }], outputItemId: 'flour', outputQuantity: 1, craftTimeSeconds: 15 },
+  { id: 'popcorn', name: 'Popcorn', icon: Popcorn, ingredients: [{ cropId: 'Corn', quantity: 8 }], outputItemId: 'popcorn', outputQuantity: 1, craftTimeSeconds: 25 },
+  { id: 'potato_wedges', name: 'Potato Wedges', icon: Salad, ingredients: [{ cropId: 'Potatoes', quantity: 12 }], outputItemId: 'potato_wedges', outputQuantity: 1, craftTimeSeconds: 40 },
 ];
 
 
@@ -485,4 +487,5 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 

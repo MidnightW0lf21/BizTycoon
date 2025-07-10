@@ -448,6 +448,7 @@ export interface KitchenItem {
 
 export interface KitchenCraftingActivity {
   recipeId: string;
+  quantity: number;
   completionTime: number;
 }
 

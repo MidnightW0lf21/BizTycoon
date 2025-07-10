@@ -100,7 +100,7 @@ interface GameContextType {
   orderFuel: (amount: number) => void;
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
-  craftKitchenRecipe: (recipeId: string) => void;
+  craftKitchenRecipe: (recipeId: string, quantity: number) => void;
   shipKitchenItem: (itemId: string, quantity: number) => void;
 }
 
@@ -1170,16 +1170,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseFarmField = useCallback((fieldId: string) => {
     const prev = playerStatsRef.current;
     const fieldToBuy = prev.farmFields?.find(f => f.id === fieldId);
-  
+
     if (!fieldToBuy || fieldToBuy.isOwned) return;
-  
+
     if (prev.money < fieldToBuy.purchaseCost) {
       toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
       return;
     }
-  
+    
     toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
-  
+    
     setPlayerStats(current => {
       const newFields = (current.farmFields || []).map(f =>
         f.id === fieldId ? { ...f, isOwned: true } : f
@@ -1293,42 +1293,42 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseVehicle = useCallback((vehicleConfigId: string) => {
     const config = FARM_VEHICLES.find(v => v.id === vehicleConfigId);
     if (!config) {
-        toastRef.current({ title: "Vehicle not found", variant: "destructive" });
-        return;
+      toastRef.current({ title: "Vehicle not found", variant: "destructive" });
+      return;
     }
   
     const currentMoney = playerStatsRef.current.money;
     if (currentMoney < config.purchaseCost) {
-        toastRef.current({ title: "Not enough money", variant: "destructive" });
-        return;
+      toastRef.current({ title: "Not enough money", variant: "destructive" });
+      return;
     }
   
     toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
   
     setPlayerStats(prev => {
-        const newVehicle: FarmVehicle = {
-            instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
-            configId: config.id,
-            name: config.name,
-            type: config.type,
-            icon: config.icon,
-            speedHaPerHr: config.speedHaPerHr,
-            fuelCapacity: config.fuelCapacity,
-            fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
-            wearPerHr: config.wearPerHr,
-            purchaseCost: config.purchaseCost,
-            fuel: config.fuelCapacity,
-            wear: 0,
-            status: 'Idle',
-        };
-        
-        const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
+      const newVehicle: FarmVehicle = {
+        instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
+        configId: config.id,
+        name: config.name,
+        type: config.type,
+        icon: config.icon,
+        speedHaPerHr: config.speedHaPerHr,
+        fuelCapacity: config.fuelCapacity,
+        fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+        wearPerHr: config.wearPerHr,
+        purchaseCost: config.purchaseCost,
+        fuel: config.fuelCapacity,
+        wear: 0,
+        status: 'Idle',
+      };
+      
+      const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
   
-        return {
-            ...prev,
-            money: prev.money - config.purchaseCost,
-            farmVehicles: updatedVehicles
-        };
+      return {
+        ...prev,
+        money: prev.money - config.purchaseCost,
+        farmVehicles: updatedVehicles
+      };
     });
   }, []);
 
@@ -1479,31 +1479,40 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const craftKitchenRecipe = useCallback((recipeId: string) => {
+  const craftKitchenRecipe = useCallback((recipeId: string, quantity: number) => {
     setPlayerStats(prev => {
         const recipe = KITCHEN_RECIPES.find(r => r.id === recipeId);
         if (!recipe) return prev;
 
-        const hasIngredients = recipe.ingredients.every(ing => {
+        const totalIngredients = recipe.ingredients.map(ing => ({
+            ...ing,
+            quantity: ing.quantity * quantity,
+        }));
+
+        const hasIngredients = totalIngredients.every(ing => {
             const item = (prev.siloStorage || []).find(s => s.cropId === ing.cropId);
             return item && item.quantity >= ing.quantity;
         });
 
         if (!hasIngredients) {
-            toastRef.current({ title: "Missing Ingredients", description: `You don't have enough raw materials to craft ${recipe.name}.`, variant: "destructive" });
+            toastRef.current({ title: "Missing Ingredients", description: `You don't have enough raw materials to craft ${quantity}x ${recipe.name}.`, variant: "destructive" });
             return prev;
         }
 
         const newSiloStorage = [...(prev.siloStorage || [])];
-        recipe.ingredients.forEach(ing => {
+        totalIngredients.forEach(ing => {
             const itemIndex = newSiloStorage.findIndex(s => s.cropId === ing.cropId);
             newSiloStorage[itemIndex].quantity -= ing.quantity;
         });
-
-        const newQueue = [...(prev.kitchenQueue || []), {
+        
+        const totalCraftTime = recipe.craftTimeSeconds * quantity;
+        const newQueueItem: KitchenCraftingActivity = {
             recipeId,
-            completionTime: Date.now() + recipe.craftTimeSeconds * 1000,
-        }];
+            quantity,
+            completionTime: Date.now() + totalCraftTime * 1000,
+        };
+
+        const newQueue = [...(prev.kitchenQueue || []), newQueueItem];
         
         return { ...prev, siloStorage: newSiloStorage, kitchenQueue: newQueue };
     });
@@ -1760,11 +1769,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             completedCrafts.forEach(craft => {
                 const recipe = KITCHEN_RECIPES.find(r => r.id === craft.recipeId);
                 if(recipe){
+                    const totalOutput = recipe.outputQuantity * craft.quantity;
                     const existingItemIndex = kitchenInventory.findIndex(item => item.itemId === recipe.outputItemId);
                     if (existingItemIndex > -1) {
-                        kitchenInventory[existingItemIndex].quantity += recipe.outputQuantity;
+                        kitchenInventory[existingItemIndex].quantity += totalOutput;
                     } else {
-                        kitchenInventory.push({ itemId: recipe.outputItemId, quantity: recipe.outputQuantity });
+                        kitchenInventory.push({ itemId: recipe.outputItemId, quantity: totalOutput });
                     }
                 }
             });
@@ -1930,4 +1940,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
 
