@@ -8,16 +8,19 @@ import { cn } from "@/lib/utils"
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & { indicatorClassName?: string }
->(({ className, value, indicatorClassName, ...props }, ref) => {
-  const isVertical = className?.includes('vertical');
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & { 
+    indicatorClassName?: string;
+    orientation?: "horizontal" | "vertical";
+  }
+>(({ className, value, indicatorClassName, orientation = "horizontal", ...props }, ref) => {
+  const isVertical = orientation === 'vertical';
 
   return (
     <ProgressPrimitive.Root
       ref={ref}
       className={cn(
-        "relative w-full h-4 overflow-hidden rounded-full bg-secondary",
-        isVertical && "h-full w-4",
+        "relative overflow-hidden rounded-full bg-secondary",
+        isVertical ? "h-full w-4" : "h-4 w-full",
         className
       )}
       {...props}
@@ -25,8 +28,7 @@ const Progress = React.forwardRef<
       <ProgressPrimitive.Indicator
         className={cn(
           "h-full w-full flex-1 bg-primary transition-all",
-          isVertical && "w-full rounded-none rounded-b-lg", // Adjusted for vertical
-          !isVertical && "rounded-full",
+          isVertical ? "w-full rounded-b-lg" : "h-full rounded-full", // Simplified logic for corners
           indicatorClassName
         )}
         style={{

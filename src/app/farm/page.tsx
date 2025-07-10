@@ -157,7 +157,7 @@ export default function FarmPage() {
                         </Button>
                     </div>
                     <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
-                       <Progress value={siloFillPercentage} className="w-full h-full vertical" />
+                       <Progress value={siloFillPercentage} orientation="vertical" />
                     </div>
                 </CardContent>
             </Card>
@@ -188,7 +188,7 @@ export default function FarmPage() {
                         )}
                     </div>
                     <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
-                        <Progress value={fuelFillPercentage} className="w-full h-full vertical" indicatorClassName="bg-orange-400" />
+                        <Progress value={fuelFillPercentage} orientation="vertical" indicatorClassName="bg-orange-400" />
                     </div>
                 </CardContent>
             </Card>
