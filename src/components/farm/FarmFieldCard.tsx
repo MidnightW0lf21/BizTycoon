@@ -150,7 +150,7 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
         )}
          {field.status === 'Cultivating' && !field.activity && (
             <Button onClick={() => onCultivateClick(field.id)} size="sm" className="w-full">
-                <Tractor className="mr-2 h-4 w-4"/> Cultivate
+                <Tractor className="mr-2 h-4 w-4"/> Needs cultivating
             </Button>
         )}
       </CardFooter>
