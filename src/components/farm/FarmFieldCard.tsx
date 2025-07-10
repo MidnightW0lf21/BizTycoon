@@ -67,6 +67,9 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
   };
   
   const plantedCrop = field.currentCropId ? FARM_CROPS.find(c => c.id === field.currentCropId) : null;
+  
+  const progressPercentage = getProgress();
+  const hectaresDone = field.sizeHa * (progressPercentage / 100);
 
   if (!field.isOwned) {
     return (
@@ -104,10 +107,13 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
         {(field.status === 'Sowing' || field.status === 'Growing' || field.status === 'Harvesting' || field.status === 'Cultivating') && field.activity && (
           <div className="space-y-2">
             <div>
-              <Progress value={getProgress()} className="h-2" />
-              <div className="flex items-center justify-center text-xs text-muted-foreground gap-1 mt-1">
-                <Timer className="h-3 w-3" />
-                <span>{Math.ceil(timeLeft)}s remaining</span>
+              <Progress value={progressPercentage} className="h-2" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground gap-1 mt-1">
+                 <div className="flex items-center gap-1">
+                    <Timer className="h-3 w-3" />
+                    <span>{Math.ceil(timeLeft)}s left</span>
+                 </div>
+                 <span>{hectaresDone.toFixed(1)}ha / {field.sizeHa.toFixed(1)}ha</span>
               </div>
             </div>
             {activeVehicle && (field.status === 'Sowing' || field.status === 'Harvesting' || field.status === 'Cultivating') && (
