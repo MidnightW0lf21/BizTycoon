@@ -4,11 +4,10 @@
 import type { FarmField } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { FARM_CROPS, FARM_VEHICLES } from "@/config/game-config";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useGame } from "@/contexts/GameContext";
 import { Sprout } from "lucide-react";
 
@@ -23,7 +22,9 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
   const [selectedCropId, setSelectedCropId] = useState<string | null>(null);
   const [selectedTractorId, setSelectedTractorId] = useState<string | null>(null);
 
-  const availableTractors = (playerStats.farmVehicles || []).filter(v => v.type === 'Tractor' && v.status === 'Idle');
+  const availableTractors = useMemo(() => {
+    return (playerStats.farmVehicles || []).filter(v => v.type === 'Tractor' && v.status === 'Idle');
+  }, [playerStats.farmVehicles]);
   
   const selectedCrop = useMemo(() => {
     if (!selectedCropId) return null;
@@ -34,26 +35,27 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
     if (!selectedTractorId) return null;
     return availableTractors.find(t => t.instanceId === selectedTractorId) || null;
   }, [selectedTractorId, availableTractors]);
+  
+  const formatTime = useCallback((seconds: number | null) => {
+    if (seconds === null || isNaN(seconds)) return '-';
+    if (seconds < 60) return `${Math.ceil(seconds)}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.ceil(seconds % 60);
+    if(remainingSeconds === 0) return `${minutes}m`;
+    return `${minutes}m ${remainingSeconds}s`;
+  }, []);
 
-  const calculatedSowingTimeSeconds = useMemo(() => {
-    if (!selectedTractor) return null;
-    return (field.sizeHa / selectedTractor.speedHaPerHr) * 3600;
-  }, [field.sizeHa, selectedTractor]);
+  const getSowingTime = useCallback((tractor: typeof selectedTractor) => {
+    if (!tractor) return null;
+    return (field.sizeHa / tractor.speedHaPerHr) * 3600;
+  }, [field.sizeHa]);
+
 
   const handlePlant = () => {
     if (selectedCropId && selectedTractorId) {
       plantCrop(field.id, selectedCropId, selectedTractorId);
       onClose();
     }
-  };
-
-  const formatTime = (seconds: number | null) => {
-    if (seconds === null) return '-';
-    if (seconds < 60) return `${Math.ceil(seconds)}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.ceil(seconds % 60);
-    if(remainingSeconds === 0) return `${minutes}m`;
-    return `${minutes}m ${remainingSeconds}s`;
   };
 
   return (
@@ -66,15 +68,17 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
         <div className="grid grid-cols-2 gap-4 py-4">
           <div>
             <h3 className="text-lg font-semibold mb-2">1. Select Crop</h3>
-            <RadioGroup onValueChange={setSelectedCropId}>
+            <RadioGroup onValueChange={setSelectedCropId} disabled={!selectedTractorId}>
               <div className="space-y-2">
                 {FARM_CROPS.map(crop => (
-                  <Label key={crop.id} htmlFor={crop.id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent hover:text-accent-foreground has-[:checked]:border-primary">
-                    <RadioGroupItem value={crop.id} id={crop.id} />
+                  <Label key={crop.id} htmlFor={crop.id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent hover:text-accent-foreground has-[:checked]:border-primary has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed">
+                    <RadioGroupItem value={crop.id} id={crop.id} disabled={!selectedTractorId} />
                     <crop.icon className="h-5 w-5"/>
                     <div className="flex-1">
                       <p className="font-semibold">{crop.name}</p>
-                      <p className="text-xs text-muted-foreground">Base Growth Time: {formatTime(crop.growthTimeSeconds)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Sowing Time: {selectedTractor ? formatTime(getSowingTime(selectedTractor)) : 'Select tractor'}
+                      </p>
                     </div>
                   </Label>
                 ))}
@@ -104,10 +108,10 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
           </div>
         </div>
         
-        {selectedCrop && selectedTractor && calculatedSowingTimeSeconds !== null && (
+        {selectedCrop && selectedTractor && (
             <div className="text-center bg-muted/50 p-3 rounded-md">
                 <p className="font-semibold">
-                    Planting <span className="text-primary">{selectedCrop.name}</span> with <span className="text-primary">{selectedTractor.name}</span> will take approximately <span className="text-primary">{formatTime(calculatedSowingTimeSeconds)}</span> to sow.
+                    Planting <span className="text-primary">{selectedCrop.name}</span> with <span className="text-primary">{selectedTractor.name}</span> will take approximately <span className="text-primary">{formatTime(getSowingTime(selectedTractor))}</span> to sow.
                 </p>
                 <p className="text-xs text-muted-foreground">The crop will then take {formatTime(selectedCrop.growthTimeSeconds)} to grow.</p>
             </div>
