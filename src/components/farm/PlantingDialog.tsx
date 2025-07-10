@@ -50,7 +50,7 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
                     <crop.icon className="h-5 w-5"/>
                     <div className="flex-1">
                       <p className="font-semibold">{crop.name}</p>
-                      <p className="text-xs text-muted-foreground">Growth Time: {crop.growthTimeSeconds / 60} min</p>
+                      <p className="text-xs text-muted-foreground">Growth Time: {(crop.growthTimeSeconds / 60).toFixed(0)} min</p>
                     </div>
                   </Label>
                 ))}
