@@ -5,13 +5,14 @@ import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon } from "lucide-react";
-import { FARM_PURCHASE_COST, FUEL_ORDER_AMOUNT, FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_SECONDS, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS } from "@/config/game-config";
+import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
 import { useState, useMemo, useEffect } from "react";
 import { PlantingDialog } from "@/components/farm/PlantingDialog";
 import { VehicleShopDialog } from "@/components/farm/VehicleShopDialog";
+import { FuelOrderDialog } from "@/components/farm/FuelOrderDialog";
 import type { FarmField } from "@/types";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -19,9 +20,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
+  const [isFuelOrderOpen, setIsFuelOrderOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<FarmField | null>(null);
   const [fuelDeliveryTimeLeft, setFuelDeliveryTimeLeft] = useState(0);
 
@@ -174,7 +176,7 @@ export default function FarmPage() {
                         </p>
                         <p className="text-sm text-muted-foreground">Fuel for your farm vehicles.</p>
                         <div className="flex items-center gap-2 mt-2">
-                            <Button size="sm" variant="outline" onClick={orderFuel} disabled={playerStats.money < FUEL_ORDER_COST_PER_LTR * FUEL_ORDER_AMOUNT || !!playerStats.pendingFuelDelivery}>
+                            <Button size="sm" variant="outline" onClick={() => setIsFuelOrderOpen(true)} disabled={!!playerStats.pendingFuelDelivery}>
                                 Order Fuel
                             </Button>
                             <Button size="sm" variant="outline" onClick={upgradeFuelDepot} disabled={playerStats.money < fuelDepotUpgradeCost}>
@@ -360,6 +362,12 @@ export default function FarmPage() {
         isOpen={isVehicleShopOpen}
         onClose={() => setIsVehicleShopOpen(false)}
       />
+      <FuelOrderDialog
+        isOpen={isFuelOrderOpen}
+        onClose={() => setIsFuelOrderOpen(false)}
+      />
     </>
   );
 }
+
+    

@@ -54,9 +54,9 @@ export const QUARRY_NAME_SUFFIXES = ["Mine", "Quarry", "Cavern", "Chasm", "Pit",
 export const FARM_PURCHASE_COST = 50000000;
 export const INITIAL_SILO_CAPACITY = 1000;
 export const INITIAL_FUEL_CAPACITY = 500;
-export const FUEL_ORDER_AMOUNT = 250;
 export const FUEL_ORDER_COST_PER_LTR = 1000;
-export const FUEL_DELIVERY_TIME_SECONDS = 300; // 5 minutes
+export const FUEL_DELIVERY_TIME_BASE_SECONDS = 60; // 1 minute base
+export const FUEL_DELIVERY_TIME_PER_LTR_SECONDS = 0.5; // Half a second per liter
 export const VEHICLE_REPAIR_COST_PER_PERCENT = 50000;
 export const VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS = 10;
 export const SILO_UPGRADE_COST_BASE = 1000000;
@@ -469,4 +469,6 @@ export {
 } from './data/factory';
 export { INITIAL_RESEARCH_ITEMS_CONFIG } from './data/research';
 export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKER_ENERGY_TIERS, WORKER_ENERGY_RATE, WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS } from './data/workers';
+    
+
     

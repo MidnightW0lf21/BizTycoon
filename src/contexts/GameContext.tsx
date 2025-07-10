@@ -19,7 +19,7 @@ import {
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
-  FUEL_ORDER_COST_PER_LTR, FUEL_ORDER_AMOUNT, FUEL_DELIVERY_TIME_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES
+  FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -94,7 +94,7 @@ interface GameContextType {
   refuelVehicle: (vehicleInstanceId: string) => void;
   repairVehicle: (vehicleInstanceId: string) => void;
   sellVehicle: (vehicleInstanceId: string) => void;
-  orderFuel: () => void;
+  orderFuel: (amount: number) => void;
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
   craftKitchenRecipe: (recipeId: string) => void;
@@ -1382,22 +1382,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const orderFuel = useCallback(() => {
+  const orderFuel = useCallback((amount: number) => {
     setPlayerStats(prev => {
       if (prev.pendingFuelDelivery) {
         toastRef.current({ title: "Delivery in Progress", description: "A fuel delivery is already on its way.", variant: "destructive" });
         return prev;
       }
-      const cost = FUEL_ORDER_COST_PER_LTR * FUEL_ORDER_AMOUNT;
+      const cost = FUEL_ORDER_COST_PER_LTR * amount;
       if (prev.money < cost) {
         toastRef.current({ title: "Order Failed", description: "Not enough money to order fuel.", variant: "destructive" });
         return prev;
       }
       
+      const deliveryTime = FUEL_DELIVERY_TIME_BASE_SECONDS + (amount * FUEL_DELIVERY_TIME_PER_LTR_SECONDS);
+
       return {
         ...prev,
         money: prev.money - cost,
-        pendingFuelDelivery: { amount: FUEL_ORDER_AMOUNT, arrivalTime: Date.now() + FUEL_DELIVERY_TIME_SECONDS * 1000 }
+        pendingFuelDelivery: { amount, arrivalTime: Date.now() + deliveryTime * 1000 }
       };
     });
   }, []);
@@ -1889,3 +1891,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    

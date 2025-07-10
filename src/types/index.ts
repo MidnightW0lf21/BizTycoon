@@ -380,6 +380,7 @@ export interface FarmActivity {
   vehicleId?: string;
   cropId?: CropId;
   repairAmount?: number; // For repairs
+  fuelAmount?: number;
 }
 
 export interface FarmField {
@@ -540,3 +541,5 @@ export interface BusinessSynergy {
     value: number; // The percentage boost (e.g., 0.5 for 0.5%)
   };
 }
+
+    
