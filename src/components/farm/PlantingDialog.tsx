@@ -77,7 +77,7 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
                     <div className="flex-1">
                       <p className="font-semibold">{crop.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Sowing Time: {selectedTractor ? formatTime(getSowingTime(selectedTractor)) : 'Select tractor'}
+                        Sow: {selectedTractor ? formatTime(getSowingTime(selectedTractor)) : '...'} | Grow: {formatTime(crop.growthTimeSeconds)}
                       </p>
                     </div>
                   </Label>
