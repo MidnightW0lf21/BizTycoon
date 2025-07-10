@@ -4,8 +4,8 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon } from "lucide-react";
-import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS } from "@/config/game-config";
+import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon, Inbox } from "lucide-react";
+import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX, PANTRY_CAPACITY_MAX } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
@@ -21,8 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
-const SILO_CAPACITY_MAX = 75000;
-const FUEL_CAPACITY_MAX = 10000;
 
 interface RecipeCardProps {
   recipe: typeof KITCHEN_RECIPES[0];
@@ -138,7 +136,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
 
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, shipKitchenItem } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, shipKitchenItem, upgradePantry } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [isFuelOrderOpen, setIsFuelOrderOpen] = useState(false);
@@ -359,32 +357,60 @@ export default function FarmPage() {
           </TabsContent>
           <TabsContent value="kitchen" className="mt-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-1">
-                <CardHeader>
-                    <CardTitle>Silo Contents</CardTitle>
-                    <CardDescription>Raw materials from your fields.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    {(playerStats.siloStorage || []).length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Silo is empty.</p>
-                    ) : (
-                        (playerStats.siloStorage || []).map(item => {
-                            const crop = FARM_CROPS.find(c => c.id === item.cropId);
-                            if (!crop) return null;
-                            const Icon = crop.icon;
-                            return (
-                                <div key={item.cropId} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
-                                    <div className="flex items-center gap-2">
-                                        <Icon className="h-5 w-5 text-primary" />
-                                        <span>{crop.name}</span>
-                                    </div>
-                                    <span className="font-semibold">{item.quantity.toLocaleString()}</span>
-                                </div>
-                            );
-                        })
-                    )}
-                </CardContent>
-              </Card>
+              <div className="lg:col-span-1 space-y-6">
+                <Card>
+                  <CardHeader>
+                      <CardTitle>Silo Contents</CardTitle>
+                      <CardDescription>Raw materials from your fields.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                      {(playerStats.siloStorage || []).length === 0 ? (
+                          <p className="text-sm text-muted-foreground">Silo is empty.</p>
+                      ) : (
+                          (playerStats.siloStorage || []).map(item => {
+                              const crop = FARM_CROPS.find(c => c.id === item.cropId);
+                              if (!crop) return null;
+                              const Icon = crop.icon;
+                              return (
+                                  <div key={item.cropId} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                      <div className="flex items-center gap-2">
+                                          <Icon className="h-5 w-5 text-primary" />
+                                          <span>{crop.name}</span>
+                                      </div>
+                                      <span className="font-semibold">{item.quantity.toLocaleString()}</span>
+                                  </div>
+                              );
+                          })
+                      )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Inbox className="h-5 w-5 text-primary"/>Pantry Inventory</CardTitle>
+                    <CardDescription>Items crafted in the kitchen, ready to be shipped to warehouse.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Progress value={((playerStats.kitchenInventory || []).reduce((sum, item) => sum + item.quantity, 0) / (playerStats.pantryCapacity || 1)) * 100} />
+                      <p className="text-xs text-muted-foreground text-center">
+                        {(playerStats.kitchenInventory || []).reduce((sum, item) => sum + item.quantity, 0).toLocaleString()} / {(playerStats.pantryCapacity || 0).toLocaleString()} units
+                      </p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={upgradePantry}
+                      disabled={(playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX}
+                    >
+                      { (playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX ? "Max Capacity" : "Upgrade Pantry" }
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
 
               <Card className="lg:col-span-2">
                 <CardHeader>
@@ -400,8 +426,8 @@ export default function FarmPage() {
 
               <Card className="lg:col-span-3">
                   <CardHeader>
-                      <CardTitle>Pantry Inventory</CardTitle>
-                      <CardDescription>Items crafted in the kitchen, ready to be shipped to warehouse.</CardDescription>
+                      <CardTitle>Pantry Shipment</CardTitle>
+                      <CardDescription>Items ready to be shipped to your central warehouse for sale.</CardDescription>
                   </CardHeader>
                   <CardContent>
                        {(playerStats.kitchenInventory || []).length === 0 ? (

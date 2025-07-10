@@ -57,6 +57,8 @@ export const INITIAL_SILO_CAPACITY = 1000;
 export const SILO_CAPACITY_MAX = 75000;
 export const INITIAL_FUEL_CAPACITY = 500;
 export const FUEL_CAPACITY_MAX = 10000;
+export const INITIAL_PANTRY_CAPACITY = 100;
+export const PANTRY_CAPACITY_MAX = 10000;
 export const FUEL_ORDER_COST_PER_LTR = 1000;
 export const FUEL_DELIVERY_TIME_BASE_SECONDS = 60; // 1 minute base
 export const FUEL_DELIVERY_TIME_PER_LTR_SECONDS = 0.5; // Half a second per liter
@@ -66,6 +68,8 @@ export const SILO_UPGRADE_COST_BASE = 1000000;
 export const SILO_UPGRADE_COST_MULTIPLIER = 1.8;
 export const FUEL_DEPOT_UPGRADE_COST_BASE = 750000;
 export const FUEL_DEPOT_UPGRADE_COST_MULTIPLIER = 1.6;
+export const PANTRY_UPGRADE_COST_BASE = 500000;
+export const PANTRY_UPGRADE_COST_MULTIPLIER = 1.7;
 
 
 const fieldSizes = [5, 8, 5, 12, 10, 15, 8, 20, 12, 25];
@@ -79,26 +83,26 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
 }));
 
 export const FARM_CROPS: Crop[] = [
-  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 600, yieldPerHa: 100 },
-  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 1200, yieldPerHa: 150 },
-  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 900, yieldPerHa: 200 },
-  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 800, yieldPerHa: 180 },
-  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 1500, yieldPerHa: 120 },
-  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 2400, yieldPerHa: 250 },
-  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 3000, yieldPerHa: 80 },
-  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 1800, yieldPerHa: 130 },
+  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 6000, yieldPerHa: 100 },
+  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 12000, yieldPerHa: 150 },
+  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 9000, yieldPerHa: 200 },
+  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 8000, yieldPerHa: 180 },
+  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 15000, yieldPerHa: 120 },
+  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 24000, yieldPerHa: 250 },
+  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 30000, yieldPerHa: 80 },
+  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 18000, yieldPerHa: 130 },
 ];
 
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
   // Tractors
-  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 2500000 },
+  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 1500000 },
   { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 55000000 },
   { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 150000000 },
   { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 400000000 },
   { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1200000000 },
   // Harvesters
-  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 3000000 },
+  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 2000000 },
   { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 80000000 },
   { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 220000000 },
   { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 600000000 },
@@ -515,6 +519,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 

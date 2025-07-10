@@ -20,7 +20,8 @@ import {
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
-  FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX
+  FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX,
+  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +101,7 @@ interface GameContextType {
   orderFuel: (amount: number) => void;
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
+  upgradePantry: () => void;
   craftKitchenRecipe: (recipeId: string, quantity: number) => void;
   shipKitchenItem: (itemId: string, quantity: number) => void;
 }
@@ -168,6 +170,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     farmVehicles: [],
     siloCapacity: INITIAL_SILO_CAPACITY,
     fuelCapacity: INITIAL_FUEL_CAPACITY,
+    pantryCapacity: INITIAL_PANTRY_CAPACITY,
     siloStorage: [],
     fuelStorage: 0,
     pendingFuelDelivery: undefined,
@@ -494,6 +497,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         farmVehicles: data.playerStats.farmVehicles || [],
         siloStorage: data.playerStats.siloStorage || [],
         fuelStorage: data.playerStats.fuelStorage || 0,
+        pantryCapacity: data.playerStats.pantryCapacity || INITIAL_PANTRY_CAPACITY,
         pendingFuelDelivery: data.playerStats.pendingFuelDelivery,
         kitchenInventory: data.playerStats.kitchenInventory || [],
         kitchenQueue: data.playerStats.kitchenQueue || [],
@@ -1293,41 +1297,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseVehicle = useCallback((vehicleConfigId: string) => {
     const config = FARM_VEHICLES.find(v => v.id === vehicleConfigId);
     if (!config) {
-      toastRef.current({ title: "Vehicle not found", variant: "destructive" });
-      return;
+        toastRef.current({ title: "Vehicle not found", variant: "destructive" });
+        return;
     }
-  
     const currentMoney = playerStatsRef.current.money;
     if (currentMoney < config.purchaseCost) {
-      toastRef.current({ title: "Not enough money", variant: "destructive" });
+        toastRef.current({ title: "Not enough money", variant: "destructive" });
+        return;
+    }
+    toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
+    setPlayerStats(prev => {
+        const newVehicle: FarmVehicle = {
+            instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
+            configId: config.id,
+            name: config.name,
+            type: config.type,
+            icon: config.icon,
+            speedHaPerHr: config.speedHaPerHr,
+            fuelCapacity: config.fuelCapacity,
+            fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+            wearPerHr: config.wearPerHr,
+            purchaseCost: config.purchaseCost,
+            fuel: config.fuelCapacity,
+            wear: 0,
+            status: 'Idle',
+        };
+        const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
+        return {
+            ...prev,
+            money: prev.money - config.purchaseCost,
+            farmVehicles: updatedVehicles
+        };
+    });
+  }, []);
+
+  const sellVehicle = useCallback((vehicleInstanceId: string) => {
+    const prev = playerStatsRef.current;
+    const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
+    if (vehicleIndex === -1) return;
+    const vehicle = prev.farmVehicles![vehicleIndex];
+    if (vehicle.status !== 'Idle') {
+      toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
       return;
     }
-  
-    toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
-  
-    setPlayerStats(prev => {
-      const newVehicle: FarmVehicle = {
-        instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
-        configId: config.id,
-        name: config.name,
-        type: config.type,
-        icon: config.icon,
-        speedHaPerHr: config.speedHaPerHr,
-        fuelCapacity: config.fuelCapacity,
-        fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
-        wearPerHr: config.wearPerHr,
-        purchaseCost: config.purchaseCost,
-        fuel: config.fuelCapacity,
-        wear: 0,
-        status: 'Idle',
-      };
-      
-      const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
-  
+    const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
+    toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
+    setPlayerStats(current => {
+      const newVehicles = (current.farmVehicles || []).filter(v => v.instanceId !== vehicleInstanceId);
       return {
-        ...prev,
-        money: prev.money - config.purchaseCost,
-        farmVehicles: updatedVehicles
+        ...current,
+        money: current.money + salePrice,
+        farmVehicles: newVehicles,
       };
     });
   }, []);
@@ -1385,31 +1405,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             money: prev.money - cost,
             farmVehicles: newVehicles
         };
-    });
-  }, []);
-
-  const sellVehicle = useCallback((vehicleInstanceId: string) => {
-    const prev = playerStatsRef.current;
-    const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
-    if (vehicleIndex === -1) return;
-    
-    const vehicle = prev.farmVehicles![vehicleIndex];
-  
-    if (vehicle.status !== 'Idle') {
-      toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
-      return;
-    }
-  
-    const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
-    toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
-  
-    setPlayerStats(current => {
-      const newVehicles = (current.farmVehicles || []).filter(v => v.instanceId !== vehicleInstanceId);
-      return {
-        ...current,
-        money: current.money + salePrice,
-        farmVehicles: newVehicles,
-      };
     });
   }, []);
 
@@ -1475,6 +1470,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...prev,
             money: prev.money - cost,
             fuelCapacity: newCapacity
+        };
+    });
+  }, []);
+  
+  const upgradePantry = useCallback(() => {
+    setPlayerStats(prev => {
+        const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
+        const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
+        if (prev.money < cost) {
+            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
+            return prev;
+        }
+        if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
+            toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
+            return prev;
+        }
+        const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (prev.pantryCapacity || 100) * 2);
+        toastRef.current({ title: "Pantry Upgraded!", description: `Pantry capacity increased to ${newCapacity.toLocaleString()} units.` });
+        return {
+            ...prev,
+            money: prev.money - cost,
+            pantryCapacity: newCapacity
         };
     });
   }, []);
@@ -1568,6 +1585,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             farmVehicles: loadedData.playerStats.farmVehicles || [],
             siloStorage: loadedData.playerStats.siloStorage || [],
             fuelStorage: loadedData.playerStats.fuelStorage || 0,
+            pantryCapacity: loadedData.playerStats.pantryCapacity || INITIAL_PANTRY_CAPACITY,
             pendingFuelDelivery: loadedData.playerStats.pendingFuelDelivery,
             kitchenInventory: loadedData.playerStats.kitchenInventory || [],
             kitchenQueue: loadedData.playerStats.kitchenQueue || [],
@@ -1770,11 +1788,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const recipe = KITCHEN_RECIPES.find(r => r.id === craft.recipeId);
                 if(recipe){
                     const totalOutput = recipe.outputQuantity * craft.quantity;
-                    const existingItemIndex = kitchenInventory.findIndex(item => item.itemId === recipe.outputItemId);
-                    if (existingItemIndex > -1) {
-                        kitchenInventory[existingItemIndex].quantity += totalOutput;
-                    } else {
-                        kitchenInventory.push({ itemId: recipe.outputItemId, quantity: totalOutput });
+                    const currentPantryStock = kitchenInventory.reduce((sum, item) => sum + item.quantity, 0);
+                    const spaceAvailable = (prev.pantryCapacity || 0) - currentPantryStock;
+                    const amountToAdd = Math.min(totalOutput, spaceAvailable);
+
+                    if (amountToAdd > 0) {
+                      const existingItemIndex = kitchenInventory.findIndex(item => item.itemId === recipe.outputItemId);
+                      if (existingItemIndex > -1) {
+                          kitchenInventory[existingItemIndex].quantity += amountToAdd;
+                      } else {
+                          kitchenInventory.push({ itemId: recipe.outputItemId, quantity: amountToAdd });
+                      }
                     }
                 }
             });
@@ -1925,7 +1949,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
       purchaseFarm, purchaseFarmField, plantCrop, harvestField, cultivateField, purchaseVehicle,
-      refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
+      refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot, upgradePantry,
       craftKitchenRecipe, shipKitchenItem,
     }}>
       {children}
@@ -1940,5 +1964,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-

@@ -361,7 +361,7 @@ export interface ToastSettings {
   showQuarry: boolean;
 }
 
-export type CropId = 'Wheat' | 'Corn' | 'Potatoes' | 'Carrots' | 'Tomatoes' | 'Sugarcane' | 'Apples' | 'Strawberries';
+export type CropId = 'Wheat' | 'Corn' | 'Potatoes' | 'Carrots' | 'Tomatoes' | 'Sugarcane' | 'Apples' | 'Strawberries' | 'flour' | 'sugar' | 'tomato_sauce' | 'dough';
 
 export interface Crop {
   id: CropId;
@@ -509,6 +509,7 @@ export interface PlayerStats {
   siloCapacity: number;
   fuelStorage: number;
   fuelCapacity: number;
+  pantryCapacity: number;
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
   kitchenInventory?: KitchenItem[];
   kitchenQueue?: KitchenCraftingActivity[];
