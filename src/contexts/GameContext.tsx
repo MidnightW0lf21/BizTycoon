@@ -1168,27 +1168,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const purchaseFarmField = useCallback((fieldId: string) => {
+    const fieldToBuy = playerStatsRef.current.farmFields?.find(f => f.id === fieldId);
+
+    if (!fieldToBuy || fieldToBuy.isOwned) return;
+
+    if (playerStatsRef.current.money < fieldToBuy.purchaseCost) {
+      toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
+      return;
+    }
+  
     setPlayerStats(prev => {
-      const fields = prev.farmFields ? [...prev.farmFields] : [];
-      const fieldIndex = fields.findIndex(f => f.id === fieldId);
-      if (fieldIndex === -1 || fields[fieldIndex].isOwned) return prev;
-      
-      const fieldToBuy = fields[fieldIndex];
-      if (prev.money < fieldToBuy.purchaseCost) {
-        toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
-        return prev;
-      }
-      
-      fields[fieldIndex] = { ...fieldToBuy, isOwned: true };
-      
-      toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
+      const newFields = (prev.farmFields || []).map(f =>
+        f.id === fieldId ? { ...f, isOwned: true } : f
+      );
       
       return {
         ...prev,
         money: prev.money - fieldToBuy.purchaseCost,
-        farmFields: fields
+        farmFields: newFields
       };
     });
+
+    toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
   }, []);
 
   const plantCrop = useCallback((fieldId: string, cropId: CropId, vehicleInstanceId: string) => {
@@ -1434,7 +1435,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const upgradeSilo = useCallback(() => {
     setPlayerStats(prev => {
         const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
-        const cost = SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel);
+        const cost = Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
         if (prev.money < cost) {
             toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
             return prev;
@@ -1456,7 +1457,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const upgradeFuelDepot = useCallback(() => {
     setPlayerStats(prev => {
         const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
-        const cost = FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel);
+        const cost = Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
         if (prev.money < cost) {
             toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
             return prev;
