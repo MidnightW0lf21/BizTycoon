@@ -5,7 +5,7 @@ import type { FarmField, FarmVehicle } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock, Timer, Fuel, Wrench } from "lucide-react";
+import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock, Timer, Fuel, Wrench, DollarSign } from "lucide-react";
 import { useGame } from "@/contexts/GameContext";
 import { cn } from "@/lib/utils";
 import { FARM_CROPS } from "@/config/game-config";
@@ -19,7 +19,7 @@ interface FarmFieldCardProps {
 }
 
 export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivateClick }: FarmFieldCardProps) {
-  const { playerStats } = useGame();
+  const { playerStats, purchaseFarmField } = useGame();
   const [timeLeft, setTimeLeft] = useState(0);
 
   const activeVehicle = useMemo(() => {
@@ -72,14 +72,20 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
   const hectaresDone = field.sizeHa * (progressPercentage / 100);
 
   if (!field.isOwned) {
+    const canAfford = playerStats.money >= field.purchaseCost;
     return (
        <Card className="border-dashed flex flex-col justify-center items-center text-center p-4">
         <LandPlot className="h-10 w-10 text-muted-foreground mb-2"/>
         <CardTitle className="text-lg">{field.name}</CardTitle>
         <CardDescription>{field.sizeHa} Hectares</CardDescription>
-        <Button size="sm" className="mt-4" disabled>
-            <Unlock className="mr-2 h-4 w-4"/>
-            Purchase
+        <Button 
+          size="sm" 
+          className="mt-4" 
+          disabled={!canAfford}
+          onClick={() => purchaseFarmField(field.id)}
+        >
+            <DollarSign className="mr-2 h-4 w-4"/>
+            Purchase (${field.purchaseCost.toLocaleString()})
         </Button>
       </Card>
     )

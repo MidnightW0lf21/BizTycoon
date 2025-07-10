@@ -89,6 +89,7 @@ interface GameContextType {
   updateToastSettings: (settings: ToastSettings) => void;
   setRecipeForEntireLine: (lineId: string, componentId: string) => void;
   purchaseFarm: () => void;
+  purchaseFarmField: (fieldId: string) => void;
   plantCrop: (fieldId: string, cropId: string, vehicleInstanceId: string) => void;
   harvestField: (fieldId: string) => void;
   cultivateField: (fieldId: string) => void;
@@ -1166,6 +1167,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const purchaseFarmField = useCallback((fieldId: string) => {
+    setPlayerStats(prev => {
+      const fields = prev.farmFields ? [...prev.farmFields] : [];
+      const fieldIndex = fields.findIndex(f => f.id === fieldId);
+      if (fieldIndex === -1 || fields[fieldIndex].isOwned) return prev;
+      
+      const fieldToBuy = fields[fieldIndex];
+      if (prev.money < fieldToBuy.purchaseCost) {
+        toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
+        return prev;
+      }
+      
+      fields[fieldIndex] = { ...fieldToBuy, isOwned: true };
+      
+      toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
+      
+      return {
+        ...prev,
+        money: prev.money - fieldToBuy.purchaseCost,
+        farmFields: fields
+      };
+    });
+  }, []);
+
   const plantCrop = useCallback((fieldId: string, cropId: CropId, vehicleInstanceId: string) => {
     setPlayerStats(prev => {
       const farmFields = prev.farmFields ? [...prev.farmFields] : [];
@@ -1885,7 +1910,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       hireWorker, assignWorkerToMachine, unlockProductionLine, purchaseFactoryMachineUpgrade,
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
-      purchaseFarm, plantCrop, harvestField, cultivateField, purchaseVehicle,
+      purchaseFarm, purchaseFarmField, plantCrop, harvestField, cultivateField, purchaseVehicle,
       refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
       craftKitchenRecipe, shipKitchenItem,
     }}>
@@ -1901,4 +1926,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-

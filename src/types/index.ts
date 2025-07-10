@@ -541,5 +541,3 @@ export interface BusinessSynergy {
     value: number; // The percentage boost (e.g., 0.5 for 0.5%)
   };
 }
-
-    
