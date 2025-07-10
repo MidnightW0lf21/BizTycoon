@@ -9,7 +9,7 @@ import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock, Timer, 
 import { useGame } from "@/contexts/GameContext";
 import { cn } from "@/lib/utils";
 import { FARM_CROPS } from "@/config/game-config";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface FarmFieldCardProps {
   field: FarmField;
