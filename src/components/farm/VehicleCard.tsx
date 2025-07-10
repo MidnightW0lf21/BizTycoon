@@ -97,7 +97,7 @@ export function VehicleCard({ vehicle, onRefuel, onRepair, onSell, playerFuel, p
             <div>
                 <div className="flex justify-between text-sm mb-1">
                     <span className="flex items-center gap-1"><Fuel className="h-4 w-4"/> Fuel</span>
-                    <span>{Math.floor(vehicle.fuel)} / {vehicle.fuelCapacity} L</span>
+                    <span>{vehicle.fuel.toFixed(1)} / {vehicle.fuelCapacity} L</span>
                 </div>
                 <Progress value={fuelPercent} indicatorClassName={cn(fuelPercent < 20 && "bg-destructive")} />
             </div>
