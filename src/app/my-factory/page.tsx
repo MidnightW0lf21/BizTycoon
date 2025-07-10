@@ -722,7 +722,8 @@ export default function MyFactoryPage() {
             <p className="text-2xl font-bold text-orange-400">
               {playerStats.factoryRawMaterials.toLocaleString('en-US', {maximumFractionDigits: 0})} / {(playerStats.factoryRawMaterialsCap || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}
             </p>
-            <p className="text-xs text-muted-foreground">Raw Units</p>
+            <p className="text-xs text-muted-foreground mb-2">Raw Units</p>
+            <Progress value={(playerStats.factoryRawMaterials / (playerStats.factoryRawMaterialsCap || 1)) * 100} className="h-2" indicatorClassName="bg-orange-400" />
           </CardContent>
         </Card>
 
