@@ -1336,13 +1336,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const prev = playerStatsRef.current;
     const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
     if (vehicleIndex === -1) return;
+
     const vehicle = prev.farmVehicles![vehicleIndex];
     if (vehicle.status !== 'Idle') {
       toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
       return;
     }
     const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
+    
     toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
+
     setPlayerStats(current => {
       const newVehicles = (current.farmVehicles || []).filter(v => v.instanceId !== vehicleInstanceId);
       return {
@@ -1432,47 +1435,47 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const upgradeSilo = useCallback(() => {
-    setPlayerStats(prev => {
-        const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
-        const cost = Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
-        if (prev.money < cost) {
-            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
-            return prev;
-        }
-        if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
-            toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
-            return prev;
-        }
-        const newCapacity = Math.min(SILO_CAPACITY_MAX, (prev.siloCapacity || 1000) * 2);
-        toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
-        return {
-            ...prev,
-            money: prev.money - cost,
-            siloCapacity: newCapacity
-        };
-    });
+    const prev = playerStatsRef.current;
+    const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
+    const cost = Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
+    if (prev.money < cost) {
+        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
+        return;
+    }
+    if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
+        toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
+        return;
+    }
+    const newCapacity = Math.min(SILO_CAPACITY_MAX, (prev.siloCapacity || 1000) * 2);
+    toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
+    
+    setPlayerStats(current => ({
+        ...current,
+        money: current.money - cost,
+        siloCapacity: newCapacity
+    }));
   }, []);
 
   const upgradeFuelDepot = useCallback(() => {
-    setPlayerStats(prev => {
-        const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
-        const cost = Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
-        if (prev.money < cost) {
-            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
-            return prev;
-        }
-        if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
-            toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
-            return prev;
-        }
-        const newCapacity = Math.min(FUEL_CAPACITY_MAX, (prev.fuelCapacity || 500) * 2);
-        toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
-        return {
-            ...prev,
-            money: prev.money - cost,
-            fuelCapacity: newCapacity
-        };
-    });
+    const prev = playerStatsRef.current;
+    const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
+    const cost = Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
+    if (prev.money < cost) {
+        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
+        return;
+    }
+    if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
+        toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
+        return;
+    }
+    const newCapacity = Math.min(FUEL_CAPACITY_MAX, (prev.fuelCapacity || 500) * 2);
+    toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
+    
+    setPlayerStats(current => ({
+        ...current,
+        money: current.money - cost,
+        fuelCapacity: newCapacity
+    }));
   }, []);
   
   const upgradePantry = useCallback(() => {
@@ -1968,3 +1971,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
