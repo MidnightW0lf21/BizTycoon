@@ -15,12 +15,32 @@ const Progress = React.forwardRef<
 >(({ className, value, indicatorClassName, orientation = "horizontal", ...props }, ref) => {
   const isVertical = orientation === 'vertical';
 
+  if (isVertical) {
+    return (
+      <ProgressPrimitive.Root
+        ref={ref}
+        className={cn(
+          "relative w-4 h-full overflow-hidden rounded-full bg-secondary",
+          className
+        )}
+        {...props}
+      >
+        <ProgressPrimitive.Indicator
+          className={cn(
+            "absolute bottom-0 left-0 w-full bg-primary transition-all",
+            indicatorClassName
+          )}
+          style={{ height: `${value || 0}%` }}
+        />
+      </ProgressPrimitive.Root>
+    )
+  }
+
   return (
     <ProgressPrimitive.Root
       ref={ref}
       className={cn(
-        "relative overflow-hidden rounded-full bg-secondary",
-        isVertical ? "h-full w-4" : "h-4 w-full",
+        "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
         className
       )}
       {...props}
@@ -28,14 +48,9 @@ const Progress = React.forwardRef<
       <ProgressPrimitive.Indicator
         className={cn(
           "h-full w-full flex-1 bg-primary transition-all",
-          isVertical ? "w-full rounded-b-lg" : "h-full rounded-full", // Simplified logic for corners
           indicatorClassName
         )}
-        style={{
-          transform: isVertical
-            ? `translateY(${100 - (value || 0)}%)`
-            : `translateX(-${100 - (value || 0)}%)`
-        }}
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
       />
     </ProgressPrimitive.Root>
   )
