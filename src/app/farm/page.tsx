@@ -40,12 +40,12 @@ export default function FarmPage() {
   
   const siloUpgradeCost = useMemo(() => {
     const currentLevel = Math.floor(Math.log((playerStats.siloCapacity || 1000) / 1000) / Math.log(2));
-    return SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel);
+    return Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
   }, [playerStats.siloCapacity]);
 
   const fuelDepotUpgradeCost = useMemo(() => {
     const currentLevel = Math.floor(Math.log((playerStats.fuelCapacity || 500) / 500) / Math.log(2));
-    return FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel);
+    return Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
   }, [playerStats.fuelCapacity]);
   
   const siloFillPercentage = useMemo(() => {
