@@ -73,7 +73,7 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
   id: `field_${i + 1}`,
   name: `Field ${i + 1}`,
   sizeHa: fieldSizes[i],
-  purchaseCost: 8000000 * Math.pow(1.6, i),
+  purchaseCost: Math.floor(8000000 * Math.pow(1.6, i)),
   isOwned: i < 2, // First 2 fields are owned by default
   status: 'Empty',
 }));
