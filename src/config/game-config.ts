@@ -1,6 +1,6 @@
 
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
 import { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
@@ -13,7 +13,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
-import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad, Apple, Grape, Candy, Soup, CakeSlice, Cake, GlassWater, CookingPot, Utensils, UtensilsCrossed } from 'lucide-react';
+import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad, Apple, Grape, Candy, Soup, CakeSlice, Cake, GlassWater, CookingPot, Utensils, UtensilsCrossed, Pizza, Beef, Lollipop, SandwichIcon } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -73,7 +73,7 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
   id: `field_${i + 1}`,
   name: `Field ${i + 1}`,
   sizeHa: fieldSizes[i],
-  purchaseCost: Math.floor(8000000 * Math.pow(1.6, i)),
+  purchaseCost: Math.floor(15000000 * Math.pow(1.6, i)),
   isOwned: i < 2, // First 2 fields are owned by default
   status: 'Empty',
 }));
@@ -92,13 +92,13 @@ export const FARM_CROPS: Crop[] = [
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
   // Tractors
-  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
+  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 10000000 },
   { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 55000000 },
   { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 150000000 },
   { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 400000000 },
   { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1200000000 },
   // Harvesters
-  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 20000000 },
+  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 15000000 },
   { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 80000000 },
   { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 220000000 },
   { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 600000000 },
@@ -106,17 +106,31 @@ export const FARM_VEHICLES: FarmVehicleConfig[] = [
 ];
 
 export const KITCHEN_RECIPES: KitchenRecipe[] = [
-  { id: 'flour', name: 'Flour', icon: Shell, ingredients: [{ cropId: 'Wheat', quantity: 5 }], outputItemId: 'flour', outputQuantity: 1, craftTimeSeconds: 15 },
-  { id: 'bread', name: 'Bread', icon: Sandwich, ingredients: [{ cropId: 'Wheat', quantity: 10 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
-  { id: 'popcorn', name: 'Popcorn', icon: Popcorn, ingredients: [{ cropId: 'Corn', quantity: 8 }], outputItemId: 'popcorn', outputQuantity: 1, craftTimeSeconds: 25 },
-  { id: 'potato_wedges', name: 'Potato Wedges', icon: Salad, ingredients: [{ cropId: 'Potatoes', quantity: 12 }], outputItemId: 'potato_wedges', outputQuantity: 1, craftTimeSeconds: 40 },
-  { id: 'sugar', name: 'Sugar', icon: Candy, ingredients: [{ cropId: 'Sugarcane', quantity: 15 }], outputItemId: 'sugar', outputQuantity: 1, craftTimeSeconds: 50 },
-  { id: 'tomato_soup', name: 'Tomato Soup', icon: Soup, ingredients: [{ cropId: 'Tomatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 5 }], outputItemId: 'tomato_soup', outputQuantity: 1, craftTimeSeconds: 60 },
-  { id: 'apple_pie', name: 'Apple Pie', icon: CakeSlice, ingredients: [{ cropId: 'Apples', quantity: 8 }, { cropId: 'Wheat', quantity: 5 }, { cropId: 'Sugarcane', quantity: 3 }], outputItemId: 'apple_pie', outputQuantity: 1, craftTimeSeconds: 90 },
-  { id: 'strawberry_jam', name: 'Strawberry Jam', icon: GlassWater, ingredients: [{ cropId: 'Strawberries', quantity: 20 }, { cropId: 'Sugarcane', quantity: 10 }], outputItemId: 'strawberry_jam', outputQuantity: 1, craftTimeSeconds: 75 },
-  { id: 'carrot_cake', name: 'Carrot Cake', icon: Cake, ingredients: [{ cropId: 'Carrots', quantity: 15 }, { cropId: 'Wheat', quantity: 10 }, { cropId: 'Sugarcane', quantity: 8 }], outputItemId: 'carrot_cake', outputQuantity: 1, craftTimeSeconds: 120 },
-  { id: 'vegetable_stew', name: 'Vegetable Stew', icon: CookingPot, ingredients: [{ cropId: 'Potatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 8 }, { cropId: 'Tomatoes', quantity: 6 }], outputItemId: 'vegetable_stew', outputQuantity: 1, craftTimeSeconds: 100 },
-  { id: 'fruit_salad', name: 'Fruit Salad', icon: Salad, ingredients: [{ cropId: 'Apples', quantity: 5 }, { cropId: 'Strawberries', quantity: 10 }], outputItemId: 'fruit_salad', outputQuantity: 1, craftTimeSeconds: 45 },
+    // Intermediate Goods
+    { id: 'flour', name: 'Flour', icon: Shell, ingredients: [{ cropId: 'Wheat', quantity: 5 }], outputItemId: 'flour', outputQuantity: 1, craftTimeSeconds: 15 },
+    { id: 'sugar', name: 'Sugar', icon: Candy, ingredients: [{ cropId: 'Sugarcane', quantity: 15 }], outputItemId: 'sugar', outputQuantity: 1, craftTimeSeconds: 50 },
+    { id: 'tomato_sauce', name: 'Tomato Sauce', icon: Soup, ingredients: [{ cropId: 'Tomatoes', quantity: 8 }], outputItemId: 'tomato_sauce', outputQuantity: 1, craftTimeSeconds: 40 },
+    { id: 'dough', name: 'Dough', icon: CookingPot, ingredients: [{ cropId: 'flour', quantity: 2 }, { cropId: 'Wheat', quantity: 0 }], outputItemId: 'dough', outputQuantity: 1, craftTimeSeconds: 25 }, // Uses Flour
+
+    // Simple Recipes
+    { id: 'bread', name: 'Bread', icon: Sandwich, ingredients: [{ cropId: 'flour', quantity: 1 }, { cropId: 'Wheat', quantity: 0 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
+    { id: 'popcorn', name: 'Popcorn', icon: Popcorn, ingredients: [{ cropId: 'Corn', quantity: 8 }], outputItemId: 'popcorn', outputQuantity: 1, craftTimeSeconds: 25 },
+    { id: 'potato_wedges', name: 'Potato Wedges', icon: Salad, ingredients: [{ cropId: 'Potatoes', quantity: 12 }], outputItemId: 'potato_wedges', outputQuantity: 1, craftTimeSeconds: 40 },
+    { id: 'fruit_salad', name: 'Fruit Salad', icon: Salad, ingredients: [{ cropId: 'Apples', quantity: 5 }, { cropId: 'Strawberries', quantity: 10 }], outputItemId: 'fruit_salad', outputQuantity: 1, craftTimeSeconds: 45 },
+    { id: 'strawberry_jam', name: 'Strawberry Jam', icon: GlassWater, ingredients: [{ cropId: 'Strawberries', quantity: 20 }, { cropId: 'sugar', quantity: 2 }], outputItemId: 'strawberry_jam', outputQuantity: 1, craftTimeSeconds: 75 },
+    { id: 'candied_apple', name: 'Candied Apple', icon: Lollipop, ingredients: [{ cropId: 'Apples', quantity: 1 }, { cropId: 'sugar', quantity: 3 }], outputItemId: 'candied_apple', outputQuantity: 1, craftTimeSeconds: 60 },
+    { id: 'corn_on_cob', name: 'Corn on the Cob', icon: Sprout, ingredients: [{ cropId: 'Corn', quantity: 5 }], outputItemId: 'corn_on_cob', outputQuantity: 1, craftTimeSeconds: 35 },
+    
+    // Complex Recipes
+    { id: 'vegetable_stew', name: 'Vegetable Stew', icon: CookingPot, ingredients: [{ cropId: 'Potatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 8 }, { cropId: 'Tomatoes', quantity: 6 }], outputItemId: 'vegetable_stew', outputQuantity: 1, craftTimeSeconds: 100 },
+    { id: 'carrot_cake', name: 'Carrot Cake', icon: Cake, ingredients: [{ cropId: 'Carrots', quantity: 15 }, { cropId: 'flour', quantity: 3 }, { cropId: 'sugar', quantity: 5 }], outputItemId: 'carrot_cake', outputQuantity: 1, craftTimeSeconds: 120 },
+    { id: 'apple_pie', name: 'Apple Pie', icon: CakeSlice, ingredients: [{ cropId: 'Apples', quantity: 8 }, { cropId: 'dough', quantity: 1 }, { cropId: 'sugar', quantity: 2 }], outputItemId: 'apple_pie', outputQuantity: 1, craftTimeSeconds: 90 },
+    { id: 'pizza', name: 'Pizza', icon: Pizza, ingredients: [{ cropId: 'dough', quantity: 1 }, { cropId: 'tomato_sauce', quantity: 1 }], outputItemId: 'pizza', outputQuantity: 1, craftTimeSeconds: 80 },
+    { id: 'tomato_soup', name: 'Tomato Soup', icon: Soup, ingredients: [{ cropId: 'tomato_sauce', quantity: 2 }, { cropId: 'Carrots', quantity: 2 }], outputItemId: 'tomato_soup', outputQuantity: 1, craftTimeSeconds: 60 },
+    { id: 'beef_stew', name: 'Beef Stew (Vegan)', icon: Beef, ingredients: [{ cropId: 'vegetable_stew', quantity: 1 }, { cropId: 'Potatoes', quantity: 5 }], outputItemId: 'beef_stew', outputQuantity: 1, craftTimeSeconds: 150 },
+    { id: 'fruit_tart', name: 'Fruit Tart', icon: CakeSlice, ingredients: [{ cropId: 'dough', quantity: 1 }, { cropId: 'fruit_salad', quantity: 1 }, { cropId: 'sugar', quantity: 3 }], outputItemId: 'fruit_tart', outputQuantity: 1, craftTimeSeconds: 110 },
+    { id: 'gourmet_sandwich', name: 'Gourmet Sandwich', icon: SandwichIcon, ingredients: [{ cropId: 'bread', quantity: 2 }, { cropId: 'Tomatoes', quantity: 3 }, { cropId: 'Carrots', quantity: 3 }], outputItemId: 'gourmet_sandwich', outputQuantity: 1, craftTimeSeconds: 55 },
+    { id: 'strawberry_shortcake', name: 'Strawberry Shortcake', icon: Cake, ingredients: [{ cropId: 'Strawberries', quantity: 15 }, { cropId: 'flour', quantity: 2 }, { cropId: 'sugar', quantity: 4 }], outputItemId: 'strawberry_shortcake', outputQuantity: 1, craftTimeSeconds: 130 },
 ];
 
 
@@ -501,6 +515,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 

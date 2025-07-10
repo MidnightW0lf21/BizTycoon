@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 const SILO_CAPACITY_MAX = 75000;
@@ -39,8 +40,9 @@ function RecipeCard({ recipe }: RecipeCardProps) {
       const available = siloItem?.quantity || 0;
       if (ing.quantity > 0) {
           max = Math.min(max, Math.floor(available / ing.quantity));
-      } else {
-        max = 0; // if any ingredient requires 0, it can't be crafted.
+      } else if (ing.quantity === 0) {
+        // If ingredient requires 0, it doesn't limit crafting unless we have none of anything else.
+        continue;
       }
     }
     return max === Infinity ? 0 : max;
