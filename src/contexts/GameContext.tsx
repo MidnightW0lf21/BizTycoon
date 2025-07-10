@@ -512,8 +512,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: FarmVehicle) => {
-        const configId = savedVehicle.configId;
-        const config = FARM_VEHICLES.find(v => v.id === configId);
+        const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
         if (config) {
           return { ...savedVehicle, icon: config.icon };
         }
@@ -1599,10 +1598,26 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const tick = setInterval(() => {
       const now = Date.now();
       setPlayerStats(prev => {
-        const updatedFarmFields = [...(prev.farmFields || [])];
+        let updatedFarmFields = [...(prev.farmFields || [])];
         let updatedFarmVehicles = [...(prev.farmVehicles || [])];
         let siloStorage = [...(prev.siloStorage || [])];
+        
         let farmStateChanged = false;
+
+        // Process active vehicle tasks (fuel consumption, wear, etc.)
+        updatedFarmVehicles = updatedFarmVehicles.map(vehicle => {
+          if (vehicle.status === 'Working' && vehicle.activity) {
+            farmStateChanged = true;
+            const fuelUsedPerSecond = vehicle.fuelUsageLtrPerHr / 3600;
+            const wearAddedPerSecond = vehicle.wearPerHr / 3600;
+            return {
+              ...vehicle,
+              fuel: Math.max(0, vehicle.fuel - fuelUsedPerSecond),
+              wear: Math.min(100, vehicle.wear + wearAddedPerSecond),
+            };
+          }
+          return vehicle;
+        });
         
         updatedFarmFields.forEach((field, index) => {
           if (field.activity) {
@@ -1650,9 +1665,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               }
 
               if (vehicle && vehicleIndex > -1) {
-                const fuelUsed = (vehicle.fuelUsageLtrPerHr / 3600) * field.activity.durationSeconds;
-                const wearAdded = (vehicle.wearPerHr / 3600) * field.activity.durationSeconds;
-                updatedFarmVehicles[vehicleIndex] = { ...vehicle, status: 'Idle', activity: undefined, fuel: Math.max(0, vehicle.fuel - fuelUsed), wear: Math.min(100, vehicle.wear + wearAdded) };
+                updatedFarmVehicles[vehicleIndex] = { ...vehicle, status: 'Idle', activity: undefined };
               }
             }
           }
@@ -1816,7 +1829,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     }, GAME_TICK_INTERVAL);
     return () => clearInterval(tick);
-  }, [localCalculateIncome, getDynamicMaxWorkerEnergy, calculateMaxEnergy, etfsState, businessSynergiesState]);
+  }, [localCalculateIncome, getDynamicMaxBusinessLevel, calculateMaxEnergy, etfsState, businessSynergiesState]);
 
   useEffect(() => {
     // Auto-buy logic... (remains the same)
