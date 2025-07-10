@@ -83,14 +83,14 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
 }));
 
 export const FARM_CROPS: Crop[] = [
-  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 6000, yieldPerHa: 100 },
-  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 12000, yieldPerHa: 150 },
-  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 9000, yieldPerHa: 200 },
-  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 8000, yieldPerHa: 180 },
-  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 15000, yieldPerHa: 120 },
-  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 24000, yieldPerHa: 250 },
-  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 30000, yieldPerHa: 80 },
-  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 18000, yieldPerHa: 130 },
+  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 3000, yieldPerHa: 100 },
+  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 6000, yieldPerHa: 150 },
+  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 4500, yieldPerHa: 200 },
+  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 4000, yieldPerHa: 180 },
+  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 7500, yieldPerHa: 120 },
+  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 12000, yieldPerHa: 250 },
+  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 15000, yieldPerHa: 80 },
+  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 9000, yieldPerHa: 130 },
 ];
 
 
@@ -519,6 +519,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 
