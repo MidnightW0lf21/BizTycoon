@@ -156,7 +156,7 @@ export default function FarmPage() {
                             Upgrade (${siloUpgradeCost.toLocaleString()})
                         </Button>
                     </div>
-                    <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
+                    <div className="w-12 h-40">
                        <Progress value={siloFillPercentage} orientation="vertical" />
                     </div>
                 </CardContent>
@@ -187,7 +187,7 @@ export default function FarmPage() {
                         </p>
                         )}
                     </div>
-                    <div className="w-12 h-40 bg-muted rounded-lg overflow-hidden flex items-end">
+                    <div className="w-12 h-40">
                         <Progress value={fuelFillPercentage} orientation="vertical" indicatorClassName="bg-orange-400" />
                     </div>
                 </CardContent>
