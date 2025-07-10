@@ -13,7 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { INITIAL_BUSINESSES, INITIAL_FACTORY_COMPONENTS_CONFIG, BUSINESS_SYNERGIES } from "@/config/game-config"; 
+import { INITIAL_BUSINESSES, INITIAL_FACTORY_COMPONENTS_CONFIG, BUSINESS_SYNERGIES, INITIAL_STOCKS } from "@/config/game-config"; 
 
 type BuyAmountOption = 1 | 10 | 25 | 'MAX';
 
