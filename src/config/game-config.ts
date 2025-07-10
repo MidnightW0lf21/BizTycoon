@@ -1,5 +1,5 @@
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, KitchenRecipe } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
 import { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
@@ -65,11 +65,12 @@ export const FUEL_DEPOT_UPGRADE_COST_BASE = 750000;
 export const FUEL_DEPOT_UPGRADE_COST_MULTIPLIER = 1.6;
 
 
+const fieldSizes = [5, 8, 5, 12, 10, 15, 8, 20, 12, 25];
 export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i) => ({
   id: `field_${i + 1}`,
   name: `Field ${i + 1}`,
-  sizeHa: 5 + i * 2, // 5, 7, 9, ..., 23
-  purchaseCost: 10000000 * Math.pow(1.5, i),
+  sizeHa: fieldSizes[i],
+  purchaseCost: 8000000 * Math.pow(1.6, i),
   isOwned: i < 2, // First 2 fields are owned by default
   status: 'Empty',
 }));
