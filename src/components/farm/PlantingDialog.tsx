@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FARM_CROPS, FARM_VEHICLES } from "@/config/game-config";
+import { FARM_CROPS } from "@/config/game-config";
 import { useState, useMemo, useCallback } from "react";
 import { useGame } from "@/contexts/GameContext";
 import { Sprout } from "lucide-react";
@@ -63,30 +63,11 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Plant Crop on {field.name}</DialogTitle>
-          <DialogDescription>Select a crop to plant and an available tractor to perform the sowing.</DialogDescription>
+          <DialogDescription>Select a tractor to perform the sowing, then choose a crop to plant.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-4">
           <div>
-            <h3 className="text-lg font-semibold mb-2">1. Select Crop</h3>
-            <RadioGroup onValueChange={setSelectedCropId} disabled={!selectedTractorId}>
-              <div className="space-y-2">
-                {FARM_CROPS.map(crop => (
-                  <Label key={crop.id} htmlFor={crop.id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent hover:text-accent-foreground has-[:checked]:border-primary has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed">
-                    <RadioGroupItem value={crop.id} id={crop.id} disabled={!selectedTractorId} />
-                    <crop.icon className="h-5 w-5"/>
-                    <div className="flex-1">
-                      <p className="font-semibold">{crop.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Sow: {selectedTractor ? formatTime(getSowingTime(selectedTractor)) : '...'} | Grow: {formatTime(crop.growthTimeSeconds)}
-                      </p>
-                    </div>
-                  </Label>
-                ))}
-              </div>
-            </RadioGroup>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">2. Select Tractor</h3>
+            <h3 className="text-lg font-semibold mb-2">1. Select Tractor</h3>
             <RadioGroup onValueChange={setSelectedTractorId}>
               <div className="space-y-2">
                 {availableTractors.length > 0 ? availableTractors.map(tractor => {
@@ -103,6 +84,25 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
                 )}) : (
                     <p className="text-sm text-muted-foreground text-center p-4 border rounded-md">No available tractors.</p>
                 )}
+              </div>
+            </RadioGroup>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">2. Select Crop</h3>
+            <RadioGroup onValueChange={setSelectedCropId} disabled={!selectedTractorId}>
+              <div className="space-y-2">
+                {FARM_CROPS.map(crop => (
+                  <Label key={crop.id} htmlFor={crop.id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent hover:text-accent-foreground has-[:checked]:border-primary has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed">
+                    <RadioGroupItem value={crop.id} id={crop.id} disabled={!selectedTractorId} />
+                    <crop.icon className="h-5 w-5"/>
+                    <div className="flex-1">
+                      <p className="font-semibold">{crop.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Sow: {selectedTractor ? formatTime(getSowingTime(selectedTractor)) : '...'} | Grow: {formatTime(crop.growthTimeSeconds)}
+                      </p>
+                    </div>
+                  </Label>
+                ))}
               </div>
             </RadioGroup>
           </div>
@@ -127,3 +127,4 @@ export function PlantingDialog({ isOpen, onClose, field }: PlantingDialogProps) 
     </Dialog>
   );
 }
+
