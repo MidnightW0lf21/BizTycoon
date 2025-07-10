@@ -93,6 +93,7 @@ interface GameContextType {
   purchaseVehicle: (vehicleConfigId: string) => void;
   refuelVehicle: (vehicleInstanceId: string) => void;
   repairVehicle: (vehicleInstanceId: string) => void;
+  sellVehicle: (vehicleInstanceId: string) => void;
   orderFuel: () => void;
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
@@ -514,7 +515,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: FarmVehicle) => {
         const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
         if (config) {
-          return { ...savedVehicle, icon: config.icon };
+          return { ...savedVehicle, icon: config.icon, purchaseCost: config.purchaseCost };
         }
         return null;
       }).filter(Boolean) as FarmVehicle[];
@@ -1157,7 +1158,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         farmPurchased: true,
         farmFields: INITIAL_FARM_FIELDS,
         farmVehicles: [
-          { ...FARM_VEHICLES[0], configId: FARM_VEHICLES[0].id, instanceId: `tractor_${Date.now()}`, fuel: 100, wear: 0, status: 'Idle' }
+          { ...FARM_VEHICLES[0], configId: FARM_VEHICLES[0].id, instanceId: `tractor_${Date.now()}`, fuel: 100, wear: 0, status: 'Idle', purchaseCost: FARM_VEHICLES[0].purchaseCost }
         ],
       };
     });
@@ -1357,6 +1358,30 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const sellVehicle = useCallback((vehicleInstanceId: string) => {
+    setPlayerStats(prev => {
+      const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
+      if (vehicleIndex === -1) return prev;
+      const vehicle = prev.farmVehicles![vehicleIndex];
+
+      if (vehicle.status !== 'Idle') {
+        toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
+        return prev;
+      }
+
+      const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
+      const newVehicles = prev.farmVehicles!.filter(v => v.instanceId !== vehicleInstanceId);
+
+      toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
+
+      return {
+        ...prev,
+        money: prev.money + salePrice,
+        farmVehicles: newVehicles,
+      };
+    });
+  }, []);
+
   const orderFuel = useCallback(() => {
     setPlayerStats(prev => {
       if (prev.pendingFuelDelivery) {
@@ -1368,8 +1393,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastRef.current({ title: "Order Failed", description: "Not enough money to order fuel.", variant: "destructive" });
         return prev;
       }
-      
-      toastRef.current({ title: "Fuel Ordered!", description: `${FUEL_ORDER_AMOUNT}L will arrive in ${FUEL_DELIVERY_TIME_SECONDS}s.` });
       
       return {
         ...prev,
@@ -1519,7 +1542,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: FarmVehicle) => {
             const config = FARM_VEHICLES.find(v => v.id === savedVehicle.configId);
             if (config) {
-              return { ...savedVehicle, icon: config.icon };
+              return { ...savedVehicle, icon: config.icon, purchaseCost: config.purchaseCost };
             }
             return null;
           }).filter(Boolean) as FarmVehicle[];
@@ -1851,7 +1874,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
       purchaseFarm, plantCrop, harvestField, cultivateField, purchaseVehicle,
-      refuelVehicle, repairVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
+      refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
       craftKitchenRecipe, shipKitchenItem,
     }}>
       {children}

@@ -19,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<FarmField | null>(null);
@@ -222,7 +222,7 @@ export default function FarmPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(playerStats.farmVehicles || []).map(vehicle => (
-                  <VehicleCard key={vehicle.instanceId} vehicle={vehicle} onRefuel={refuelVehicle} onRepair={repairVehicle} playerFuel={playerStats.fuelStorage || 0} playerMoney={playerStats.money}/>
+                  <VehicleCard key={vehicle.instanceId} vehicle={vehicle} onRefuel={refuelVehicle} onRepair={repairVehicle} onSell={sellVehicle} playerFuel={playerStats.fuelStorage || 0} playerMoney={playerStats.money}/>
                 ))}
                 <Card className="flex flex-col justify-center items-center text-center p-4 border-dashed">
                     <PlusCircle className="h-10 w-10 text-muted-foreground mb-2"/>
