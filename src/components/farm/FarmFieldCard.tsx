@@ -5,9 +5,11 @@ import type { FarmField } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock } from "lucide-react";
+import { Sprout, Tractor, Combine, CheckCircle, Wheat, LandPlot, Unlock, Timer } from "lucide-react";
 import { useGame } from "@/contexts/GameContext";
 import { cn } from "@/lib/utils";
+import { FARM_CROPS } from "@/config/game-config";
+import { useState, useEffect } from "react";
 
 interface FarmFieldCardProps {
   field: FarmField;
@@ -17,7 +19,27 @@ interface FarmFieldCardProps {
 }
 
 export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivateClick }: FarmFieldCardProps) {
-  const { playerStats } = useGame(); // Use context for more complex actions later
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    if (!field.activity) {
+      setTimeLeft(0);
+      return;
+    }
+
+    const calculateTimeLeft = () => {
+      const endTime = field.activity!.startTime + (field.activity!.durationSeconds * 1000);
+      const remaining = Math.max(0, endTime - Date.now());
+      setTimeLeft(remaining / 1000);
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(interval);
+
+  }, [field.activity]);
+
 
   const getStatusIcon = () => {
     switch (field.status) {
@@ -38,6 +60,8 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
     return Math.min(100, progress);
   };
   
+  const plantedCrop = field.currentCropId ? FARM_CROPS.find(c => c.id === field.currentCropId) : null;
+
   if (!field.isOwned) {
     return (
        <Card className="border-dashed flex flex-col justify-center items-center text-center p-4">
@@ -65,14 +89,20 @@ export function FarmFieldCard({ field, onPlantClick, onHarvestClick, onCultivate
         </div>
       </CardHeader>
       <CardContent>
-        {field.currentCropId && (
+        {plantedCrop && (
             <div className="flex items-center gap-2 text-sm mb-2">
-                <Wheat className="h-4 w-4 text-yellow-600"/>
-                <span>Currently Planted: {field.currentCropId}</span>
+                <plantedCrop.icon className="h-4 w-4 text-yellow-600"/>
+                <span>Currently Planted: {plantedCrop.name}</span>
             </div>
         )}
         {(field.status === 'Sowing' || field.status === 'Growing' || field.status === 'Harvesting' || field.status === 'Cultivating') && field.activity && (
-          <Progress value={getProgress()} className="h-2" />
+          <div className="space-y-1">
+            <Progress value={getProgress()} className="h-2" />
+            <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">
+              <Timer className="h-3 w-3" />
+              <span>{Math.ceil(timeLeft)}s remaining</span>
+            </div>
+          </div>
         )}
       </CardContent>
       <CardFooter>
