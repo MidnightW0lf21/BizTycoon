@@ -371,7 +371,7 @@ export interface Crop {
 }
 
 export type FarmFieldStatus = 'NotOwned' | 'Empty' | 'Sowing' | 'Growing' | 'ReadyToHarvest' | 'Harvesting' | 'Cultivating';
-export type FarmActivityType = 'Sowing' | 'Growing' | 'Harvesting' | 'Cultivating' | 'Repairing' | 'FuelDelivery';
+export type FarmActivityType = 'Sowing' | 'Growing' | 'Harvesting' | 'Cultivating' | 'Repairing' | 'FuelDelivery' | 'KitchenCrafting';
 
 export interface FarmActivity {
   type: FarmActivityType;
@@ -445,6 +445,11 @@ export interface KitchenItem {
   quantity: number;
 }
 
+export interface KitchenCraftingActivity {
+  recipeId: string;
+  completionTime: number;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -503,7 +508,7 @@ export interface PlayerStats {
   fuelCapacity: number;
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
   kitchenInventory?: KitchenItem[];
-  kitchenQueue?: { recipeId: string; completionTime: number }[];
+  kitchenQueue?: KitchenCraftingActivity[];
 
   // App Settings
   toastSettings?: ToastSettings;

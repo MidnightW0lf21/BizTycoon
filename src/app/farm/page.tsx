@@ -4,8 +4,8 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle } from "lucide-react";
-import { FARM_PURCHASE_COST, FUEL_ORDER_AMOUNT, FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_SECONDS, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER } from "@/config/game-config";
+import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon } from "lucide-react";
+import { FARM_PURCHASE_COST, FUEL_ORDER_AMOUNT, FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_SECONDS, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
@@ -13,11 +13,13 @@ import { useState, useMemo, useEffect } from "react";
 import { PlantingDialog } from "@/components/farm/PlantingDialog";
 import { VehicleShopDialog } from "@/components/farm/VehicleShopDialog";
 import type { FarmField } from "@/types";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, orderFuel, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<FarmField | null>(null);
@@ -209,15 +211,115 @@ export default function FarmPage() {
             </Card>
           </TabsContent>
           <TabsContent value="kitchen" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Kitchen & Logistics</CardTitle>
-                <CardDescription>Process harvested crops and ship them to the warehouse. (Coming Soon)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">This feature is under construction.</p>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-1">
+                <CardHeader>
+                    <CardTitle>Silo Contents</CardTitle>
+                    <CardDescription>Raw materials from your fields.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {(playerStats.siloStorage || []).length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Silo is empty.</p>
+                    ) : (
+                        (playerStats.siloStorage || []).map(item => {
+                            const crop = FARM_CROPS.find(c => c.id === item.cropId);
+                            if (!crop) return null;
+                            const Icon = crop.icon;
+                            return (
+                                <div key={item.cropId} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                    <div className="flex items-center gap-2">
+                                        <Icon className="h-5 w-5 text-primary" />
+                                        <span>{crop.name}</span>
+                                    </div>
+                                    <span className="font-semibold">{item.quantity.toLocaleString()}</span>
+                                </div>
+                            );
+                        })
+                    )}
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Kitchen & Logistics</CardTitle>
+                    <CardDescription>Process harvested crops into valuable goods and ship them to your warehouse.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {KITCHEN_RECIPES.map(recipe => {
+                        const canCraft = recipe.ingredients.every(ing => {
+                            const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
+                            return siloItem && siloItem.quantity >= ing.quantity;
+                        });
+                        const existingQueueItem = (playerStats.kitchenQueue || []).find(q => q.recipeId === recipe.id);
+                        const progress = existingQueueItem ? (1 - ((existingQueueItem.completionTime - Date.now()) / (recipe.craftTimeSeconds * 1000))) * 100 : 0;
+
+                        return (
+                            <Card key={recipe.id}>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2"><recipe.icon className="h-5 w-5 text-primary"/>{recipe.name}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm font-semibold mb-2">Ingredients:</p>
+                                    <ul className="text-sm space-y-1">
+                                        {recipe.ingredients.map(ing => {
+                                             const siloItem = (playerStats.siloStorage || []).find(item => item.cropId === ing.cropId);
+                                             const hasEnough = siloItem && siloItem.quantity >= ing.quantity;
+                                            return (
+                                            <li key={ing.cropId} className="flex items-center justify-between">
+                                                <span>{ing.quantity}x {ing.cropId}</span>
+                                                {hasEnough ? <Check className="h-4 w-4 text-green-500"/> : <span className="text-destructive">({(siloItem?.quantity || 0)}/{ing.quantity})</span>}
+                                            </li>
+                                        )})}
+                                    </ul>
+                                </CardContent>
+                                <CardFooter>
+                                    {existingQueueItem ? (
+                                        <div className="w-full space-y-1">
+                                            <Progress value={progress} />
+                                            <p className="text-xs text-muted-foreground text-center">Crafting...</p>
+                                        </div>
+                                    ) : (
+                                        <Button onClick={() => craftKitchenRecipe(recipe.id)} disabled={!canCraft} className="w-full">
+                                            <ChefHat className="mr-2 h-4 w-4"/>Craft ({recipe.craftTimeSeconds}s)
+                                        </Button>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        );
+                    })}
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-3">
+                  <CardHeader>
+                      <CardTitle>Finished Goods Inventory</CardTitle>
+                      <CardDescription>Items crafted in the kitchen, ready to be shipped.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                       {(playerStats.kitchenInventory || []).length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No finished goods yet.</p>
+                    ) : (
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                           {(playerStats.kitchenInventory || []).map(item => {
+                                const recipe = KITCHEN_RECIPES.find(r => r.outputItemId === item.itemId);
+                                if (!recipe) return null;
+                                const Icon = recipe.icon;
+                                return (
+                                    <Card key={item.itemId} className="p-4 flex flex-col items-center justify-center text-center">
+                                        <Icon className="h-10 w-10 text-primary mb-2"/>
+                                        <p className="font-bold">{recipe.name}</p>
+                                        <p className="text-2xl">{item.quantity.toLocaleString()}</p>
+                                        <Button size="sm" className="mt-2 w-full" onClick={() => shipKitchenItem(item.itemId, item.quantity)}>
+                                            <ShipIcon className="mr-2 h-4 w-4"/> Ship to Warehouse
+                                        </Button>
+                                    </Card>
+                                );
+                           })}
+                         </div>
+                    )}
+                  </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

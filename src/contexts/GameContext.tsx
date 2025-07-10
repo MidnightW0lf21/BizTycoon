@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import {
   INITIAL_BUSINESSES, INITIAL_MONEY, INITIAL_STOCKS, INITIAL_PRESTIGE_POINTS, INITIAL_TIMES_PRESTIGED, INITIAL_SKILL_TREE,
   INITIAL_UNLOCKED_SKILL_IDS, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES, INITIAL_UNLOCKED_ARTIFACT_IDS, INITIAL_ARTIFACTS,
@@ -19,7 +19,7 @@ import {
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
-  FUEL_ORDER_COST_PER_LTR, FUEL_ORDER_AMOUNT, FUEL_DELIVERY_TIME_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS
+  FUEL_ORDER_COST_PER_LTR, FUEL_ORDER_AMOUNT, FUEL_DELIVERY_TIME_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -96,6 +96,8 @@ interface GameContextType {
   orderFuel: () => void;
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
+  craftKitchenRecipe: (recipeId: string) => void;
+  shipKitchenItem: (itemId: string, quantity: number) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -509,22 +511,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return savedStock;
       });
 
-      const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: any) => {
-        const configId = savedVehicle.configId || savedVehicle.id; // Compatibility for old saves
+      const hydratedFarmVehicles = (mergedPlayerStats.farmVehicles || []).map((savedVehicle: FarmVehicle) => {
+        const configId = savedVehicle.configId;
         const config = FARM_VEHICLES.find(v => v.id === configId);
         if (config) {
-          return {
-            ...savedVehicle,
-            configId: config.id, // Ensure the new field is present
-            icon: config.icon,   // Re-hydrate the icon function
-            name: config.name,
-            type: config.type,
-            speedHaPerHr: config.speedHaPerHr,
-            fuelCapacity: config.fuelCapacity,
-            fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
-            wearPerHr: config.wearPerHr,
-            purchaseCost: config.purchaseCost,
-          };
+          return { ...savedVehicle, icon: config.icon };
         }
         return null;
       }).filter(Boolean) as FarmVehicle[];
@@ -1425,6 +1416,48 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const craftKitchenRecipe = useCallback((recipeId: string) => {
+    setPlayerStats(prev => {
+        const recipe = KITCHEN_RECIPES.find(r => r.id === recipeId);
+        if (!recipe) return prev;
+
+        const hasIngredients = recipe.ingredients.every(ing => {
+            const item = (prev.siloStorage || []).find(s => s.cropId === ing.cropId);
+            return item && item.quantity >= ing.quantity;
+        });
+
+        if (!hasIngredients) {
+            toastRef.current({ title: "Missing Ingredients", description: `You don't have enough raw materials to craft ${recipe.name}.`, variant: "destructive" });
+            return prev;
+        }
+
+        const newSiloStorage = [...(prev.siloStorage || [])];
+        recipe.ingredients.forEach(ing => {
+            const itemIndex = newSiloStorage.findIndex(s => s.cropId === ing.cropId);
+            newSiloStorage[itemIndex].quantity -= ing.quantity;
+        });
+
+        const newQueue = [...(prev.kitchenQueue || []), {
+            recipeId,
+            completionTime: Date.now() + recipe.craftTimeSeconds * 1000,
+        }];
+        
+        return { ...prev, siloStorage: newSiloStorage, kitchenQueue: newQueue };
+    });
+  }, []);
+
+  const shipKitchenItem = useCallback((itemId: string, quantity: number) => {
+    setPlayerStats(prev => {
+        const newInventory = (prev.kitchenInventory || []).map(item => 
+            item.itemId === itemId ? { ...item, quantity: item.quantity - quantity } : item
+        ).filter(item => item.quantity > 0);
+        
+        const recipe = KITCHEN_RECIPES.find(r => r.outputItemId === itemId);
+        toastRef.current({ title: "Item Shipped!", description: `You shipped ${quantity.toLocaleString()} x ${recipe?.name || itemId} to the warehouse.` });
+
+        return { ...prev, kitchenInventory: newInventory };
+    });
+  }, []);
 
   useEffect(() => {
     const loadGame = () => {
@@ -1549,12 +1582,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (!prevPlayerStats || !toast) return;
 
-    // Fuel Delivery Toast
     if (playerStats.pendingFuelDelivery === undefined && prevPlayerStats.pendingFuelDelivery) {
         toast({ title: "Fuel Delivered!", description: `${prevPlayerStats.pendingFuelDelivery.amount}L of fuel has been added to your depot.` });
     }
 
-    // Vehicle Repair Toast
     playerStats.farmVehicles?.forEach((vehicle) => {
         const prevVehicle = prevPlayerStats.farmVehicles?.find(pv => pv.instanceId === vehicle.instanceId);
         if (prevVehicle && prevVehicle.status === 'Repairing' && vehicle.status === 'Idle') {
@@ -1566,8 +1597,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const tick = setInterval(() => {
+      const now = Date.now();
       setPlayerStats(prev => {
-        const now = Date.now();
         const updatedFarmFields = [...(prev.farmFields || [])];
         let updatedFarmVehicles = [...(prev.farmVehicles || [])];
         let siloStorage = [...(prev.siloStorage || [])];
@@ -1643,6 +1674,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             newFuelStorage = Math.min(prev.fuelCapacity, (prev.fuelStorage || 0) + prev.pendingFuelDelivery.amount);
             fuelDeliveryCompleted = true;
         }
+
+        const kitchenQueue = [...(prev.kitchenQueue || [])];
+        const kitchenInventory = [...(prev.kitchenInventory || [])];
+        const completedCrafts = kitchenQueue.filter(q => now >= q.completionTime);
+        if (completedCrafts.length > 0) {
+            farmStateChanged = true;
+            completedCrafts.forEach(craft => {
+                const recipe = KITCHEN_RECIPES.find(r => r.id === craft.recipeId);
+                if(recipe){
+                    const existingItemIndex = kitchenInventory.findIndex(item => item.itemId === recipe.outputItemId);
+                    if (existingItemIndex > -1) {
+                        kitchenInventory[existingItemIndex].quantity += recipe.outputQuantity;
+                    } else {
+                        kitchenInventory.push({ itemId: recipe.outputItemId, quantity: recipe.outputQuantity });
+                    }
+                }
+            });
+        }
+        const updatedKitchenQueue = kitchenQueue.filter(q => now < q.completionTime);
 
         const allBusinesses = businessesRef.current;
         const allStocks = stocksRef.current;
@@ -1759,6 +1809,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
           fuelStorage: newFuelStorage,
           pendingFuelDelivery: fuelDeliveryCompleted ? undefined : prev.pendingFuelDelivery,
+          kitchenInventory: kitchenInventory,
+          kitchenQueue: updatedKitchenQueue,
         };
       });
 
@@ -1787,6 +1839,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateToastSettings, setRecipeForEntireLine,
       purchaseFarm, plantCrop, harvestField, cultivateField, purchaseVehicle,
       refuelVehicle, repairVehicle, orderFuel, upgradeSilo, upgradeFuelDepot,
+      craftKitchenRecipe, shipKitchenItem,
     }}>
       {children}
     </GameContext.Provider>
