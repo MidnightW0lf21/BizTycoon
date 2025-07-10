@@ -1292,41 +1292,42 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const purchaseVehicle = useCallback((vehicleConfigId: string) => {
     const config = FARM_VEHICLES.find(v => v.id === vehicleConfigId);
     if (!config) {
-      toastRef.current({ title: "Vehicle not found", variant: "destructive" });
-      return;
+        toastRef.current({ title: "Vehicle not found", variant: "destructive" });
+        return;
     }
-
-    setPlayerStats(prev => {
-      if (prev.money < config.purchaseCost) {
+  
+    const currentMoney = playerStatsRef.current.money;
+    if (currentMoney < config.purchaseCost) {
         toastRef.current({ title: "Not enough money", variant: "destructive" });
-        return prev;
-      }
-
-      const newVehicle: FarmVehicle = {
-        instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
-        configId: config.id,
-        name: config.name,
-        type: config.type,
-        icon: config.icon,
-        speedHaPerHr: config.speedHaPerHr,
-        fuelCapacity: config.fuelCapacity,
-        fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
-        wearPerHr: config.wearPerHr,
-        purchaseCost: config.purchaseCost,
-        fuel: config.fuelCapacity,
-        wear: 0,
-        status: 'Idle',
-      };
-      
-      const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
-
-      toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
-
-      return {
-        ...prev,
-        money: prev.money - config.purchaseCost,
-        farmVehicles: updatedVehicles
-      };
+        return;
+    }
+  
+    toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
+  
+    setPlayerStats(prev => {
+        const newVehicle: FarmVehicle = {
+            instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
+            configId: config.id,
+            name: config.name,
+            type: config.type,
+            icon: config.icon,
+            speedHaPerHr: config.speedHaPerHr,
+            fuelCapacity: config.fuelCapacity,
+            fuelUsageLtrPerHr: config.fuelUsageLtrPerHr,
+            wearPerHr: config.wearPerHr,
+            purchaseCost: config.purchaseCost,
+            fuel: config.fuelCapacity,
+            wear: 0,
+            status: 'Idle',
+        };
+        
+        const updatedVehicles = [...(prev.farmVehicles || []), newVehicle];
+  
+        return {
+            ...prev,
+            money: prev.money - config.purchaseCost,
+            farmVehicles: updatedVehicles
+        };
     });
   }, []);
 
@@ -1927,3 +1928,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
