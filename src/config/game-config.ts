@@ -13,7 +13,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
-import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad, Apple, Grape, Candy, Soup, PieSlice, Cake, GlassWater, CookingPot, Utensils, UtensilsCrossed } from 'lucide-react';
+import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad, Apple, Grape, Candy, Soup, CakeSlice, Cake, GlassWater, CookingPot, Utensils, UtensilsCrossed } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -112,7 +112,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
   { id: 'potato_wedges', name: 'Potato Wedges', icon: Salad, ingredients: [{ cropId: 'Potatoes', quantity: 12 }], outputItemId: 'potato_wedges', outputQuantity: 1, craftTimeSeconds: 40 },
   { id: 'sugar', name: 'Sugar', icon: Candy, ingredients: [{ cropId: 'Sugarcane', quantity: 15 }], outputItemId: 'sugar', outputQuantity: 1, craftTimeSeconds: 50 },
   { id: 'tomato_soup', name: 'Tomato Soup', icon: Soup, ingredients: [{ cropId: 'Tomatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 5 }], outputItemId: 'tomato_soup', outputQuantity: 1, craftTimeSeconds: 60 },
-  { id: 'apple_pie', name: 'Apple Pie', icon: PieSlice, ingredients: [{ cropId: 'Apples', quantity: 8 }, { cropId: 'Wheat', quantity: 5 }, { cropId: 'Sugarcane', quantity: 3 }], outputItemId: 'apple_pie', outputQuantity: 1, craftTimeSeconds: 90 },
+  { id: 'apple_pie', name: 'Apple Pie', icon: CakeSlice, ingredients: [{ cropId: 'Apples', quantity: 8 }, { cropId: 'Wheat', quantity: 5 }, { cropId: 'Sugarcane', quantity: 3 }], outputItemId: 'apple_pie', outputQuantity: 1, craftTimeSeconds: 90 },
   { id: 'strawberry_jam', name: 'Strawberry Jam', icon: GlassWater, ingredients: [{ cropId: 'Strawberries', quantity: 20 }, { cropId: 'Sugarcane', quantity: 10 }], outputItemId: 'strawberry_jam', outputQuantity: 1, craftTimeSeconds: 75 },
   { id: 'carrot_cake', name: 'Carrot Cake', icon: Cake, ingredients: [{ cropId: 'Carrots', quantity: 15 }, { cropId: 'Wheat', quantity: 10 }, { cropId: 'Sugarcane', quantity: 8 }], outputItemId: 'carrot_cake', outputQuantity: 1, craftTimeSeconds: 120 },
   { id: 'vegetable_stew', name: 'Vegetable Stew', icon: CookingPot, ingredients: [{ cropId: 'Potatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 8 }, { cropId: 'Tomatoes', quantity: 6 }], outputItemId: 'vegetable_stew', outputQuantity: 1, craftTimeSeconds: 100 },
@@ -501,6 +501,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 
