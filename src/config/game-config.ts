@@ -86,17 +86,17 @@ export const FARM_CROPS: Crop[] = [
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
   // Tractors
-  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
-  { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 45000000 },
-  { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 120000000 },
-  { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 350000000 },
-  { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1000000000 },
+  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 20000000 },
+  { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 55000000 },
+  { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 150000000 },
+  { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 400000000 },
+  { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1200000000 },
   // Harvesters
-  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 25000000 },
-  { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 65000000 },
-  { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 180000000 },
-  { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 500000000 },
-  { id: 'harvester_tier5', name: 'Fusion-Powered Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 45, fuelCapacity: 500, fuelUsageLtrPerHr: 35, wearPerHr: 1, purchaseCost: 1500000000 },
+  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 30000000 },
+  { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 80000000 },
+  { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 220000000 },
+  { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 600000000 },
+  { id: 'harvester_tier5', name: 'Fusion-Powered Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 45, fuelCapacity: 500, fuelUsageLtrPerHr: 35, wearPerHr: 1, purchaseCost: 1800000000 },
 ];
 
 export const KITCHEN_RECIPES: KitchenRecipe[] = [
