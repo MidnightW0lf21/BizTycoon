@@ -31,6 +31,9 @@ const GAME_TICK_INTERVAL = 1000;
 const IPO_CHECK_INTERVAL = 60000; // Check for new IPO every minute
 const IPO_DURATION = 10 * 60 * 1000; // 10 minutes
 
+const SILO_CAPACITY_MAX = 75000;
+const FUEL_CAPACITY_MAX = 10000;
+
 interface GameContextType {
   playerStats: PlayerStats;
   businesses: Business[];
@@ -1412,7 +1415,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
             return prev;
         }
-        const newCapacity = (prev.siloCapacity || 1000) * 2;
+        if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
+            toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
+            return prev;
+        }
+        const newCapacity = Math.min(SILO_CAPACITY_MAX, (prev.siloCapacity || 1000) * 2);
         toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
         return {
             ...prev,
@@ -1430,7 +1437,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
             return prev;
         }
-        const newCapacity = (prev.fuelCapacity || 500) * 2;
+        if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
+            toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
+            return prev;
+        }
+        const newCapacity = Math.min(FUEL_CAPACITY_MAX, (prev.fuelCapacity || 500) * 2);
         toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
         return {
             ...prev,
@@ -1891,5 +1902,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    

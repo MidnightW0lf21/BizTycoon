@@ -18,6 +18,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const REQUIRED_PRESTIGE_LEVEL_FARM = 15;
+const SILO_CAPACITY_MAX = 75000;
+const FUEL_CAPACITY_MAX = 10000;
 
 export default function FarmPage() {
   const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, craftKitchenRecipe, shipKitchenItem } = useGame();
@@ -75,6 +77,8 @@ export default function FarmPage() {
     return () => clearInterval(intervalId);
   }, [playerStats.pendingFuelDelivery]);
 
+  const isSiloMaxed = (playerStats.siloCapacity || 0) >= SILO_CAPACITY_MAX;
+  const isFuelDepotMaxed = (playerStats.fuelCapacity || 0) >= FUEL_CAPACITY_MAX;
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FARM) {
     return (
@@ -154,8 +158,8 @@ export default function FarmPage() {
                             <span className="text-lg text-muted-foreground"> / {(playerStats.siloCapacity || 0).toLocaleString()} units</span>
                         </p>
                         <p className="text-sm text-muted-foreground">Your total storage for harvested crops.</p>
-                        <Button size="sm" variant="outline" className="mt-2" onClick={upgradeSilo} disabled={playerStats.money < siloUpgradeCost}>
-                            Upgrade (${siloUpgradeCost.toLocaleString()})
+                        <Button size="sm" variant="outline" className="mt-2" onClick={upgradeSilo} disabled={isSiloMaxed || playerStats.money < siloUpgradeCost}>
+                            {isSiloMaxed ? 'Max Capacity' : `Upgrade ($${siloUpgradeCost.toLocaleString()})`}
                         </Button>
                     </div>
                     <div className="w-12 h-40">
@@ -179,8 +183,8 @@ export default function FarmPage() {
                             <Button size="sm" variant="outline" onClick={() => setIsFuelOrderOpen(true)} disabled={!!playerStats.pendingFuelDelivery}>
                                 Order Fuel
                             </Button>
-                            <Button size="sm" variant="outline" onClick={upgradeFuelDepot} disabled={playerStats.money < fuelDepotUpgradeCost}>
-                                Upgrade (${fuelDepotUpgradeCost.toLocaleString()})
+                            <Button size="sm" variant="outline" onClick={upgradeFuelDepot} disabled={isFuelDepotMaxed || playerStats.money < fuelDepotUpgradeCost}>
+                                {isFuelDepotMaxed ? 'Max Capacity' : `Upgrade ($${fuelDepotUpgradeCost.toLocaleString()})`}
                             </Button>
                         </div>
                         {playerStats.pendingFuelDelivery && fuelDeliveryTimeLeft > 0 && (
@@ -369,5 +373,3 @@ export default function FarmPage() {
     </>
   );
 }
-
-    
