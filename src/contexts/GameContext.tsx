@@ -1172,12 +1172,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const purchaseFarmField = useCallback((fieldId: string) => {
-    const prev = playerStatsRef.current;
-    const fieldToBuy = prev.farmFields?.find(f => f.id === fieldId);
+    const fieldToBuy = playerStatsRef.current.farmFields?.find(f => f.id === fieldId);
 
     if (!fieldToBuy || fieldToBuy.isOwned) return;
 
-    if (prev.money < fieldToBuy.purchaseCost) {
+    if (playerStatsRef.current.money < fieldToBuy.purchaseCost) {
       toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
       return;
     }
@@ -1305,7 +1304,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toastRef.current({ title: "Not enough money", variant: "destructive" });
         return;
     }
+
     toastRef.current({ title: "Vehicle Purchased!", description: `You bought a new ${config.name}.` });
+    
     setPlayerStats(prev => {
         const newVehicle: FarmVehicle = {
             instanceId: `${config.id}_${Date.now()}_${Math.random()}`,
@@ -1475,25 +1476,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
   
   const upgradePantry = useCallback(() => {
-    setPlayerStats(prev => {
-        const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
-        const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
-        if (prev.money < cost) {
-            toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
-            return prev;
-        }
-        if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
-            toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
-            return prev;
-        }
-        const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (prev.pantryCapacity || 100) * 2);
-        toastRef.current({ title: "Pantry Upgraded!", description: `Pantry capacity increased to ${newCapacity.toLocaleString()} units.` });
-        return {
-            ...prev,
-            money: prev.money - cost,
-            pantryCapacity: newCapacity
-        };
-    });
+    const prev = playerStatsRef.current;
+    const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
+    const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
+    
+    if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
+        toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
+        return;
+    }
+
+    if (prev.money < cost) {
+        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
+        return;
+    }
+
+    const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (prev.pantryCapacity || 100) * 2);
+    toastRef.current({ title: "Pantry Upgraded!", description: `Pantry capacity increased to ${newCapacity.toLocaleString()} units.` });
+    
+    setPlayerStats(current => ({
+        ...current,
+        money: current.money - cost,
+        pantryCapacity: newCapacity
+    }));
   }, []);
 
   const craftKitchenRecipe = useCallback((recipeId: string, quantity: number) => {

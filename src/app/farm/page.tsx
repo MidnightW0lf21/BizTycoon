@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon, Inbox } from "lucide-react";
-import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX, PANTRY_CAPACITY_MAX } from "@/config/game-config";
+import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
@@ -171,6 +172,11 @@ export default function FarmPage() {
     if (!playerStats.fuelCapacity) return 0;
     return ((playerStats.fuelStorage || 0) / playerStats.fuelCapacity) * 100;
   }, [playerStats.fuelStorage, playerStats.fuelCapacity]);
+  
+  const pantryUpgradeCost = useMemo(() => {
+    const currentLevel = Math.floor(Math.log((playerStats.pantryCapacity || 100) / 100) / Math.log(2));
+    return Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
+  }, [playerStats.pantryCapacity]);
 
 
   useEffect(() => {
@@ -193,6 +199,7 @@ export default function FarmPage() {
 
   const isSiloMaxed = (playerStats.siloCapacity || 0) >= SILO_CAPACITY_MAX;
   const isFuelDepotMaxed = (playerStats.fuelCapacity || 0) >= FUEL_CAPACITY_MAX;
+  const isPantryMaxed = (playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX;
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FARM) {
     return (
@@ -404,9 +411,9 @@ export default function FarmPage() {
                       variant="outline"
                       className="w-full"
                       onClick={upgradePantry}
-                      disabled={(playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX}
+                      disabled={isPantryMaxed || playerStats.money < pantryUpgradeCost}
                     >
-                      { (playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX ? "Max Capacity" : "Upgrade Pantry" }
+                      { isPantryMaxed ? "Max Capacity" : `Upgrade ($${pantryUpgradeCost.toLocaleString()})` }
                     </Button>
                   </CardFooter>
                 </Card>
