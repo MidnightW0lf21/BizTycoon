@@ -91,83 +91,49 @@ export default function MyFactoryPage() {
 
 
   const totalAutomatedMaterialsPerSecond = useMemo(() => {
-    if (!playerStats.factoryPurchased || netPower < 0) return 0;
-
+    if (!playerStats.factoryPurchased) return 0;
+    
     let totalMats = 0;
-    let powerUsedByCollectors = 0;
-    const collectors = playerStats.factoryMaterialCollectors || [];
-
-    collectors.forEach(collector => {
-      const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-      if (config) {
-        const powerConsumptionOfOtherMachines = playerStats.factoryPowerConsumptionKw -
-            (collectors.filter(c => c.id !== collector.instanceId)
-                        .reduce((sum, otherCollector) => {
-                            const otherConfig = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(oc => oc.id === otherCollector.configId);
-                            return sum + (otherConfig?.powerConsumptionKw || 0);
-                        }, 0));
-
-        if (playerStats.factoryPowerUnitsGenerated - powerConsumptionOfOtherMachines >= config.powerConsumptionKw) {
-           let baseRate = config.materialsPerSecond;
-           const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
-           if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
-               baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
-           }
-           // Check for global factory material collection boosts
-           let globalFactoryMaterialBoost = 0;
-           Object.entries(playerStats.factoryProducedComponents || {}).forEach(([componentId, count]) => {
-               const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
-               if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent && count > 0) {
-                   const effectPerUnit = componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
-                   const maxBonus = componentConfig.effects.maxBonusPercent ?? Infinity;
-                   globalFactoryMaterialBoost += Math.min(count * effectPerUnit, maxBonus);
-               }
-           });
-           if (globalFactoryMaterialBoost > 0) {
-               baseRate *= (1 + globalFactoryMaterialBoost / 100);
-           }
-
-           totalMats += baseRate;
-           powerUsedByCollectors += config.powerConsumptionKw;
-        }
-      }
+    const collectors = (playerStats.factoryMaterialCollectors || []).sort((a, b) => {
+        const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
+        const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
+        return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
     });
+    
+    // Calculate total power consumed by non-collector machines
+    const powerUsedByOtherMachines = (playerStats.factoryMachines || []).reduce((sum, machine) => {
+        const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+        return sum + (config?.powerConsumptionKw || 0);
+    }, 0);
 
-    const powerAvailableForAllActiveCollectors = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
+    let powerAvailableForCollectors = playerStats.factoryPowerUnitsGenerated - powerUsedByOtherMachines;
 
-    if (powerAvailableForAllActiveCollectors < powerUsedByCollectors && powerAvailableForAllActiveCollectors >=0) {
-        let tempPower = playerStats.factoryPowerUnitsGenerated - (playerStats.factoryPowerConsumptionKw - powerUsedByCollectors);
-        let actualTotalMats = 0;
-        (playerStats.factoryMaterialCollectors || []).sort((a,b) => {
-            const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
-            const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
-            return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
-        }).forEach(collector => {
-            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-            if(config && tempPower >= config.powerConsumptionKw) {
-                let baseRate = config.materialsPerSecond;
-                const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
-                if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
-                    baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
-                }
-                let globalFactoryMaterialBoost = 0;
-                 Object.entries(playerStats.factoryProducedComponents || {}).forEach(([componentId, count]) => {
-                     const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
-                     if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent && count > 0) {
-                         const effectPerUnit = componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
-                         const maxBonus = componentConfig.effects.maxBonusPercent ?? Infinity;
-                         globalFactoryMaterialBoost += Math.min(count * effectPerUnit, maxBonus);
-                     }
-                 });
-                 if (globalFactoryMaterialBoost > 0) {
-                     baseRate *= (1 + globalFactoryMaterialBoost / 100);
-                 }
-
-                actualTotalMats += baseRate;
-                tempPower -= config.powerConsumptionKw;
-            }
+    for (const collector of collectors) {
+      const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+      if (config && powerAvailableForCollectors >= config.powerConsumptionKw) {
+        powerAvailableForCollectors -= config.powerConsumptionKw;
+        
+        let baseRate = config.materialsPerSecond;
+        const boostResearch = researchItems.find(r => r.effects.factoryMaterialCollectorBoost?.collectorConfigId === config.id);
+        if (boostResearch && (playerStats.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryMaterialCollectorBoost) {
+           baseRate *= (1 + boostResearch.effects.factoryMaterialCollectorBoost.materialsPerSecondBoostPercent / 100);
+        }
+        
+        let globalFactoryMaterialBoost = 0;
+        Object.entries(playerStats.factoryProducedComponents || {}).forEach(([componentId, count]) => {
+           const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+           if (componentConfig?.effects?.factoryGlobalMaterialCollectionBoostPercent && count > 0) {
+               const effectPerUnit = componentConfig.effects.factoryGlobalMaterialCollectionBoostPercent;
+               const maxBonus = componentConfig.effects.maxBonusPercent ?? Infinity;
+               globalFactoryMaterialBoost += Math.min(count * effectPerUnit, maxBonus);
+           }
         });
-        return actualTotalMats;
+        if (globalFactoryMaterialBoost > 0) {
+           baseRate *= (1 + globalFactoryMaterialBoost / 100);
+        }
+        
+        totalMats += baseRate;
+      }
     }
 
     return totalMats;
@@ -179,7 +145,8 @@ export default function MyFactoryPage() {
       netPower,
       playerStats.unlockedResearchIds,
       researchItems,
-      playerStats.factoryProducedComponents
+      playerStats.factoryProducedComponents,
+      playerStats.factoryMachines
   ]);
 
 
