@@ -1168,28 +1168,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const purchaseFarmField = useCallback((fieldId: string) => {
-    const fieldToBuy = playerStatsRef.current.farmFields?.find(f => f.id === fieldId);
-
+    const prev = playerStatsRef.current;
+    const fieldToBuy = prev.farmFields?.find(f => f.id === fieldId);
+  
     if (!fieldToBuy || fieldToBuy.isOwned) return;
-
-    if (playerStatsRef.current.money < fieldToBuy.purchaseCost) {
+  
+    if (prev.money < fieldToBuy.purchaseCost) {
       toastRef.current({ title: "Cannot Afford Field", description: "Not enough money to purchase this field.", variant: "destructive" });
       return;
     }
   
-    setPlayerStats(prev => {
-      const newFields = (prev.farmFields || []).map(f =>
+    toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
+  
+    setPlayerStats(current => {
+      const newFields = (current.farmFields || []).map(f =>
         f.id === fieldId ? { ...f, isOwned: true } : f
       );
       
       return {
-        ...prev,
-        money: prev.money - fieldToBuy.purchaseCost,
+        ...current,
+        money: current.money - fieldToBuy.purchaseCost,
         farmFields: newFields
       };
     });
-
-    toastRef.current({ title: "Field Purchased!", description: `You have acquired ${fieldToBuy.name}.` });
   }, []);
 
   const plantCrop = useCallback((fieldId: string, cropId: CropId, vehicleInstanceId: string) => {
@@ -1388,24 +1389,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const sellVehicle = useCallback((vehicleInstanceId: string) => {
-    setPlayerStats(prev => {
-      const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
-      if (vehicleIndex === -1) return prev;
-      const vehicle = prev.farmVehicles![vehicleIndex];
-
-      if (vehicle.status !== 'Idle') {
-        toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
-        return prev;
-      }
-
-      const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
-      const newVehicles = prev.farmVehicles!.filter(v => v.instanceId !== vehicleInstanceId);
-
-      toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
-
+    const prev = playerStatsRef.current;
+    const vehicleIndex = (prev.farmVehicles || []).findIndex(v => v.instanceId === vehicleInstanceId);
+    if (vehicleIndex === -1) return;
+    
+    const vehicle = prev.farmVehicles![vehicleIndex];
+  
+    if (vehicle.status !== 'Idle') {
+      toastRef.current({ title: "Cannot Sell", description: "Vehicle must be idle to sell.", variant: "destructive" });
+      return;
+    }
+  
+    const salePrice = Math.floor(vehicle.purchaseCost * 0.5 * (1 - vehicle.wear / 100));
+    toastRef.current({ title: "Vehicle Sold!", description: `You sold ${vehicle.name} for $${salePrice.toLocaleString()}.` });
+  
+    setPlayerStats(current => {
+      const newVehicles = (current.farmVehicles || []).filter(v => v.instanceId !== vehicleInstanceId);
       return {
-        ...prev,
-        money: prev.money + salePrice,
+        ...current,
+        money: current.money + salePrice,
         farmVehicles: newVehicles,
       };
     });
