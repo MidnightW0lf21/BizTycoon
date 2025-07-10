@@ -1,4 +1,5 @@
 
+
 import type { LucideIcon } from "lucide-react";
 
 export interface BusinessUpgrade {
@@ -360,7 +361,7 @@ export interface ToastSettings {
   showQuarry: boolean;
 }
 
-export type CropId = 'Wheat' | 'Corn' | 'Potatoes';
+export type CropId = 'Wheat' | 'Corn' | 'Potatoes' | 'Carrots' | 'Tomatoes' | 'Sugarcane' | 'Apples' | 'Strawberries';
 
 export interface Crop {
   id: CropId;

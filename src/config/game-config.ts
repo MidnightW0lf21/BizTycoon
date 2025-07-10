@@ -1,4 +1,5 @@
 
+
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
@@ -12,7 +13,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
-import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad } from 'lucide-react';
+import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot, Shell, Popcorn, Salad, Apple, Grape, Candy, Soup, PieSlice, Cake, GlassWater, CookingPot, Utensils, UtensilsCrossed } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -80,8 +81,14 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
 export const FARM_CROPS: Crop[] = [
   { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 60, yieldPerHa: 100 },
   { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 120, yieldPerHa: 150 },
-  { id: 'Potatoes', name: 'Potatoes', icon: Sprout, growthTimeSeconds: 90, yieldPerHa: 200 },
+  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 90, yieldPerHa: 200 },
+  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 80, yieldPerHa: 180 },
+  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 150, yieldPerHa: 120 },
+  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 240, yieldPerHa: 250 },
+  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 300, yieldPerHa: 80 },
+  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 180, yieldPerHa: 130 },
 ];
+
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
   // Tractors
@@ -99,10 +106,17 @@ export const FARM_VEHICLES: FarmVehicleConfig[] = [
 ];
 
 export const KITCHEN_RECIPES: KitchenRecipe[] = [
-  { id: 'bread', name: 'Bread', icon: Sandwich, ingredients: [{ cropId: 'Wheat', quantity: 10 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
   { id: 'flour', name: 'Flour', icon: Shell, ingredients: [{ cropId: 'Wheat', quantity: 5 }], outputItemId: 'flour', outputQuantity: 1, craftTimeSeconds: 15 },
+  { id: 'bread', name: 'Bread', icon: Sandwich, ingredients: [{ cropId: 'Wheat', quantity: 10 }], outputItemId: 'bread', outputQuantity: 1, craftTimeSeconds: 30 },
   { id: 'popcorn', name: 'Popcorn', icon: Popcorn, ingredients: [{ cropId: 'Corn', quantity: 8 }], outputItemId: 'popcorn', outputQuantity: 1, craftTimeSeconds: 25 },
   { id: 'potato_wedges', name: 'Potato Wedges', icon: Salad, ingredients: [{ cropId: 'Potatoes', quantity: 12 }], outputItemId: 'potato_wedges', outputQuantity: 1, craftTimeSeconds: 40 },
+  { id: 'sugar', name: 'Sugar', icon: Candy, ingredients: [{ cropId: 'Sugarcane', quantity: 15 }], outputItemId: 'sugar', outputQuantity: 1, craftTimeSeconds: 50 },
+  { id: 'tomato_soup', name: 'Tomato Soup', icon: Soup, ingredients: [{ cropId: 'Tomatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 5 }], outputItemId: 'tomato_soup', outputQuantity: 1, craftTimeSeconds: 60 },
+  { id: 'apple_pie', name: 'Apple Pie', icon: PieSlice, ingredients: [{ cropId: 'Apples', quantity: 8 }, { cropId: 'Wheat', quantity: 5 }, { cropId: 'Sugarcane', quantity: 3 }], outputItemId: 'apple_pie', outputQuantity: 1, craftTimeSeconds: 90 },
+  { id: 'strawberry_jam', name: 'Strawberry Jam', icon: GlassWater, ingredients: [{ cropId: 'Strawberries', quantity: 20 }, { cropId: 'Sugarcane', quantity: 10 }], outputItemId: 'strawberry_jam', outputQuantity: 1, craftTimeSeconds: 75 },
+  { id: 'carrot_cake', name: 'Carrot Cake', icon: Cake, ingredients: [{ cropId: 'Carrots', quantity: 15 }, { cropId: 'Wheat', quantity: 10 }, { cropId: 'Sugarcane', quantity: 8 }], outputItemId: 'carrot_cake', outputQuantity: 1, craftTimeSeconds: 120 },
+  { id: 'vegetable_stew', name: 'Vegetable Stew', icon: CookingPot, ingredients: [{ cropId: 'Potatoes', quantity: 10 }, { cropId: 'Carrots', quantity: 8 }, { cropId: 'Tomatoes', quantity: 6 }], outputItemId: 'vegetable_stew', outputQuantity: 1, craftTimeSeconds: 100 },
+  { id: 'fruit_salad', name: 'Fruit Salad', icon: Salad, ingredients: [{ cropId: 'Apples', quantity: 5 }, { cropId: 'Strawberries', quantity: 10 }], outputItemId: 'fruit_salad', outputQuantity: 1, craftTimeSeconds: 45 },
 ];
 
 
@@ -487,5 +501,6 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
