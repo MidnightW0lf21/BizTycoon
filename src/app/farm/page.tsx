@@ -400,8 +400,8 @@ export default function FarmPage() {
 
               <Card className="lg:col-span-3">
                   <CardHeader>
-                      <CardTitle>Finished Goods Inventory</CardTitle>
-                      <CardDescription>Items crafted in the kitchen, ready to be shipped.</CardDescription>
+                      <CardTitle>Pantry Inventory</CardTitle>
+                      <CardDescription>Items crafted in the kitchen, ready to be shipped to warehouse.</CardDescription>
                   </CardHeader>
                   <CardContent>
                        {(playerStats.kitchenInventory || []).length === 0 ? (
