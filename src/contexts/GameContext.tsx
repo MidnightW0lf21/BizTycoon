@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
@@ -19,7 +20,7 @@ import {
   QUARRY_ENERGY_MAX, QUARRY_ENERGY_COST_PER_DIG, QUARRY_ENERGY_REGEN_PER_SECOND, QUARRY_DIG_COOLDOWN_MS, defaultToastSettings,
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
-  FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES
+  FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -31,8 +32,6 @@ const GAME_TICK_INTERVAL = 1000;
 const IPO_CHECK_INTERVAL = 60000; // Check for new IPO every minute
 const IPO_DURATION = 10 * 60 * 1000; // 10 minutes
 
-const SILO_CAPACITY_MAX = 75000;
-const FUEL_CAPACITY_MAX = 10000;
 
 interface GameContextType {
   playerStats: PlayerStats;
@@ -1902,3 +1901,4 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+

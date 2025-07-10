@@ -1,4 +1,5 @@
 
+
 import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, StockUpgrade, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
@@ -12,7 +13,7 @@ import { WORKER_HIRE_COST_BASE, WORKER_HIRE_COST_MULTIPLIER, MAX_WORKERS, INITIA
 import { INITIAL_QUARRY_UPGRADES } from './data/quarry';
 import { INITIAL_ETFS } from './data/etfs';
 import { BUSINESS_SYNERGIES } from './data/synergies';
-import { Sandwich, Combine, Sprout, Tractor, Wheat } from 'lucide-react';
+import { Sandwich, Combine, Sprout, Tractor, Wheat, Bot } from 'lucide-react';
 
 
 export const INITIAL_MONEY = 10;
@@ -53,7 +54,9 @@ export const QUARRY_NAME_SUFFIXES = ["Mine", "Quarry", "Cavern", "Chasm", "Pit",
 // Farm Config
 export const FARM_PURCHASE_COST = 50000000;
 export const INITIAL_SILO_CAPACITY = 1000;
+export const SILO_CAPACITY_MAX = 75000;
 export const INITIAL_FUEL_CAPACITY = 500;
+export const FUEL_CAPACITY_MAX = 10000;
 export const FUEL_ORDER_COST_PER_LTR = 1000;
 export const FUEL_DELIVERY_TIME_BASE_SECONDS = 60; // 1 minute base
 export const FUEL_DELIVERY_TIME_PER_LTR_SECONDS = 0.5; // Half a second per liter
@@ -82,8 +85,18 @@ export const FARM_CROPS: Crop[] = [
 ];
 
 export const FARM_VEHICLES: FarmVehicleConfig[] = [
-  { id: 'tractor_basic', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
-  { id: 'harvester_basic', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 25000000 },
+  // Tractors
+  { id: 'tractor_tier1', name: 'Old Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 10, fuelCapacity: 100, fuelUsageLtrPerHr: 10, wearPerHr: 2, purchaseCost: 15000000 },
+  { id: 'tractor_tier2', name: 'Modern Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 15, fuelCapacity: 120, fuelUsageLtrPerHr: 12, wearPerHr: 1.8, purchaseCost: 45000000 },
+  { id: 'tractor_tier3', name: 'Advanced Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 22, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 1.5, purchaseCost: 120000000 },
+  { id: 'tractor_tier4', name: 'High-Tech Tractor', type: 'Tractor', icon: Tractor, speedHaPerHr: 35, fuelCapacity: 200, fuelUsageLtrPerHr: 20, wearPerHr: 1.2, purchaseCost: 350000000 },
+  { id: 'tractor_tier5', name: 'Quantum Tractor', type: 'Tractor', icon: Bot, speedHaPerHr: 50, fuelCapacity: 300, fuelUsageLtrPerHr: 25, wearPerHr: 0.8, purchaseCost: 1000000000 },
+  // Harvesters
+  { id: 'harvester_tier1', name: 'Basic Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 8, fuelCapacity: 150, fuelUsageLtrPerHr: 15, wearPerHr: 3, purchaseCost: 25000000 },
+  { id: 'harvester_tier2', name: 'Heavy Combine', type: 'Harvester', icon: Combine, speedHaPerHr: 13, fuelCapacity: 180, fuelUsageLtrPerHr: 20, wearPerHr: 2.5, purchaseCost: 65000000 },
+  { id: 'harvester_tier3', name: 'Industrial Harvester', type: 'Harvester', icon: Combine, speedHaPerHr: 20, fuelCapacity: 220, fuelUsageLtrPerHr: 25, wearPerHr: 2, purchaseCost: 180000000 },
+  { id: 'harvester_tier4', name: 'Autonomous Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 30, fuelCapacity: 300, fuelUsageLtrPerHr: 30, wearPerHr: 1.5, purchaseCost: 500000000 },
+  { id: 'harvester_tier5', name: 'Fusion-Powered Harvester', type: 'Harvester', icon: Bot, speedHaPerHr: 45, fuelCapacity: 500, fuelUsageLtrPerHr: 35, wearPerHr: 1, purchaseCost: 1500000000 },
 ];
 
 export const KITCHEN_RECIPES: KitchenRecipe[] = [
