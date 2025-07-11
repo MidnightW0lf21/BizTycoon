@@ -21,7 +21,7 @@ import {
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
   FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX,
-  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY
+  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY, WAREHOUSE_UPGRADE_COST_BASE, WAREHOUSE_UPGRADE_COST_MULTIPLIER, WAREHOUSE_CAPACITY_MAX
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -102,6 +102,7 @@ interface GameContextType {
   upgradeSilo: () => void;
   upgradeFuelDepot: () => void;
   upgradePantry: () => void;
+  upgradeWarehouse: () => void;
   craftKitchenRecipe: (recipeId: string, quantity: number) => void;
   shipKitchenItem: (itemId: string, quantity: number) => void;
 }
@@ -867,176 +868,484 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const performPrestige = useCallback(() => {
+    const playerStatsNow = playerStatsRef.current;
+    const moneyRequiredForFirstPrestige = 100000;
+    
+    if (playerStatsNow.money < moneyRequiredForFirstPrestige && playerStatsNow.timesPrestiged === 0) {
+      toastRef.current({ title: "Prestige Failed", description: "You need at least $100,000 to prestige for the first time.", variant: "destructive"});
+      return;
+    }
+
+    const totalBusinessLevels = businessesRef.current.reduce((sum, b) => sum + b.level, 0);
+    const newPoints = calculateDiminishingPrestigePoints(totalBusinessLevels);
+    
+    if (newPoints <= playerStatsNow.prestigePoints && playerStatsNow.timesPrestiged > 0) {
+      toastRef.current({ title: "No New Points", description: "You wouldn't gain any new prestige points right now. Level up your businesses further!", variant: "default" });
+      return;
+    }
+
+    const boostPercent = getPrestigePointBoostPercent(
+        playerStatsNow.unlockedSkillIds,
+        skillTreeRef.current,
+        playerStatsNow.hqUpgradeLevels,
+        hqUpgradesRef.current,
+        playerStatsNow.unlockedArtifactIds,
+        INITIAL_ARTIFACTS
+    );
+
+    const basePointsGained = newPoints - playerStatsNow.prestigePoints;
+    const finalPointsGained = Math.floor(basePointsGained * (1 + boostPercent / 100));
+
+    setPlayerStats(prev => {
+        const startingMoneyBonus = getStartingMoneyBonus(
+            prev.unlockedSkillIds,
+            skillTreeRef.current,
+            prev.hqUpgradeLevels,
+            hqUpgradesRef.current,
+            prev.unlockedArtifactIds,
+            INITIAL_ARTIFACTS
+        );
+
+        const retainedStockHoldings = prev.stockHoldings.map(holding => {
+            const retainUpgrade = hqUpgradesRef.current.find(u => u.id === `retain_shares_${holding.stockId}`);
+            if (retainUpgrade) {
+                const level = prev.hqUpgradeLevels[retainUpgrade.id] || 0;
+                if (level > 0) {
+                    const retentionData = retainUpgrade.levels.find(l => l.level === level);
+                    const retentionPercent = retentionData?.effects.retentionPercentage || 0;
+                    return { ...holding, shares: Math.floor(holding.shares * (retentionPercent / 100)) };
+                }
+            }
+            return { ...holding, shares: 0 };
+        }).filter(h => h.shares > 0);
+
+        return {
+          ...prev,
+          money: INITIAL_MONEY + startingMoneyBonus,
+          prestigePoints: prev.prestigePoints + finalPointsGained,
+          timesPrestiged: prev.timesPrestiged + 1,
+          stockHoldings: retainedStockHoldings,
+          etfHoldings: [],
+          activeIpo: null,
+          minerals: 0,
+          quarryDepth: 0,
+          quarryLevel: 0,
+          quarryName: "Starter's Pit",
+          quarryRarityBias: null,
+          quarryEnergy: calculateMaxEnergy(prev),
+        };
+    });
+
+    setBusinesses(prevBusinesses => {
+        return prevBusinesses.map(business => {
+            const retainUpgrade = hqUpgradesRef.current.find(u => u.id === `retain_level_${business.id}`);
+            let retainedLevel = 0;
+            if (retainUpgrade) {
+                const level = playerStatsRef.current.hqUpgradeLevels[retainUpgrade.id] || 0;
+                if (level > 0) {
+                    const retentionData = retainUpgrade.levels.find(l => l.level === level);
+                    const retentionPercent = retentionData?.effects.retentionPercentage || 0;
+                    retainedLevel = Math.floor(business.level * (retentionPercent / 100));
+                }
+            }
+            return {
+              ...business,
+              level: retainedLevel,
+              managerOwned: false,
+              upgrades: business.upgrades?.map(upg => ({ ...upg, isPurchased: false })) || []
+            };
+        });
+    });
+    if(playerStatsRef.current.toastSettings?.showPrestige) {
+        toastRef.current({ title: "Prestige Successful!", description: `You gained ${finalPointsGained} Prestige Point(s)!` });
+    }
+  }, [getPrestigePointBoostPercent, calculateMaxEnergy]);
+
 
   const unlockSkillNode = useCallback((skillId: string) => {
-    // ... (This function remains the same)
+    const skill = skillTreeRef.current.find(s => s.id === skillId);
+    if (!skill || playerStatsRef.current.unlockedSkillIds.includes(skillId)) return;
+
+    const dependenciesMet = skill.dependencies ? skill.dependencies.every(dep => playerStatsRef.current.unlockedSkillIds.includes(dep)) : true;
+    if (playerStatsRef.current.prestigePoints >= skill.cost && dependenciesMet) {
+      setPlayerStats(prev => ({
+        ...prev,
+        prestigePoints: prev.prestigePoints - skill.cost,
+        unlockedSkillIds: [...prev.unlockedSkillIds, skillId],
+      }));
+      if (playerStatsRef.current.toastSettings?.showManualPurchases) {
+        toastRef.current({ title: "Skill Unlocked!", description: `You unlocked: ${skill.name}` });
+      }
+    } else {
+        toastRef.current({ title: "Cannot Unlock Skill", description: "You either lack the Prestige Points or the required prerequisite skills.", variant: "destructive" });
+    }
   }, []);
 
   const purchaseHQUpgrade = useCallback((upgradeId: string) => {
-    // ... (This function remains the same)
+    const upgradeConfig = hqUpgradesRef.current.find(u => u.id === upgradeId);
+    if (!upgradeConfig) return;
+
+    const currentLevel = playerStatsRef.current.hqUpgradeLevels[upgradeId] || 0;
+    if (currentLevel >= upgradeConfig.levels.length) return;
+
+    const nextLevelData = upgradeConfig.levels.find(l => l.level === currentLevel + 1);
+    if (!nextLevelData) return;
+
+    if (playerStatsRef.current.money >= nextLevelData.costMoney &&
+        playerStatsRef.current.prestigePoints >= (nextLevelData.costPrestigePoints || 0)) {
+        
+        setPlayerStats(prev => ({
+            ...prev,
+            money: prev.money - nextLevelData.costMoney,
+            prestigePoints: prev.prestigePoints - (nextLevelData.costPrestigePoints || 0),
+            hqUpgradeLevels: {
+                ...prev.hqUpgradeLevels,
+                [upgradeId]: nextLevelData.level,
+            },
+        }));
+        if (playerStatsRef.current.toastSettings?.showManualPurchases) {
+          toastRef.current({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevelData.level}.` });
+        }
+    } else {
+       toastRef.current({ title: "Cannot Afford HQ Upgrade", description: "You lack the required money or prestige points.", variant: "destructive" });
+    }
   }, []);
 
   const purchaseFactoryBuilding = useCallback(() => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        if (prev.money >= FACTORY_PURCHASE_COST && !prev.factoryPurchased) {
+            if(playerStatsRef.current.toastSettings?.showManualPurchases) {
+                toastRef.current({ title: "Factory Purchased!", description: "You can now access the 'My Factory' page."});
+            }
+            return {
+                ...prev,
+                money: prev.money - FACTORY_PURCHASE_COST,
+                factoryPurchased: true,
+                factoryProductionLines: prev.factoryProductionLines.map(line => line.id === 'line_1' ? { ...line, isUnlocked: true } : line)
+            };
+        } else {
+            if(playerStatsRef.current.toastSettings?.showManualPurchases) {
+                toastRef.current({ title: "Purchase Failed", description: prev.factoryPurchased ? "You already own a factory." : "Not enough money.", variant: "destructive"});
+            }
+            return prev;
+        }
+    });
   }, []);
 
   const purchaseFactoryPowerBuilding = useCallback((configId: string) => {
-    // ... (This function remains the same)
+    const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === configId);
+    if (!config) return;
+
+    setPlayerStats(prev => {
+        const numOwned = (prev.factoryPowerBuildings || []).filter(b => b.configId === configId).length;
+        if (config.maxInstances !== undefined && numOwned >= config.maxInstances) return prev;
+
+        const cost = config.baseCost * Math.pow(config.costMultiplier || 1.1, numOwned);
+        if (prev.money < cost) return prev;
+
+        const newBuilding: FactoryPowerBuilding = { instanceId: `${configId}_${Date.now()}`, configId };
+        if (playerStatsRef.current.toastSettings?.showFactory) {
+          toastRef.current({ title: "Power Building Constructed!", description: `Built a new ${config.name}.` });
+        }
+        return {
+            ...prev,
+            money: prev.money - cost,
+            factoryPowerBuildings: [...(prev.factoryPowerBuildings || []), newBuilding]
+        };
+    });
   }, []);
 
   const manuallyCollectRawMaterials = useCallback(() => {
-    // ... (This function remains the same)
+    if (Date.now() < materialCollectionCooldownEndRef.current) return;
+    
+    materialCollectionCooldownEndRef.current = Date.now() + MATERIAL_COLLECTION_COOLDOWN_MS;
+    setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
+
+    setPlayerStats(prev => {
+        const spaceLeft = (prev.factoryRawMaterialsCap || 0) - prev.factoryRawMaterials;
+        const amountToAdd = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeft);
+        if (amountToAdd <= 0) return prev;
+        
+        return {
+            ...prev,
+            factoryRawMaterials: prev.factoryRawMaterials + amountToAdd
+        };
+    });
   }, []);
 
   const purchaseFactoryMachine = useCallback((configId: string) => {
-    // ... (This function remains the same)
+    const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(c => c.id === configId);
+    if (!config) return;
+
+    setPlayerStats(prev => {
+        if (prev.money < config.baseCost) return prev;
+
+        const newMachine: FactoryMachine = {
+            instanceId: `${configId}_${Date.now()}`,
+            configId: configId,
+            assignedProductionLineId: null,
+        };
+        if (playerStatsRef.current.toastSettings?.showFactory) {
+          toastRef.current({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
+        }
+        return {
+            ...prev,
+            money: prev.money - config.baseCost,
+            factoryMachines: [...(prev.factoryMachines || []), newMachine]
+        };
+    });
   }, []);
 
   const purchaseFactoryMachineUpgrade = useCallback((machineInstanceId: string, upgradeId: string) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+      const machineIndex = (prev.factoryMachines || []).findIndex(m => m.instanceId === machineInstanceId);
+      if (machineIndex === -1) return prev;
+  
+      const machine = prev.factoryMachines![machineIndex];
+      const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+      if (!machineConfig?.upgrades) return prev;
+  
+      const upgradeConfig = machineConfig.upgrades.find(u => u.id === upgradeId);
+      if (!upgradeConfig || (machine.purchasedUpgradeIds || []).includes(upgradeId)) return prev;
+  
+      const canAfford = prev.money >= upgradeConfig.costMoney &&
+                        (upgradeConfig.costRP ? prev.researchPoints >= upgradeConfig.costRP : true);
+      const researchMet = !upgradeConfig.requiredResearchId || (prev.unlockedResearchIds || []).includes(upgradeConfig.requiredResearchId);
+  
+      if (!canAfford || !researchMet) return prev;
+  
+      const newMachines = [...prev.factoryMachines!];
+      newMachines[machineIndex] = {
+        ...machine,
+        purchasedUpgradeIds: [...(machine.purchasedUpgradeIds || []), upgradeId]
+      };
+      if (playerStatsRef.current.toastSettings?.showFactory) {
+        toastRef.current({ title: "Machine Upgrade Purchased!", description: `${machineConfig.name} - ${upgradeConfig.name}` });
+      }
+      return {
+        ...prev,
+        money: prev.money - upgradeConfig.costMoney,
+        researchPoints: prev.researchPoints - (upgradeConfig.costRP || 0),
+        factoryMachines: newMachines
+      };
+    });
   }, []);
 
 
   const setRecipeForProductionSlot = useCallback((productionLineId: string, slotIndex: number, targetComponentId: string | null) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        const newLines = [...(prev.factoryProductionLines || [])];
+        const lineIndex = newLines.findIndex(l => l.id === productionLineId);
+        if (lineIndex === -1) return prev;
+
+        const newLine = { ...newLines[lineIndex] };
+        if (!newLine.slots[slotIndex]) return prev;
+
+        newLine.slots = [...newLine.slots];
+        newLine.slots[slotIndex] = { ...newLine.slots[slotIndex], targetComponentId };
+        newLines[lineIndex] = newLine;
+        
+        return { ...prev, factoryProductionLines: newLines };
+    });
   }, []);
 
   const purchaseFactoryMaterialCollector = useCallback((configId: string) => {
-    // ... (This function remains the same)
+    const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === configId);
+    if (!config) return;
+
+    setPlayerStats(prev => {
+        const numOwned = (prev.factoryMaterialCollectors || []).filter(c => c.configId === configId).length;
+        if (config.maxInstances !== undefined && numOwned >= config.maxInstances) return prev;
+
+        const cost = config.baseCost * Math.pow(config.costMultiplier || 1.15, numOwned);
+        if (prev.money < cost) return prev;
+
+        const newCollector: FactoryMaterialCollector = {
+            instanceId: `${configId}_${Date.now()}`,
+            configId,
+            currentMaterialsPerSecond: config.materialsPerSecond,
+        };
+        if (playerStatsRef.current.toastSettings?.showFactory) {
+            toastRef.current({ title: "Material Collector Deployed!", description: `Deployed a new ${config.name}.` });
+        }
+        return {
+            ...prev,
+            money: prev.money - cost,
+            factoryMaterialCollectors: [...(prev.factoryMaterialCollectors || []), newCollector]
+        };
+    });
   }, []);
 
   const manuallyGenerateResearchPoints = useCallback(() => {
-    // ... (This function remains the same)
+    if (Date.now() < manualResearchCooldownEndRef.current) return;
+    
+    const numBoostStages = (playerStatsRef.current.unlockedResearchIds || []).filter(id => id.startsWith("manual_rp_boost_")).length;
+    const currentCostMoney = RESEARCH_MANUAL_GENERATION_COST_MONEY + (numBoostStages * MANUAL_RESEARCH_ADDITIVE_COST_INCREASE_PER_BOOST);
+    
+    if(playerStatsRef.current.money < currentCostMoney) {
+        toastRef.current({ title: "Not enough money", description: "Cannot afford to conduct manual research.", variant: "destructive" });
+        return;
+    }
+
+    manualResearchCooldownEndRef.current = Date.now() + RESEARCH_MANUAL_COOLDOWN_MS;
+    setManualResearchCooldownEnd(manualResearchCooldownEndRef.current);
+
+    setPlayerStats(prev => {
+        const pointsToGain = RESEARCH_MANUAL_GENERATION_AMOUNT + (prev.manualResearchBonus || 0);
+        return {
+            ...prev,
+            researchPoints: prev.researchPoints + pointsToGain,
+            money: prev.money - currentCostMoney,
+            lastManualResearchTimestamp: Date.now()
+        };
+    });
   }, []);
 
   const purchaseResearch = useCallback((researchId: string) => {
-    // ... (This function remains the same)
+    const researchConfig = researchItemsRef.current.find(r => r.id === researchId);
+    if (!researchConfig) return;
+
+    setPlayerStats(prev => {
+        if ((prev.unlockedResearchIds || []).includes(researchId)) return prev;
+
+        const dependenciesMet = researchConfig.dependencies ? researchConfig.dependencies.every(dep => (prev.unlockedResearchIds || []).includes(dep)) : true;
+        if (!dependenciesMet) return prev;
+
+        if (prev.researchPoints < researchConfig.costRP || (researchConfig.costMoney && prev.money < researchConfig.costMoney)) return prev;
+
+        let updatedStats = {
+            ...prev,
+            researchPoints: prev.researchPoints - researchConfig.costRP,
+            money: prev.money - (researchConfig.costMoney || 0),
+            unlockedResearchIds: [...(prev.unlockedResearchIds || []), researchId]
+        };
+
+        if (researchConfig.effects.upgradesWorkerEnergyTier) {
+            updatedStats.currentWorkerEnergyTier = Math.min(WORKER_ENERGY_TIERS.length - 1, updatedStats.currentWorkerEnergyTier + 1);
+        }
+        if (researchConfig.effects.increaseManualResearchBonus) {
+            updatedStats.manualResearchBonus = (updatedStats.manualResearchBonus || 0) + researchConfig.effects.increaseManualResearchBonus;
+        }
+        if (researchConfig.effects.increaseFactoryRawMaterialsCap) {
+          updatedStats.factoryRawMaterialsCap = researchConfig.effects.increaseFactoryRawMaterialsCap;
+        }
+        if (researchConfig.effects.factoryWorkerEnergyRegenModifier) {
+          updatedStats.factoryWorkerEnergyRegenModifier = researchConfig.effects.factoryWorkerEnergyRegenModifier;
+        }
+        if(playerStatsRef.current.toastSettings?.showFactory) {
+            toastRef.current({ title: "Research Completed!", description: `Unlocked: ${researchConfig.name}`});
+        }
+        return updatedStats;
+    });
   }, []);
 
   const unlockProductionLine = useCallback((lineId: string) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        const lineIndex = (prev.factoryProductionLines || []).findIndex(l => l.id === lineId);
+        if (lineIndex === -1) return prev;
+        const line = prev.factoryProductionLines![lineIndex];
+        if (line.isUnlocked || !line.unlockCost || prev.money < line.unlockCost) return prev;
+
+        const newLines = [...prev.factoryProductionLines!];
+        newLines[lineIndex] = { ...line, isUnlocked: true };
+
+        if (playerStatsRef.current.toastSettings?.showFactory) {
+            toastRef.current({ title: "Production Line Unlocked!", description: `${line.name} is now operational.` });
+        }
+        
+        return {
+            ...prev,
+            money: prev.money - line.unlockCost,
+            factoryProductionLines: newLines,
+        };
+    });
   }, []);
 
   const assignWorkerToMachine = useCallback((workerId: string | null, machineInstanceId: string) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        const newWorkers = [...(prev.factoryWorkers || [])];
+
+        const oldWorkerIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
+        if (oldWorkerIndex !== -1) {
+            newWorkers[oldWorkerIndex] = { ...newWorkers[oldWorkerIndex], assignedMachineInstanceId: null };
+        }
+        
+        if (workerId) {
+            const newWorkerIndex = newWorkers.findIndex(w => w.id === workerId);
+            if (newWorkerIndex !== -1) {
+                const machineWasOccupiedBySomeoneElse = newWorkers[newWorkerIndex].assignedMachineInstanceId !== null && newWorkers[newWorkerIndex].assignedMachineInstanceId !== machineInstanceId;
+                if(machineWasOccupiedBySomeoneElse){
+                    const otherMachineId = newWorkers[newWorkerIndex].assignedMachineInstanceId;
+                     const otherMachineWorkerIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === otherMachineId && w.id !== workerId);
+                     if(otherMachineWorkerIndex > -1){
+                         newWorkers[otherMachineWorkerIndex] = {...newWorkers[otherMachineWorkerIndex], assignedMachineInstanceId: null}
+                     }
+                }
+                newWorkers[newWorkerIndex] = { ...newWorkers[newWorkerIndex], assignedMachineInstanceId: machineInstanceId };
+            }
+        }
+        return { ...prev, factoryWorkers: newWorkers };
+    });
   }, []);
 
   const setRecipeForEntireLine = useCallback((lineId: string, componentId: string) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        const lineIndex = prev.factoryProductionLines.findIndex(l => l.id === lineId);
+        if (lineIndex === -1) return prev;
+
+        const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === componentId);
+        if (!componentConfig) return prev;
+
+        const newLines = [...prev.factoryProductionLines];
+        const lineToUpdate = { ...newLines[lineIndex] };
+        
+        lineToUpdate.slots = lineToUpdate.slots.map(slot => {
+            if (slot.machineInstanceId) {
+                const machine = prev.factoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+                const machineConfig = machine ? INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId) : null;
+                if (machineConfig && machineConfig.maxCraftableTier >= componentConfig.tier) {
+                    return { ...slot, targetComponentId: componentId };
+                }
+            }
+            return slot;
+        });
+        
+        newLines[lineIndex] = lineToUpdate;
+
+        return { ...prev, factoryProductionLines: newLines };
+    });
   }, []);
 
 
-  const performPrestige = useCallback(() => {
-    const currentStats = playerStatsRef.current;
-    const currentBusinesses = businessesRef.current;
-
-    const totalLevels = currentBusinesses.reduce((sum, b) => sum + b.level, 0);
-    const newlyGainedPoints = calculateDiminishingPrestigePoints(totalLevels);
-
-    const boostPercent = getPrestigePointBoostPercent(currentStats.unlockedSkillIds, skillTreeRef.current, currentStats.hqUpgradeLevels, hqUpgradesRef.current, currentStats.unlockedArtifactIds, INITIAL_ARTIFACTS);
-    const finalPointsToAdd = Math.floor(newlyGainedPoints * (1 + boostPercent / 100));
-
-    const newPlayerStats = getInitialPlayerStats();
-    
-    // Carry over prestige-related stats
-    newPlayerStats.prestigePoints = currentStats.prestigePoints + finalPointsToAdd;
-    newPlayerStats.timesPrestiged = currentStats.timesPrestiged + 1;
-    newPlayerStats.unlockedSkillIds = [...currentStats.unlockedSkillIds];
-    newPlayerStats.hqUpgradeLevels = { ...currentStats.hqUpgradeLevels };
-    newPlayerStats.unlockedArtifactIds = [...(currentStats.unlockedArtifactIds || [])];
-    newPlayerStats.purchasedQuarryUpgradeIds = [...(currentStats.purchasedQuarryUpgradeIds || [])];
-
-    // Carry over factory state as it's persistent
-    newPlayerStats.factoryPurchased = currentStats.factoryPurchased;
-    newPlayerStats.factoryMachines = [...currentStats.factoryMachines];
-    newPlayerStats.factoryPowerBuildings = [...currentStats.factoryPowerBuildings];
-    newPlayerStats.factoryMaterialCollectors = [...currentStats.factoryMaterialCollectors];
-    newPlayerStats.factoryProductionLines = [...currentStats.factoryProductionLines];
-    newPlayerStats.factoryWorkers = [...currentStats.factoryWorkers];
-    newPlayerStats.factoryProducedComponents = { ...currentStats.factoryProducedComponents };
-    newPlayerStats.researchPoints = currentStats.researchPoints;
-    newPlayerStats.unlockedResearchIds = [...currentStats.unlockedResearchIds];
-    newPlayerStats.unlockedFactoryComponentRecipeIds = [...currentStats.unlockedFactoryComponentRecipeIds];
-
-    // Carry over settings & lifetime stats
-    newPlayerStats.toastSettings = { ...currentStats.toastSettings };
-    newPlayerStats.timePlayedSeconds = currentStats.timePlayedSeconds;
-    newPlayerStats.totalMoneyEarned = currentStats.totalMoneyEarned;
-    newPlayerStats.totalBusinessLevelsPurchased = currentStats.totalBusinessLevelsPurchased;
-    newPlayerStats.totalDividendsEarned = currentStats.totalDividendsEarned;
-    newPlayerStats.totalMineralsDug = currentStats.totalMineralsDug;
-    newPlayerStats.totalFactoryComponentsProduced = currentStats.totalFactoryComponentsProduced;
-
-    // Reset money but with starting bonus
-    const startingMoneyBonus = getStartingMoneyBonus(newPlayerStats.unlockedSkillIds, skillTreeRef.current, newPlayerStats.hqUpgradeLevels, hqUpgradesRef.current, newPlayerStats.unlockedArtifactIds, INITIAL_ARTIFACTS);
-    newPlayerStats.money = INITIAL_MONEY + startingMoneyBonus;
-
-    // Reset businesses but respect retention HQ upgrades
-    const newBusinesses = INITIAL_BUSINESSES.map(biz => {
-        const retentionUpgradeId = `retain_level_${biz.id}`;
-        const retentionLevel = newPlayerStats.hqUpgradeLevels[retentionUpgradeId] || 0;
-        let retainedLevels = 0;
-        if (retentionLevel > 0) {
-            const hqUpgrade = hqUpgradesRef.current.find(h => h.id === retentionUpgradeId);
-            const levelData = hqUpgrade?.levels.find(l => l.level === retentionLevel);
-            const retentionPercent = levelData?.effects.retentionPercentage || 0;
-            const originalBusiness = currentBusinesses.find(b => b.id === biz.id);
-            if (originalBusiness) {
-                retainedLevels = Math.floor(originalBusiness.level * (retentionPercent / 100));
-            }
-        }
-        return {
-            ...biz,
-            level: retainedLevels,
-            managerOwned: false,
-            upgrades: biz.upgrades ? biz.upgrades.map(upg => ({ ...upg, isPurchased: false })) : [],
-            icon: biz.icon,
-        };
-    });
-
-    // Reset stocks but respect retention HQ upgrades
-    const newStockHoldings = currentStats.stockHoldings.map(holding => {
-        const retentionUpgradeId = `retain_shares_${holding.stockId}`;
-        const retentionLevel = newPlayerStats.hqUpgradeLevels[retentionUpgradeId] || 0;
-        let retainedShares = 0;
-        if (retentionLevel > 0) {
-             const hqUpgrade = hqUpgradesRef.current.find(h => h.id === retentionUpgradeId);
-            const levelData = hqUpgrade?.levels.find(l => l.level === retentionLevel);
-            const retentionPercent = levelData?.effects.retentionPercentage || 0;
-            retainedShares = Math.floor(holding.shares * (retentionPercent / 100));
-        }
-        return { ...holding, shares: retainedShares };
-    }).filter(h => h.shares > 0);
-    newPlayerStats.stockHoldings = newStockHoldings;
-    
-    // Reset ETFs (no retention for now)
-    newPlayerStats.etfHoldings = [];
-
-    // Reset quarry energy to max
-    newPlayerStats.maxQuarryEnergy = calculateMaxEnergy(newPlayerStats);
-    newPlayerStats.quarryEnergy = newPlayerStats.maxQuarryEnergy;
-
-    // Reset farm
-    newPlayerStats.farmPurchased = currentStats.farmPurchased;
-    newPlayerStats.farmFields = currentStats.farmFields || INITIAL_FARM_FIELDS;
-    newPlayerStats.farmVehicles = currentStats.farmVehicles || [];
-
-    setPlayerStats(newPlayerStats);
-    setBusinesses(newBusinesses);
-    setStocksWithDynamicPrices(INITIAL_STOCKS.map(s => ({ ...s })));
-
-    if(playerStatsRef.current.toastSettings?.showPrestige ?? true) {
-        toastRef.current({
-            title: 'Prestige Successful!',
-            description: `You gained ${finalPointsToAdd.toLocaleString()} prestige points.`,
-        });
-    }
-
-    saveStateToLocalStorage();
-  }, [getDynamicMaxWorkerEnergy, calculateMaxEnergy, saveStateToLocalStorage]);
-
   const hireWorker = useCallback(() => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+      const currentWorkerCount = (prev.factoryWorkers || []).length;
+      if (currentWorkerCount >= MAX_WORKERS) return prev;
+      
+      const cost = Math.floor(WORKER_HIRE_COST_BASE * Math.pow(WORKER_HIRE_COST_MULTIPLIER, currentWorkerCount));
+      if (prev.money < cost) return prev;
+
+      const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
+      const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
+      
+      const dynamicMaxEnergy = getDynamicMaxWorkerEnergy();
+      const newWorker: Worker = {
+        id: `worker_${Date.now()}_${Math.random()}`,
+        name: `${firstName} ${lastName}`,
+        assignedMachineInstanceId: null,
+        energy: dynamicMaxEnergy,
+        status: 'idle',
+      };
+      if (playerStatsRef.current.toastSettings?.showFactory) {
+        toastRef.current({ title: "Worker Hired!", description: `${newWorker.name} has joined the team.` });
+      }
+      return {
+        ...prev,
+        money: prev.money - cost,
+        factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
+      };
+    });
   }, [getDynamicMaxWorkerEnergy]);
 
 
@@ -1153,11 +1462,47 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
-    // ... (This function remains the same)
+    const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
+    if (!upgradeConfig) return;
+
+    setPlayerStats(prev => {
+        if ((prev.purchasedQuarryUpgradeIds || []).includes(upgradeId) || prev.minerals < upgradeConfig.cost) {
+            return prev;
+        }
+
+        const newPurchasedIds = [...(prev.purchasedQuarryUpgradeIds || []), upgradeId];
+        const newMaxEnergy = calculateMaxEnergy({ ...prev, purchasedQuarryUpgradeIds: newPurchasedIds });
+
+        if (playerStatsRef.current.toastSettings?.showQuarry) {
+            toastRef.current({ title: "Quarry Upgrade Purchased!", description: `Unlocked: ${upgradeConfig.name}` });
+        }
+
+        return {
+            ...prev,
+            minerals: prev.minerals - upgradeConfig.cost,
+            purchasedQuarryUpgradeIds: newPurchasedIds,
+            maxQuarryEnergy: newMaxEnergy,
+        };
+    });
   }, [calculateMaxEnergy]);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
-    // ... (This function remains the same)
+    setPlayerStats(prev => {
+        if (prev.money < choice.cost) return prev;
+        
+        if (playerStatsRef.current.toastSettings?.showQuarry) {
+            toastRef.current({ title: "New Quarry Selected!", description: `Started excavation at ${choice.name}.` });
+        }
+        return {
+            ...prev,
+            money: prev.money - choice.cost,
+            quarryName: choice.name,
+            quarryDepth: 0,
+            quarryTargetDepth: choice.depth,
+            quarryLevel: prev.quarryLevel + 1,
+            quarryRarityBias: choice.rarityBias,
+        };
+    });
   }, []);
 
   const purchaseFarm = useCallback(() => {
@@ -1441,71 +1786,102 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const upgradeSilo = useCallback(() => {
     const prev = playerStatsRef.current;
     if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
-      toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
       return;
     }
     const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
     const cost = Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
       return;
     }
     
-    const newCapacity = Math.min(SILO_CAPACITY_MAX, (prev.siloCapacity || 1000) * 2);
-    toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
+    toast({ title: "Silo Upgraded!", description: `Storage capacity increased.` });
     
-    setPlayerStats(current => ({
-        ...current,
-        money: current.money - cost,
-        siloCapacity: newCapacity
-    }));
-  }, []);
-
+    setPlayerStats(current => {
+      const newCapacity = Math.min(SILO_CAPACITY_MAX, (current.siloCapacity || 1000) * 2);
+      return {
+          ...current,
+          money: current.money - cost,
+          siloCapacity: newCapacity
+      }
+    });
+  }, [toast]);
+  
   const upgradeFuelDepot = useCallback(() => {
     const prev = playerStatsRef.current;
     if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
-      toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
       return;
     }
     const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
     const cost = Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
       return;
     }
     
-    const newCapacity = Math.min(FUEL_CAPACITY_MAX, (prev.fuelCapacity || 500) * 2);
-    toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
+    toast({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased.` });
     
-    setPlayerStats(current => ({
-        ...current,
-        money: current.money - cost,
-        fuelCapacity: newCapacity
-    }));
-  }, []);
+    setPlayerStats(current => {
+      const newCapacity = Math.min(FUEL_CAPACITY_MAX, (current.fuelCapacity || 500) * 2);
+      return {
+          ...current,
+          money: current.money - cost,
+          fuelCapacity: newCapacity
+      };
+    });
+  }, [toast]);
   
   const upgradePantry = useCallback(() => {
     const prev = playerStatsRef.current;
     if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
-      toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
       return;
     }
     const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
     const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
+      toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
       return;
     }
     
-    const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (prev.pantryCapacity || 100) * 2);
-    toastRef.current({ title: "Pantry Upgraded!", description: `Pantry capacity increased to ${newCapacity.toLocaleString()} units.` });
+    toast({ title: "Pantry Upgraded!", description: `Pantry capacity increased.` });
     
-    setPlayerStats(current => ({
-        ...current,
-        money: current.money - cost,
-        pantryCapacity: newCapacity
-    }));
-  }, []);
+    setPlayerStats(current => {
+      const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (current.pantryCapacity || 100) * 2);
+      return {
+          ...current,
+          money: current.money - cost,
+          pantryCapacity: newCapacity,
+      };
+    });
+  }, [toast]);
+  
+  const upgradeWarehouse = useCallback(() => {
+    const prev = playerStatsRef.current;
+    if ((prev.warehouseCapacity || 0) >= WAREHOUSE_CAPACITY_MAX) {
+      toast({ title: "Upgrade Failed", description: "Warehouse is at maximum capacity.", variant: "destructive" });
+      return;
+    }
+    const currentLevel = Math.floor(Math.log((prev.warehouseCapacity || 1000) / 1000) / Math.log(2));
+    const cost = Math.floor(WAREHOUSE_UPGRADE_COST_BASE * Math.pow(WAREHOUSE_UPGRADE_COST_MULTIPLIER, currentLevel));
+    if (prev.money < cost) {
+      toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the warehouse.", variant: "destructive" });
+      return;
+    }
+  
+    toast({ title: "Warehouse Upgraded!", description: `Warehouse capacity increased.` });
+    
+    setPlayerStats(current => {
+      const newCapacity = Math.min(WAREHOUSE_CAPACITY_MAX, (current.warehouseCapacity || 1000) * 2);
+      return {
+          ...current,
+          money: current.money - cost,
+          warehouseCapacity: newCapacity,
+      };
+    });
+  }, [toast]);
 
   const craftKitchenRecipe = useCallback((recipeId: string, quantity: number) => {
     setPlayerStats(prev => {
@@ -1985,7 +2361,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       getQuarryDigPower, getMineralBonus, digInQuarry, purchaseQuarryUpgrade, getArtifactFindChances, selectNextQuarry,
       updateToastSettings, setRecipeForEntireLine,
       purchaseFarm, purchaseFarmField, plantCrop, harvestField, cultivateField, purchaseVehicle,
-      refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot, upgradePantry,
+      refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot, upgradePantry, upgradeWarehouse,
       craftKitchenRecipe, shipKitchenItem,
     }}>
       {children}
@@ -2000,5 +2376,7 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+
 
 
