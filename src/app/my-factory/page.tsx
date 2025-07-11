@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useGame } from "@/contexts/GameContext";
@@ -473,20 +474,32 @@ export default function MyFactoryPage() {
   
   const spaceLeftInStorage = (playerStats.factoryRawMaterialsCap || 0) - playerStats.factoryRawMaterials;
   const amountToCollectManually = Math.min(MATERIAL_COLLECTION_AMOUNT, spaceLeftInStorage);
+  
+  const getEffectInfo = (effects: FactoryComponent['effects']): {
+    effectPerUnit: number;
+    isModifier: boolean;
+    isPercentage: boolean;
+  } => {
+    if (!effects) return { effectPerUnit: 0, isModifier: false, isPercentage: false };
 
-  const getEffectPerUnit = (effects: FactoryComponent['effects']) => {
-      if (!effects) return 0;
-      if (effects.globalIncomeBoostPerComponentPercent) return effects.globalIncomeBoostPerComponentPercent;
-      if (effects.businessSpecificIncomeBoostPercent) return effects.businessSpecificIncomeBoostPercent.percent;
-      if (effects.stockSpecificDividendYieldBoostPercent) return effects.stockSpecificDividendYieldBoostPercent.percent;
-      if (effects.factoryGlobalPowerOutputBoostPercent) return effects.factoryGlobalPowerOutputBoostPercent;
-      if (effects.factoryGlobalMaterialCollectionBoostPercent) return effects.factoryGlobalMaterialCollectionBoostPercent;
-      if (effects.globalCostReductionPercent) return effects.globalCostReductionPercent;
-      if (effects.businessSpecificLevelUpCostReductionPercent) return effects.businessSpecificLevelUpCostReductionPercent.percent;
-      if (effects.globalBusinessUpgradeCostReductionPercent) return effects.globalBusinessUpgradeCostReductionPercent;
-      if (effects.businessSpecificUpgradeCostReductionPercent) return effects.businessSpecificUpgradeCostReductionPercent.percent;
-      if (effects.globalDividendYieldBoostPercent) return effects.globalDividendYieldBoostPercent;
-      return 0;
+    if (effects.globalIncomeBoostPerComponentPercent) return { effectPerUnit: effects.globalIncomeBoostPerComponentPercent, isModifier: false, isPercentage: true };
+    if (effects.businessSpecificIncomeBoostPercent) return { effectPerUnit: effects.businessSpecificIncomeBoostPercent.percent, isModifier: false, isPercentage: true };
+    if (effects.stockSpecificDividendYieldBoostPercent) return { effectPerUnit: effects.stockSpecificDividendYieldBoostPercent.percent, isModifier: false, isPercentage: true };
+    if (effects.factoryGlobalPowerOutputBoostPercent) return { effectPerUnit: effects.factoryGlobalPowerOutputBoostPercent, isModifier: false, isPercentage: true };
+    if (effects.factoryGlobalMaterialCollectionBoostPercent) return { effectPerUnit: effects.factoryGlobalMaterialCollectionBoostPercent, isModifier: false, isPercentage: true };
+    if (effects.globalCostReductionPercent) return { effectPerUnit: effects.globalCostReductionPercent, isModifier: false, isPercentage: true };
+    if (effects.businessSpecificLevelUpCostReductionPercent) return { effectPerUnit: effects.businessSpecificLevelUpCostReductionPercent.percent, isModifier: false, isPercentage: true };
+    if (effects.globalBusinessUpgradeCostReductionPercent) return { effectPerUnit: effects.globalBusinessUpgradeCostReductionPercent, isModifier: false, isPercentage: true };
+    if (effects.businessSpecificUpgradeCostReductionPercent) return { effectPerUnit: effects.businessSpecificUpgradeCostReductionPercent.percent, isModifier: false, isPercentage: true };
+    if (effects.globalDividendYieldBoostPercent) return { effectPerUnit: effects.globalDividendYieldBoostPercent, isModifier: false, isPercentage: true };
+    if (effects.factoryManualRPGenerationBoost) return { effectPerUnit: effects.factoryManualRPGenerationBoost, isModifier: false, isPercentage: false };
+
+    if (effects.factoryGlobalPowerConsumptionModifier) return { effectPerUnit: 1 - effects.factoryGlobalPowerConsumptionModifier, isModifier: true, isPercentage: true };
+    if (effects.factoryWorkerEnergyDrainModifier) return { effectPerUnit: 1 - effects.factoryWorkerEnergyDrainModifier, isModifier: true, isPercentage: true };
+    if (effects.factoryWorkerEnergyRegenModifier) return { effectPerUnit: effects.factoryWorkerEnergyRegenModifier - 1, isModifier: true, isPercentage: true };
+    if (effects.factoryGlobalProductionSpeedModifier) return { effectPerUnit: effects.factoryGlobalProductionSpeedModifier - 1, isModifier: true, isPercentage: true };
+
+    return { effectPerUnit: 0, isModifier: false, isPercentage: false };
   };
   
   const renderProducedComponent = (compConfig: FactoryComponent) => {
@@ -498,64 +511,49 @@ export default function MyFactoryPage() {
     let currentBonusDisplay = "";
     let maxBonusDisplay = "";
     let tooltipDescription = "";
-    
     let maxCap = Infinity;
     let isCapped = false;
-
+    
     const { effects } = compConfig;
+
     if (effects) {
-        const effectPerUnit = getEffectPerUnit(effects);
-        if (effects.maxBonusPercent && effectPerUnit > 0) {
-            maxCap = Math.floor(effects.maxBonusPercent / effectPerUnit);
+        const { effectPerUnit, isModifier, isPercentage } = getEffectInfo(effects);
+        
+        if (effects.maxBonusPercent && effectPerUnit !== 0) {
+            maxCap = Math.floor(effects.maxBonusPercent / Math.abs(effectPerUnit));
             isCapped = count >= maxCap;
         }
 
         const maxBonus = effects.maxBonusPercent ?? Infinity;
-        const calculateCappedBonus = (effectPercent?: number) => {
-            if (!effectPercent) return 0;
-            return Math.min(count * (effectPercent || 0), maxBonus);
+        const calculateCappedBonus = (isModifierCalc: boolean) => {
+            if (!effectPerUnit) return 0;
+            const potential = count * Math.abs(effectPerUnit);
+            const capped = isFinite(maxBonus) ? Math.min(potential, maxBonus) : potential;
+            if (isModifierCalc) {
+              return capped * 100;
+            }
+            return capped;
         };
+
+        const totalBonus = calculateCappedBonus(isModifier);
         
-        let effectValue: number | undefined;
-        if ((effectValue = effects.globalIncomeBoostPerComponentPercent) !== undefined) {
-            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Global Inc.`;
-            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% global income.`;
-        } else if (effects.businessSpecificIncomeBoostPercent) {
-            const { percent, businessId } = effects.businessSpecificIncomeBoostPercent;
-            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `+${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Inc.`;
-            tooltipDescription = `Each provides +${percent.toFixed(4)}% income to ${bizInfo?.name || businessId}.`;
-        } else if ((effectValue = effects.globalCostReductionPercent) !== undefined) {
-            currentBonusDisplay = `-${calculateCappedBonus(effectValue).toFixed(3)}% Global Lvl Cost`;
-            tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global level-up costs.`;
-        } else if (effects.businessSpecificLevelUpCostReductionPercent) {
-            const { percent, businessId } = effects.businessSpecificLevelUpCostReductionPercent;
-            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `-${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Lvl Cost`;
-            tooltipDescription = `Each provides -${percent.toFixed(4)}% level-up cost reduction for ${bizInfo?.name || businessId}.`;
-        } else if ((effectValue = effects.globalBusinessUpgradeCostReductionPercent) !== undefined) {
-            currentBonusDisplay = `-${calculateCappedBonus(effectValue).toFixed(3)}% Global Upg. Cost`;
-            tooltipDescription = `Each provides -${effectValue.toFixed(4)}% to global upgrade costs.`;
-        } else if (effects.businessSpecificUpgradeCostReductionPercent) {
-            const { percent, businessId } = effects.businessSpecificUpgradeCostReductionPercent;
-            const bizInfo = INITIAL_BUSINESSES.find(b => b.id === businessId);
-            currentBonusDisplay = `-${calculateCappedBonus(percent).toFixed(3)}% ${bizInfo?.name || businessId} Upg. Cost`;
-            tooltipDescription = `Each provides -${percent.toFixed(4)}% upgrade cost reduction for ${bizInfo?.name || businessId}.`;
-        } else if ((effectValue = effects.factoryGlobalPowerOutputBoostPercent) !== undefined) {
-            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Factory Power`;
-            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory power output.`;
-        } else if ((effectValue = effects.factoryGlobalMaterialCollectionBoostPercent) !== undefined) {
-            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(3)}% Factory Materials`;
-            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to factory material collection.`;
-        } else if ((effectValue = effects.globalDividendYieldBoostPercent) !== undefined) {
-            currentBonusDisplay = `+${calculateCappedBonus(effectValue).toFixed(4)}% Global Dividends`;
-            tooltipDescription = `Each provides +${effectValue.toFixed(4)}% to global dividend yield.`;
-        } else if (effects.stockSpecificDividendYieldBoostPercent) {
-            const { percent, stockId } = effects.stockSpecificDividendYieldBoostPercent;
-            const stockInfo = INITIAL_STOCKS.find(s => s.id === stockId);
-            currentBonusDisplay = `+${calculateCappedBonus(percent).toFixed(4)}% ${stockInfo?.ticker || stockId} Dividends`;
-            tooltipDescription = `Each provides +${percent.toFixed(4)}% dividend yield to ${stockInfo?.companyName || stockId}.`;
-        }
+        const formatBonus = (val: number, isPercent: boolean) => isPercent ? `${val.toFixed(3)}%` : val.toFixed(3);
+
+        if (effects.globalIncomeBoostPerComponentPercent) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Global Inc.`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.businessSpecificIncomeBoostPercent) { const b = INITIAL_BUSINESSES.find(biz => biz.id === effects.businessSpecificIncomeBoostPercent?.businessId); currentBonusDisplay = `+${formatBonus(totalBonus, true)} ${b?.name || '...'} Inc.`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.globalCostReductionPercent) { currentBonusDisplay = `-${formatBonus(totalBonus, true)} Global Lvl Cost`; tooltipDescription = `Each: -${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.businessSpecificLevelUpCostReductionPercent) { const b = INITIAL_BUSINESSES.find(biz => biz.id === effects.businessSpecificLevelUpCostReductionPercent?.businessId); currentBonusDisplay = `-${formatBonus(totalBonus, true)} ${b?.name || '...'} Lvl Cost`; tooltipDescription = `Each: -${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.globalBusinessUpgradeCostReductionPercent) { currentBonusDisplay = `-${formatBonus(totalBonus, true)} Global Upg. Cost`; tooltipDescription = `Each: -${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.businessSpecificUpgradeCostReductionPercent) { const b = INITIAL_BUSINESSES.find(biz => biz.id === effects.businessSpecificUpgradeCostReductionPercent?.businessId); currentBonusDisplay = `-${formatBonus(totalBonus, true)} ${b?.name || '...'} Upg. Cost`; tooltipDescription = `Each: -${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.factoryGlobalPowerOutputBoostPercent) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Factory Power`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.factoryGlobalMaterialCollectionBoostPercent) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Factory Materials`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.globalDividendYieldBoostPercent) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Global Div. Yield`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.stockSpecificDividendYieldBoostPercent) { const s = INITIAL_STOCKS.find(stk => stk.id === effects.stockSpecificDividendYieldBoostPercent?.stockId); currentBonusDisplay = `+${formatBonus(totalBonus, true)} ${s?.ticker || '...'} Div. Yield`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, true)}`; }
+        else if (effects.factoryManualRPGenerationBoost) { currentBonusDisplay = `+${formatBonus(totalBonus, false)} Manual RP`; tooltipDescription = `Each: +${formatBonus(effectPerUnit, false)}`; }
+        else if (effects.factoryGlobalPowerConsumptionModifier) { currentBonusDisplay = `-${formatBonus(totalBonus, true)} Power Use`; tooltipDescription = `Each: -${formatBonus(effectPerUnit * 100, true)}`; }
+        else if (effects.factoryWorkerEnergyDrainModifier) { currentBonusDisplay = `-${formatBonus(totalBonus, true)} Worker Energy Drain`; tooltipDescription = `Each: -${formatBonus(effectPerUnit * 100, true)}`; }
+        else if (effects.factoryWorkerEnergyRegenModifier) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Worker Energy Regen`; tooltipDescription = `Each: +${formatBonus(effectPerUnit * 100, true)}`; }
+        else if (effects.factoryGlobalProductionSpeedModifier) { currentBonusDisplay = `+${formatBonus(totalBonus, true)} Factory Prod. Speed`; tooltipDescription = `Each: +${formatBonus(effectPerUnit * 100, true)}`; }
         
         if (currentBonusDisplay && isFinite(maxBonus)) {
             const isNegativeBonus = currentBonusDisplay.trim().startsWith('-');
