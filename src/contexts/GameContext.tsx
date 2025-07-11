@@ -52,6 +52,7 @@ interface GameContextType {
   manualResearchCooldownEnd: number;
   upgradeBusiness: (businessId: string, levelsToBuy?: number) => void;
   purchaseBusinessUpgrade: (businessId: string, upgradeId: string, isAutoBuy?: boolean) => boolean;
+  performPrestige: () => void;
   purchaseHQUpgrade: (upgradeId: string) => void;
   getBusinessIncome: (businessId: string) => number;
   getBusinessUpgradeCost: (businessId: string) => number;
@@ -60,7 +61,6 @@ interface GameContextType {
   buyEtf: (etfId: string, sharesToBuy: number, currentPrice: number) => void;
   sellEtf: (etfId: string, sharesToSell: number, currentPrice: number) => void;
   buyIpoShares: (stockId: string, sharesToBuy: number) => void;
-  performPrestige: () => void;
   unlockSkillNode: (skillId: string) => void;
   getDynamicMaxBusinessLevel: () => number;
   calculateCostForNLevelsForDisplay: (businessId: string, levelsToBuy: number) => { totalCost: number; levelsPurchasable: number };
@@ -1241,22 +1241,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const unlockProductionLine = useCallback((lineId: string) => {
-    setPlayerStats(prev => {
-        const lineIndex = (prev.factoryProductionLines || []).findIndex(l => l.id === lineId);
-        if (lineIndex === -1) return prev;
-        const line = prev.factoryProductionLines![lineIndex];
-        if (line.isUnlocked || !line.unlockCost || prev.money < line.unlockCost) return prev;
+    const prev = playerStatsRef.current;
+    const lineIndex = (prev.factoryProductionLines || []).findIndex(l => l.id === lineId);
+    if (lineIndex === -1) return;
 
-        const newLines = [...prev.factoryProductionLines!];
+    const line = prev.factoryProductionLines![lineIndex];
+    if (line.isUnlocked || !line.unlockCost || prev.money < line.unlockCost) return;
+
+    if (playerStatsRef.current.toastSettings?.showFactory) {
+        toastRef.current({ title: "Production Line Unlocked!", description: `${line.name} is now operational.` });
+    }
+    
+    setPlayerStats(current => {
+        const newLines = [...current.factoryProductionLines!];
         newLines[lineIndex] = { ...line, isUnlocked: true };
-
-        if (playerStatsRef.current.toastSettings?.showFactory) {
-            toastRef.current({ title: "Production Line Unlocked!", description: `${line.name} is now operational.` });
-        }
-        
         return {
-            ...prev,
-            money: prev.money - line.unlockCost,
+            ...current,
+            money: current.money - line.unlockCost,
             factoryProductionLines: newLines,
         };
     });
@@ -2351,8 +2352,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       playerStats, businesses, stocks: onMarketStocks, etfs: etfsState, businessSynergies: businessSynergiesState, skillTree: skillTreeState, hqUpgrades: hqUpgradesState, researchItems: researchItemsState,
       lastSavedTimestamp, lastMarketTrends, setLastMarketTrends, lastRiskTolerance, setLastRiskTolerance,
       materialCollectionCooldownEnd, manualResearchCooldownEnd,
-      upgradeBusiness, purchaseBusinessUpgrade, purchaseHQUpgrade, getBusinessIncome, getBusinessUpgradeCost,
-      buyStock, sellStock, buyEtf, sellEtf, buyIpoShares, performPrestige, unlockSkillNode, getDynamicMaxBusinessLevel,
+      upgradeBusiness, purchaseBusinessUpgrade, performPrestige, purchaseHQUpgrade, getBusinessIncome, getBusinessUpgradeCost,
+      buyStock, sellStock, buyEtf, sellEtf, buyIpoShares, unlockSkillNode, getDynamicMaxBusinessLevel,
       calculateCostForNLevelsForDisplay, calculateMaxAffordableLevelsForDisplay,
       manualSaveGame, exportGameState, importGameState, wipeGameData,
       purchaseFactoryBuilding, purchaseFactoryPowerBuilding, manuallyCollectRawMaterials, purchaseFactoryMachine,
@@ -2376,6 +2377,7 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
 
 
 
