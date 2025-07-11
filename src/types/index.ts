@@ -513,6 +513,8 @@ export interface PlayerStats {
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
   kitchenInventory?: KitchenItem[];
   kitchenQueue?: KitchenCraftingActivity[];
+  warehouseStorage?: KitchenItem[];
+  warehouseCapacity?: number;
 
   // App Settings
   toastSettings?: ToastSettings;

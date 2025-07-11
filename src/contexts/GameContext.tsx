@@ -21,7 +21,7 @@ import {
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
   FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX,
-  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER
+  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -176,6 +176,8 @@ const getInitialPlayerStats = (): PlayerStats => {
     pendingFuelDelivery: undefined,
     kitchenInventory: [],
     kitchenQueue: [],
+    warehouseStorage: [],
+    warehouseCapacity: INITIAL_WAREHOUSE_CAPACITY,
   };
 };
 
@@ -501,6 +503,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         pendingFuelDelivery: data.playerStats.pendingFuelDelivery,
         kitchenInventory: data.playerStats.kitchenInventory || [],
         kitchenQueue: data.playerStats.kitchenQueue || [],
+        warehouseStorage: data.playerStats.warehouseStorage || [],
+        warehouseCapacity: data.playerStats.warehouseCapacity || INITIAL_WAREHOUSE_CAPACITY,
       };
 
       const hydratedBusinesses = data.businesses.map((savedBusiness: Business) => {
@@ -1436,16 +1440,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const upgradeSilo = useCallback(() => {
     const prev = playerStatsRef.current;
+    if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
+      toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
+      return;
+    }
     const currentLevel = Math.floor(Math.log((prev.siloCapacity || 1000) / 1000) / Math.log(2));
     const cost = Math.floor(SILO_UPGRADE_COST_BASE * Math.pow(SILO_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
-        return;
+      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the silo.", variant: "destructive" });
+      return;
     }
-    if ((prev.siloCapacity || 0) >= SILO_CAPACITY_MAX) {
-        toastRef.current({ title: "Upgrade Failed", description: "Silo is at maximum capacity.", variant: "destructive" });
-        return;
-    }
+    
     const newCapacity = Math.min(SILO_CAPACITY_MAX, (prev.siloCapacity || 1000) * 2);
     toastRef.current({ title: "Silo Upgraded!", description: `Storage capacity increased to ${newCapacity.toLocaleString()} units.` });
     
@@ -1458,16 +1463,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const upgradeFuelDepot = useCallback(() => {
     const prev = playerStatsRef.current;
+    if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
+      toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
+      return;
+    }
     const currentLevel = Math.floor(Math.log((prev.fuelCapacity || 500) / 500) / Math.log(2));
     const cost = Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
-        return;
+      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the fuel depot.", variant: "destructive" });
+      return;
     }
-    if ((prev.fuelCapacity || 0) >= FUEL_CAPACITY_MAX) {
-        toastRef.current({ title: "Upgrade Failed", description: "Fuel Depot is at maximum capacity.", variant: "destructive" });
-        return;
-    }
+    
     const newCapacity = Math.min(FUEL_CAPACITY_MAX, (prev.fuelCapacity || 500) * 2);
     toastRef.current({ title: "Fuel Depot Upgraded!", description: `Fuel capacity increased to ${newCapacity.toLocaleString()}L.` });
     
@@ -1480,19 +1486,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const upgradePantry = useCallback(() => {
     const prev = playerStatsRef.current;
+    if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
+      toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
+      return;
+    }
     const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
     const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
-    
-    if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
-        toastRef.current({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
-        return;
-    }
-
     if (prev.money < cost) {
-        toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
-        return;
+      toastRef.current({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
+      return;
     }
-
+    
     const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (prev.pantryCapacity || 100) * 2);
     toastRef.current({ title: "Pantry Upgraded!", description: `Pantry capacity increased to ${newCapacity.toLocaleString()} units.` });
     
@@ -1544,14 +1548,37 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const shipKitchenItem = useCallback((itemId: string, quantity: number) => {
     setPlayerStats(prev => {
-        const newInventory = (prev.kitchenInventory || []).map(item => 
-            item.itemId === itemId ? { ...item, quantity: item.quantity - quantity } : item
+        const itemToShip = (prev.kitchenInventory || []).find(item => item.itemId === itemId);
+        if (!itemToShip || itemToShip.quantity < quantity) {
+            toastRef.current({ title: "Not enough items", variant: "destructive" });
+            return prev;
+        }
+
+        const warehouseStock = (prev.warehouseStorage || []).reduce((sum, item) => sum + item.quantity, 0);
+        const warehouseSpace = (prev.warehouseCapacity || 0) - warehouseStock;
+        const actualShippedAmount = Math.min(quantity, warehouseSpace);
+
+        if (actualShippedAmount <= 0) {
+            toastRef.current({ title: "Warehouse Full", description: "No space available in the warehouse.", variant: "destructive" });
+            return prev;
+        }
+
+        const newKitchenInventory = (prev.kitchenInventory || []).map(item => 
+            item.itemId === itemId ? { ...item, quantity: item.quantity - actualShippedAmount } : item
         ).filter(item => item.quantity > 0);
         
+        const newWarehouseStorage = [...(prev.warehouseStorage || [])];
+        const existingWarehouseItemIndex = newWarehouseStorage.findIndex(item => item.itemId === itemId);
+        if (existingWarehouseItemIndex > -1) {
+            newWarehouseStorage[existingWarehouseItemIndex].quantity += actualShippedAmount;
+        } else {
+            newWarehouseStorage.push({ itemId, quantity: actualShippedAmount });
+        }
+        
         const recipe = KITCHEN_RECIPES.find(r => r.outputItemId === itemId);
-        toastRef.current({ title: "Item Shipped!", description: `You shipped ${quantity.toLocaleString()} x ${recipe?.name || itemId} to the warehouse.` });
+        toastRef.current({ title: "Item Shipped!", description: `You shipped ${actualShippedAmount.toLocaleString()} x ${recipe?.name || itemId} to the warehouse.` });
 
-        return { ...prev, kitchenInventory: newInventory };
+        return { ...prev, kitchenInventory: newKitchenInventory, warehouseStorage: newWarehouseStorage };
     });
   }, []);
 
@@ -1596,6 +1623,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             pendingFuelDelivery: loadedData.playerStats.pendingFuelDelivery,
             kitchenInventory: loadedData.playerStats.kitchenInventory || [],
             kitchenQueue: loadedData.playerStats.kitchenQueue || [],
+            warehouseStorage: loadedData.playerStats.warehouseStorage || [],
+            warehouseCapacity: loadedData.playerStats.warehouseCapacity || INITIAL_WAREHOUSE_CAPACITY,
           };
 
           const hydratedBusinesses = loadedData.businesses.map((savedBusiness: Business) => {
@@ -1971,4 +2000,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
 

@@ -59,6 +59,8 @@ export const INITIAL_FUEL_CAPACITY = 500;
 export const FUEL_CAPACITY_MAX = 10000;
 export const INITIAL_PANTRY_CAPACITY = 100;
 export const PANTRY_CAPACITY_MAX = 10000;
+export const INITIAL_WAREHOUSE_CAPACITY = 1000;
+export const WAREHOUSE_CAPACITY_MAX = 100000;
 export const FUEL_ORDER_COST_PER_LTR = 1000;
 export const FUEL_DELIVERY_TIME_BASE_SECONDS = 60; // 1 minute base
 export const FUEL_DELIVERY_TIME_PER_LTR_SECONDS = 0.5; // Half a second per liter
@@ -70,6 +72,8 @@ export const FUEL_DEPOT_UPGRADE_COST_BASE = 750000;
 export const FUEL_DEPOT_UPGRADE_COST_MULTIPLIER = 1.6;
 export const PANTRY_UPGRADE_COST_BASE = 500000;
 export const PANTRY_UPGRADE_COST_MULTIPLIER = 1.7;
+export const WAREHOUSE_UPGRADE_COST_BASE = 2500000;
+export const WAREHOUSE_UPGRADE_COST_MULTIPLIER = 2.0;
 
 
 const fieldSizes = [5, 8, 5, 12, 10, 15, 8, 20, 12, 25];
@@ -83,14 +87,14 @@ export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i
 }));
 
 export const FARM_CROPS: Crop[] = [
-  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 3000, yieldPerHa: 100 },
-  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 6000, yieldPerHa: 150 },
-  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 4500, yieldPerHa: 200 },
-  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 4000, yieldPerHa: 180 },
-  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 7500, yieldPerHa: 120 },
-  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 12000, yieldPerHa: 250 },
-  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 15000, yieldPerHa: 80 },
-  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 9000, yieldPerHa: 130 },
+  { id: 'Wheat', name: 'Wheat', icon: Wheat, growthTimeSeconds: 1500, yieldPerHa: 100 },
+  { id: 'Corn', name: 'Corn', icon: Sprout, growthTimeSeconds: 3000, yieldPerHa: 150 },
+  { id: 'Potatoes', name: 'Potatoes', icon: CookingPot, growthTimeSeconds: 2250, yieldPerHa: 200 },
+  { id: 'Carrots', name: 'Carrots', icon: Sprout, growthTimeSeconds: 2000, yieldPerHa: 180 },
+  { id: 'Tomatoes', name: 'Tomatoes', icon: Apple, growthTimeSeconds: 3750, yieldPerHa: 120 },
+  { id: 'Sugarcane', name: 'Sugarcane', icon: UtensilsCrossed, growthTimeSeconds: 6000, yieldPerHa: 250 },
+  { id: 'Apples', name: 'Apples', icon: Apple, growthTimeSeconds: 7500, yieldPerHa: 80 },
+  { id: 'Strawberries', name: 'Strawberries', icon: Grape, growthTimeSeconds: 4500, yieldPerHa: 130 },
 ];
 
 
@@ -519,6 +523,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 
