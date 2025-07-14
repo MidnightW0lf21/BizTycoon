@@ -1247,7 +1247,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const line = prev.factoryProductionLines![lineIndex];
     if (line.isUnlocked || !line.unlockCost || prev.money < line.unlockCost) return;
-
+    
     if (playerStatsRef.current.toastSettings?.showFactory) {
         toastRef.current({ title: "Production Line Unlocked!", description: `${line.name} is now operational.` });
     }
@@ -2099,6 +2099,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [playerStats, prevPlayerStats, toast]);
 
   useEffect(() => {
+    const autoBuySkills = playerStats.unlockedSkillIds
+      .map(skillId => INITIAL_SKILL_TREE.find(s => s.id === skillId))
+      .filter(skill => skill && skill.effects.autoBuyUpgradesForBusiness);
+
+    if (autoBuySkills.length > 0) {
+      const businessesToAutoBuy = businesses.filter(b => 
+        autoBuySkills.some(s => s!.effects.autoBuyUpgradesForBusiness === b.id)
+      );
+
+      businessesToAutoBuy.forEach(business => {
+        if (business.upgrades) {
+          business.upgrades.forEach(upgrade => {
+            if (!upgrade.isPurchased) {
+              const upgradeCost = upgrade.cost;
+              if (playerStats.money >= upgradeCost && business.level >= upgrade.requiredLevel) {
+                purchaseBusinessUpgrade(business.id, upgrade.id, true);
+              }
+            }
+          });
+        }
+      });
+    }
+  }, [playerStats.money, playerStats.unlockedSkillIds, businesses, purchaseBusinessUpgrade]);
+
+
+  useEffect(() => {
     const tick = setInterval(() => {
       const now = Date.now();
       setPlayerStats(prev => {
@@ -2342,11 +2368,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearInterval(tick);
   }, [localCalculateIncome, getDynamicMaxBusinessLevel, calculateMaxEnergy, etfsState, businessSynergiesState]);
 
-  useEffect(() => {
-    // Auto-buy logic... (remains the same)
-  }, [playerStats.money, playerStats.unlockedSkillIds, playerStats.factoryProducedComponents]);
-
-
   return (
     <GameContext.Provider value={{
       playerStats, businesses, stocks: onMarketStocks, etfs: etfsState, businessSynergies: businessSynergiesState, skillTree: skillTreeState, hqUpgrades: hqUpgradesState, researchItems: researchItemsState,
@@ -2377,6 +2398,7 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
 
 
 
