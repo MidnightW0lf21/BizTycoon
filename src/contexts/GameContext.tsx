@@ -1066,7 +1066,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(c => c.id === configId);
     if (!config) return;
 
-    if (playerStatsRef.current.money < config.baseCost) return;
+    if (playerStatsRef.current.money < config.baseCost) {
+        toast({ title: "Not enough money", variant: "destructive" });
+        return;
+    }
     
     if (playerStatsRef.current.toastSettings?.showFactory) {
       toast({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
@@ -1314,10 +1317,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const hireWorker = useCallback(() => {
     const currentWorkerCount = (playerStatsRef.current.factoryWorkers || []).length;
-    if (currentWorkerCount >= MAX_WORKERS) return;
+    if (currentWorkerCount >= MAX_WORKERS) {
+      toast({ title: "Max Workers Reached", variant: "destructive" });
+      return;
+    }
     
     const cost = Math.floor(WORKER_HIRE_COST_BASE * Math.pow(WORKER_HIRE_COST_MULTIPLIER, currentWorkerCount));
-    if (playerStatsRef.current.money < cost) return;
+    if (playerStatsRef.current.money < cost) {
+      toast({ title: "Not enough money", variant: "destructive" });
+      return;
+    }
 
     const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
     const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
@@ -2087,29 +2096,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .filter((skill): skill is SkillNode => !!(skill && skill.effects.autoBuyUpgradesForBusiness));
     
     if (autoBuySkills.length > 0) {
-      setBusinesses(currentBusinesses => {
-        let changed = false;
-        const newBusinesses = currentBusinesses.map(business => {
-          const shouldAutoBuy = autoBuySkills.some(s => s.effects.autoBuyUpgradesForBusiness === business.id);
-          if (!shouldAutoBuy || !business.upgrades) return business;
-  
-          let newBusiness = { ...business };
-          let madePurchase = false;
-          
-          business.upgrades.forEach(upgrade => {
-            if (!upgrade.isPurchased) {
-              const upgradeCost = upgrade.cost; // You might want to apply cost reductions here too
-              if (playerStatsRef.current.money >= upgradeCost && business.level >= upgrade.requiredLevel) {
-                if (purchaseBusinessUpgrade(business.id, upgrade.id, true)) {
-                  madePurchase = true; // purchaseBusinessUpgrade will update the state
-                }
-              }
-            }
-          });
-          if(madePurchase) changed = true;
-          return newBusiness;
+      autoBuySkills.forEach(skill => {
+        const businessId = skill.effects.autoBuyUpgradesForBusiness;
+        if (!businessId) return;
+
+        const business = businessesRef.current.find(b => b.id === businessId);
+        if (!business || !business.upgrades) return;
+
+        business.upgrades.forEach(upgrade => {
+          if (!upgrade.isPurchased) {
+            purchaseBusinessUpgrade(business.id, upgrade.id, true);
+          }
         });
-        return changed ? newBusinesses : currentBusinesses;
       });
     }
   }, [playerStats.money, playerStats.unlockedSkillIds, purchaseBusinessUpgrade]);
@@ -2331,9 +2329,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
             .reduce((sum, rate) => sum + rate, 0);
         
-        const mineralsFromAutomation = autoDigRate * 0.25;
+        const mineralsFromAutomation = autoDigRate;
+        const depthFromAutomation = autoDigRate > 0 ? Math.max(1, Math.floor(autoDigRate / 2)) : 0;
 
-        // Factory Power Calculation
         const totalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
             const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
             return sum + (config ? config.powerOutputKw : 0);
@@ -2344,14 +2342,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           money: prev.money + newTotalIncome,
           totalDividendsEarned: (prev.totalDividendsEarned || 0) + totalDividendIncome,
           minerals: prev.minerals + mineralsFromAutomation,
-          quarryDepth: prev.quarryDepth + autoDigRate,
+          quarryDepth: prev.quarryDepth + depthFromAutomation,
+          totalMineralsDug: (prev.totalMineralsDug || 0) + mineralsFromAutomation,
           totalIncomePerSecond: newTotalIncome,
           investmentsValue: newInvestmentsValue,
           maxQuarryEnergy: newMaxQuarryEnergy,
           quarryEnergy: newQuarryEnergy,
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
-          factoryPowerUnitsGenerated: totalPowerGenerated, // Update power generation here
+          factoryPowerUnitsGenerated: totalPowerGenerated,
           farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
           farmVehicles: farmStateChanged || vehicleStateChanged ? updatedFarmVehicles : prev.farmVehicles,
           siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
