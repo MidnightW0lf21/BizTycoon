@@ -560,7 +560,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       return false;
     }
-  }, []);
+  }, [toast]);
 
   const wipeGameData = useCallback(() => {
     localStorage.removeItem(SAVE_DATA_KEY);
@@ -569,7 +569,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       description: "All progress has been reset. The game will now reload.",
     });
     setTimeout(() => window.location.reload(), 1500);
-  }, []);
+  }, [toast]);
 
   const purchaseBusinessUpgrade = useCallback((businessId: string, upgradeId: string, isAutoBuy: boolean = false): boolean => {
     const business = businessesRef.current.find(b => b.id === businessId);
@@ -1066,7 +1066,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(c => c.id === configId);
     if (!config) return;
 
-    if (playerStatsRef.current.money < config.baseCost) {
+    const canAfford = playerStatsRef.current.money >= config.baseCost;
+    if (!canAfford) {
         toast({ title: "Not enough money", variant: "destructive" });
         return;
     }
@@ -1082,10 +1083,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             assignedProductionLineId: null,
             purchasedUpgradeIds: []
         };
+        const updatedMachines = [...(prev.factoryMachines || []), newMachine];
         return {
             ...prev,
             money: prev.money - config.baseCost,
-            factoryMachines: [...(prev.factoryMachines || []), newMachine]
+            factoryMachines: updatedMachines
         };
     });
   }, [toast]);
