@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
@@ -617,42 +616,41 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const upgradeBusiness = useCallback((businessId: string, levelsToAttempt: number = 1) => {
-    setBusinesses(prevBusinesses => {
-        const businessIndex = prevBusinesses.findIndex(b => b.id === businessId);
-        if (businessIndex === -1) return prevBusinesses;
+    const business = businessesRef.current.find(b => b.id === businessId);
+    if (!business) return;
 
-        const business = prevBusinesses[businessIndex];
-        const dynamicMaxLevel = getDynamicMaxBusinessLevel();
+    const dynamicMaxLevel = getDynamicMaxBusinessLevel();
+    if (business.level >= dynamicMaxLevel) return;
 
-        if (business.level >= dynamicMaxLevel) return prevBusinesses;
+    const levelsToBuy = levelsToAttempt;
+    const { totalCost, levelsPurchasable } = calculateCostForNLevelsForDisplay(businessId, levelsToBuy);
 
-        const levelsToBuy = levelsToAttempt;
-        const { totalCost, levelsPurchasable } = calculateCostForNLevelsForDisplay(businessId, levelsToBuy);
+    if (levelsPurchasable > 0 && playerStatsRef.current.money >= totalCost) {
+      if (playerStatsRef.current.toastSettings?.showManualPurchases) {
+        toastRef.current({
+          title: `${business.name} Leveled Up!`,
+          description: `Purchased ${levelsPurchasable} level(s) for ${business.name}.`,
+        });
+      }
 
-        if (levelsPurchasable > 0 && playerStatsRef.current.money >= totalCost) {
-            const newBusinesses = [...prevBusinesses];
-            newBusinesses[businessIndex] = {
-                ...business,
-                level: business.level + levelsPurchasable,
-            };
+      setBusinesses(prevBusinesses => {
+          const newBusinesses = [...prevBusinesses];
+          const businessIndex = newBusinesses.findIndex(b => b.id === businessId);
+          if (businessIndex === -1) return prevBusinesses;
 
-            setPlayerStats(prev => ({
-                ...prev,
-                money: prev.money - totalCost,
-                totalBusinessLevelsPurchased: (prev.totalBusinessLevelsPurchased || 0) + levelsPurchasable,
-            }));
+          newBusinesses[businessIndex] = {
+              ...newBusinesses[businessIndex],
+              level: newBusinesses[businessIndex].level + levelsPurchasable,
+          };
+          return newBusinesses;
+      });
 
-            if (playerStatsRef.current.toastSettings?.showManualPurchases) {
-              toastRef.current({
-                title: `${business.name} Leveled Up!`,
-                description: `Purchased ${levelsPurchasable} level(s) for ${business.name}.`,
-              });
-            }
-
-            return newBusinesses;
-        }
-        return prevBusinesses;
-    });
+      setPlayerStats(prev => ({
+          ...prev,
+          money: prev.money - totalCost,
+          totalBusinessLevelsPurchased: (prev.totalBusinessLevelsPurchased || 0) + levelsPurchasable,
+      }));
+    }
   }, [getDynamicMaxBusinessLevel, calculateCostForNLevelsForDisplay]);
 
   const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
@@ -830,8 +828,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
     }
     
+    const stock = stocksRef.current.find(s => s.id === stockId);
     if (playerStatsRef.current.toastSettings?.showStockTrades ?? true) {
-      const stock = stocksRef.current.find(s => s.id === stockId);
       toast({ title: "IPO Shares Purchased!", description: `Bought ${sharesToBuy.toLocaleString()} shares of ${stock?.ticker}.` });
     }
 
@@ -1069,16 +1067,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!config) return;
 
     if (playerStatsRef.current.money < config.baseCost) return;
-
+    
     if (playerStatsRef.current.toastSettings?.showFactory) {
       toast({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
     }
-    
+
     setPlayerStats(prev => {
         const newMachine: FactoryMachine = {
-            instanceId: `${configId}_${Date.now()}`,
+            instanceId: `${configId}_${Date.now()}_${Math.random()}`,
             configId: configId,
             assignedProductionLineId: null,
+            purchasedUpgradeIds: []
         };
         return {
             ...prev,
@@ -1569,66 +1568,70 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const harvestField = useCallback((fieldId: string) => {
-    setPlayerStats(prev => {
-      const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
-      if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'ReadyToHarvest') return prev;
-
-      const availableHarvesterIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Harvester' && v.status === 'Idle');
-      if (availableHarvesterIndex === -1) {
-        toastRef.current({ title: "No Harvester Available", variant: "destructive" });
-        return prev;
-      }
-
-      const farmFields = [...prev.farmFields!];
-      const farmVehicles = [...prev.farmVehicles!];
+    const prev = playerStatsRef.current;
+    const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
+    if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'ReadyToHarvest') return;
+  
+    const availableHarvesterIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Harvester' && v.status === 'Idle');
+    if (availableHarvesterIndex === -1) {
+      toastRef.current({ title: "No Harvester Available", variant: "destructive" });
+      return;
+    }
+  
+    const harvester = prev.farmVehicles![availableHarvesterIndex];
+    if (harvester.fuel <= 0) {
+      toastRef.current({ title: "Harvester Out of Fuel", variant: "destructive" });
+      return;
+    }
+  
+    setPlayerStats(current => {
+      const farmFields = [...current.farmFields!];
+      const farmVehicles = [...current.farmVehicles!];
       const field = farmFields[fieldIndex];
-      const harvester = farmVehicles[availableHarvesterIndex];
-
-      if (harvester.fuel <= 0) {
-        toastRef.current({ title: "Harvester Out of Fuel", variant: "destructive" });
-        return prev;
-      }
+      const harvesterToUpdate = farmVehicles[availableHarvesterIndex];
       
-      const harvestTimeHours = field.sizeHa / harvester.speedHaPerHr;
+      const harvestTimeHours = field.sizeHa / harvesterToUpdate.speedHaPerHr;
       const harvestTimeSeconds = harvestTimeHours * 3600;
-      const activity: FarmActivity = { type: 'Harvesting', startTime: Date.now(), durationSeconds: harvestTimeSeconds, vehicleId: harvester.instanceId, cropId: field.currentCropId };
+      const activity: FarmActivity = { type: 'Harvesting', startTime: Date.now(), durationSeconds: harvestTimeSeconds, vehicleId: harvesterToUpdate.instanceId, cropId: field.currentCropId };
       
       farmFields[fieldIndex] = { ...field, status: 'Harvesting', activity };
-      farmVehicles[availableHarvesterIndex] = { ...harvester, status: 'Working', activity };
-
-      return { ...prev, farmFields, farmVehicles };
+      farmVehicles[availableHarvesterIndex] = { ...harvesterToUpdate, status: 'Working', activity };
+  
+      return { ...current, farmFields, farmVehicles };
     });
   }, []);
 
   const cultivateField = useCallback((fieldId: string) => {
-    setPlayerStats(prev => {
-      const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
-      if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'Cultivating' || prev.farmFields![fieldIndex].activity) return prev;
+    const prev = playerStatsRef.current;
+    const fieldIndex = (prev.farmFields || []).findIndex(f => f.id === fieldId);
+    if (fieldIndex === -1 || prev.farmFields![fieldIndex].status !== 'Cultivating' || prev.farmFields![fieldIndex].activity) return;
 
-      const availableTractorIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Tractor' && v.status === 'Idle');
-      if (availableTractorIndex === -1) {
-        toastRef.current({ title: "No Tractor Available", variant: "destructive" });
-        return prev;
-      }
+    const availableTractorIndex = (prev.farmVehicles || []).findIndex(v => v.type === 'Tractor' && v.status === 'Idle');
+    if (availableTractorIndex === -1) {
+      toastRef.current({ title: "No Tractor Available", variant: "destructive" });
+      return;
+    }
 
-      const farmFields = [...prev.farmFields!];
-      const farmVehicles = [...prev.farmVehicles!];
+    const tractor = prev.farmVehicles![availableTractorIndex];
+    if (tractor.fuel <= 0) {
+      toastRef.current({ title: "Tractor Out of Fuel", variant: "destructive" });
+      return;
+    }
+    
+    setPlayerStats(current => {
+      const farmFields = [...current.farmFields!];
+      const farmVehicles = [...current.farmVehicles!];
       const field = farmFields[fieldIndex];
-      const tractor = farmVehicles[availableTractorIndex];
-
-      if (tractor.fuel <= 0) {
-        toastRef.current({ title: "Tractor Out of Fuel", variant: "destructive" });
-        return prev;
-      }
+      const tractorToUpdate = farmVehicles[availableTractorIndex];
       
-      const cultivateTimeHours = field.sizeHa / tractor.speedHaPerHr;
+      const cultivateTimeHours = field.sizeHa / tractorToUpdate.speedHaPerHr;
       const cultivateTimeSeconds = cultivateTimeHours * 3600;
-      const activity: FarmActivity = { type: 'Cultivating', startTime: Date.now(), durationSeconds: cultivateTimeSeconds, vehicleId: tractor.instanceId };
+      const activity: FarmActivity = { type: 'Cultivating', startTime: Date.now(), durationSeconds: cultivateTimeSeconds, vehicleId: tractorToUpdate.instanceId };
       
       farmFields[fieldIndex] = { ...field, status: 'Cultivating', activity };
-      farmVehicles[availableTractorIndex] = { ...tractor, status: 'Working', activity };
+      farmVehicles[availableTractorIndex] = { ...tractorToUpdate, status: 'Working', activity };
 
-      return { ...prev, farmFields, farmVehicles };
+      return { ...current, farmFields, farmVehicles };
     });
   }, []);
 
@@ -1809,7 +1812,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return {
           ...current,
           money: current.money - cost,
-          fuelCapacity: newCapacity
+          fuelCapacity: newCapacity,
       };
     });
   }, [toast]);
@@ -1817,25 +1820,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const upgradePantry = useCallback(() => {
     const prev = playerStatsRef.current;
     if ((prev.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX) {
-      toast({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
-      return;
+        toast({ title: "Upgrade Failed", description: "Pantry is at maximum capacity.", variant: "destructive" });
+        return;
     }
     const currentLevel = Math.floor(Math.log((prev.pantryCapacity || 100) / 100) / Math.log(2));
     const cost = Math.floor(PANTRY_UPGRADE_COST_BASE * Math.pow(PANTRY_UPGRADE_COST_MULTIPLIER, currentLevel));
     if (prev.money < cost) {
-      toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
-      return;
+        toast({ title: "Upgrade Failed", description: "Not enough money to upgrade the pantry.", variant: "destructive" });
+        return;
     }
-    
+
     toast({ title: "Pantry Upgraded!", description: `Pantry capacity increased.` });
-    
+
     setPlayerStats(current => {
-      const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (current.pantryCapacity || 100) * 2);
-      return {
-          ...current,
-          money: current.money - cost,
-          pantryCapacity: newCapacity,
-      };
+        const newCapacity = Math.min(PANTRY_CAPACITY_MAX, (current.pantryCapacity || 100) * 2);
+        return {
+            ...current,
+            money: current.money - cost,
+            pantryCapacity: newCapacity,
+        };
     });
   }, [toast]);
   
@@ -2081,24 +2084,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const autoBuySkills = playerStatsRef.current.unlockedSkillIds
       .map(skillId => INITIAL_SKILL_TREE.find(s => s.id === skillId))
-      .filter(skill => skill && skill.effects.autoBuyUpgradesForBusiness);
+      .filter((skill): skill is SkillNode => !!(skill && skill.effects.autoBuyUpgradesForBusiness));
     
     if (autoBuySkills.length > 0) {
-      const businessesToAutoBuy = businessesRef.current.filter(b => 
-        autoBuySkills.some(s => s!.effects.autoBuyUpgradesForBusiness === b.id)
-      );
-
-      businessesToAutoBuy.forEach(business => {
-        if (business.upgrades) {
+      setBusinesses(currentBusinesses => {
+        let changed = false;
+        const newBusinesses = currentBusinesses.map(business => {
+          const shouldAutoBuy = autoBuySkills.some(s => s.effects.autoBuyUpgradesForBusiness === business.id);
+          if (!shouldAutoBuy || !business.upgrades) return business;
+  
+          let newBusiness = { ...business };
+          let madePurchase = false;
+          
           business.upgrades.forEach(upgrade => {
             if (!upgrade.isPurchased) {
-              const upgradeCost = upgrade.cost;
+              const upgradeCost = upgrade.cost; // You might want to apply cost reductions here too
               if (playerStatsRef.current.money >= upgradeCost && business.level >= upgrade.requiredLevel) {
-                purchaseBusinessUpgrade(business.id, upgrade.id, true);
+                if (purchaseBusinessUpgrade(business.id, upgrade.id, true)) {
+                  madePurchase = true; // purchaseBusinessUpgrade will update the state
+                }
               }
             }
           });
-        }
+          if(madePurchase) changed = true;
+          return newBusiness;
+        });
+        return changed ? newBusinesses : currentBusinesses;
       });
     }
   }, [playerStats.money, playerStats.unlockedSkillIds, purchaseBusinessUpgrade]);
@@ -2322,6 +2333,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         const mineralsFromAutomation = autoDigRate * 0.25;
 
+        // Factory Power Calculation
+        const totalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
+            const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
+            return sum + (config ? config.powerOutputKw : 0);
+        }, 0);
+        
         return {
           ...prev,
           money: prev.money + newTotalIncome,
@@ -2334,6 +2351,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           quarryEnergy: newQuarryEnergy,
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
+          factoryPowerUnitsGenerated: totalPowerGenerated, // Update power generation here
           farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
           farmVehicles: farmStateChanged || vehicleStateChanged ? updatedFarmVehicles : prev.farmVehicles,
           siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
@@ -2378,10 +2396,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-
-
-
-
-
-
