@@ -1064,31 +1064,33 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const purchaseFactoryMachine = useCallback((configId: string) => {
     const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(c => c.id === configId);
-    if (!config) return;
-
+    if (!config) {
+      return;
+    }
+  
     const canAfford = playerStatsRef.current.money >= config.baseCost;
     if (!canAfford) {
-        toast({ title: "Not enough money", variant: "destructive" });
-        return;
+      toast({ title: "Not enough money", variant: "destructive" });
+      return;
     }
-    
+  
     if (playerStatsRef.current.toastSettings?.showFactory) {
       toast({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
     }
-
+  
     setPlayerStats(prev => {
-        const newMachine: FactoryMachine = {
-            instanceId: `${configId}_${Date.now()}_${Math.random()}`,
-            configId: configId,
-            assignedProductionLineId: null,
-            purchasedUpgradeIds: []
-        };
-        const updatedMachines = [...(prev.factoryMachines || []), newMachine];
-        return {
-            ...prev,
-            money: prev.money - config.baseCost,
-            factoryMachines: updatedMachines
-        };
+      const newMachine: FactoryMachine = {
+        instanceId: `${configId}_${Date.now()}_${Math.random()}`,
+        configId: configId,
+        assignedProductionLineId: null,
+        purchasedUpgradeIds: []
+      };
+      
+      return {
+        ...prev,
+        money: prev.money - config.baseCost,
+        factoryMachines: [...(prev.factoryMachines || []), newMachine]
+      };
     });
   }, [toast]);
 
@@ -2336,8 +2338,68 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         const totalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
             const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
-            return sum + (config ? config.powerOutputKw : 0);
+            let power = config ? config.powerOutputKw : 0;
+            if(config) {
+              const boostResearch = researchItemsRef.current.find(r => r.effects.factoryPowerBuildingBoost?.buildingConfigId === config.id);
+              if (boostResearch && prev.unlockedResearchIds.includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
+                power *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
+              }
+            }
+            return sum + power;
         }, 0);
+        
+        let componentGlobalPowerBoostPercent = 0;
+        for (const componentId in prev.factoryProducedComponents) {
+            const count = prev.factoryProducedComponents[componentId];
+            if (count > 0) {
+                const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+                if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
+                    const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
+                    const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+                    componentGlobalPowerBoostPercent += cappedBoost;
+                }
+            }
+        }
+        const finalTotalPowerGenerated = totalPowerGenerated * (1 + componentGlobalPowerBoostPercent / 100);
+
+        let machineAssignmentChanged = false;
+        let finalUpdatedMachines = [...(prev.factoryMachines || [])];
+        let finalUpdatedLines = [...(prev.factoryProductionLines || [])];
+    
+        const unassignedMachines = finalUpdatedMachines.filter(m => !m.assignedProductionLineId);
+    
+        if (unassignedMachines.length > 0) {
+          const mutableLines = finalUpdatedLines.map(l => ({ ...l, slots: [...l.slots] }));
+          let machineAssignedInThisTick = false;
+    
+          for (const machine of unassignedMachines) {
+            let assigned = false;
+            for (const line of mutableLines) {
+              if (!line.isUnlocked) continue;
+              const emptySlotIndex = line.slots.findIndex(s => s.machineInstanceId === null);
+              if (emptySlotIndex !== -1) {
+                line.slots[emptySlotIndex] = { ...line.slots[emptySlotIndex], machineInstanceId: machine.instanceId };
+    
+                const machineIndexInMainList = finalUpdatedMachines.findIndex(m => m.instanceId === machine.instanceId);
+                if (machineIndexInMainList !== -1) {
+                  finalUpdatedMachines[machineIndexInMainList] = { ...finalUpdatedMachines[machineIndexInMainList], assignedProductionLineId: line.id };
+                }
+                
+                machineAssignedInThisTick = true;
+                assigned = true;
+                break; 
+              }
+            }
+            if (assigned) {
+              // continue with the next unassigned machine
+            }
+          }
+          
+          if (machineAssignedInThisTick) {
+            finalUpdatedLines = mutableLines;
+            machineAssignmentChanged = true;
+          }
+        }
         
         return {
           ...prev,
@@ -2352,7 +2414,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           quarryEnergy: newQuarryEnergy,
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + newTotalIncome,
-          factoryPowerUnitsGenerated: totalPowerGenerated,
+          factoryPowerUnitsGenerated: finalTotalPowerGenerated,
+          factoryMachines: machineAssignmentChanged ? finalUpdatedMachines : prev.factoryMachines,
+          factoryProductionLines: machineAssignmentChanged ? finalUpdatedLines : prev.factoryProductionLines,
           farmFields: farmStateChanged ? updatedFarmFields : prev.farmFields,
           farmVehicles: farmStateChanged || vehicleStateChanged ? updatedFarmVehicles : prev.farmVehicles,
           siloStorage: farmStateChanged ? siloStorage : prev.siloStorage,
