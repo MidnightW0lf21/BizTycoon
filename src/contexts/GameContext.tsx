@@ -915,15 +915,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast({ title: "HQ Upgrade Purchased!", description: `${upgradeConfig.name} upgraded to Level ${nextLevelData.level}.` });
       }
       
-      setPlayerStats(prev => ({
-          ...prev,
-          money: prev.money - nextLevelData.costMoney,
-          prestigePoints: prev.prestigePoints - (nextLevelData.costPrestigePoints || 0),
-          hqUpgradeLevels: {
-              ...prev.hqUpgradeLevels,
-              [upgradeId]: nextLevelData.level,
-          },
-      }));
+      setPlayerStats(prev => {
+          let updatedStats = {
+              ...prev,
+              money: prev.money - nextLevelData.costMoney,
+              prestigePoints: prev.prestigePoints - (nextLevelData.costPrestigePoints || 0),
+              hqUpgradeLevels: {
+                  ...prev.hqUpgradeLevels,
+                  [upgradeId]: nextLevelData.level,
+              },
+          };
+
+          if (nextLevelData.effects.unlocksFactoryComponentRecipeIds) {
+              const currentRecipes = updatedStats.unlockedFactoryComponentRecipeIds || [];
+              const newRecipes = nextLevelData.effects.unlocksFactoryComponentRecipeIds.filter(id => !currentRecipes.includes(id));
+              updatedStats.unlockedFactoryComponentRecipeIds = [...currentRecipes, ...newRecipes];
+          }
+
+          return updatedStats;
+      });
     }
   }, [toast]);
 
@@ -2055,7 +2065,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // --- Factory Machine Auto-Assignment ---
         let newFactoryMachines = [...(prev.factoryMachines || [])];
         let newFactoryProductionLines = [...(prev.factoryProductionLines || [])];
-        let wasMachineAssigned = false;
 
         const unassignedMachines = newFactoryMachines.filter(m => m.assignedProductionLineId === null);
         if (unassignedMachines.length > 0) {
@@ -2067,7 +2076,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (machineToAssign) {
                             machineToAssign.assignedProductionLineId = line.id;
                             line.slots[i].machineInstanceId = machineToAssign.instanceId;
-                            wasMachineAssigned = true;
                             // Update the machine in the main list as well
                             const machineIndex = newFactoryMachines.findIndex(m => m.instanceId === machineToAssign.instanceId);
                             if (machineIndex !== -1) {
