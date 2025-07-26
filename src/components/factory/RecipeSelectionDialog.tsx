@@ -102,28 +102,18 @@ export function RecipeSelectionDialog({
     const maxBonus = effects.maxBonusPercent;
     let effectPerUnit = 0;
 
-    // Check for all relevant percentage-based effects
-    if (effects.globalIncomeBoostPerComponentPercent) {
-        effectPerUnit = effects.globalIncomeBoostPerComponentPercent;
-    } else if (effects.businessSpecificIncomeBoostPercent) {
-        effectPerUnit = effects.businessSpecificIncomeBoostPercent.percent;
-    } else if (effects.stockSpecificDividendYieldBoostPercent) {
-        effectPerUnit = effects.stockSpecificDividendYieldBoostPercent.percent;
-    } else if (effects.factoryGlobalPowerOutputBoostPercent) {
-        effectPerUnit = effects.factoryGlobalPowerOutputBoostPercent;
-    } else if (effects.factoryGlobalMaterialCollectionBoostPercent) {
-        effectPerUnit = effects.factoryGlobalMaterialCollectionBoostPercent;
-    } else if (effects.globalCostReductionPercent) {
-        effectPerUnit = effects.globalCostReductionPercent;
-    } else if (effects.businessSpecificLevelUpCostReductionPercent) {
-        effectPerUnit = effects.businessSpecificLevelUpCostReductionPercent.percent;
-    } else if (effects.globalBusinessUpgradeCostReductionPercent) {
-        effectPerUnit = effects.globalBusinessUpgradeCostReductionPercent;
-    } else if (effects.businessSpecificUpgradeCostReductionPercent) {
-        effectPerUnit = effects.businessSpecificUpgradeCostReductionPercent.percent;
-    } else if (effects.globalDividendYieldBoostPercent) {
-        effectPerUnit = effects.globalDividendYieldBoostPercent;
-    }
+    if (effects.globalIncomeBoostPerComponentPercent) effectPerUnit = effects.globalIncomeBoostPerComponentPercent;
+    else if (effects.businessSpecificIncomeBoostPercent) effectPerUnit = effects.businessSpecificIncomeBoostPercent.percent;
+    else if (effects.stockSpecificDividendYieldBoostPercent) effectPerUnit = effects.stockSpecificDividendYieldBoostPercent.percent;
+    else if (effects.factoryGlobalPowerOutputBoostPercent) effectPerUnit = effects.factoryGlobalPowerOutputBoostPercent;
+    else if (effects.factoryGlobalMaterialCollectionBoostPercent) effectPerUnit = effects.factoryGlobalMaterialCollectionBoostPercent;
+    else if (effects.globalCostReductionPercent) effectPerUnit = effects.globalCostReductionPercent;
+    else if (effects.businessSpecificLevelUpCostReductionPercent) effectPerUnit = effects.businessSpecificLevelUpCostReductionPercent.percent;
+    else if (effects.globalBusinessUpgradeCostReductionPercent) effectPerUnit = effects.globalBusinessUpgradeCostReductionPercent;
+    else if (effects.businessSpecificUpgradeCostReductionPercent) effectPerUnit = effects.businessSpecificUpgradeCostReductionPercent.percent;
+    else if (effects.globalDividendYieldBoostPercent) effectPerUnit = effects.globalDividendYieldBoostPercent;
+    // Add non-percentage based effects checks here if they can be capped, e.g. factoryManualRPGenerationBoost.
+    // For now, assuming only percentage-based ones have a maxBonusPercent.
 
     if (effectPerUnit > 0) {
         return (ownedCount * effectPerUnit) >= maxBonus;
@@ -405,6 +395,7 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
+
 
 
 
