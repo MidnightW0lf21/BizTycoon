@@ -595,7 +595,6 @@ export default function MyFactoryPage() {
               </TooltipTrigger>
               <TooltipContent>
                 <p>{tooltipDescription || 'Provides a special bonus.'}</p>
-                <p>Current contribution: {currentBonusDisplay}</p>
                 {isFinite(effects?.maxBonusPercent ?? Infinity) && <p>Max possible bonus from this component type: {effects?.maxBonusPercent?.toFixed(2)}%</p>}
               </TooltipContent>
             </Tooltip>
@@ -1112,6 +1111,7 @@ export default function MyFactoryPage() {
         unlockedResearchIds={playerStats.unlockedResearchIds || []}
         purchaseFactoryMachineUpgrade={purchaseFactoryMachineUpgrade}
         currentDynamicMaxWorkerEnergy={currentDynamicMaxWorkerEnergy}
+        playerStats={playerStats}
       />
     )}
 

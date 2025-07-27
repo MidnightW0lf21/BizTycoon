@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FactoryMachine, FactoryMachineConfig, FactoryComponent, Worker, FactoryMachineUpgradeConfig, PlayerStats } from "@/types";
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { cn } from "@/lib/utils";
 import { INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_HQ_UPGRADES } from "@/config/game-config"; // Added INITIAL_HQ_UPGRADES
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useGame } from "@/contexts/GameContext"; 
 import { useMemo } from "react";
 
 
@@ -35,6 +35,7 @@ interface RecipeSelectionDialogProps {
   unlockedResearchIds: string[];
   purchaseFactoryMachineUpgrade: (machineInstanceId: string, upgradeId: string) => void;
   currentDynamicMaxWorkerEnergy: number;
+  playerStats: PlayerStats;
 }
 
 export function RecipeSelectionDialog({
@@ -56,9 +57,9 @@ export function RecipeSelectionDialog({
   unlockedResearchIds,
   purchaseFactoryMachineUpgrade,
   currentDynamicMaxWorkerEnergy,
+  playerStats,
 }: RecipeSelectionDialogProps) {
-  const { playerStats } = useGame(); 
-  const hqUpgradesConfig = INITIAL_HQ_UPGRADES; // Use the imported config
+  const hqUpgradesConfig = INITIAL_HQ_UPGRADES; 
 
   if (!isOpen || !assignedMachineInstanceId) return null;
 
@@ -395,7 +396,3 @@ export function RecipeSelectionDialog({
     </Dialog>
   );
 }
-
-
-
-
