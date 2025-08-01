@@ -2123,21 +2123,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (unassignedMachines.length > 0) {
             const unassignedQueue = [...unassignedMachines];
             newFactoryProductionLines = newFactoryProductionLines.map(line => {
-                if (!line.isUnlocked) return line;
+                if (!line.isUnlocked || unassignedQueue.length === 0) return line;
                 const newSlots = line.slots.map(slot => {
                     if (slot.machineInstanceId === null && unassignedQueue.length > 0) {
                         const machineToAssign = unassignedQueue.shift()!;
                         machineToAssign.assignedProductionLineId = line.id;
+                        const machineIndexInMasterList = newFactoryMachines.findIndex(m => m.instanceId === machineToAssign.instanceId);
+                        if (machineIndexInMasterList > -1) {
+                            newFactoryMachines[machineIndexInMasterList] = machineToAssign;
+                        }
                         return { ...slot, machineInstanceId: machineToAssign.instanceId };
                     }
                     return slot;
                 });
                 return { ...line, slots: newSlots };
-            });
-            // Update the main machines list with the new assignments
-            newFactoryMachines = newFactoryMachines.map(m => {
-                const assignedLine = newFactoryProductionLines.find(l => l.slots.some(s => s.machineInstanceId === m.instanceId));
-                return assignedLine ? { ...m, assignedProductionLineId: assignedLine.id } : m;
             });
         }
         
@@ -2146,15 +2145,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                 const currentProgress = newFactoryProductionProgress[progressKey];
 
-                if (currentProgress) { // --- Item is currently being crafted ---
+                if (currentProgress) {
                     currentProgress.remainingSeconds -= 1;
                     if (currentProgress.remainingSeconds <= 0) {
-                        // Crafting finished
                         newFactoryProducedComponents[slot.targetComponentId!] = (newFactoryProducedComponents[slot.targetComponentId!] || 0) + 1;
                         newTotalFactoryComponentsProduced++;
                         delete newFactoryProductionProgress[progressKey];
                     }
-                } else if (slot.targetComponentId && slot.machineInstanceId) { // --- Try to start a new craft ---
+                } else if (slot.targetComponentId && slot.machineInstanceId) {
                     const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === slot.targetComponentId);
                     const machine = newFactoryMachines.find(m => m.instanceId === slot.machineInstanceId);
                     if (!componentConfig || !machine) return;
@@ -2314,3 +2312,6 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+
+    
