@@ -654,10 +654,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const buyStock = useCallback((stockId: string, sharesToBuyInput: number) => {
     const stock = stocksRef.current.find(s => s.id === stockId);
-    if (!stock) return;
-
     const playerStatsNow = playerStatsRef.current;
-    if (sharesToBuyInput <= 0 || playerStatsNow.timesPrestiged < 8) return;
+
+    if (!stock || sharesToBuyInput <= 0 || playerStatsNow.timesPrestiged < 8) return;
 
     const existingHolding = playerStatsNow.stockHoldings.find(h => h.stockId === stockId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
@@ -668,19 +667,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let sharesToBuy = Math.min(sharesToBuyInput, sharesAvailableToBuy);
     const cost = stock.price * sharesToBuy;
 
-    if (playerStatsNow.money >= cost) {
-      if (playerStatsRef.current.toastSettings?.showStockTrades) {
-        toast({ title: "Stock Purchased!" });
-      }
-      
-      setPlayerStats(prev => ({
-          ...prev,
-          money: prev.money - cost,
-          stockHoldings: prev.stockHoldings.find(h => h.stockId === stockId)
-            ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (stock.price * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
-            : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: stock.price }]
-      }));
+    if (playerStatsNow.money < cost) {
+      return;
     }
+
+    if (playerStatsRef.current.toastSettings?.showStockTrades) {
+      toast({ title: "Stock Purchased!" });
+    }
+    
+    setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money - cost,
+        stockHoldings: prev.stockHoldings.find(h => h.stockId === stockId)
+          ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (stock.price * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+          : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: stock.price }]
+    }));
+    
   }, [toast]);
 
   const sellStock = useCallback((stockId: string, sharesToSell: number) => {
@@ -689,7 +691,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const holding = playerStatsRef.current.stockHoldings.find(h => h.stockId === stockId);
     if (!holding || holding.shares < sharesToSell) return;
-    
+
     if (playerStatsRef.current.toastSettings?.showStockTrades) {
       toast({ title: "Stock Sold!", description: `Sold ${sharesToSell.toLocaleString()} shares of ${stock.ticker}.` });
     }
@@ -706,10 +708,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const buyEtf = useCallback((etfId: string, sharesToBuyInput: number, currentPrice: number) => {
     const etf = etfsState.find(e => e.id === etfId);
-    if (!etf) return;
-
     const playerStatsNow = playerStatsRef.current;
-    if (sharesToBuyInput <= 0 || playerStatsNow.timesPrestiged < 8) return;
+    if (!etf || sharesToBuyInput <= 0 || playerStatsNow.timesPrestiged < 8) return;
     
     const existingHolding = playerStatsNow.etfHoldings.find(h => h.etfId === etfId);
     const sharesAlreadyOwnedByPlayer = existingHolding?.shares || 0;
@@ -720,19 +720,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const sharesToBuy = Math.min(sharesToBuyInput, sharesAvailableToBuy);
     const cost = currentPrice * sharesToBuy;
 
-    if (playerStatsNow.money >= cost) {
-      if (playerStatsRef.current.toastSettings?.showStockTrades) {
-        toast({ title: "ETF Purchased!", description: `Bought ${sharesToBuy.toLocaleString()} shares of ${etf.ticker}.` });
-      }
-
-      setPlayerStats(prev => ({
-          ...prev,
-          money: prev.money - cost,
-          etfHoldings: prev.etfHoldings.find(h => h.etfId === etfId)
-              ? prev.etfHoldings.map(h => h.etfId === etfId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (currentPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
-              : [...prev.etfHoldings, { etfId, shares: sharesToBuy, averagePurchasePrice: currentPrice }]
-      }));
+    if (playerStatsNow.money < cost) {
+      return;
     }
+
+    if (playerStatsRef.current.toastSettings?.showStockTrades) {
+      toast({ title: "ETF Purchased!", description: `Bought ${sharesToBuy.toLocaleString()} shares of ${etf.ticker}.` });
+    }
+
+    setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money - cost,
+        etfHoldings: prev.etfHoldings.find(h => h.etfId === etfId)
+            ? prev.etfHoldings.map(h => h.etfId === etfId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (currentPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+            : [...prev.etfHoldings, { etfId, shares: sharesToBuy, averagePurchasePrice: currentPrice }]
+    }));
+    
   }, [etfsState, toast]);
   
   const sellEtf = useCallback((etfId: string, sharesToSell: number, currentPrice: number) => {
@@ -741,7 +744,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const holding = playerStatsRef.current.etfHoldings.find(h => h.etfId === etfId);
     if (!holding || holding.shares < sharesToSell) return;
-    
+
     if (playerStatsRef.current.toastSettings?.showStockTrades) {
       toast({ title: "ETF Sold!", description: `Sold ${sharesToSell.toLocaleString()} shares of ${etf.ticker}.` });
     }
@@ -754,6 +757,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             h.etfId === etfId ? { ...h, shares: h.shares - sharesToSell } : h
         ).filter(h => h.shares > 0)
     }));
+    
   }, [etfsState, toast]);
   
   const buyIpoShares = useCallback((stockId: string, sharesToBuy: number) => {
@@ -761,26 +765,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!activeIpo || activeIpo.stockId !== stockId || sharesToBuy <= 0 || sharesToBuy > activeIpo.sharesRemaining) return;
 
     const cost = activeIpo.ipoPrice * sharesToBuy;
-    if (playerStatsRef.current.money >= cost) {
-      const stock = stocksRef.current.find(s => s.id === stockId);
-      if (playerStatsRef.current.toastSettings?.showStockTrades) {
-        toast({ title: "IPO Shares Purchased!", description: `Bought ${sharesToBuy.toLocaleString()} shares of ${stock?.ticker}.` });
-      }
-
-      setPlayerStats(prev => {
-          const existingHolding = prev.stockHoldings.find(h => h.stockId === stockId);
-          const newStockHoldings = existingHolding
-              ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (activeIpo.ipoPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
-              : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: activeIpo.ipoPrice }];
-          
-          return {
-              ...prev,
-              money: prev.money - cost,
-              stockHoldings: newStockHoldings,
-              activeIpo: { ...activeIpo, sharesRemaining: activeIpo.sharesRemaining - sharesToBuy },
-          };
-      });
+    if (playerStatsRef.current.money < cost) {
+      return;
     }
+    
+    const stock = stocksRef.current.find(s => s.id === stockId);
+    if (playerStatsRef.current.toastSettings?.showStockTrades) {
+      toast({ title: "IPO Shares Purchased!", description: `Bought ${sharesToBuy.toLocaleString()} shares of ${stock?.ticker}.` });
+    }
+
+    setPlayerStats(prev => {
+        const existingHolding = prev.stockHoldings.find(h => h.stockId === stockId);
+        const newStockHoldings = existingHolding
+            ? prev.stockHoldings.map(h => h.stockId === stockId ? { ...h, shares: h.shares + sharesToBuy, averagePurchasePrice: ((h.averagePurchasePrice * h.shares) + (activeIpo.ipoPrice * sharesToBuy)) / (h.shares + sharesToBuy) } : h)
+            : [...prev.stockHoldings, { stockId, shares: sharesToBuy, averagePurchasePrice: activeIpo.ipoPrice }];
+        
+        return {
+            ...prev,
+            money: prev.money - cost,
+            stockHoldings: newStockHoldings,
+            activeIpo: { ...activeIpo, sharesRemaining: activeIpo.sharesRemaining - sharesToBuy },
+        };
+    });
+    
   }, [toast]);
 
   const performPrestige = useCallback(() => {
@@ -799,7 +806,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast({ title: "No New Points", description: "You wouldn't gain any new prestige points right now. Level up your businesses further!", variant: "default" });
       return;
     }
-    
+
     const boostPercent = getPrestigePointBoostPercent(
         playerStatsNow.unlockedSkillIds,
         skillTreeRef.current,
@@ -961,20 +968,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (config.maxInstances !== undefined && numOwned >= config.maxInstances) return;
 
     const cost = config.baseCost * Math.pow(config.costMultiplier || 1.1, numOwned);
-    if (playerStatsRef.current.money >= cost) {
-      if (playerStatsRef.current.toastSettings?.showFactory) {
-        toast({ title: "Power Building Constructed!", description: `Built a new ${config.name}.` });
-      }
-
-      setPlayerStats(prev => {
-          const newBuilding: FactoryPowerBuilding = { instanceId: `${configId}_${Date.now()}`, configId };
-          return {
-              ...prev,
-              money: prev.money - cost,
-              factoryPowerBuildings: [...(prev.factoryPowerBuildings || []), newBuilding]
-          };
-      });
+    if (playerStatsRef.current.money < cost) {
+      return
     }
+
+    if (playerStatsRef.current.toastSettings?.showFactory) {
+      toast({ title: "Power Building Constructed!", description: `Built a new ${config.name}.` });
+    }
+
+    setPlayerStats(prev => {
+        const newBuilding: FactoryPowerBuilding = { instanceId: `${configId}_${Date.now()}`, configId };
+        return {
+            ...prev,
+            money: prev.money - cost,
+            factoryPowerBuildings: [...(prev.factoryPowerBuildings || []), newBuilding]
+        };
+    });
+    
   }, [toast]);
 
   const manuallyCollectRawMaterials = useCallback(() => {
@@ -999,28 +1009,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const config = INITIAL_FACTORY_MACHINE_CONFIGS.find(c => c.id === configId);
     if (!config) return;
 
-    if (playerStatsRef.current.money >= config.baseCost) {
-      if(playerStatsRef.current.toastSettings?.showFactory) {
-          toast({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
-      }
-    
-      setPlayerStats(prev => {
-        const newMachine: FactoryMachine = {
-          instanceId: `${configId}_${Date.now()}_${Math.random()}`,
-          configId: configId,
-          assignedProductionLineId: null,
-          purchasedUpgradeIds: []
-        };
-        
-        const currentMachines = prev.factoryMachines || [];
-  
-        return {
-          ...prev,
-          money: prev.money - config.baseCost,
-          factoryMachines: [...currentMachines, newMachine]
-        };
-      });
+    if (playerStatsRef.current.money < config.baseCost) {
+      return;
     }
+    
+    if(playerStatsRef.current.toastSettings?.showFactory) {
+        toast({ title: "Machine Constructed!", description: `Built a new ${config.name}.` });
+    }
+  
+    setPlayerStats(prev => {
+      const newMachine: FactoryMachine = {
+        instanceId: `${configId}_${Date.now()}_${Math.random()}`,
+        configId: configId,
+        assignedProductionLineId: null,
+        purchasedUpgradeIds: []
+      };
+      
+      const currentMachines = prev.factoryMachines || [];
+
+      return {
+        ...prev,
+        money: prev.money - config.baseCost,
+        factoryMachines: [...currentMachines, newMachine]
+      };
+    });
+    
   }, [toast]);
 
   const purchaseFactoryMachineUpgrade = useCallback((machineInstanceId: string, upgradeId: string) => {
@@ -1085,24 +1098,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (config.maxInstances !== undefined && numOwned >= config.maxInstances) return;
 
     const cost = config.baseCost * Math.pow(config.costMultiplier || 1.15, numOwned);
-    if (playerStatsRef.current.money >= cost) {
-      if (playerStatsRef.current.toastSettings?.showFactory) {
-          toast({ title: "Material Collector Deployed!", description: `Deployed a new ${config.name}.` });
-      }
-
-      setPlayerStats(prev => {
-          const newCollector: FactoryMaterialCollector = {
-              instanceId: `${configId}_${Date.now()}`,
-              configId,
-              currentMaterialsPerSecond: config.materialsPerSecond,
-          };
-          return {
-              ...prev,
-              money: prev.money - cost,
-              factoryMaterialCollectors: [...(prev.factoryMaterialCollectors || []), newCollector]
-          };
-      });
+    if (playerStatsRef.current.money < cost) {
+      return;
     }
+    
+    if (playerStatsRef.current.toastSettings?.showFactory) {
+        toast({ title: "Material Collector Deployed!", description: `Deployed a new ${config.name}.` });
+    }
+
+    setPlayerStats(prev => {
+        const newCollector: FactoryMaterialCollector = {
+            instanceId: `${configId}_${Date.now()}`,
+            configId,
+            currentMaterialsPerSecond: config.materialsPerSecond,
+        };
+        return {
+            ...prev,
+            money: prev.money - cost,
+            factoryMaterialCollectors: [...(prev.factoryMaterialCollectors || []), newCollector]
+        };
+    });
+    
   }, [toast]);
 
   const manuallyGenerateResearchPoints = useCallback(() => {
@@ -1253,29 +1269,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (currentWorkerCount >= MAX_WORKERS) return;
     
     const cost = Math.floor(WORKER_HIRE_COST_BASE * Math.pow(WORKER_HIRE_COST_MULTIPLIER, currentWorkerCount));
-    if (playerStatsRef.current.money >= cost) {
-      const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
-      const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
-      const newWorker: Worker = {
-        id: `worker_${Date.now()}_${Math.random()}`,
-        name: `${firstName} ${lastName}`,
-        assignedMachineInstanceId: null,
-        energy: getDynamicMaxWorkerEnergy(),
-        status: 'idle',
-      };
-
-      if (playerStatsRef.current.toastSettings?.showFactory) {
-        toast({ title: "Worker Hired!", description: `${newWorker.name} has joined the team.` });
-      }
-
-      setPlayerStats(prev => {
-        return {
-          ...prev,
-          money: prev.money - cost,
-          factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
-        };
-      });
+    if (playerStatsRef.current.money < cost) {
+      return
     }
+    
+    const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
+    const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
+    const newWorker: Worker = {
+      id: `worker_${Date.now()}_${Math.random()}`,
+      name: `${firstName} ${lastName}`,
+      assignedMachineInstanceId: null,
+      energy: getDynamicMaxWorkerEnergy(),
+      status: 'idle',
+    };
+
+    if (playerStatsRef.current.toastSettings?.showFactory) {
+      toast({ title: "Worker Hired!", description: `${newWorker.name} has joined the team.` });
+    }
+
+    setPlayerStats(prev => {
+      return {
+        ...prev,
+        money: prev.money - cost,
+        factoryWorkers: [...(prev.factoryWorkers || []), newWorker],
+      };
+    });
+    
   }, [getDynamicMaxWorkerEnergy, toast]);
 
 
@@ -1392,20 +1411,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [calculateMaxEnergy, toast]);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
-    if (playerStatsRef.current.money >= choice.cost) {
-      if (playerStatsRef.current.toastSettings?.showQuarry) {
-          toast({ title: "New Quarry Selected!", description: `Started excavation at ${choice.name}.` });
-      }
-      setPlayerStats(prev => ({
-          ...prev,
-          money: prev.money - choice.cost,
-          quarryName: choice.name,
-          quarryDepth: 0,
-          quarryTargetDepth: choice.depth,
-          quarryLevel: prev.quarryLevel + 1,
-          quarryRarityBias: choice.rarityBias,
-      }));
+    if (playerStatsRef.current.money < choice.cost) {
+      return;
     }
+
+    if (playerStatsRef.current.toastSettings?.showQuarry) {
+        toast({ title: "New Quarry Selected!", description: `Started excavation at ${choice.name}.` });
+    }
+    setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money - choice.cost,
+        quarryName: choice.name,
+        quarryDepth: 0,
+        quarryTargetDepth: choice.depth,
+        quarryLevel: prev.quarryLevel + 1,
+        quarryRarityBias: choice.rarityBias,
+    }));
+    
   }, [toast]);
 
   const purchaseFarm = useCallback(() => {
@@ -2062,40 +2084,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const mineralsFromAutomation = autoDigRate;
         const depthFromAutomation = autoDigRate > 0 ? Math.max(1, Math.floor(autoDigRate / 2)) : 0;
 
-        // --- Factory Machine Auto-Assignment ---
-        let newFactoryMachines = [...(prev.factoryMachines || [])];
-        let newFactoryProductionLines = [...(prev.factoryProductionLines || [])];
-
-        const unassignedMachines = newFactoryMachines.filter(m => m.assignedProductionLineId === null);
-        if (unassignedMachines.length > 0) {
-            for (let line of newFactoryProductionLines) {
-                if (!line.isUnlocked) continue;
-                for (let i = 0; i < line.slots.length; i++) {
-                    if (line.slots[i].machineInstanceId === null) {
-                        const machineToAssign = unassignedMachines.shift();
-                        if (machineToAssign) {
-                            machineToAssign.assignedProductionLineId = line.id;
-                            line.slots[i].machineInstanceId = machineToAssign.instanceId;
-                            // Update the machine in the main list as well
-                            const machineIndex = newFactoryMachines.findIndex(m => m.instanceId === machineToAssign.instanceId);
-                            if (machineIndex !== -1) {
-                                newFactoryMachines[machineIndex] = machineToAssign;
-                            }
-                        }
-                        if (unassignedMachines.length === 0) break;
-                    }
-                }
-                if (unassignedMachines.length === 0) break;
-            }
-        }
-        
         // --- Factory Power Calculation ---
         const totalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
             const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
             let power = config ? config.powerOutputKw : 0;
             if(config) {
               const boostResearch = researchItemsRef.current.find(r => r.effects.factoryPowerBuildingBoost?.buildingConfigId === config.id);
-              if (boostResearch && prev.unlockedResearchIds.includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
+              if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
                 power *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
               }
             }
@@ -2115,6 +2110,78 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         }
         const finalTotalPowerGenerated = totalPowerGenerated * (1 + componentGlobalPowerBoostPercent / 100);
+
+        // --- Factory Machine Auto-Assignment & Production ---
+        let newFactoryMachines = [...(prev.factoryMachines || [])];
+        let newFactoryProductionLines = [...(prev.factoryProductionLines || [])];
+        let newFactoryProductionProgress = { ...prev.factoryProductionProgress };
+        let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
+        let newFactoryRawMaterials = prev.factoryRawMaterials;
+        let newTotalFactoryComponentsProduced = prev.totalFactoryComponentsProduced || 0;
+
+        const unassignedMachines = newFactoryMachines.filter(m => m.assignedProductionLineId === null);
+        if (unassignedMachines.length > 0) {
+            const unassignedQueue = [...unassignedMachines];
+            newFactoryProductionLines = newFactoryProductionLines.map(line => {
+                if (!line.isUnlocked) return line;
+                const newSlots = line.slots.map(slot => {
+                    if (slot.machineInstanceId === null && unassignedQueue.length > 0) {
+                        const machineToAssign = unassignedQueue.shift()!;
+                        machineToAssign.assignedProductionLineId = line.id;
+                        return { ...slot, machineInstanceId: machineToAssign.instanceId };
+                    }
+                    return slot;
+                });
+                return { ...line, slots: newSlots };
+            });
+            // Update the main machines list with the new assignments
+            newFactoryMachines = newFactoryMachines.map(m => {
+                const assignedLine = newFactoryProductionLines.find(l => l.slots.some(s => s.machineInstanceId === m.instanceId));
+                return assignedLine ? { ...m, assignedProductionLineId: assignedLine.id } : m;
+            });
+        }
+        
+        newFactoryProductionLines.forEach((line, lineIndex) => {
+            line.slots.forEach((slot, slotIndex) => {
+                const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
+                const currentProgress = newFactoryProductionProgress[progressKey];
+
+                if (currentProgress) { // --- Item is currently being crafted ---
+                    currentProgress.remainingSeconds -= 1;
+                    if (currentProgress.remainingSeconds <= 0) {
+                        // Crafting finished
+                        newFactoryProducedComponents[slot.targetComponentId!] = (newFactoryProducedComponents[slot.targetComponentId!] || 0) + 1;
+                        newTotalFactoryComponentsProduced++;
+                        delete newFactoryProductionProgress[progressKey];
+                    }
+                } else if (slot.targetComponentId && slot.machineInstanceId) { // --- Try to start a new craft ---
+                    const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(c => c.id === slot.targetComponentId);
+                    const machine = newFactoryMachines.find(m => m.instanceId === slot.machineInstanceId);
+                    if (!componentConfig || !machine) return;
+                    
+                    const worker = (prev.factoryWorkers || []).find(w => w.assignedMachineInstanceId === machine.instanceId);
+                    if (!worker || worker.status !== 'working') return;
+
+                    const hasRawMaterials = newFactoryRawMaterials >= componentConfig.rawMaterialCost;
+                    const hasInputComponents = componentConfig.recipe.every(input => 
+                        (newFactoryProducedComponents[input.componentId] || 0) >= input.quantity
+                    );
+
+                    if (hasRawMaterials && hasInputComponents) {
+                        newFactoryRawMaterials -= componentConfig.rawMaterialCost;
+                        componentConfig.recipe.forEach(input => {
+                            newFactoryProducedComponents[input.componentId] -= input.quantity;
+                        });
+
+                        newFactoryProductionProgress[progressKey] = {
+                            totalSeconds: componentConfig.productionTimeSeconds,
+                            remainingSeconds: componentConfig.productionTimeSeconds - 1,
+                        };
+                    }
+                }
+            });
+        });
+
 
         // --- Farm and Vehicle Updates ---
         let updatedFarmFields = [...(prev.farmFields || [])];
@@ -2202,6 +2269,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryPowerUnitsGenerated: finalTotalPowerGenerated,
           factoryMachines: newFactoryMachines,
           factoryProductionLines: newFactoryProductionLines,
+          factoryProductionProgress: newFactoryProductionProgress,
+          factoryProducedComponents: newFactoryProducedComponents,
+          factoryRawMaterials: newFactoryRawMaterials,
+          totalFactoryComponentsProduced: newTotalFactoryComponentsProduced,
           farmFields: updatedFarmFields,
           farmVehicles: updatedFarmVehicles,
           siloStorage,
