@@ -69,7 +69,7 @@ export default function WarehousePage() {
                     <CardTitle className="text-lg flex items-center gap-2"><LinkIcon className="h-5 w-5 text-primary"/>Active Contracts</CardTitle>
                 </CardHeader>
                 <CardContent>
-                     <p className="text-2xl font-bold">0</p>
+                     <p className="text-2xl font-bold">{playerStats.activeContracts?.length || 0}</p>
                     <p className="text-xs text-muted-foreground">Trucks currently on delivery</p>
                 </CardContent>
             </Card>

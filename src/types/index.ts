@@ -292,15 +292,26 @@ export interface Worker {
   status: WorkerStatus;
 }
 
+export interface DriverUpgrade {
+  id: 'maxEnergy' | 'rechargeRate';
+  name: string;
+  description: string;
+  maxLevel: number;
+  costPerLevel: number;
+}
+
 export interface Driver {
   id: string;
   name: string;
-  assignedTruckId: string | null;
-  energy: number; // Duration they can drive
   status: DriverStatus;
-  tripsCompleted: number;
+  energy: number;
+  maxEnergy: number;
+  rechargeRate: number;
+  upgradeLevels: {
+    maxEnergy: number;
+    rechargeRate: number;
+  };
 }
-
 
 export interface ResearchItemEffects {
   unlocksFactoryMachineConfigIds?: string[];
@@ -391,8 +402,7 @@ export interface FarmActivity {
   durationSeconds: number;
   vehicleId?: string;
   cropId?: CropId;
-  repairAmount?: number; // For repairs
-  fuelAmount?: number;
+  repairAmount?: number;
 }
 
 export interface FarmField {
@@ -470,29 +480,38 @@ export interface TruckConfig {
   name: string;
   icon: LucideIcon;
   capacity: number; // How many units of KitchenItems it can carry
-  speed: number; // km/h
+  speedKmh: number; // km/h
   fuelCapacity: number;
   fuelUsagePerKm: number;
   baseCost: number;
+  wearRatePer1000Km: number;
 }
 
 export interface Truck {
   instanceId: string;
   configId: string;
-  status: 'Idle' | 'On Delivery' | 'Broken Down';
+  status: 'Idle' | 'On Delivery' | 'Broken Down' | 'Repairing';
   wear: number; // 0-100%
-  driverId: string | null;
+  fuel: number;
+  odometerKm: number;
 }
 
-export interface DeliveryRoute {
+export interface Contract {
   id: string;
+  destinationName: string;
+  distanceKm: number;
+  items: { itemId: string; quantity: number }[];
+  reward: number;
+  createdAt: number;
+}
+
+export interface ActiveContract extends Contract {
   truckId: string;
   driverId: string;
-  itemsToDeliver: KitchenItem[];
-  totalDistanceKm: number;
-  startTime: number;
+  departureTime: number;
   estimatedArrivalTime: number;
-  isDelivering: boolean;
+  isPaused: boolean;
+  progressKm: number;
 }
 
 export interface PlayerStats {
@@ -559,10 +578,11 @@ export interface PlayerStats {
   
   // Warehouse & Delivery Stats
   warehouseStorage?: KitchenItem[];
-  warehouseCapacity?: number;
+  warehouseCapacity: number;
   trucks: Truck[];
   drivers: Driver[];
-  activeRoutes: DeliveryRoute[];
+  availableContracts: Contract[];
+  activeContracts: ActiveContract[];
   truckDepotCapacity: number;
   driverLoungeCapacity: number;
 
