@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
+import type { Business, PlayerStats, Stock, StockHolding, SkillNode, SaveData, HQUpgrade, HQUpgradeLevel, FactoryPowerBuilding, FactoryMachine, FactoryProductionLine, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryProductionLineSlot, ResearchItemConfig, Worker, WorkerStatus, FactoryMachineUpgradeConfig, FactoryProductionProgressData, Artifact, ArtifactRarity, ArtifactFindChances, QuarryUpgrade, QuarryChoice, ToastSettings, ETF, BusinessSynergy, IPO, EtfHolding, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe, TruckConfig, DriverUpgrade, Truck, Driver, Contract, ActiveContract } from '@/types';
 import {
   INITIAL_BUSINESSES, INITIAL_MONEY, INITIAL_STOCKS, INITIAL_PRESTIGE_POINTS, INITIAL_TIMES_PRESTIGED, INITIAL_SKILL_TREE,
   INITIAL_UNLOCKED_SKILL_IDS, INITIAL_HQ_UPGRADE_LEVELS, INITIAL_HQ_UPGRADES, INITIAL_UNLOCKED_ARTIFACT_IDS, INITIAL_ARTIFACTS,
@@ -20,10 +20,14 @@ import {
   INITIAL_ETFS, BUSINESS_SYNERGIES, FARM_PURCHASE_COST, INITIAL_FARM_FIELDS, FARM_CROPS, FARM_VEHICLES,
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
   FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX,
-  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY, WAREHOUSE_UPGRADE_COST_BASE, WAREHOUSE_UPGRADE_COST_MULTIPLIER, WAREHOUSE_CAPACITY_MAX
+  INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY, WAREHOUSE_UPGRADE_COST_BASE, WAREHOUSE_UPGRADE_COST_MULTIPLIER, WAREHOUSE_CAPACITY_MAX,
+  INITIAL_TRUCK_DEPOT_CAPACITY, INITIAL_DRIVER_LOUNGE_CAPACITY, TRUCK_DEPOT_SLOT_COST, DRIVER_LOUNGE_SLOT_COST, DRIVER_HIRE_COST, DRIVER_BASE_ENERGY, DRIVER_BASE_RECHARGE_RATE, DRIVER_UPGRADE_COST, DRIVER_UPGRADE_MAX_LEVEL, CONTRACT_GENERATION_INTERVAL, MAX_AVAILABLE_CONTRACTS,
+  INITIAL_GARAGE_CAPACITY, MAX_GARAGE_CAPACITY, GARAGE_UPGRADE_COST_BASE, GARAGE_UPGRADE_COST_MULTIPLIER
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import { TRUCKS_CONFIG } from '@/config/data/trucks';
+
 
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
 const AUTO_SAVE_INTERVAL = 30000;
@@ -104,6 +108,17 @@ interface GameContextType {
   upgradeWarehouse: () => void;
   craftKitchenRecipe: (recipeId: string, quantity: number) => void;
   shipKitchenItem: (itemId: string, quantity: number) => void;
+  hireDriver: () => void;
+  upgradeDriver: (driverId: string, upgradeType: 'maxEnergy' | 'rechargeRate') => void;
+  purchaseTruckDepotSlot: () => void;
+  purchaseDriverLoungeSlot: () => void;
+  acceptContract: (contractId: string, truckId: string, driverId: string) => void;
+  toggleContractPause: (contractId: string) => void;
+  abandonContract: (contractId: string) => void;
+  purchaseTruck: (configId: string) => void;
+  refuelTruck: (truckId: string) => void;
+  repairTruck: (truckId: string) => void;
+  upgradeGarage: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -169,6 +184,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     farmPurchased: false,
     farmFields: INITIAL_FARM_FIELDS,
     farmVehicles: [],
+    garageCapacity: INITIAL_GARAGE_CAPACITY,
     siloCapacity: INITIAL_SILO_CAPACITY,
     fuelCapacity: INITIAL_FUEL_CAPACITY,
     pantryCapacity: INITIAL_PANTRY_CAPACITY,
@@ -179,6 +195,12 @@ const getInitialPlayerStats = (): PlayerStats => {
     kitchenQueue: [],
     warehouseStorage: [],
     warehouseCapacity: INITIAL_WAREHOUSE_CAPACITY,
+    trucks: [],
+    drivers: [],
+    availableContracts: [],
+    activeContracts: [],
+    truckDepotCapacity: INITIAL_TRUCK_DEPOT_CAPACITY,
+    driverLoungeCapacity: INITIAL_DRIVER_LOUNGE_CAPACITY,
   };
 };
 
@@ -213,6 +235,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const materialCollectionCooldownEndRef = useRef<number>(0);
   const manualResearchCooldownEndRef = useRef<number>(0);
+  const contractGenerationTimestampRef = useRef<number>(0);
   const [materialCollectionCooldownEnd, setMaterialCollectionCooldownEnd] = useState<number>(0);
   const [manualResearchCooldownEnd, setManualResearchCooldownEnd] = useState<number>(0);
 
@@ -505,6 +528,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         kitchenQueue: data.playerStats.kitchenQueue || [],
         warehouseStorage: data.playerStats.warehouseStorage || [],
         warehouseCapacity: data.playerStats.warehouseCapacity || INITIAL_WAREHOUSE_CAPACITY,
+        trucks: data.playerStats.trucks || [],
+        drivers: data.playerStats.drivers || [],
+        availableContracts: data.playerStats.availableContracts || [],
+        activeContracts: data.playerStats.activeContracts || [],
+        truckDepotCapacity: data.playerStats.truckDepotCapacity || INITIAL_TRUCK_DEPOT_CAPACITY,
+        driverLoungeCapacity: data.playerStats.driverLoungeCapacity || INITIAL_DRIVER_LOUNGE_CAPACITY,
       };
 
       const hydratedBusinesses = data.businesses.map((savedBusiness: Business) => {
@@ -576,9 +605,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!business) return false;
 
     const upgrade = business.upgrades?.find(u => u.id === upgradeId);
-    if (!upgrade || upgrade.isPurchased || playerStatsRef.current.money < upgrade.cost || business.level < upgrade.requiredLevel) {
+    if (!upgrade || upgrade.isPurchased || business.level < upgrade.requiredLevel) {
         return false;
     }
+    
+    let totalCostReductionFromComponents = 0;
+    for (const componentId in playerStatsRef.current.factoryProducedComponents) {
+        const count = playerStatsRef.current.factoryProducedComponents[componentId];
+        if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.businessSpecificUpgradeCostReductionPercent?.businessId === businessId) {
+                const potentialReduction = count * componentConfig.effects.businessSpecificUpgradeCostReductionPercent.percent;
+                const cappedReduction = componentConfig.effects.maxBonusPercent ? Math.min(potentialReduction, componentConfig.effects.maxBonusPercent) : potentialReduction;
+                totalCostReductionFromComponents += cappedReduction;
+            }
+        }
+    }
+
+    const actualCost = upgrade.cost * (1 - totalCostReductionFromComponents / 100);
+
+    if (playerStatsRef.current.money < actualCost) return false;
+
 
     if (playerStatsRef.current.toastSettings?.showManualPurchases && !isAutoBuy) {
         toast({
@@ -609,7 +656,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setPlayerStats(prev => ({
         ...prev,
-        money: prev.money - upgrade.cost,
+        money: prev.money - actualCost,
     }));
     
     return true;
@@ -1215,7 +1262,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         const oldWorkerIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === machineInstanceId);
         if (oldWorkerIndex !== -1) {
-            newWorkers[oldWorkerIndex] = { ...newWorkers[oldWorkerIndex], assignedMachineInstanceId: null };
+            newWorkers[oldWorkerIndex] = { ...newWorkers[oldWorkerIndex], assignedMachineInstanceId: null, status: 'idle' };
         }
         
         if (workerId) {
@@ -1226,10 +1273,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const otherMachineId = newWorkers[newWorkerIndex].assignedMachineInstanceId;
                      const otherMachineWorkerIndex = newWorkers.findIndex(w => w.assignedMachineInstanceId === otherMachineId && w.id !== workerId);
                      if(otherMachineWorkerIndex > -1){
-                         newWorkers[otherMachineWorkerIndex] = {...newWorkers[otherMachineWorkerIndex], assignedMachineInstanceId: null}
+                         newWorkers[otherMachineWorkerIndex] = {...newWorkers[otherMachineWorkerIndex], assignedMachineInstanceId: null, status: 'idle' }
                      }
                 }
-                newWorkers[newWorkerIndex] = { ...newWorkers[newWorkerIndex], assignedMachineInstanceId: machineInstanceId };
+                newWorkers[newWorkerIndex] = { ...newWorkers[newWorkerIndex], assignedMachineInstanceId: machineInstanceId, status: 'working' };
             }
         }
         return { ...prev, factoryWorkers: newWorkers };
@@ -1417,15 +1464,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPlayerStats(prev => {
       const newPurchasedIds = [...(prev.purchasedQuarryUpgradeIds || []), upgradeId];
       let newMaxEnergy = prev.maxQuarryEnergy;
-      let newMineralsBonus = getMineralBonus(); // Recalculate based on existing
-      let newAutomationRate = (prev.purchasedQuarryUpgradeIds || [])
-          .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
-          .reduce((sum, rate) => sum + rate, 0);
-
-      const upgradeEffects = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId)?.effects;
-      if (upgradeEffects?.increaseMaxEnergy) newMaxEnergy += upgradeEffects.increaseMaxEnergy;
-      if (upgradeEffects?.mineralBonus) newMineralsBonus += upgradeEffects.mineralBonus;
-      if (upgradeEffects?.automationRate) newAutomationRate += upgradeEffects.automationRate;
+      if (upgradeConfig.effects.increaseMaxEnergy) {
+        newMaxEnergy += upgradeConfig.effects.increaseMaxEnergy;
+      }
 
       return {
           ...prev,
@@ -1434,7 +1475,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           maxQuarryEnergy: newMaxEnergy,
       };
     });
-  }, [getMineralBonus, toast]);
+  }, [toast]);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     if (playerStatsRef.current.money < choice.cost) {
@@ -1784,6 +1825,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
     });
   }, [toast]);
+  
+  const upgradeGarage = useCallback(() => {
+    const prev = playerStatsRef.current;
+    const currentSlots = prev.garageCapacity || INITIAL_GARAGE_CAPACITY;
+    if (currentSlots >= MAX_GARAGE_CAPACITY) return;
+
+    const currentLevel = currentSlots - INITIAL_GARAGE_CAPACITY;
+    const cost = Math.floor(GARAGE_UPGRADE_COST_BASE * Math.pow(GARAGE_UPGRADE_COST_MULTIPLIER, currentLevel));
+    if (prev.money < cost) return;
+
+    toast({ title: "Garage Expanded!", description: "You can now store one more vehicle." });
+
+    setPlayerStats(current => ({
+        ...current,
+        money: current.money - cost,
+        garageCapacity: current.garageCapacity + 1,
+    }));
+  }, [toast]);
 
   const craftKitchenRecipe = useCallback((recipeId: string, quantity: number) => {
     const recipe = KITCHEN_RECIPES.find(r => r.id === recipeId);
@@ -1860,6 +1919,34 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [toast]);
 
+  const hireDriver = useCallback(() => {}, []);
+  const upgradeDriver = useCallback((driverId: string, upgradeType: 'maxEnergy' | 'rechargeRate') => {}, []);
+  const purchaseTruckDepotSlot = useCallback(() => {
+    if (playerStatsRef.current.money < TRUCK_DEPOT_SLOT_COST) return;
+    toast({ title: "Depot Expanded", description: "You can now store one more truck." });
+    setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money - TRUCK_DEPOT_SLOT_COST,
+        truckDepotCapacity: (prev.truckDepotCapacity || 0) + 1,
+    }));
+  }, [toast]);
+  const purchaseDriverLoungeSlot = useCallback(() => {
+    if (playerStatsRef.current.money < DRIVER_LOUNGE_SLOT_COST) return;
+    toast({ title: "Driver's Lounge Expanded", description: "You can now hire one more driver." });
+    setPlayerStats(prev => ({
+        ...prev,
+        money: prev.money - DRIVER_LOUNGE_SLOT_COST,
+        driverLoungeCapacity: (prev.driverLoungeCapacity || 0) + 1,
+    }));
+  }, [toast]);
+  const acceptContract = useCallback((contractId: string, truckId: string, driverId: string) => {}, []);
+  const toggleContractPause = useCallback((contractId: string) => {}, []);
+  const abandonContract = useCallback((contractId: string) => {}, []);
+  const purchaseTruck = useCallback((configId: string) => {}, []);
+  const refuelTruck = useCallback((truckId: string) => {}, []);
+  const repairTruck = useCallback((truckId: string) => {}, []);
+
+
   useEffect(() => {
     const loadGame = () => {
       try {
@@ -1903,6 +1990,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             kitchenQueue: loadedData.playerStats.kitchenQueue || [],
             warehouseStorage: loadedData.playerStats.warehouseStorage || [],
             warehouseCapacity: loadedData.playerStats.warehouseCapacity || INITIAL_WAREHOUSE_CAPACITY,
+            trucks: loadedData.playerStats.trucks || [],
+            drivers: loadedData.playerStats.drivers || [],
+            availableContracts: loadedData.playerStats.availableContracts || [],
+            activeContracts: loadedData.playerStats.activeContracts || [],
+            truckDepotCapacity: loadedData.playerStats.truckDepotCapacity || INITIAL_TRUCK_DEPOT_CAPACITY,
+            driverLoungeCapacity: loadedData.playerStats.driverLoungeCapacity || INITIAL_DRIVER_LOUNGE_CAPACITY,
           };
 
           const hydratedBusinesses = loadedData.businesses.map((savedBusiness: Business) => {
@@ -2201,7 +2294,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const status: WorkerStatus = (newEnergy >= maxEnergy) ? 'idle' : 'resting';
                 return { ...worker, energy: newEnergy, status };
             } else if(worker.status === 'idle' && worker.assignedMachineInstanceId) {
-                return { ...worker, status: 'working' };
+                const machine = newFactoryMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
+                const line = newFactoryProductionLines.find(l => l.id === machine?.assignedProductionLineId);
+                const slot = line?.slots.find(s => s.machineInstanceId === worker.assignedMachineInstanceId);
+                if (slot?.targetComponentId) {
+                    return { ...worker, status: 'working' };
+                }
             }
             return worker;
         });
@@ -2321,6 +2419,80 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
           }
         });
+        
+        let newAvailableContracts = [...(prev.availableContracts || [])];
+        if (now - contractGenerationTimestampRef.current > CONTRACT_GENERATION_INTERVAL) {
+            contractGenerationTimestampRef.current = now;
+            if (newAvailableContracts.length < MAX_AVAILABLE_CONTRACTS) {
+                const availableItems = (prev.kitchenInventory || []).filter(item => item.quantity > 0);
+                if (availableItems.length > 0) {
+                    const newItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+                    const quantity = Math.max(1, Math.floor(Math.random() * Math.min(newItem.quantity, 50)));
+                    const distance = 100 + Math.floor(Math.random() * 900);
+                    const reward = (quantity * 1000) + (distance * 1500); // Simple reward logic
+                    
+                    const newContract: Contract = {
+                        id: `contract_${now}`,
+                        destinationName: `City #${Math.floor(Math.random() * 100)}`,
+                        distanceKm: distance,
+                        items: [{ itemId: newItem.itemId, quantity }],
+                        reward,
+                        createdAt: now,
+                    };
+                    newAvailableContracts.push(newContract);
+                }
+            }
+        }
+        
+        let newActiveContracts = [...(prev.activeContracts || [])];
+        let newTrucks = [...(prev.trucks || [])];
+        let newDrivers = [...(prev.drivers || [])];
+        let newWarehouseStorage = [...(prev.warehouseStorage || [])];
+
+        newActiveContracts = newActiveContracts.filter(contract => {
+            if (contract.isPaused) return true;
+
+            const truckIndex = newTrucks.findIndex(t => t.instanceId === contract.truckId);
+            const driverIndex = newDrivers.findIndex(d => d.id === contract.driverId);
+            if (truckIndex === -1 || driverIndex === -1) return false;
+            
+            const truck = newTrucks[truckIndex];
+            const driver = newDrivers[driverIndex];
+            const truckConfig = TRUCKS_CONFIG.find(tc => tc.id === truck.configId);
+            if (!truckConfig) return false;
+
+            if (driver.energy <= 0 || truck.fuel <= 0) {
+                return true; // Keep contract but don't progress
+            }
+
+            const distanceCovered = truckConfig.speedKmh / 3600; // km per second
+            const newProgress = contract.progressKm + distanceCovered;
+            
+            // Update driver and truck
+            newDrivers[driverIndex] = { ...driver, energy: Math.max(0, driver.energy - DRIVER_ENERGY_DEPLETION_RATE) };
+            newTrucks[truckIndex] = { ...truck, odometerKm: truck.odometerKm + distanceCovered, fuel: Math.max(0, truck.fuel - (truckConfig.fuelUsagePerKm * distanceCovered)), wear: Math.min(100, truck.wear + (truckConfig.wearRatePer1000Km / 1000) * distanceCovered) };
+            
+            if (newProgress >= contract.distanceKm) {
+                // Contract complete
+                money += contract.reward;
+                newTrucks[truckIndex] = { ...newTrucks[truckIndex], status: 'Idle' };
+                newDrivers[driverIndex] = { ...newDrivers[driverIndex], status: 'Resting' };
+                return false; // Remove from active
+            } else {
+                contract.progressKm = newProgress;
+                return true;
+            }
+        });
+
+        // Driver energy regeneration
+        newDrivers = newDrivers.map(driver => {
+            if (driver.status === 'Resting') {
+                const newEnergy = Math.min(driver.maxEnergy, driver.energy + driver.rechargeRate);
+                return { ...driver, energy: newEnergy, status: newEnergy >= driver.maxEnergy ? 'Idle' : 'Resting' };
+            }
+            return driver;
+        });
+
 
         // Final updates to player stats
         return {
@@ -2349,6 +2521,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           siloStorage,
           fuelStorage: prev.pendingFuelDelivery && now >= prev.pendingFuelDelivery.arrivalTime ? Math.min(prev.fuelCapacity, (prev.fuelStorage || 0) + prev.pendingFuelDelivery.amount) : prev.fuelStorage,
           pendingFuelDelivery: prev.pendingFuelDelivery && now >= prev.pendingFuelDelivery.arrivalTime ? undefined : prev.pendingFuelDelivery,
+          availableContracts: newAvailableContracts,
+          activeContracts: newActiveContracts,
+          trucks: newTrucks,
+          drivers: newDrivers,
+          warehouseStorage: newWarehouseStorage,
         };
       });
     }, GAME_TICK_INTERVAL);
@@ -2372,6 +2549,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       purchaseFarm, purchaseFarmField, plantCrop, harvestField, cultivateField, purchaseVehicle,
       refuelVehicle, repairVehicle, sellVehicle, orderFuel, upgradeSilo, upgradeFuelDepot, upgradePantry, upgradeWarehouse,
       craftKitchenRecipe, shipKitchenItem,
+      hireDriver, upgradeDriver, purchaseTruckDepotSlot, purchaseDriverLoungeSlot, acceptContract,
+      toggleContractPause, abandonContract, purchaseTruck, refuelTruck, repairTruck, upgradeGarage
     }}>
       {children}
     </GameContext.Provider>
@@ -2385,5 +2564,7 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
 
     
