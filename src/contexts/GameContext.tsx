@@ -21,12 +21,12 @@ import {
   INITIAL_SILO_CAPACITY, INITIAL_FUEL_CAPACITY, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER,
   FUEL_ORDER_COST_PER_LTR, FUEL_DELIVERY_TIME_BASE_SECONDS, FUEL_DELIVERY_TIME_PER_LTR_SECONDS, VEHICLE_REPAIR_COST_PER_PERCENT, VEHICLE_REPAIR_TIME_PER_PERCENT_SECONDS, KITCHEN_RECIPES, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX,
   INITIAL_PANTRY_CAPACITY, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, INITIAL_WAREHOUSE_CAPACITY, WAREHOUSE_UPGRADE_COST_BASE, WAREHOUSE_UPGRADE_COST_MULTIPLIER, WAREHOUSE_CAPACITY_MAX,
-  INITIAL_TRUCK_DEPOT_CAPACITY, INITIAL_DRIVER_LOUNGE_CAPACITY, TRUCK_DEPOT_SLOT_COST, DRIVER_LOUNGE_SLOT_COST, DRIVER_HIRE_COST, DRIVER_BASE_ENERGY, DRIVER_BASE_RECHARGE_RATE, DRIVER_UPGRADE_COST, DRIVER_UPGRADE_MAX_LEVEL, CONTRACT_GENERATION_INTERVAL, MAX_AVAILABLE_CONTRACTS,
+  INITIAL_TRUCK_DEPOT_CAPACITY, MAX_TRUCK_DEPOT_CAPACITY, INITIAL_DRIVER_LOUNGE_CAPACITY, MAX_DRIVER_LOUNGE_CAPACITY, TRUCK_DEPOT_SLOT_COST, DRIVER_LOUNGE_SLOT_COST, DRIVER_HIRE_COST, DRIVER_BASE_ENERGY, DRIVER_BASE_RECHARGE_RATE, DRIVER_UPGRADE_COST, DRIVER_UPGRADE_MAX_ENERGY_LEVELS, DRIVER_UPGRADE_RECHARGE_RATE_LEVELS, CONTRACT_GENERATION_INTERVAL, MAX_AVAILABLE_CONTRACTS,
   INITIAL_GARAGE_CAPACITY, MAX_GARAGE_CAPACITY, GARAGE_UPGRADE_COST_BASE, GARAGE_UPGRADE_COST_MULTIPLIER
 } from '@/config/game-config';
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { TRUCKS_CONFIG } from '@/config/data/trucks';
+import { TRUCKS_CONFIG, DRIVER_UPGRADES_CONFIG } from '@/config/data/trucks';
 
 
 const SAVE_DATA_KEY = 'bizTycoonSaveData_v1';
@@ -1411,13 +1411,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const digInQuarry = useCallback(() => {
     const playerStatsNow = playerStatsRef.current;
+    const now = Date.now();
     if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG || now < playerStatsNow.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS) return;
 
     const digPower = getQuarryDigPower();
     const mineralsFound = Math.floor(Math.random() * (digPower + getMineralBonus())) + 1;
     const digDepth = Math.max(1, Math.floor(digPower / 2)); // Dig at least 1cm
-
-    const now = Date.now();
 
     let foundArtifact: Artifact | null = null;
     const chances = getArtifactFindChances();
@@ -1465,12 +1464,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (upgradeConfig.effects.increaseMaxEnergy) {
         newMaxEnergy += upgradeConfig.effects.increaseMaxEnergy;
       }
+      // This is to apply the bonus immediately to the current energy
+      let newCurrentEnergy = prev.quarryEnergy;
+      if (upgradeConfig.effects.increaseMaxEnergy) {
+          newCurrentEnergy = newMaxEnergy;
+      }
 
       return {
           ...prev,
           minerals: prev.minerals - upgradeConfig.cost,
           purchasedQuarryUpgradeIds: newPurchasedIds,
           maxQuarryEnergy: newMaxEnergy,
+          quarryEnergy: newCurrentEnergy,
       };
     });
   }, [toast]);
@@ -1921,7 +1926,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const currentDriverCount = (playerStatsRef.current.drivers || []).length;
     const driverLoungeCapacity = playerStatsRef.current.driverLoungeCapacity || 0;
     
-    if (currentDriverCount >= driverLoungeCapacity) {
+    if (currentDriverCount >= MAX_DRIVER_LOUNGE_CAPACITY || currentDriverCount >= driverLoungeCapacity) {
       toast({ title: "Driver's Lounge Full", description: "Upgrade the lounge to hire more drivers.", variant: "destructive"});
       return;
     }
@@ -1953,10 +1958,40 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   }, [toast]);
 
-  const upgradeDriver = useCallback((driverId: string, upgradeType: 'maxEnergy' | 'rechargeRate') => {}, []);
+  const upgradeDriver = useCallback((driverId: string, upgradeType: 'maxEnergy' | 'rechargeRate') => {
+    if (playerStatsRef.current.money < DRIVER_UPGRADE_COST) return;
+
+    setPlayerStats(prev => {
+        const driverIndex = (prev.drivers || []).findIndex(d => d.id === driverId);
+        if (driverIndex === -1) return prev;
+
+        const newDrivers = [...prev.drivers!];
+        const driver = { ...newDrivers[driverIndex] };
+
+        if (upgradeType === 'maxEnergy' && driver.upgradeLevels.maxEnergy < DRIVER_UPGRADE_MAX_ENERGY_LEVELS) {
+            driver.upgradeLevels.maxEnergy++;
+            driver.maxEnergy *= 1.2; // 20% increase
+        } else if (upgradeType === 'rechargeRate' && driver.upgradeLevels.rechargeRate < DRIVER_UPGRADE_RECHARGE_RATE_LEVELS) {
+            driver.upgradeLevels.rechargeRate++;
+            driver.rechargeRate *= 1.25; // 25% increase
+        } else {
+            return prev; // Can't upgrade further
+        }
+
+        newDrivers[driverIndex] = driver;
+
+        toast({ title: "Driver Upgraded!", description: `${driver.name}'s ${upgradeType === 'maxEnergy' ? 'stamina' : 'recovery'} has been improved.` });
+
+        return {
+            ...prev,
+            money: prev.money - DRIVER_UPGRADE_COST,
+            drivers: newDrivers,
+        };
+    });
+  }, [toast]);
   
   const purchaseTruckDepotSlot = useCallback(() => {
-    if (playerStatsRef.current.money < TRUCK_DEPOT_SLOT_COST) return;
+    if (playerStatsRef.current.money < TRUCK_DEPOT_SLOT_COST || (playerStatsRef.current.truckDepotCapacity || 0) >= MAX_TRUCK_DEPOT_CAPACITY) return;
     toast({ title: "Depot Expanded", description: "You can now store one more truck." });
     setPlayerStats(prev => ({
         ...prev,
@@ -1966,7 +2001,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [toast]);
 
   const purchaseDriverLoungeSlot = useCallback(() => {
-    if (playerStatsRef.current.money < DRIVER_LOUNGE_SLOT_COST) return;
+    if (playerStatsRef.current.money < DRIVER_LOUNGE_SLOT_COST || (playerStatsRef.current.driverLoungeCapacity || 0) >= MAX_DRIVER_LOUNGE_CAPACITY) return;
     toast({ title: "Driver's Lounge Expanded", description: "You can now hire one more driver." });
     setPlayerStats(prev => ({
         ...prev,
@@ -1975,9 +2010,70 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   }, [toast]);
   
-  const acceptContract = useCallback((contractId: string, truckId: string, driverId: string) => {}, []);
-  const toggleContractPause = useCallback((contractId: string) => {}, []);
-  const abandonContract = useCallback((contractId: string) => {}, []);
+  const acceptContract = useCallback((contractId: string, truckId: string, driverId: string) => {
+    const contract = playerStatsRef.current.availableContracts?.find(c => c.id === contractId);
+    const truck = playerStatsRef.current.trucks?.find(t => t.instanceId === truckId);
+    const driver = playerStatsRef.current.drivers?.find(d => d.id === driverId);
+
+    if (!contract || !truck || !driver || truck.status !== 'Idle' || driver.status !== 'Idle') return;
+    
+    setPlayerStats(prev => {
+      const newWarehouseStorage = [...(prev.warehouseStorage || [])];
+      let hasItems = true;
+      for (const item of contract.items) {
+          const itemIndex = newWarehouseStorage.findIndex(i => i.itemId === item.itemId);
+          if (itemIndex === -1 || newWarehouseStorage[itemIndex].quantity < item.quantity) {
+              hasItems = false;
+              break;
+          }
+          newWarehouseStorage[itemIndex].quantity -= item.quantity;
+      }
+      if (!hasItems) return prev;
+      
+      const newActiveContract: ActiveContract = {
+          ...contract,
+          truckId,
+          driverId,
+          departureTime: Date.now(),
+          estimatedArrivalTime: Date.now() + (contract.distanceKm / (TRUCKS_CONFIG.find(c=>c.id === truck.configId)?.speedKmh || 60)) * 3600 * 1000,
+          isPaused: false,
+          progressKm: 0,
+      };
+
+      return {
+          ...prev,
+          warehouseStorage: newWarehouseStorage.filter(i => i.quantity > 0),
+          availableContracts: (prev.availableContracts || []).filter(c => c.id !== contractId),
+          activeContracts: [...(prev.activeContracts || []), newActiveContract],
+          trucks: (prev.trucks || []).map(t => t.instanceId === truckId ? { ...t, status: 'On Delivery' } : t),
+          drivers: (prev.drivers || []).map(d => d.id === driverId ? { ...d, status: 'On Delivery' } : d),
+      };
+    });
+  }, []);
+
+  const toggleContractPause = useCallback((contractId: string) => {
+    setPlayerStats(prev => {
+        const newActiveContracts = (prev.activeContracts || []).map(c => 
+            c.id === contractId ? { ...c, isPaused: !c.isPaused } : c
+        );
+        return { ...prev, activeContracts: newActiveContracts };
+    });
+  }, []);
+
+  const abandonContract = useCallback((contractId: string) => {
+    const contract = playerStatsRef.current.activeContracts?.find(c => c.id === contractId);
+    if(!contract) return;
+
+    setPlayerStats(prev => {
+      // Logic to return items to warehouse is omitted for simplicity in this version.
+      return {
+          ...prev,
+          activeContracts: (prev.activeContracts || []).filter(c => c.id !== contractId),
+          trucks: (prev.trucks || []).map(t => t.instanceId === contract.truckId ? { ...t, status: 'Idle' } : t),
+          drivers: (prev.drivers || []).map(d => d.id === contract.driverId ? { ...d, status: 'Idle' } : d),
+      };
+    });
+  }, []);
   
   const purchaseTruck = useCallback((configId: string) => {
     const config = TRUCKS_CONFIG.find(t => t.id === configId);
@@ -2009,8 +2105,48 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [toast]);
 
-  const refuelTruck = useCallback((truckId: string) => {}, []);
-  const repairTruck = useCallback((truckId: string) => {}, []);
+  const refuelTruck = useCallback((truckId: string) => {
+    const truckIndex = playerStatsRef.current.trucks?.findIndex(t => t.instanceId === truckId);
+    if(truckIndex === undefined || truckIndex === -1) return;
+    
+    const truck = playerStatsRef.current.trucks![truckIndex];
+    const truckConfig = TRUCKS_CONFIG.find(c => c.id === truck.configId);
+    if(!truckConfig) return;
+
+    const fuelNeeded = truckConfig.fuelCapacity - truck.fuel;
+    if (fuelNeeded <= 0 || (playerStatsRef.current.fuelStorage || 0) < 1) return;
+
+    const fuelToTransfer = Math.min(fuelNeeded, playerStatsRef.current.fuelStorage || 0);
+
+    setPlayerStats(prev => {
+      const newTrucks = [...prev.trucks!];
+      newTrucks[truckIndex] = { ...truck, fuel: truck.fuel + fuelToTransfer };
+      return {
+        ...prev,
+        fuelStorage: (prev.fuelStorage || 0) - fuelToTransfer,
+        trucks: newTrucks,
+      };
+    });
+  }, []);
+
+  const repairTruck = useCallback((truckId: string) => {
+    const truckIndex = playerStatsRef.current.trucks?.findIndex(t => t.instanceId === truckId);
+    if(truckIndex === undefined || truckIndex === -1) return;
+    
+    const truck = playerStatsRef.current.trucks![truckIndex];
+    const cost = truck.wear * 10000; // Simplified cost
+    if(playerStatsRef.current.money < cost || truck.wear < 1) return;
+
+    setPlayerStats(prev => {
+      const newTrucks = [...prev.trucks!];
+      newTrucks[truckIndex] = { ...truck, wear: 0 };
+      return {
+        ...prev,
+        money: prev.money - cost,
+        trucks: newTrucks,
+      };
+    });
+  }, []);
 
 
   useEffect(() => {
@@ -2524,7 +2660,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             const truck = newTrucks[truckIndex];
             const driver = newDrivers[driverIndex];
-            const truckConfig = TRUCKS_CONFIG.find(tc => tc.id === truck.configId);
+            const truckConfig = TRUCKS_CONFIG.find(c=>c.id === truck.configId);
             if (!truckConfig) return false;
 
             if (driver.energy <= 0 || truck.fuel <= 0) {
