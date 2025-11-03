@@ -2086,31 +2086,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const depthFromAutomation = autoDigRate > 0 ? Math.max(1, Math.floor(autoDigRate / 2)) : 0;
 
         // --- Factory Power Calculation ---
-        const totalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
-            const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
-            let power = config ? config.powerOutputKw : 0;
-            if(config) {
-              const boostResearch = researchItemsRef.current.find(r => r.effects.factoryPowerBuildingBoost?.buildingConfigId === config.id);
-              if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
-                power *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
-              }
-            }
-            return sum + power;
+        let finalTotalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
+          const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
+          if (!config) return sum;
+          let power = config.powerOutputKw;
+          const boostResearch = researchItemsRef.current.find(r => r.effects.factoryPowerBuildingBoost?.buildingConfigId === config.id);
+          if (boostResearch && (prev.unlockedResearchIds || []).includes(boostResearch.id) && boostResearch.effects.factoryPowerBuildingBoost) {
+            power *= (1 + boostResearch.effects.factoryPowerBuildingBoost.powerOutputBoostPercent / 100);
+          }
+          return sum + power;
         }, 0);
-        
+
         let componentGlobalPowerBoostPercent = 0;
         for (const componentId in prev.factoryProducedComponents) {
-            const count = prev.factoryProducedComponents[componentId];
-            if (count > 0) {
-                const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
-                if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
-                    const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
-                    const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
-                    componentGlobalPowerBoostPercent += cappedBoost;
+          const count = prev.factoryProducedComponents[componentId];
+          if (count > 0) {
+            const componentConfig = INITIAL_FACTORY_COMPONENTS_CONFIG.find(fc => fc.id === componentId);
+            if (componentConfig?.effects?.factoryGlobalPowerOutputBoostPercent) {
+              const potentialBoost = count * componentConfig.effects.factoryGlobalPowerOutputBoostPercent;
+              const cappedBoost = componentConfig.effects.maxBonusPercent ? Math.min(potentialBoost, componentConfig.effects.maxBonusPercent) : potentialBoost;
+              componentGlobalPowerBoostPercent += cappedBoost;
+            }
+          }
+        }
+        finalTotalPowerGenerated *= (1 + componentGlobalPowerBoostPercent / 100);
+
+        let powerConsumption = 0;
+        (prev.factoryWorkers || []).forEach(worker => {
+            if (worker.status === 'working' && worker.assignedMachineInstanceId) {
+                const machine = (prev.factoryMachines || []).find(m => m.instanceId === worker.assignedMachineInstanceId);
+                if (machine) {
+                    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
+                    if (machineConfig) {
+                        powerConsumption += machineConfig.powerConsumptionKw;
+                    }
                 }
             }
-        }
-        const finalTotalPowerGenerated = totalPowerGenerated * (1 + componentGlobalPowerBoostPercent / 100);
+        });
+
+        const availablePowerForCollectors = finalTotalPowerGenerated - powerConsumption;
+        let collectorPowerConsumption = 0;
+
+        (prev.factoryMaterialCollectors || []).forEach(collector => {
+            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+            if (config) {
+                if(collectorPowerConsumption + config.powerConsumptionKw <= availablePowerForCollectors) {
+                    collectorPowerConsumption += config.powerConsumptionKw;
+                }
+            }
+        });
+
+        const totalPowerConsumption = powerConsumption + collectorPowerConsumption;
 
         // --- Factory Machine Auto-Assignment & Production ---
         let newFactoryMachines = [...(prev.factoryMachines || [])];
@@ -2121,29 +2147,26 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newTotalFactoryComponentsProduced = prev.totalFactoryComponentsProduced || 0;
         let newFactoryWorkers = [...(prev.factoryWorkers || [])];
 
-        // --- Auto-assign machines to empty slots
         const unassignedMachines = newFactoryMachines.filter(m => m.assignedProductionLineId === null);
         if (unassignedMachines.length > 0) {
-            const unassignedQueue = [...unassignedMachines];
-            newFactoryProductionLines = newFactoryProductionLines.map(line => {
-                if (!line.isUnlocked || unassignedQueue.length === 0) return line;
-                const newSlots = line.slots.map(slot => {
-                    if (slot.machineInstanceId === null && unassignedQueue.length > 0) {
-                        const machineToAssign = unassignedQueue.shift()!;
-                        machineToAssign.assignedProductionLineId = line.id;
-                        const machineIndexInMasterList = newFactoryMachines.findIndex(m => m.instanceId === machineToAssign.instanceId);
-                        if (machineIndexInMasterList > -1) {
-                            newFactoryMachines[machineIndexInMasterList] = machineToAssign;
-                        }
-                        return { ...slot, machineInstanceId: machineToAssign.instanceId };
-                    }
-                    return slot;
-                });
-                return { ...line, slots: newSlots };
-            });
+          const unassignedQueue = [...unassignedMachines];
+          newFactoryProductionLines = newFactoryProductionLines.map(line => {
+              if (!line.isUnlocked || unassignedQueue.length === 0) return line;
+              const newSlots = line.slots.map(slot => {
+                  if (slot.machineInstanceId === null && unassignedQueue.length > 0) {
+                      const machineToAssign = unassignedQueue.shift()!;
+                      const machineIndexInMasterList = newFactoryMachines.findIndex(m => m.instanceId === machineToAssign.instanceId);
+                      if (machineIndexInMasterList > -1) {
+                          newFactoryMachines[machineIndexInMasterList] = { ...machineToAssign, assignedProductionLineId: line.id };
+                      }
+                      return { ...slot, machineInstanceId: machineToAssign.instanceId };
+                  }
+                  return slot;
+              });
+              return { ...line, slots: newSlots };
+          });
         }
         
-        // --- Worker energy and status management
         const maxEnergy = getDynamicMaxWorkerEnergy();
         newFactoryWorkers = newFactoryWorkers.map(worker => {
             if (worker.status === 'working') {
@@ -2152,11 +2175,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return { ...worker, energy: newEnergy, status };
             } else if (worker.status === 'resting' || worker.status === 'idle') {
                 const newEnergy = Math.min(maxEnergy, worker.energy + WORKER_ENERGY_RATE * (prev.factoryWorkerEnergyRegenModifier || 1));
-                let status = worker.status;
+                let status: WorkerStatus = worker.status;
                 if (newEnergy >= maxEnergy && worker.status === 'resting') {
                     status = 'idle';
                 }
-                if (worker.assignedMachineInstanceId && newEnergy > 0 && worker.status === 'idle') {
+                if (worker.assignedMachineInstanceId && newEnergy > 0 && status === 'idle') {
                     status = 'working';
                 }
                 return { ...worker, energy: newEnergy, status };
@@ -2164,8 +2187,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return worker;
         });
 
-        // --- Production Tick
-        newFactoryProductionLines.forEach((line, lineIndex) => {
+        newFactoryProductionLines.forEach((line) => {
             line.slots.forEach((slot, slotIndex) => {
                 const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
                 const currentProgress = newFactoryProductionProgress[progressKey];
@@ -2290,6 +2312,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + totalIncomePerSecond,
           factoryPowerUnitsGenerated: finalTotalPowerGenerated,
+          factoryPowerConsumptionKw: totalPowerConsumption,
           factoryMachines: newFactoryMachines,
           factoryProductionLines: newFactoryProductionLines,
           factoryProductionProgress: newFactoryProductionProgress,
@@ -2338,5 +2361,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
