@@ -5,6 +5,13 @@ import { INITIAL_STOCKS } from './stocks';
 import { INITIAL_FACTORY_COMPONENTS_CONFIG } from './factory';
 import { Activity, Scaling, Target, Award, PiggyBank, Gem, Archive, ShieldEllipsis, Scroll, BookOpen, FlaskConical, Cpu, AtomIcon } from 'lucide-react';
 
+const TIER_1_RECIPE_IDS = INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id);
+const TIER_2_RECIPE_IDS = INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id);
+const TIER_3_RECIPE_IDS = INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id);
+const TIER_4_RECIPE_IDS = INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id);
+const TIER_5_RECIPE_IDS = INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id);
+
+
 const globalHQUgrades: HQUpgrade[] = [
   {
     id: 'hq_market_analysis_1',
@@ -94,7 +101,7 @@ const globalHQUgrades: HQUpgrade[] = [
     requiredTimesPrestiged: 5, // Matched to My Factory unlock
     levels: [
       { level: 1, costMoney: 100000, costPrestigePoints: 2, description: 'Gain access to basic component schematics.', 
-        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 1).map(c => c.id) } 
+        effects: { unlocksFactoryComponentRecipeIds: TIER_1_RECIPE_IDS } 
       }
     ]
   },
@@ -106,7 +113,7 @@ const globalHQUgrades: HQUpgrade[] = [
     requiredTimesPrestiged: 5, // Matched to My Factory unlock
     levels: [
       { level: 1, costMoney: 500000, costPrestigePoints: 5, description: 'Learn to craft more complex components.', 
-        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 2).map(c => c.id) } 
+        effects: { unlocksFactoryComponentRecipeIds: TIER_2_RECIPE_IDS } 
       }
     ]
   },
@@ -118,7 +125,7 @@ const globalHQUgrades: HQUpgrade[] = [
     requiredTimesPrestiged: 6,
     levels: [
       { level: 1, costMoney: 2000000, costPrestigePoints: 10, description: 'Master the production of intricate parts.', 
-        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 3).map(c => c.id) } 
+        effects: { unlocksFactoryComponentRecipeIds: TIER_3_RECIPE_IDS } 
       }
     ]
   },
@@ -130,7 +137,7 @@ const globalHQUgrades: HQUpgrade[] = [
     requiredTimesPrestiged: 7,
     levels: [
       { level: 1, costMoney: 8000000, costPrestigePoints: 20, description: 'Manufacture highly advanced technological components.', 
-        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 4).map(c => c.id) } 
+        effects: { unlocksFactoryComponentRecipeIds: TIER_4_RECIPE_IDS } 
       }
     ]
   },
@@ -142,7 +149,7 @@ const globalHQUgrades: HQUpgrade[] = [
     requiredTimesPrestiged: 8,
     levels: [
       { level: 1, costMoney: 25000000, costPrestigePoints: 40, description: 'Harness quantum principles for ultimate components.', 
-        effects: { unlocksFactoryComponentRecipeIds: INITIAL_FACTORY_COMPONENTS_CONFIG.filter(c => c.tier === 5).map(c => c.id) } 
+        effects: { unlocksFactoryComponentRecipeIds: TIER_5_RECIPE_IDS } 
       }
     ]
   },
@@ -189,5 +196,3 @@ export const INITIAL_HQ_UPGRADES: HQUpgrade[] = [
   ...businessRetentionUpgrades,
   ...stockRetentionUpgrades
 ];
-
-    
