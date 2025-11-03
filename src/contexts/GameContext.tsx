@@ -1375,10 +1375,24 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
 
     let foundArtifact: Artifact | null = null;
-    const totalFindChance = Object.values(getArtifactFindChances()).reduce((s, c) => s + c, 0) / 100;
+    const chances = getArtifactFindChances();
+    const randomRoll = Math.random() * 100;
+    let cumulativeChance = 0;
 
-    if (Math.random() < totalFindChance) {
-        // Logic to select an artifact based on weighted chances
+    const rarities: ArtifactRarity[] = ['Mythic', 'Legendary', 'Rare', 'Uncommon', 'Common'];
+    for(const rarity of rarities) {
+      cumulativeChance += chances[rarity];
+      if (randomRoll < cumulativeChance) {
+        const availableArtifacts = INITIAL_ARTIFACTS.filter(a => a.rarity === rarity && !(playerStatsNow.unlockedArtifactIds || []).includes(a.id));
+        if (availableArtifacts.length > 0) {
+          foundArtifact = availableArtifacts[Math.floor(Math.random() * availableArtifacts.length)];
+        }
+        break;
+      }
+    }
+    
+    if (foundArtifact) {
+      toast({ title: 'Artifact Found!', description: `You discovered the ${foundArtifact.name}!`, duration: 5000 });
     }
 
     setPlayerStats(prev => ({
@@ -1388,8 +1402,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         quarryDepth: prev.quarryDepth + digDepth,
         quarryEnergy: prev.quarryEnergy - QUARRY_ENERGY_COST_PER_DIG,
         lastDigTimestamp: now,
+        unlockedArtifactIds: foundArtifact ? [...(prev.unlockedArtifactIds || []), foundArtifact.id] : prev.unlockedArtifactIds,
     }));
-  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy]);
+  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy, toast]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
@@ -1427,9 +1442,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         quarryTargetDepth: choice.depth,
         quarryLevel: prev.quarryLevel + 1,
         quarryRarityBias: choice.rarityBias,
+        quarryEnergy: calculateMaxEnergy(prev),
     }));
     
-  }, [toast]);
+  }, [calculateMaxEnergy, toast]);
 
   const purchaseFarm = useCallback(() => {
     if (playerStatsRef.current.money >= FARM_PURCHASE_COST && !playerStatsRef.current.farmPurchased) {
@@ -2111,32 +2127,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         finalTotalPowerGenerated *= (1 + componentGlobalPowerBoostPercent / 100);
 
-        let powerConsumption = 0;
-        (prev.factoryWorkers || []).forEach(worker => {
-            if (worker.status === 'working' && worker.assignedMachineInstanceId) {
-                const machine = (prev.factoryMachines || []).find(m => m.instanceId === worker.assignedMachineInstanceId);
-                if (machine) {
-                    const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === machine.configId);
-                    if (machineConfig) {
-                        powerConsumption += machineConfig.powerConsumptionKw;
+        let activePowerConsumption = 0;
+        (prev.factoryProductionLines || []).forEach(line => {
+            line.slots.forEach(slot => {
+                if (slot.machineInstanceId && slot.targetComponentId) {
+                    const worker = prev.factoryWorkers.find(w => w.assignedMachineInstanceId === slot.machineInstanceId);
+                    if (worker && worker.status === 'working') {
+                        const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === prev.factoryMachines.find(m=>m.instanceId === slot.machineInstanceId)?.configId);
+                        if (machineConfig) {
+                            activePowerConsumption += machineConfig.powerConsumptionKw;
+                        }
                     }
                 }
-            }
+            });
         });
-
-        const availablePowerForCollectors = finalTotalPowerGenerated - powerConsumption;
-        let collectorPowerConsumption = 0;
 
         (prev.factoryMaterialCollectors || []).forEach(collector => {
             const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
             if (config) {
-                if(collectorPowerConsumption + config.powerConsumptionKw <= availablePowerForCollectors) {
-                    collectorPowerConsumption += config.powerConsumptionKw;
+                if(finalTotalPowerGenerated - activePowerConsumption >= config.powerConsumptionKw) {
+                     activePowerConsumption += config.powerConsumptionKw;
                 }
             }
         });
-
-        const totalPowerConsumption = powerConsumption + collectorPowerConsumption;
 
         // --- Factory Machine Auto-Assignment & Production ---
         let newFactoryMachines = [...(prev.factoryMachines || [])];
@@ -2173,16 +2186,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
                 const status = newEnergy > 0 ? 'working' : 'resting';
                 return { ...worker, energy: newEnergy, status };
-            } else if (worker.status === 'resting' || worker.status === 'idle') {
+            } else if (worker.status === 'resting') {
                 const newEnergy = Math.min(maxEnergy, worker.energy + WORKER_ENERGY_RATE * (prev.factoryWorkerEnergyRegenModifier || 1));
-                let status: WorkerStatus = worker.status;
-                if (newEnergy >= maxEnergy && worker.status === 'resting') {
-                    status = 'idle';
-                }
-                if (worker.assignedMachineInstanceId && newEnergy > 0 && status === 'idle') {
-                    status = 'working';
-                }
+                const status: WorkerStatus = (newEnergy >= maxEnergy) ? 'idle' : 'resting';
                 return { ...worker, energy: newEnergy, status };
+            } else if(worker.status === 'idle' && worker.assignedMachineInstanceId) {
+                return { ...worker, status: 'working' };
             }
             return worker;
         });
@@ -2308,11 +2317,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           minerals: prev.minerals + mineralsFromAutomation,
           quarryDepth: prev.quarryDepth + depthFromAutomation,
           totalMineralsDug: (prev.totalMineralsDug || 0) + mineralsFromAutomation,
-          quarryEnergy: Math.min(calculateMaxEnergy(prev), prev.quarryEnergy + QUARRY_ENERGY_REGEN_PER_SECOND * (prev.factoryWorkerEnergyRegenModifier || 1)),
+          quarryEnergy: Math.min(calculateMaxEnergy(prev), prev.quarryEnergy + QUARRY_ENERGY_REGEN_PER_SECOND),
           timePlayedSeconds: (prev.timePlayedSeconds || 0) + 1,
           totalMoneyEarned: (prev.totalMoneyEarned || 0) + totalIncomePerSecond,
           factoryPowerUnitsGenerated: finalTotalPowerGenerated,
-          factoryPowerConsumptionKw: totalPowerConsumption,
+          factoryPowerConsumptionKw: activePowerConsumption,
           factoryMachines: newFactoryMachines,
           factoryProductionLines: newFactoryProductionLines,
           factoryProductionProgress: newFactoryProductionProgress,
