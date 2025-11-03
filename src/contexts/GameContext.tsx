@@ -1411,15 +1411,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const digInQuarry = useCallback(() => {
     const playerStatsNow = playerStatsRef.current;
-    if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG) return;
+    if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG || now < playerStatsNow.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS) return;
 
     const digPower = getQuarryDigPower();
     const mineralsFound = Math.floor(Math.random() * (digPower + getMineralBonus())) + 1;
     const digDepth = Math.max(1, Math.floor(digPower / 2)); // Dig at least 1cm
 
     const now = Date.now();
-    materialCollectionCooldownEndRef.current = now + QUARRY_DIG_COOLDOWN_MS;
-    setMaterialCollectionCooldownEnd(materialCollectionCooldownEndRef.current);
 
     let foundArtifact: Artifact | null = null;
     const chances = getArtifactFindChances();
@@ -1451,7 +1449,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         lastDigTimestamp: now,
         unlockedArtifactIds: foundArtifact ? [...(prev.unlockedArtifactIds || []), foundArtifact.id] : (prev.unlockedArtifactIds || []),
     }));
-  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy, toast]);
+  }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, toast]);
 
   const purchaseQuarryUpgrade = useCallback((upgradeId: string) => {
     const upgradeConfig = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId);
@@ -1919,8 +1917,44 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, [toast]);
 
-  const hireDriver = useCallback(() => {}, []);
+  const hireDriver = useCallback(() => {
+    const currentDriverCount = (playerStatsRef.current.drivers || []).length;
+    const driverLoungeCapacity = playerStatsRef.current.driverLoungeCapacity || 0;
+    
+    if (currentDriverCount >= driverLoungeCapacity) {
+      toast({ title: "Driver's Lounge Full", description: "Upgrade the lounge to hire more drivers.", variant: "destructive"});
+      return;
+    }
+    
+    if (playerStatsRef.current.money < DRIVER_HIRE_COST) {
+      toast({ title: "Not Enough Money", description: `You need $${DRIVER_HIRE_COST.toLocaleString()} to hire a driver.`, variant: "destructive"});
+      return;
+    }
+    
+    const firstName = WORKER_FIRST_NAMES[Math.floor(Math.random() * WORKER_FIRST_NAMES.length)];
+    const lastName = WORKER_LAST_NAMES[Math.floor(Math.random() * WORKER_LAST_NAMES.length)];
+    
+    const newDriver: Driver = {
+      id: `driver_${Date.now()}_${Math.random()}`,
+      name: `${firstName} ${lastName}`,
+      status: 'Idle',
+      energy: DRIVER_BASE_ENERGY,
+      maxEnergy: DRIVER_BASE_ENERGY,
+      rechargeRate: DRIVER_BASE_RECHARGE_RATE,
+      upgradeLevels: { maxEnergy: 0, rechargeRate: 0 },
+    };
+
+    toast({ title: "Driver Hired!", description: `${newDriver.name} has joined your logistics team.` });
+
+    setPlayerStats(prev => ({
+      ...prev,
+      money: prev.money - DRIVER_HIRE_COST,
+      drivers: [...(prev.drivers || []), newDriver],
+    }));
+  }, [toast]);
+
   const upgradeDriver = useCallback((driverId: string, upgradeType: 'maxEnergy' | 'rechargeRate') => {}, []);
+  
   const purchaseTruckDepotSlot = useCallback(() => {
     if (playerStatsRef.current.money < TRUCK_DEPOT_SLOT_COST) return;
     toast({ title: "Depot Expanded", description: "You can now store one more truck." });
@@ -1930,6 +1964,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         truckDepotCapacity: (prev.truckDepotCapacity || 0) + 1,
     }));
   }, [toast]);
+
   const purchaseDriverLoungeSlot = useCallback(() => {
     if (playerStatsRef.current.money < DRIVER_LOUNGE_SLOT_COST) return;
     toast({ title: "Driver's Lounge Expanded", description: "You can now hire one more driver." });
@@ -1939,10 +1974,41 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         driverLoungeCapacity: (prev.driverLoungeCapacity || 0) + 1,
     }));
   }, [toast]);
+  
   const acceptContract = useCallback((contractId: string, truckId: string, driverId: string) => {}, []);
   const toggleContractPause = useCallback((contractId: string) => {}, []);
   const abandonContract = useCallback((contractId: string) => {}, []);
-  const purchaseTruck = useCallback((configId: string) => {}, []);
+  
+  const purchaseTruck = useCallback((configId: string) => {
+    const config = TRUCKS_CONFIG.find(t => t.id === configId);
+    const playerStatsNow = playerStatsRef.current;
+    if (!config || playerStatsNow.money < config.baseCost) return;
+    
+    const currentTruckCount = (playerStatsNow.trucks || []).length;
+    if (currentTruckCount >= playerStatsNow.truckDepotCapacity) {
+        toast({ title: "Truck Depot Full", description: "Expand your depot to buy more trucks.", variant: "destructive" });
+        return;
+    }
+    
+    toast({ title: "Truck Purchased!", description: `A new ${config.name} has been added to your depot.` });
+    
+    setPlayerStats(prev => {
+      const newTruck: Truck = {
+        instanceId: `truck_${Date.now()}_${Math.random()}`,
+        configId: config.id,
+        status: 'Idle',
+        wear: 0,
+        fuel: config.fuelCapacity,
+        odometerKm: 0,
+      };
+      return {
+        ...prev,
+        money: prev.money - config.baseCost,
+        trucks: [...(prev.trucks || []), newTruck],
+      };
+    });
+  }, [toast]);
+
   const refuelTruck = useCallback((truckId: string) => {}, []);
   const repairTruck = useCallback((truckId: string) => {}, []);
 
@@ -2564,7 +2630,3 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
-    
-
-    
