@@ -1,6 +1,6 @@
 
 
-import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe } from '@/types';
+import type { Business, BusinessUpgrade, Stock, SkillNode, HQUpgrade, HQUpgradeLevel, FactoryPowerBuildingConfig, FactoryMachineConfig, FactoryComponent, FactoryMaterialCollectorConfig, ResearchItemConfig, Worker, Artifact, QuarryUpgrade, ArtifactRarity, ToastSettings, ETF, BusinessSynergy, IPO, FarmField, Crop, FarmVehicleConfig, FarmVehicle, CropId, FarmActivity, KitchenCraftingActivity, KitchenItem, KitchenRecipe, TruckConfig, DriverUpgrade } from '@/types';
 import { INITIAL_BUSINESSES, TECH_BUSINESS_IDS, LOGISTICS_BUSINESS_IDS, MEDIA_BUSINESS_IDS, MANUFACTURING_BUSINESS_IDS, ENERGY_BUSINESS_IDS, FINANCE_BUSINESS_IDS, BIO_TECH_BUSINESS_IDS, AEROSPACE_BUSINESS_IDS, MISC_ADVANCED_BUSINESS_IDS } from './data/businesses';
 import { INITIAL_STOCKS, STOCK_ETF_UNLOCK_ORDER } from './data/stocks';
 import { INITIAL_STOCK_UPGRADES } from './data/stock-upgrades';
@@ -79,6 +79,19 @@ export const PANTRY_UPGRADE_COST_MULTIPLIER = 1.7;
 export const WAREHOUSE_UPGRADE_COST_BASE = 2500000;
 export const WAREHOUSE_UPGRADE_COST_MULTIPLIER = 2.0;
 
+// Warehouse & Delivery Config
+export const INITIAL_TRUCK_DEPOT_CAPACITY = 1;
+export const INITIAL_DRIVER_LOUNGE_CAPACITY = 1;
+export const TRUCK_DEPOT_SLOT_COST = 500000000; // 500M
+export const DRIVER_LOUNGE_SLOT_COST = 250000000; // 250M
+export const DRIVER_HIRE_COST = 100000000; // 100M
+export const DRIVER_BASE_ENERGY = 10800; // 3 hours
+export const DRIVER_BASE_RECHARGE_RATE = 2; // 2 energy per second
+export const DRIVER_ENERGY_DEPLETION_RATE = 1; // 1 energy per second of driving
+export const DRIVER_UPGRADE_COST = 75000000; // 75M
+export const DRIVER_UPGRADE_MAX_LEVEL = 10;
+export const CONTRACT_GENERATION_INTERVAL = 60000; // 1 minute
+export const MAX_AVAILABLE_CONTRACTS = 5;
 
 const fieldSizes = [5, 8, 5, 12, 10, 15, 8, 20, 12, 25];
 export const INITIAL_FARM_FIELDS: FarmField[] = Array.from({ length: 10 }, (_, i) => ({
@@ -527,6 +540,7 @@ export { WORKER_FIRST_NAMES, WORKER_LAST_NAMES, INITIAL_WORKER_MAX_ENERGY, WORKE
     
 
     
+
 
 
 

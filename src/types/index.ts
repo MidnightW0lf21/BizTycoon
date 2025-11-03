@@ -306,12 +306,13 @@ export interface Driver {
   status: DriverStatus;
   energy: number;
   maxEnergy: number;
-  rechargeRate: number;
+  rechargeRate: number; // energy per second
   upgradeLevels: {
     maxEnergy: number;
     rechargeRate: number;
   };
 }
+
 
 export interface ResearchItemEffects {
   unlocksFactoryMachineConfigIds?: string[];
@@ -579,10 +580,10 @@ export interface PlayerStats {
   // Warehouse & Delivery Stats
   warehouseStorage?: KitchenItem[];
   warehouseCapacity: number;
-  trucks: Truck[];
-  drivers: Driver[];
-  availableContracts: Contract[];
-  activeContracts: ActiveContract[];
+  trucks?: Truck[];
+  drivers?: Driver[];
+  availableContracts?: Contract[];
+  activeContracts?: ActiveContract[];
   truckDepotCapacity: number;
   driverLoungeCapacity: number;
 
