@@ -505,6 +505,7 @@ export interface PlayerStats {
   farmPurchased?: boolean;
   farmFields?: FarmField[];
   farmVehicles?: FarmVehicle[];
+  garageCapacity: number;
   siloStorage?: SiloItem[];
   siloCapacity: number;
   fuelStorage: number;

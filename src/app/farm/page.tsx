@@ -5,8 +5,8 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon, Inbox } from "lucide-react";
-import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER } from "@/config/game-config";
+import { LockKeyhole, Sprout, ShoppingCart, DollarSign, Fuel, Warehouse, Timer, PlusCircle, ChefHat, Package, Check, Truck as ShipIcon, Inbox, Car, Home } from "lucide-react";
+import { FARM_PURCHASE_COST, FUEL_ORDER_COST_PER_LTR, SILO_UPGRADE_COST_BASE, SILO_UPGRADE_COST_MULTIPLIER, FUEL_DEPOT_UPGRADE_COST_BASE, FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES, FARM_CROPS, SILO_CAPACITY_MAX, FUEL_CAPACITY_MAX, PANTRY_CAPACITY_MAX, PANTRY_UPGRADE_COST_BASE, PANTRY_UPGRADE_COST_MULTIPLIER, GARAGE_UPGRADE_COST_BASE, GARAGE_UPGRADE_COST_MULTIPLIER, MAX_GARAGE_CAPACITY } from "@/config/game-config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FarmFieldCard } from "@/components/farm/FarmFieldCard";
 import { VehicleCard } from "@/components/farm/VehicleCard";
@@ -137,7 +137,7 @@ function RecipeCard({ recipe }: RecipeCardProps) {
 
 
 export default function FarmPage() {
-  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, shipKitchenItem, upgradePantry } = useGame();
+  const { playerStats, purchaseFarm, harvestField, cultivateField, upgradeSilo, upgradeFuelDepot, refuelVehicle, repairVehicle, sellVehicle, shipKitchenItem, upgradePantry, upgradeGarage } = useGame();
   const [isPlantingDialogOpen, setIsPlantingDialogOpen] = useState(false);
   const [isVehicleShopOpen, setIsVehicleShopOpen] = useState(false);
   const [isFuelOrderOpen, setIsFuelOrderOpen] = useState(false);
@@ -162,6 +162,13 @@ export default function FarmPage() {
     const currentLevel = Math.floor(Math.log((playerStats.fuelCapacity || 500) / 500) / Math.log(2));
     return Math.floor(FUEL_DEPOT_UPGRADE_COST_BASE * Math.pow(FUEL_DEPOT_UPGRADE_COST_MULTIPLIER, currentLevel));
   }, [playerStats.fuelCapacity]);
+  
+  const garageUpgradeCost = useMemo(() => {
+    const currentSlots = playerStats.garageCapacity || 2;
+    if (currentSlots >= MAX_GARAGE_CAPACITY) return Infinity;
+    const currentLevel = currentSlots - 2;
+    return Math.floor(GARAGE_UPGRADE_COST_BASE * Math.pow(GARAGE_UPGRADE_COST_MULTIPLIER, currentLevel));
+  }, [playerStats.garageCapacity]);
   
   const siloFillPercentage = useMemo(() => {
     if (!playerStats.siloCapacity) return 0;
@@ -200,6 +207,8 @@ export default function FarmPage() {
   const isSiloMaxed = (playerStats.siloCapacity || 0) >= SILO_CAPACITY_MAX;
   const isFuelDepotMaxed = (playerStats.fuelCapacity || 0) >= FUEL_CAPACITY_MAX;
   const isPantryMaxed = (playerStats.pantryCapacity || 0) >= PANTRY_CAPACITY_MAX;
+  const isGarageMaxed = (playerStats.garageCapacity || 2) >= MAX_GARAGE_CAPACITY;
+  const isGarageFull = (playerStats.farmVehicles?.length || 0) >= (playerStats.garageCapacity || 2);
 
   if (playerStats.timesPrestiged < REQUIRED_PRESTIGE_LEVEL_FARM) {
     return (
@@ -344,7 +353,12 @@ export default function FarmPage() {
           <TabsContent value="garage" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Vehicle Garage</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Vehicle Garage</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {(playerStats.farmVehicles?.length || 0)} / {playerStats.garageCapacity || 2} Slots
+                  </span>
+                </CardTitle>
                 <CardDescription>Manage your tractors and harvesters. Keep them fueled and in good repair.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -355,11 +369,17 @@ export default function FarmPage() {
                     <PlusCircle className="h-10 w-10 text-muted-foreground mb-2"/>
                     <CardTitle className="text-lg">Buy New Vehicle</CardTitle>
                     <CardDescription className="mb-4">Expand your fleet.</CardDescription>
-                    <Button onClick={() => setIsVehicleShopOpen(true)}>
-                        <ShoppingCart className="mr-2 h-4 w-4"/>Open Vehicle Shop
+                    <Button onClick={() => setIsVehicleShopOpen(true)} disabled={isGarageFull}>
+                        <ShoppingCart className="mr-2 h-4 w-4"/> {isGarageFull ? 'Garage Full' : 'Open Vehicle Shop'}
                     </Button>
                 </Card>
               </CardContent>
+              <CardFooter>
+                 <Button onClick={upgradeGarage} disabled={isGarageMaxed || playerStats.money < garageUpgradeCost} variant="outline" className="w-full">
+                    <Home className="mr-2 h-4 w-4" />
+                    {isGarageMaxed ? `Max Garage Size (${MAX_GARAGE_CAPACITY})` : `Expand Garage (+1 Slot) - $${garageUpgradeCost.toLocaleString()}`}
+                  </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
           <TabsContent value="kitchen" className="mt-4">
