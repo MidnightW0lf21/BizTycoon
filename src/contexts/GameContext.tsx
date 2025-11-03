@@ -119,6 +119,7 @@ const getInitialPlayerStats = (): PlayerStats => {
     prestigePoints: INITIAL_PRESTIGE_POINTS,
     timesPrestiged: INITIAL_TIMES_PRESTIGED,
     unlockedSkillIds: [...INITIAL_UNLOCKED_SKILL_IDS],
+    purchasedStockUpgradeIds: [],
     hqUpgradeLevels: { ...INITIAL_HQ_UPGRADE_LEVELS },
     achievedBusinessMilestones: {},
     unlockedArtifactIds: [...INITIAL_UNLOCKED_ARTIFACT_IDS],
@@ -2118,7 +2119,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
         let newFactoryRawMaterials = prev.factoryRawMaterials;
         let newTotalFactoryComponentsProduced = prev.totalFactoryComponentsProduced || 0;
+        let newFactoryWorkers = [...(prev.factoryWorkers || [])];
 
+        // --- Auto-assign machines to empty slots
         const unassignedMachines = newFactoryMachines.filter(m => m.assignedProductionLineId === null);
         if (unassignedMachines.length > 0) {
             const unassignedQueue = [...unassignedMachines];
@@ -2140,6 +2143,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
         }
         
+        // --- Worker energy and status management
+        const maxEnergy = getDynamicMaxWorkerEnergy();
+        newFactoryWorkers = newFactoryWorkers.map(worker => {
+            if (worker.status === 'working') {
+                const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
+                const status = newEnergy > 0 ? 'working' : 'resting';
+                return { ...worker, energy: newEnergy, status };
+            } else if (worker.status === 'resting' || worker.status === 'idle') {
+                const newEnergy = Math.min(maxEnergy, worker.energy + WORKER_ENERGY_RATE * (prev.factoryWorkerEnergyRegenModifier || 1));
+                let status = worker.status;
+                if (newEnergy >= maxEnergy && worker.status === 'resting') {
+                    status = 'idle';
+                }
+                if (worker.assignedMachineInstanceId && newEnergy > 0 && worker.status === 'idle') {
+                    status = 'working';
+                }
+                return { ...worker, energy: newEnergy, status };
+            }
+            return worker;
+        });
+
+        // --- Production Tick
         newFactoryProductionLines.forEach((line, lineIndex) => {
             line.slots.forEach((slot, slotIndex) => {
                 const progressKey = `${line.id}-${slotIndex}-${slot.targetComponentId}`;
@@ -2157,7 +2182,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const machine = newFactoryMachines.find(m => m.instanceId === slot.machineInstanceId);
                     if (!componentConfig || !machine) return;
                     
-                    const worker = (prev.factoryWorkers || []).find(w => w.assignedMachineInstanceId === machine.instanceId);
+                    const worker = newFactoryWorkers.find(w => w.assignedMachineInstanceId === machine.instanceId);
                     if (!worker || worker.status !== 'working') return;
 
                     const hasRawMaterials = newFactoryRawMaterials >= componentConfig.rawMaterialCost;
@@ -2271,6 +2296,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           factoryProducedComponents: newFactoryProducedComponents,
           factoryRawMaterials: newFactoryRawMaterials,
           totalFactoryComponentsProduced: newTotalFactoryComponentsProduced,
+          factoryWorkers: newFactoryWorkers,
           farmFields: updatedFarmFields,
           farmVehicles: updatedFarmVehicles,
           siloStorage,
@@ -2312,6 +2338,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
-
 
     
