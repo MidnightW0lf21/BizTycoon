@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Settings, Cog, Zap, Box, HelpCircle, PlusCircle, UserCog, UserPlus, DollarSign, FlaskConical, Sparkles, LockKeyhole, CheckCircle2, PackageCheck, PackageX } from "lucide-react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_HQ_UPGRADES } from "@/config/game-config"; // Added INITIAL_HQ_UPGRADES
+import { INITIAL_RESEARCH_ITEMS_CONFIG, INITIAL_HQ_UPGRADES } from "@/config/game-config";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMemo } from "react";
 
