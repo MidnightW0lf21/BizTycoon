@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription }
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { User, Zap, ChevronsUp, DollarSign } from "lucide-react";
-import { DRIVER_UPGRADE_COST, DRIVER_UPGRADE_MAX_LEVEL } from "@/config/game-config";
+import { DRIVER_UPGRADE_COST, DRIVER_UPGRADE_MAX_ENERGY_LEVELS, DRIVER_UPGRADE_RECHARGE_RATE_LEVELS } from "@/config/game-config";
 import { cn } from "@/lib/utils";
 
 interface DriverCardProps {
@@ -18,8 +18,8 @@ interface DriverCardProps {
 export function DriverCard({ driver, playerMoney, onUpgrade }: DriverCardProps) {
     const energyPercent = (driver.energy / driver.maxEnergy) * 100;
     
-    const canUpgradeMaxEnergy = driver.upgradeLevels.maxEnergy < DRIVER_UPGRADE_MAX_LEVEL && playerMoney >= DRIVER_UPGRADE_COST;
-    const canUpgradeRechargeRate = driver.upgradeLevels.rechargeRate < DRIVER_UPGRADE_MAX_LEVEL && playerMoney >= DRIVER_UPGRADE_COST;
+    const canUpgradeMaxEnergy = driver.upgradeLevels.maxEnergy < DRIVER_UPGRADE_MAX_ENERGY_LEVELS && playerMoney >= DRIVER_UPGRADE_COST;
+    const canUpgradeRechargeRate = driver.upgradeLevels.rechargeRate < DRIVER_UPGRADE_RECHARGE_RATE_LEVELS && playerMoney >= DRIVER_UPGRADE_COST;
 
     return (
         <Card>
@@ -39,8 +39,8 @@ export function DriverCard({ driver, playerMoney, onUpgrade }: DriverCardProps) 
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1 border-t pt-2">
                     <p>Recharge Rate: {driver.rechargeRate.toFixed(1)}/sec</p>
-                    <p>Max Energy Upgrades: {driver.upgradeLevels.maxEnergy} / {DRIVER_UPGRADE_MAX_LEVEL}</p>
-                    <p>Recharge Rate Upgrades: {driver.upgradeLevels.rechargeRate} / {DRIVER_UPGRADE_MAX_LEVEL}</p>
+                    <p>Max Energy Upgrades: {driver.upgradeLevels.maxEnergy} / {DRIVER_UPGRADE_MAX_ENERGY_LEVELS}</p>
+                    <p>Recharge Rate Upgrades: {driver.upgradeLevels.rechargeRate} / {DRIVER_UPGRADE_RECHARGE_RATE_LEVELS}</p>
                 </div>
             </CardContent>
             <CardFooter className="flex gap-2">
