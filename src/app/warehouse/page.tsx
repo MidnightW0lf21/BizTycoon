@@ -3,7 +3,7 @@
 
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { LockKeyhole, Truck, Inbox, Users, Link as LinkIcon, DollarSign } from "lucide-react";
+import { LockKeyhole, Truck, Inbox, Users, Link as LinkIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { WAREHOUSE_CAPACITY_MAX, WAREHOUSE_UPGRADE_COST_BASE, WAREHOUSE_UPGRADE_COST_MULTIPLIER, KITCHEN_RECIPES } from "@/config/game-config";
@@ -64,22 +64,23 @@ export default function WarehousePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary"/>Retail Revenue</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-2xl font-bold">$0/sec</p>
-                    <p className="text-xs text-muted-foreground">Income from shop sales (Coming Soon)</p>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2"><LinkIcon className="h-5 w-5 text-primary"/>Active Routes</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2"><LinkIcon className="h-5 w-5 text-primary"/>Active Contracts</CardTitle>
                 </CardHeader>
                 <CardContent>
                      <p className="text-2xl font-bold">0</p>
                     <p className="text-xs text-muted-foreground">Trucks currently on delivery</p>
+                </CardContent>
+            </Card>
+            {/* Placeholder for a future metric */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5 text-primary"/>Driver Pool</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <p className="text-2xl font-bold">{playerStats.drivers?.length || 0}</p>
+                    <p className="text-xs text-muted-foreground">Total available drivers</p>
                 </CardContent>
             </Card>
           </CardContent>
