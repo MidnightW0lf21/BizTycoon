@@ -1402,7 +1402,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         quarryDepth: prev.quarryDepth + digDepth,
         quarryEnergy: prev.quarryEnergy - QUARRY_ENERGY_COST_PER_DIG,
         lastDigTimestamp: now,
-        unlockedArtifactIds: foundArtifact ? [...(prev.unlockedArtifactIds || []), foundArtifact.id] : prev.unlockedArtifactIds,
+        unlockedArtifactIds: foundArtifact ? [...(prev.unlockedArtifactIds || []), foundArtifact.id] : (prev.unlockedArtifactIds || []),
     }));
   }, [getQuarryDigPower, getMineralBonus, getArtifactFindChances, calculateMaxEnergy, toast]);
 
@@ -1416,7 +1416,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setPlayerStats(prev => {
       const newPurchasedIds = [...(prev.purchasedQuarryUpgradeIds || []), upgradeId];
-      const newMaxEnergy = calculateMaxEnergy({ ...prev, purchasedQuarryUpgradeIds: newPurchasedIds });
+      let newMaxEnergy = prev.maxQuarryEnergy;
+      let newMineralsBonus = getMineralBonus(); // Recalculate based on existing
+      let newAutomationRate = (prev.purchasedQuarryUpgradeIds || [])
+          .map(id => INITIAL_QUARRY_UPGRADES.find(u => u.id === id)?.effects.automationRate || 0)
+          .reduce((sum, rate) => sum + rate, 0);
+
+      const upgradeEffects = INITIAL_QUARRY_UPGRADES.find(u => u.id === upgradeId)?.effects;
+      if (upgradeEffects?.increaseMaxEnergy) newMaxEnergy += upgradeEffects.increaseMaxEnergy;
+      if (upgradeEffects?.mineralBonus) newMineralsBonus += upgradeEffects.mineralBonus;
+      if (upgradeEffects?.automationRate) newAutomationRate += upgradeEffects.automationRate;
+
       return {
           ...prev,
           minerals: prev.minerals - upgradeConfig.cost,
@@ -1424,7 +1434,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           maxQuarryEnergy: newMaxEnergy,
       };
     });
-  }, [calculateMaxEnergy, toast]);
+  }, [getMineralBonus, toast]);
 
   const selectNextQuarry = useCallback((choice: QuarryChoice) => {
     if (playerStatsRef.current.money < choice.cost) {
@@ -2272,6 +2282,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 case 'Sowing':
                   const cropConfig = FARM_CROPS.find(c => c.id === field.currentCropId);
                   updatedFarmFields[index] = { ...field, status: 'Growing', activity: { type: 'Growing', startTime: now, durationSeconds: cropConfig?.growthTimeSeconds || 0, cropId: field.currentCropId } };
+                  if (vehicleIndex > -1) {
+                    updatedFarmVehicles[vehicleIndex] = { ...updatedFarmVehicles[vehicleIndex], status: 'Idle', activity: undefined };
+                  }
                   break;
                 case 'Growing':
                   updatedFarmFields[index] = { ...field, status: 'ReadyToHarvest', activity: undefined };
@@ -2294,14 +2307,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
                   }
                   updatedFarmFields[index] = { ...field, status: 'Cultivating', currentCropId: undefined, activity: undefined };
+                  if (vehicleIndex > -1) {
+                    updatedFarmVehicles[vehicleIndex] = { ...updatedFarmVehicles[vehicleIndex], status: 'Idle', activity: undefined };
+                  }
                   break;
                 case 'Cultivating':
                   updatedFarmFields[index] = { ...field, status: 'Empty', activity: undefined };
+                   if (vehicleIndex > -1) {
+                    updatedFarmVehicles[vehicleIndex] = { ...updatedFarmVehicles[vehicleIndex], status: 'Idle', activity: undefined };
+                  }
                   break;
-              }
-
-              if (vehicleIndex > -1) {
-                updatedFarmVehicles[vehicleIndex] = { ...updatedFarmVehicles[vehicleIndex], status: 'Idle', activity: undefined };
               }
             }
           }
@@ -2370,3 +2385,5 @@ export const useGame = (): GameContextType => {
   }
   return context;
 };
+
+    
