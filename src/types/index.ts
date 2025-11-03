@@ -282,6 +282,7 @@ export interface FactoryMaterialCollector {
 }
 
 export type WorkerStatus = 'idle' | 'working' | 'resting';
+export type DriverStatus = 'Idle' | 'On Delivery' | 'Resting';
 
 export interface Worker {
   id: string;
@@ -290,6 +291,16 @@ export interface Worker {
   energy: number;
   status: WorkerStatus;
 }
+
+export interface Driver {
+  id: string;
+  name: string;
+  assignedTruckId: string | null;
+  energy: number; // Duration they can drive
+  status: DriverStatus;
+  tripsCompleted: number;
+}
+
 
 export interface ResearchItemEffects {
   unlocksFactoryMachineConfigIds?: string[];
@@ -453,6 +464,37 @@ export interface KitchenCraftingActivity {
   completionTime: number;
 }
 
+// New Warehouse & Delivery Types
+export interface TruckConfig {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  capacity: number; // How many units of KitchenItems it can carry
+  speed: number; // km/h
+  fuelCapacity: number;
+  fuelUsagePerKm: number;
+  baseCost: number;
+}
+
+export interface Truck {
+  instanceId: string;
+  configId: string;
+  status: 'Idle' | 'On Delivery' | 'Broken Down';
+  wear: number; // 0-100%
+  driverId: string | null;
+}
+
+export interface DeliveryRoute {
+  id: string;
+  truckId: string;
+  driverId: string;
+  itemsToDeliver: KitchenItem[];
+  totalDistanceKm: number;
+  startTime: number;
+  estimatedArrivalTime: number;
+  isDelivering: boolean;
+}
+
 export interface PlayerStats {
   money: number;
   totalIncomePerSecond: number;
@@ -514,8 +556,16 @@ export interface PlayerStats {
   pendingFuelDelivery?: { amount: number; arrivalTime: number };
   kitchenInventory?: KitchenItem[];
   kitchenQueue?: KitchenCraftingActivity[];
+  
+  // Warehouse & Delivery Stats
   warehouseStorage?: KitchenItem[];
   warehouseCapacity?: number;
+  trucks: Truck[];
+  drivers: Driver[];
+  activeRoutes: DeliveryRoute[];
+  truckDepotCapacity: number;
+  driverLoungeCapacity: number;
+
 
   // App Settings
   toastSettings?: ToastSettings;
