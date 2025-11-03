@@ -1,4 +1,5 @@
 
+
 import type { TruckConfig, DriverUpgrade } from '@/types';
 import { Truck } from 'lucide-react';
 
@@ -65,14 +66,16 @@ export const DRIVER_UPGRADES_CONFIG: DriverUpgrade[] = [
         id: 'maxEnergy',
         name: 'Stamina Training',
         description: 'Increases the driver\'s maximum energy, allowing for longer trips.',
-        maxLevel: 10,
+        maxLevel: 5,
         costPerLevel: 75000000, // 75M
     },
     {
         id: 'rechargeRate',
         name: 'Recovery Training',
         description: 'Increases the rate at which the driver regains energy while resting.',
-        maxLevel: 10,
+        maxLevel: 4,
         costPerLevel: 75000000, // 75M
     }
 ];
+
+    
