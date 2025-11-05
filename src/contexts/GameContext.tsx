@@ -1464,7 +1464,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (upgradeConfig.effects.increaseMaxEnergy) {
         newMaxEnergy += upgradeConfig.effects.increaseMaxEnergy;
       }
-      // This is to apply the bonus immediately to the current energy
+      
       let newCurrentEnergy = prev.quarryEnergy;
       if (upgradeConfig.effects.increaseMaxEnergy) {
           newCurrentEnergy = newMaxEnergy;
@@ -1843,7 +1843,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPlayerStats(current => ({
         ...current,
         money: current.money - cost,
-        garageCapacity: current.garageCapacity + 1,
+        garageCapacity: (current.garageCapacity || INITIAL_GARAGE_CAPACITY) + 1,
     }));
   }, [toast]);
 
@@ -2406,7 +2406,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const mineralsFromAutomation = autoDigRate;
         const depthFromAutomation = autoDigRate > 0 ? Math.max(1, Math.floor(autoDigRate / 2)) : 0;
 
-        // --- Factory Power Calculation ---
+        // --- Factory Power & Automation ---
+        let newFactoryRawMaterials = prev.factoryRawMaterials;
         let finalTotalPowerGenerated = (prev.factoryPowerBuildings || []).reduce((sum, building) => {
           const config = INITIAL_FACTORY_POWER_BUILDINGS_CONFIG.find(c => c.id === building.configId);
           if (!config) return sum;
@@ -2431,37 +2432,56 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
         finalTotalPowerGenerated *= (1 + componentGlobalPowerBoostPercent / 100);
-
+        
+        let powerForCollectors = finalTotalPowerGenerated;
+        let powerForMachines = 0;
         let activePowerConsumption = 0;
+        let materialsFromCollectors = 0;
+        
+        const sortedCollectors = (prev.factoryMaterialCollectors || []).sort((a,b) => {
+            const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
+            const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
+            return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
+        });
+        
+        for (const collector of sortedCollectors) {
+          const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
+          if(config && powerForCollectors >= config.powerConsumptionKw) {
+            powerForCollectors -= config.powerConsumptionKw;
+            activePowerConsumption += config.powerConsumptionKw;
+            
+            let baseRate = config.materialsPerSecond;
+            // ... apply boosts to baseRate ...
+            materialsFromCollectors += baseRate;
+          }
+        }
+        
+        powerForMachines = powerForCollectors; // Remaining power is for machines
+
         (prev.factoryProductionLines || []).forEach(line => {
             line.slots.forEach(slot => {
                 if (slot.machineInstanceId && slot.targetComponentId) {
                     const worker = prev.factoryWorkers.find(w => w.assignedMachineInstanceId === slot.machineInstanceId);
                     if (worker && worker.status === 'working') {
                         const machineConfig = INITIAL_FACTORY_MACHINE_CONFIGS.find(mc => mc.id === prev.factoryMachines.find(m=>m.instanceId === slot.machineInstanceId)?.configId);
-                        if (machineConfig) {
+                        if (machineConfig && powerForMachines >= machineConfig.powerConsumptionKw) {
+                            powerForMachines -= machineConfig.powerConsumptionKw;
                             activePowerConsumption += machineConfig.powerConsumptionKw;
+                        } else {
+                            // Not enough power for this machine, it stops working, but don't re-add power to pool for this tick
                         }
                     }
                 }
             });
         });
 
-        (prev.factoryMaterialCollectors || []).forEach(collector => {
-            const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-            if (config) {
-                if(finalTotalPowerGenerated - activePowerConsumption >= config.powerConsumptionKw) {
-                     activePowerConsumption += config.powerConsumptionKw;
-                }
-            }
-        });
-
+        newFactoryRawMaterials = Math.min(prev.factoryRawMaterialsCap, newFactoryRawMaterials + materialsFromCollectors);
+        
         // --- Factory Machine Auto-Assignment & Production ---
         let newFactoryMachines = [...(prev.factoryMachines || [])];
         let newFactoryProductionLines = [...(prev.factoryProductionLines || [])];
         let newFactoryProductionProgress = { ...prev.factoryProductionProgress };
         let newFactoryProducedComponents = { ...prev.factoryProducedComponents };
-        let newFactoryRawMaterials = prev.factoryRawMaterials;
         let newTotalFactoryComponentsProduced = prev.totalFactoryComponentsProduced || 0;
         let newFactoryWorkers = [...(prev.factoryWorkers || [])];
 
@@ -2491,10 +2511,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const newEnergy = Math.max(0, worker.energy - WORKER_ENERGY_RATE);
                 const status = newEnergy > 0 ? 'working' : 'resting';
                 return { ...worker, energy: newEnergy, status };
-            } else if (worker.status === 'resting') {
-                const newEnergy = Math.min(maxEnergy, worker.energy + WORKER_ENERGY_RATE * (prev.factoryWorkerEnergyRegenModifier || 1));
-                const status: WorkerStatus = (newEnergy >= maxEnergy) ? 'idle' : 'resting';
-                return { ...worker, energy: newEnergy, status };
+            } else if (worker.status === 'resting' || worker.status === 'idle') {
+                if(worker.energy < maxEnergy) {
+                    const newEnergy = Math.min(maxEnergy, worker.energy + WORKER_ENERGY_RATE * (prev.factoryWorkerEnergyRegenModifier || 1));
+                    const status: WorkerStatus = (newEnergy >= maxEnergy) ? 'idle' : 'resting';
+                    return { ...worker, energy: newEnergy, status };
+                }
             } else if(worker.status === 'idle' && worker.assignedMachineInstanceId) {
                 const machine = newFactoryMachines.find(m => m.instanceId === worker.assignedMachineInstanceId);
                 const line = newFactoryProductionLines.find(l => l.id === machine?.assignedProductionLineId);
