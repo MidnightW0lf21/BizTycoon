@@ -1410,8 +1410,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
   
   const digInQuarry = useCallback(() => {
-    const playerStatsNow = playerStatsRef.current;
     const now = Date.now();
+    const playerStatsNow = playerStatsRef.current;
     if (playerStatsNow.quarryEnergy < QUARRY_ENERGY_COST_PER_DIG || now < playerStatsNow.lastDigTimestamp + QUARRY_DIG_COOLDOWN_MS) return;
 
     const digPower = getQuarryDigPower();
@@ -2433,31 +2433,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         finalTotalPowerGenerated *= (1 + componentGlobalPowerBoostPercent / 100);
         
-        let powerForCollectors = finalTotalPowerGenerated;
-        let powerForMachines = 0;
+        let powerForMachines = finalTotalPowerGenerated; // Start with total power
         let activePowerConsumption = 0;
-        let materialsFromCollectors = 0;
         
+        // Prioritize collectors
         const sortedCollectors = (prev.factoryMaterialCollectors || []).sort((a,b) => {
             const confA = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === a.configId);
             const confB = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === b.configId);
             return (confA?.powerConsumptionKw || Infinity) - (confB?.powerConsumptionKw || Infinity);
         });
         
+        let materialsFromCollectors = 0;
         for (const collector of sortedCollectors) {
           const config = INITIAL_FACTORY_MATERIAL_COLLECTORS_CONFIG.find(c => c.id === collector.configId);
-          if(config && powerForCollectors >= config.powerConsumptionKw) {
-            powerForCollectors -= config.powerConsumptionKw;
+          if(config && powerForMachines >= config.powerConsumptionKw) {
+            powerForMachines -= config.powerConsumptionKw;
             activePowerConsumption += config.powerConsumptionKw;
-            
             let baseRate = config.materialsPerSecond;
-            // ... apply boosts to baseRate ...
+            // Apply boosts to baseRate if any...
             materialsFromCollectors += baseRate;
           }
         }
         
-        powerForMachines = powerForCollectors; // Remaining power is for machines
-
+        // Then allocate remaining power to machines
         (prev.factoryProductionLines || []).forEach(line => {
             line.slots.forEach(slot => {
                 if (slot.machineInstanceId && slot.targetComponentId) {
@@ -2467,8 +2465,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (machineConfig && powerForMachines >= machineConfig.powerConsumptionKw) {
                             powerForMachines -= machineConfig.powerConsumptionKw;
                             activePowerConsumption += machineConfig.powerConsumptionKw;
-                        } else {
-                            // Not enough power for this machine, it stops working, but don't re-add power to pool for this tick
                         }
                     }
                 }
